@@ -1,0 +1,3 @@
+add_subdirectory(HelloLight)
+
+set_target_properties(HelloLight PROPERTIES FOLDER LightSamples)

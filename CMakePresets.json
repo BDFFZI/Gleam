@@ -1,0 +1,13 @@
+{
+  "version": 9,
+  "configurePresets": [
+    {
+      "name": "default",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/../LightBuild",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "D:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    "vulkan",
+    "glfw3",
+    "gtest",
+    "magic-enum",
+    "glm","stb","tinyobjloader"
+  ]
+}
