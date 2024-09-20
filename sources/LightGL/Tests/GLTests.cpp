@@ -17,6 +17,10 @@
 
 #include <LightGL/Runtime/GL.h>
 
+#include "LightGL/Runtime/Foundation/GLFoundation.h"
+#include "LightGL/Runtime/Pipeline/GLSwapChain.h"
+#include "LightGL/Runtime/Resource/GLImageView.h"
+
 struct Vertex
 {
     glm::vec3 pos;
