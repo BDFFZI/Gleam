@@ -11,7 +11,9 @@ class GLRenderPass
 public:
     VkRenderPass renderPass = VK_NULL_HANDLE;
 
-    GLRenderPass(const VkFormat& colorAttachmentFormat, const VkFormat& depthAttachmentFormat);
+    GLRenderPass(
+        const VkFormat& colorAttachmentFormat, const VkSampleCountFlagBits& colorAttachmentSampleCount,
+        const VkFormat& depthAttachmentFormat, const VkSampleCountFlagBits& depthAttachmentSampleCount);
     GLRenderPass(const GLRenderPass&) = delete;
     ~GLRenderPass();
 };

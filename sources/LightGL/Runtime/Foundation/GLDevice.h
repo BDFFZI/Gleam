@@ -16,7 +16,8 @@ public:
     VkQueue presentQueue;
     VkPhysicalDeviceProperties deviceProperties; //!< 显卡各种的属性信息，包括功能限制
     VkPhysicalDeviceMemoryProperties deviceMemoryProperties; //!< 显卡支持分配的内存种类
- 
+    VkSampleCountFlagBits maxUsableSampleCount; //!< 最大多重采样次数
+
     GLDevice(const GLInstance& glInstance, const GLSurface& glSurface);
     GLDevice(const GLDevice&) = delete;
     ~GLDevice();

@@ -14,7 +14,8 @@ public:
     VkPipeline pipeline;
 
     GLPipeline(const GLRenderPass& glRenderPass,int subpassIndex,
-               const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout);
+               const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
+               VkSampleCountFlagBits sampleCount);
     GLPipeline(const GLPipeline&) = delete;
     ~GLPipeline();
 };

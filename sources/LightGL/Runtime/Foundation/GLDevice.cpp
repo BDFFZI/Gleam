@@ -81,6 +81,21 @@ std::optional<uint32_t> FindPresetQueueFamily(const VkPhysicalDevice physicalDev
 
     return {};
 }
+VkSampleCountFlagBits GetMaxUsableSampleCount(const VkPhysicalDeviceProperties& physicalDeviceProperties)
+{
+    VkSampleCountFlags counts =
+        physicalDeviceProperties.limits.framebufferColorSampleCounts &
+        physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+    if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+    if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+
+    return VK_SAMPLE_COUNT_1_BIT;
+}
 
 GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
 {
@@ -93,7 +108,8 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
     //设备必须支持的功能
     std::vector queueFlags = {VK_QUEUE_GRAPHICS_BIT}; //需支持图形管道
     VkPhysicalDeviceFeatures necessaryFeatures = {};
-    necessaryFeatures.samplerAnisotropy = VK_TRUE; //需支持各项异性
+    necessaryFeatures.samplerAnisotropy = VK_TRUE; //需支持各向异性
+    necessaryFeatures.sampleRateShading = VK_TRUE; //需支持着色多重采样（改善来自纹理中的锯齿）
     std::vector necessaryExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME}; //需支持交换链
 
     //挑选首个满足需求的显卡
@@ -157,6 +173,8 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
     vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
     //获取显卡内存支持信息
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &deviceMemoryProperties);
+    //获取多重采样信息
+    maxUsableSampleCount = GetMaxUsableSampleCount(deviceProperties);
 }
 GLDevice::~GLDevice()
 {

@@ -150,18 +150,18 @@ GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, c
     glImage->layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     return glImage;
 }
-GLImage* GLImage::CreateRenderTargetDepth(const uint32_t width, const uint32_t height)
+GLImage* GLImage::CreateFrameBufferColor(const uint32_t width, const uint32_t height, const VkFormat colorFormat, const VkSampleCountFlagBits sampleCount)
 {
-    VkFormat depthImageFormat = GLFoundation::glDevice->FindImageFormat(
-        {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
-    );
-
-    return new GLImage(width, height, depthImageFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    return new GLImage(width, height, colorFormat,
+                       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT, 1, sampleCount);
+}
+GLImage* GLImage::CreateFrameBufferDepth(const uint32_t width, const uint32_t height, const VkFormat depthFormat, const VkSampleCountFlagBits sampleCount)
+{
+    return new GLImage(width, height, depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 1, sampleCount);
 }
 
-GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat format, const VkImageUsageFlags usageFlags, const uint32_t mipLevels)
+GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat format, const VkImageUsageFlags usageFlags,
+                 const uint32_t mipLevels, const VkSampleCountFlagBits sampleCount)
     : layout(VK_IMAGE_LAYOUT_UNDEFINED), format(format), width(width), height(height), mipLevels(mipLevels)
 {
     VkImageCreateInfo imageInfo{};
@@ -177,7 +177,7 @@ GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat for
     imageInfo.initialLayout = layout;
     imageInfo.usage = usageFlags;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //图形队列独占
-    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT; //不使用多重采样
+    imageInfo.samples = sampleCount; //多重采样
     imageInfo.flags = 0; // Optional
     if (vkCreateImage(GLFoundation::glDevice->device, &imageInfo, nullptr, &image) != VK_SUCCESS)
         throw std::runtime_error("创建图片失败！");

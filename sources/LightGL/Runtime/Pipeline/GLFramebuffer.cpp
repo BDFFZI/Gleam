@@ -5,10 +5,13 @@
 
 #include "../Foundation/GLFoundation.h"
 
-GLFramebuffer::GLFramebuffer(const GLRenderPass& glRenderPass, const GLImageView& colorAttachment, const GLImageView& depthAttachment, const VkExtent2D extent)
+GLFramebuffer::GLFramebuffer(
+    const GLRenderPass& glRenderPass,
+    const GLImageView& colorAttachment, const GLImageView& depthAttachment, const GLImageView& colorResolveAttachment,
+    const VkExtent2D extent)
     : colorFormat(colorAttachment.format), depthFormat(depthAttachment.format), extent(extent)
 {
-    std::array<VkImageView, 2> attachments = {colorAttachment.imageView, depthAttachment.imageView};
+    std::array attachments = {colorAttachment.imageView, depthAttachment.imageView, colorResolveAttachment.imageView};
 
     VkFramebufferCreateInfo framebufferInfo{};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;

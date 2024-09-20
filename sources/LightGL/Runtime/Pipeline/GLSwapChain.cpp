@@ -120,16 +120,16 @@ GLSwapChain::GLSwapChain()
     //提取出交换链中的图片
     uint32_t imageCount;
     vkGetSwapchainImagesKHR(vkDevice, swapChain, &imageCount, nullptr);
-    swapChainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(vkDevice, swapChain, &imageCount, swapChainImages.data());
+    images.resize(imageCount);
+    vkGetSwapchainImagesKHR(vkDevice, swapChain, &imageCount, images.data());
 
     //创建图片视图
-    swapChainImageViews.resize(imageCount);
+    imageViews.resize(imageCount);
     for (uint32_t i = 0; i < imageCount; i++)
-        swapChainImageViews[i] = std::make_unique<GLImageView>(swapChainImages[i], surfaceFormat.format, VK_IMAGE_ASPECT_COLOR_BIT);
+        imageViews[i] = std::make_unique<GLImageView>(images[i], surfaceFormat.format, VK_IMAGE_ASPECT_COLOR_BIT);
 
-    swapChainImageFormat = surfaceFormat.format;
-    swapChainImageExtent = extent;
+    imageFormat = surfaceFormat.format;
+    imageExtent = extent;
 
     //创建信号量
     imageAvailableSemaphores.resize(imageCount);
@@ -145,13 +145,13 @@ GLSwapChain::GLSwapChain()
 }
 GLSwapChain::~GLSwapChain()
 {
-    for (size_t i = 0; i < swapChainImages.size(); i++)
+    for (size_t i = 0; i < images.size(); i++)
     {
         vkDestroySemaphore(GLFoundation::glDevice->device, imageAvailableSemaphores[i], nullptr);
         vkDestroySemaphore(GLFoundation::glDevice->device, renderFinishedSemaphores[i], nullptr);
     }
-    swapChainImageViews.clear();
-    swapChainImages.clear();
+    imageViews.clear();
+    images.clear();
     vkDestroySwapchainKHR(GLFoundation::glDevice->device, swapChain, nullptr);
 }
 
@@ -201,5 +201,5 @@ void GLSwapChain::PresentImageAsync()
     presentInfo.pResults = nullptr; // Optional
     vkQueuePresentKHR(GLFoundation::glDevice->presentQueue, &presentInfo);
 
-    currentBufferIndex = (currentBufferIndex + 1) % swapChainImages.size();
+    currentBufferIndex = (currentBufferIndex + 1) % images.size();
 }

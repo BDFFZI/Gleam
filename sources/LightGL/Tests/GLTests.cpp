@@ -92,6 +92,8 @@ class GLTester
 {
     std::unique_ptr<GLSwapChain> glSwapChain;
     size_t maxFramesInFlight;
+    std::unique_ptr<GLImage> colorImage;
+    std::unique_ptr<GLImageView> colorImageView;
     std::unique_ptr<GLImage> depthImage;
     std::unique_ptr<GLImageView> depthImageView;
     std::vector<std::unique_ptr<GLFramebuffer>> glFramebuffers;
@@ -123,8 +125,8 @@ public:
 
         //创建渲染pass
         glRenderPass = std::make_unique<GLRenderPass>(
-            glSwapChain->swapChainImageViews[0]->format,
-            depthImageView->format
+            glSwapChain->imageFormat, GLFoundation::glDevice->maxUsableSampleCount,
+            depthImageView->format, GLFoundation::glDevice->maxUsableSampleCount
         );
 
         //创建帧缓冲区
@@ -146,7 +148,11 @@ public:
             GLShader("assets/vert.spv", VK_SHADER_STAGE_VERTEX_BIT, "main"),
             GLShader("assets/frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, "main"),
         }; //着色器
-        glPipeline = std::make_unique<GLPipeline>(*glRenderPass, 0, glShaderLayout, glMeshLayout, *glPipelineLayout);
+        glPipeline = std::make_unique<GLPipeline>(
+            *glRenderPass, 0,
+            glShaderLayout, glMeshLayout, *glPipelineLayout,
+            GLFoundation::glDevice->maxUsableSampleCount
+        );
 
         //创建顶点索引缓冲区
         std::vector<Vertex> vertices;
@@ -226,7 +232,7 @@ public:
         ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.proj = glm::perspective(glm::radians(45.0f),
-                                    static_cast<float>(glSwapChain->swapChainImageExtent.width) / static_cast<float>(glSwapChain->swapChainImageExtent.height), 0.1f, 10.0f);
+                                    static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain->imageExtent.height), 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
         memcpy(constantBufferAddresses[bufferIndex], &ubo, sizeof(ubo));
 
@@ -238,7 +244,7 @@ public:
         glCommandBuffer.BindVertexBuffers(*vertexBuffer);
         glCommandBuffer.BindIndexBuffer(*indexBuffer);
         glCommandBuffer.BindDescriptorSets(*glPipelineLayout, *glDescriptorSets[bufferIndex]);
-        glCommandBuffer.SetViewportAndScissor(glSwapChain->swapChainImageExtent);
+        glCommandBuffer.SetViewportAndScissor(glSwapChain->imageExtent);
         glCommandBuffer.Draw(static_cast<int>(indexBuffer->size / sizeof(uint32_t)));
         glCommandBuffer.EndRenderPass();
         glCommandBuffer.EndRecord();
@@ -268,9 +274,22 @@ public:
         }
 
         glSwapChain = std::make_unique<GLSwapChain>();
-        maxFramesInFlight = glSwapChain->swapChainImages.size();
+        maxFramesInFlight = glSwapChain->images.size();
 
-        depthImage = std::unique_ptr<GLImage>(GLImage::CreateRenderTargetDepth(glSwapChain->swapChainImageExtent.width, glSwapChain->swapChainImageExtent.height));
+        colorImage = std::unique_ptr<GLImage>(GLImage::CreateFrameBufferColor(
+            glSwapChain->imageExtent.width, glSwapChain->imageExtent.height,
+            glSwapChain->imageFormat, GLFoundation::glDevice->maxUsableSampleCount));
+        colorImageView = std::make_unique<GLImageView>(*colorImage, VK_IMAGE_ASPECT_COLOR_BIT);
+
+        VkFormat depthFormat = GLFoundation::glDevice->FindImageFormat(
+            {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+        );
+
+        depthImage = std::unique_ptr<GLImage>(GLImage::CreateFrameBufferDepth(
+            glSwapChain->imageExtent.width, glSwapChain->imageExtent.height,
+            depthFormat, GLFoundation::glDevice->maxUsableSampleCount));
         depthImageView = std::make_unique<GLImageView>(*depthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
     }
     void RecreateFrameBuffers()
@@ -278,7 +297,14 @@ public:
         //创建帧缓冲区
         glFramebuffers.resize(maxFramesInFlight);
         for (size_t i = 0; i < maxFramesInFlight; ++i)
-            glFramebuffers[i] = std::make_unique<GLFramebuffer>(*glRenderPass, *glSwapChain->swapChainImageViews[i], *depthImageView, glSwapChain->swapChainImageExtent);
+        {
+            glFramebuffers[i] = std::make_unique<GLFramebuffer>(
+                *glRenderPass,
+                *colorImageView,
+                *depthImageView,
+                *glSwapChain->imageViews[i],
+                glSwapChain->imageExtent);
+        }
     }
     ~GLTester()
     {

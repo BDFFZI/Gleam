@@ -16,10 +16,10 @@ class GLSwapChain
 {
 public:
     VkSwapchainKHR swapChain = VK_NULL_HANDLE;
-    VkFormat swapChainImageFormat = {};
-    VkExtent2D swapChainImageExtent = {};
-    std::vector<VkImage> swapChainImages = {};
-    std::vector<std::unique_ptr<GLImageView>> swapChainImageViews = {};
+    std::vector<VkImage> images = {};
+    VkExtent2D imageExtent = {};
+    VkFormat imageFormat = {};
+    std::vector<std::unique_ptr<GLImageView>> imageViews = {};
 
     GLSwapChain();
     GLSwapChain(const GLSwapChain&) = delete;

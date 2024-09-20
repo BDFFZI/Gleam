@@ -4,8 +4,10 @@
 
 #include "../Foundation/GLFoundation.h"
 
-GLPipeline::GLPipeline(const GLRenderPass& glRenderPass, int subpassIndex,
-                       const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout)
+GLPipeline::GLPipeline(
+    const GLRenderPass& glRenderPass, int subpassIndex,
+    const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
+    VkSampleCountFlagBits sampleCount)
 {
     //着色器状态
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages(glShaderLayout.size());
@@ -70,9 +72,9 @@ GLPipeline::GLPipeline(const GLRenderPass& glRenderPass, int subpassIndex,
     //多重采样阶段状态（MSAA，常用于实现抗锯齿）
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisampling.sampleShadingEnable = VK_FALSE;
-    multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT; //不使用多重采样，故仅采样一次
-    multisampling.minSampleShading = 1.0f; // Optional
+    multisampling.rasterizationSamples = sampleCount;
+    multisampling.sampleShadingEnable = VK_TRUE;
+    multisampling.minSampleShading = 0.2f;
     multisampling.pSampleMask = nullptr; // Optional
     multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
     multisampling.alphaToOneEnable = VK_FALSE; // Optional

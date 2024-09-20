@@ -15,7 +15,7 @@ public:
     VkFormat depthFormat;
     VkExtent2D extent;
 
-    GLFramebuffer(const GLRenderPass& glRenderPass, const GLImageView& colorAttachment, const GLImageView& depthAttachment, VkExtent2D extent);
+    GLFramebuffer(const GLRenderPass& glRenderPass, const GLImageView& colorAttachment, const GLImageView& depthAttachment,const GLImageView& colorResolveAttachment, VkExtent2D extent);
     GLFramebuffer(const GLFramebuffer&) = delete;
     ~GLFramebuffer();
 };
