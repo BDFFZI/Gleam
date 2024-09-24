@@ -1,10 +1,28 @@
 ﻿#pragma once
+#include <optional>
+#include <vector>
 #include <vulkan/vulkan_core.h>
 
 
+enum class GLAttachmentType:std::uint8_t
+{
+    Color,
+    DepthStencil,
+    ColorResolve,
+};
+
+struct GLAttachmentInfo
+{
+    GLAttachmentType type;
+    VkFormat format;
+    VkSampleCountFlagBits samples;
+};
+
 struct GLSubpass
 {
-    
+    std::vector<VkAttachmentReference> colorAttachments;
+    std::optional<VkAttachmentReference> depthStencilAttachment;
+    std::optional<VkAttachmentReference> colorResolveAttachment;
 };
 
 /**
@@ -16,10 +34,11 @@ class GLRenderPass
 {
 public:
     VkRenderPass renderPass = VK_NULL_HANDLE;
-
+    
     GLRenderPass(
-        const VkFormat& colorAttachmentFormat, const VkSampleCountFlagBits& colorAttachmentSampleCount,
-        const VkFormat& depthAttachmentFormat, const VkSampleCountFlagBits& depthAttachmentSampleCount);
+        const std::vector<GLAttachmentInfo>& glAttachmentInfos,
+        const std::vector<GLSubpass>& glSubpasses,
+        const std::vector<VkSubpassDependency>& glSubpassDependencies);
     GLRenderPass(const GLRenderPass&) = delete;
     ~GLRenderPass();
 };

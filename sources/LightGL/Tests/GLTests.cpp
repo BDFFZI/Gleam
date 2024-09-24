@@ -15,8 +15,6 @@
 #include <tiny_obj_loader.h>
 #include <gtest/gtest.h>
 
-#include <LightGL/Runtime/GL.h>
-
 #include "LightGL/Runtime/Foundation/GLFoundation.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
 #include "LightGL/Runtime/Resource/GLImageView.h"
@@ -128,9 +126,35 @@ public:
         RecreateSwapChain();
 
         //创建渲染pass
+        std::vector<GLAttachmentInfo> glAttachments = {
+            {GLAttachmentType::Color, glSwapChain->imageFormat, GLFoundation::glDevice->maxUsableSampleCount},
+            {GLAttachmentType::DepthStencil, depthImageView->format, GLFoundation::glDevice->maxUsableSampleCount},
+            {GLAttachmentType::ColorResolve, glSwapChain->imageFormat, VK_SAMPLE_COUNT_1_BIT}
+        };
+        std::vector<GLSubpass> glSubpasses = {
+            {
+                {VkAttachmentReference{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}},
+                VkAttachmentReference{1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL},
+                VkAttachmentReference{2, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
+            }
+        };
+
+        //subPass处理pass过程中的图像布局变换，而pass的开始和结束时也有两个隐式“subPass”处理对应变换（上文设置的那些）。
+        //由于使用的异步渲染，多个图形命令将被执行，也因此会存在冲突（比如帧缓冲区的图像正被上次命令中交换链读取，而此刻又有新的命令需要对其写入）。
+        //因此需要Dependency功能指出subpass运行的依赖信息，这样GPU同时执行多道命令时便会对之间的执行时机进行一定控制。
+        VkSubpassDependency dependency{};
+        //通过同时指定src和dst来确定subpass的执行时机（执行时机前后相邻的两个subpass）
+        //dst必须高于src以避免循环，但序号可以不连续，这意味着可以有多个subpass在同样的起点并行执行
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL; //在srcSubPass中定义该值表示前置隐式subpass（放dstSubpass中表示后置）
+        dependency.dstSubpass = 0; //表明srcSubpass的后一个执行的subpass，此处即我们的subpass，通过srcSubpass+dstSubpass便实现了subpass执行顺序的确定
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT; //等待交换链完成从图像的读取（颜色附件可用）并且上一次片段测试结束时执行（深度附件可用）
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT; //等待交换链完成从图像的读取（颜色附件可用）并且当前片段测试开始（使用深度附件）
+        dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; //当颜色和深度缓冲区可写入时执行（多缓冲帧共用了一样的附件）
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; //当颜色和深度缓冲区可写入时执行
+        std::vector glSubpassDependencies = {dependency};
+
         glRenderPass = std::make_unique<GLRenderPass>(
-            glSwapChain->imageFormat, GLFoundation::glDevice->maxUsableSampleCount,
-            depthImageView->format, GLFoundation::glDevice->maxUsableSampleCount
+            glAttachments, glSubpasses, glSubpassDependencies
         );
 
         //创建帧缓冲区
@@ -155,7 +179,7 @@ public:
         glPipeline = std::make_unique<GLPipeline>(
             *glRenderPass, 0,
             glShaderLayout, glMeshLayout, *glPipelineLayout,
-            GLFoundation::glDevice->maxUsableSampleCount
+            MultisampleState{VK_SAMPLE_COUNT_8_BIT}
         );
 
         //创建顶点索引缓冲区
@@ -304,9 +328,11 @@ public:
         {
             glFramebuffers[i] = std::make_unique<GLFramebuffer>(
                 *glRenderPass,
-                *colorImageView,
-                *depthImageView,
-                *glSwapChain->imageViews[i],
+                std::vector{
+                    colorImageView->imageView,
+                    depthImageView->imageView,
+                    glSwapChain->imageViews[i]->imageView
+                },
                 glSwapChain->imageExtent);
         }
     }

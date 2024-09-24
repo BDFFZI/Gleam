@@ -2,7 +2,7 @@
 #include <functional>
 #include <GLFW/glfw3.h>
 
-namespace LightEngine
+namespace LightRuntime
 {
     class Window
     {

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace LightEngine
+namespace LightRuntime
 {
     class Window;
     class Time

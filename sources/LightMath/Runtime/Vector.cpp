@@ -1,6 +1,6 @@
 ﻿#include "Vector.h"
 
-using namespace LightEngine;
+using namespace LightRuntime;
 
 float2::float2(const float value)
 {

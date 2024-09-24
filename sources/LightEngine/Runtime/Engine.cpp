@@ -1,7 +1,7 @@
 ﻿#include "Engine.h"
 #include <LightWindow/Runtime/Window.h>
 
-using namespace LightEngine;
+using namespace LightRuntime;
 
 void Engine::AddBeginEvent(const std::function<void()>& beginEvent)
 {

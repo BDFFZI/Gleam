@@ -1,3 +1,3 @@
 addModule()
 
-target_link_libraries("${ModuleName}" PRIVATE LightWindow)
+target_link_libraries("${ModuleName}" PUBLIC LightWindow)

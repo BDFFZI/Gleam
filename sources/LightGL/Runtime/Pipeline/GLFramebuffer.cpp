@@ -1,18 +1,15 @@
 #include "GLFramebuffer.h"
 
-#include <array>
 #include <stdexcept>
 
 #include "../Foundation/GLFoundation.h"
 
 GLFramebuffer::GLFramebuffer(
     const GLRenderPass& glRenderPass,
-    const GLImageView& colorAttachment, const GLImageView& depthAttachment, const GLImageView& colorResolveAttachment,
+    const std::vector<VkImageView>& attachments,
     const VkExtent2D extent)
-    : colorFormat(colorAttachment.format), depthFormat(depthAttachment.format), extent(extent)
+    : extent(extent)
 {
-    std::array attachments = {colorAttachment.imageView, depthAttachment.imageView, colorResolveAttachment.imageView};
-
     VkFramebufferCreateInfo framebufferInfo{};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     framebufferInfo.renderPass = glRenderPass.renderPass; //哪个渲染过程所用的帧缓冲区
