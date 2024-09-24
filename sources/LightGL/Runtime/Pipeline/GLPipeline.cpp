@@ -7,7 +7,7 @@
 GLPipeline::GLPipeline(
     const GLRenderPass& glRenderPass, int subpassIndex,
     const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
-    VkSampleCountFlagBits sampleCount)
+    MultisampleState multisampleState)
 {
     //着色器状态
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages(glShaderLayout.size());
@@ -72,7 +72,7 @@ GLPipeline::GLPipeline(
     //多重采样阶段状态（MSAA，常用于实现抗锯齿）
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisampling.rasterizationSamples = sampleCount;
+    multisampling.rasterizationSamples = multisampleState.rasterizationSamples;
     multisampling.sampleShadingEnable = VK_TRUE;
     multisampling.minSampleShading = 0.2f;
     multisampling.pSampleMask = nullptr; // Optional

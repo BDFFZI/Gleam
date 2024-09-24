@@ -1,6 +1,6 @@
 ﻿#include "Input.h"
 
-using namespace LightEngine;
+using namespace LightRuntime;
 
 
 void Input::PushInputEvent(const InputEvent& inputEvent)

@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <vulkan/vulkan_core.h>
 #include "GLRenderPass.h"
-#include "../Resource/GLImageView.h"
 
 /**
  * 存储了渲染管道中的最终输出缓冲区对应的实际物体，而关于这些缓冲区的描述则由GLRenderPass描述。
@@ -11,11 +10,9 @@ class GLFramebuffer
 {
 public:
     VkFramebuffer framebuffer;
-    VkFormat colorFormat;
-    VkFormat depthFormat;
     VkExtent2D extent;
 
-    GLFramebuffer(const GLRenderPass& glRenderPass, const GLImageView& colorAttachment, const GLImageView& depthAttachment,const GLImageView& colorResolveAttachment, VkExtent2D extent);
+    GLFramebuffer(const GLRenderPass& glRenderPass, const std::vector<VkImageView>& attachments, VkExtent2D extent);
     GLFramebuffer(const GLFramebuffer&) = delete;
     ~GLFramebuffer();
 };

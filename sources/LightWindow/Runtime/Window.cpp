@@ -5,7 +5,7 @@
 #include "Input.h"
 #include "Time.h"
 
-using namespace LightEngine;
+using namespace LightRuntime;
 
 void Window::SetWindowCloseEvent(const std::function<bool()>& windowCloseEvent)
 {

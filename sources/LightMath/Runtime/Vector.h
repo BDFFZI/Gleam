@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace LightEngine
+namespace LightRuntime
 {
     struct float2
     {

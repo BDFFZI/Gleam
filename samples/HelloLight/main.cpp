@@ -21,7 +21,7 @@ inline int main()
     using namespace std;
     cout << "Hello Light" << '\n';
 
-    using namespace LightEngine;
+    using namespace LightRuntime;
     Engine::Initialize();
     Engine::Begin();
 

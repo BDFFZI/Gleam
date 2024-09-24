@@ -3,7 +3,7 @@
 #include <sstream>
 
 
-namespace LightEngine
+namespace LightRuntime
 {
 #define float2Operation(operation) float2 operator##operation(const float2 left, const float2 right)\
     {\
@@ -18,12 +18,12 @@ namespace LightEngine
     float2Operation(/)
 
 
-    std::stringstream stringstream;
+    std::stringstream stringStream;
     std::string to_string(const float2 value)
     {
-        stringstream << '(' << value.x << ',' << value.y << ')';
-        std::string string = stringstream.str();
-        stringstream.str("");
+        stringStream << '(' << value.x << ',' << value.y << ')';
+        std::string string = stringStream.str();
+        stringStream.str("");
         return string;
     }
 }

@@ -5,7 +5,7 @@
 #include <GLFW/glfw3.h>
 #include "LightMath/Runtime/Math.h"
 
-namespace LightEngine
+namespace LightRuntime
 {
     enum class KeyCode:uint16_t
     {
