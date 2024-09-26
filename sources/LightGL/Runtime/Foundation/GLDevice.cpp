@@ -110,7 +110,10 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
     VkPhysicalDeviceFeatures necessaryFeatures = {};
     necessaryFeatures.samplerAnisotropy = VK_TRUE; //需支持各向异性
     necessaryFeatures.sampleRateShading = VK_TRUE; //需支持着色多重采样（改善来自纹理中的锯齿）
-    std::vector necessaryExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME}; //需支持交换链
+    std::vector necessaryExtensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME, //需支持交换链
+        VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME //需支持推送描述符
+    };
 
     //挑选首个满足需求的显卡
     std::vector<uint32_t> queueFamilyIndices;

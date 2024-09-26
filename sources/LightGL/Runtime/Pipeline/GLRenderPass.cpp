@@ -15,8 +15,8 @@ VkAttachmentDescription CreateAttachmentDescription(const GLAttachmentInfo& atta
     case GLAttachmentType::Color:
         attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; //执行前清除颜色数据为指定常数
         attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE; //执行后保持颜色数据
-        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; //不定义执行前模板数据行为
-        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; //不定义执行后模板数据行为
+        attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; //颜色附件无模板数据
+        attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; //颜色附件无模板数据
     //vk中使用纹理时必须将其调整为兼容下一步操作的内存布局
         attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; //执行前纹理应具有的内存布局（选择未定义则会导致无法保持原本的图像内容，但正好不需要，因为使用前会被清除）
         attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; //选择颜色缓冲区的最优布局即可
@@ -40,6 +40,19 @@ VkAttachmentDescription CreateAttachmentDescription(const GLAttachmentInfo& atta
     }
 
     return attachmentDescription;
+}
+
+GLAttachmentInfo::GLAttachmentInfo(const GLAttachmentType type, const VkFormat format, const VkSampleCountFlagBits samples): type(type),
+                                                                                                                             format(format),
+                                                                                                                             samples(samples)
+{
+}
+
+GLSubpass::GLSubpass(const std::vector<VkAttachmentReference>& colorAttachments, const std::optional<VkAttachmentReference>& depthStencilAttachment,
+    const std::optional<VkAttachmentReference>& colorResolveAttachment): colorAttachments(colorAttachments),
+                                                                         depthStencilAttachment(depthStencilAttachment),
+                                                                         colorResolveAttachment(colorResolveAttachment)
+{
 }
 
 GLRenderPass::GLRenderPass(const std::vector<GLAttachmentInfo>& glAttachmentInfos,

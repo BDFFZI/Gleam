@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <memory>
 
+#include "LightGL/Runtime/Pipeline/GLMeshLayout.h"
 #include "LightGL/Runtime/Resource/GLBuffer.h"
 #include "LightMath/Runtime/Vector.h"
 
@@ -11,8 +12,9 @@ namespace LightRuntime
     public:
         virtual ~MeshBase() = default;
 
-        virtual const GLBuffer& GetGLVertexBuffer() = 0;
-        virtual const GLBuffer& GetGLIndexBuffer() = 0;
+        virtual const GLBuffer& GetGLVertexBuffer() const = 0;
+        virtual const GLBuffer& GetGLIndexBuffer() const = 0;
+        virtual int GetIndexCount() const = 0;
     };
 
     struct Vertex
@@ -27,8 +29,14 @@ namespace LightRuntime
     class Mesh : public MeshBase
     {
     public:
-        const GLBuffer& GetGLVertexBuffer() override;
-        const GLBuffer& GetGLIndexBuffer() override;
+        Mesh() = default;
+        Mesh(const Mesh&) = delete;
+
+        static const GLMeshLayout& GetMeshLayout();
+
+        const GLBuffer& GetGLVertexBuffer() const override;
+        const GLBuffer& GetGLIndexBuffer() const override;
+        int GetIndexCount() const override;
 
         int GetVerticesCount() const;
         int GetTrianglesCount() const;
@@ -52,6 +60,17 @@ namespace LightRuntime
         void UploadGL();
 
     private:
+        static inline GLMeshLayout glMeshLayout = {
+            sizeof(Vertex), {
+                GLVertexAttribute{offsetof(Vertex, position), VK_FORMAT_R32G32B32_SFLOAT},
+                GLVertexAttribute{offsetof(Vertex, normal), VK_FORMAT_R32G32B32_SFLOAT},
+                GLVertexAttribute{offsetof(Vertex, tangent), VK_FORMAT_R32G32B32_SFLOAT},
+                GLVertexAttribute{offsetof(Vertex, uv), VK_FORMAT_R32G32_SFLOAT},
+                GLVertexAttribute{offsetof(Vertex, color), VK_FORMAT_R8G8B8A8_UNORM},
+            },
+            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+        };
+
         std::vector<Vertex> vertices;
         std::vector<uint32_t> triangles;
         std::unique_ptr<GLBuffer> glVertexBuffer;

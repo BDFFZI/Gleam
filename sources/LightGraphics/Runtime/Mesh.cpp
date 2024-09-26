@@ -2,13 +2,21 @@
 
 namespace LightRuntime
 {
-    const GLBuffer& Mesh::GetGLVertexBuffer()
+    const GLMeshLayout& Mesh::GetMeshLayout()
+    {
+        return glMeshLayout;
+    }
+    const GLBuffer& Mesh::GetGLVertexBuffer() const
     {
         return *glVertexBuffer;
     }
-    const GLBuffer& Mesh::GetGLIndexBuffer()
+    const GLBuffer& Mesh::GetGLIndexBuffer() const
     {
         return *glIndexBuffer;
+    }
+    int Mesh::GetIndexCount() const
+    {
+        return static_cast<int>(triangles.size());
     }
 
     int Mesh::GetVerticesCount() const

@@ -26,30 +26,6 @@ SwapChainSupportDetails QuerySwapChainSupport(const VkPhysicalDevice physicalDev
 
     return details;
 }
-VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
-{
-    for (const auto& availableFormat : availableFormats)
-    {
-        if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-        {
-            return availableFormat;
-        }
-    }
-
-    return availableFormats[0];
-}
-VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
-{
-    for (const auto& availablePresentMode : availablePresentModes)
-    {
-        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-        {
-            return availablePresentMode;
-        }
-    }
-
-    return VK_PRESENT_MODE_FIFO_KHR;
-}
 VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window)
 {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
@@ -71,12 +47,31 @@ VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwi
     return actualExtent;
 }
 
-GLSwapChain::GLSwapChain()
+bool SwapChainSupportDetails::CheckSwapSurfaceFormat(const VkSurfaceFormatKHR surfaceFormat) const
+{
+    return std::ranges::any_of(surfaceFormats, [&](const VkSurfaceFormatKHR& availableFormat)
+    {
+        return availableFormat.format == surfaceFormat.format && availableFormat.colorSpace == surfaceFormat.colorSpace;
+    });
+}
+bool SwapChainSupportDetails::CheckSwapPresentMode(const VkPresentModeKHR presentMode) const
+{
+    return std::ranges::any_of(presentModes, [&](const VkPresentModeKHR& availablePresentMode)
+    {
+        return availablePresentMode == presentMode;
+    });
+}
+
+GLSwapChain::GLSwapChain(const VkSurfaceFormatKHR surfaceFormat, const VkPresentModeKHR presentMode)
 {
     //获取显卡支持的最适合的交换链缓冲区格式、呈现模式、缓冲区大小、缓冲区数量。
     const SwapChainSupportDetails& swapChainSupport = QuerySwapChainSupport(GLFoundation::glDevice->physicalDevice, GLFoundation::glSurface->surface);
-    const VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.surfaceFormats);
-    const VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
+
+    if (swapChainSupport.CheckSwapSurfaceFormat(surfaceFormat) == false)
+        throw std::runtime_error("不支持的交换链缓冲区格式！");
+    if (swapChainSupport.CheckSwapPresentMode(presentMode) == false)
+        throw std::runtime_error("不支持的交换链呈现模式！");
+
     const VkExtent2D extent = ChooseSwapExtent(swapChainSupport.surfaceCapabilities, GLFoundation::glSurface->window);
     uint32_t minImageCount = swapChainSupport.surfaceCapabilities.minImageCount + 1;
     if (swapChainSupport.surfaceCapabilities.maxImageCount > 0 && minImageCount > swapChainSupport.surfaceCapabilities.maxImageCount)
@@ -92,7 +87,7 @@ GLSwapChain::GLSwapChain()
     swapChainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
     swapChainCreateInfo.imageExtent = extent;
     swapChainCreateInfo.imageArrayLayers = 1; //每个图像的图层数量，非纹理数组始终为1
-    swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; //图像的目的，做颜色缓冲区
+    swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT; //图像的目的，做颜色附件或接受其他图片的传输
     if (queueFamilyIndices[0] != queueFamilyIndices[1])
     {
         swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT; //交换链中的图片支持多个队列族并发访问
@@ -158,6 +153,14 @@ GLSwapChain::~GLSwapChain()
 uint32_t GLSwapChain::GetCurrentBufferIndex() const
 {
     return currentBufferIndex;
+}
+uint32_t GLSwapChain::GetCurrentImageIndex() const
+{
+    return currentImageIndex;
+}
+const std::unique_ptr<GLImageView>& GLSwapChain::GetCurrentImageView() const
+{
+    return imageViews[currentImageIndex];
 }
 
 bool GLSwapChain::SwitchImageAsync(uint32_t* outImageIndex, uint32_t* outBufferIndex,

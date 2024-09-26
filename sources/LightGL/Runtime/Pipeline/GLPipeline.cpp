@@ -5,8 +5,10 @@
 #include "../Foundation/GLFoundation.h"
 
 GLPipeline::GLPipeline(
-    const GLRenderPass& glRenderPass, int subpassIndex,
-    const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
+    const std::vector<GLShader>& glShaderLayout,
+    const GLMeshLayout& glMeshLayout,
+    const GLPipelineLayout& glPipelineLayout,
+    const GLRenderPass* glRenderPass, int subpassIndex,
     MultisampleState multisampleState)
 {
     //着色器状态
@@ -146,7 +148,7 @@ GLPipeline::GLPipeline(
     pipelineCreateInfo.pColorBlendState = &colorBlending; //颜色混合信息
     pipelineCreateInfo.pDynamicState = &dynamicState; //需要支持动态修改的状态信息
     //是哪个subpass对应的管道
-    pipelineCreateInfo.renderPass = glRenderPass.renderPass;
+    pipelineCreateInfo.renderPass = glRenderPass != nullptr ? glRenderPass->renderPass : VK_NULL_HANDLE;
     pipelineCreateInfo.subpass = subpassIndex;
     //不使用管线派生功能
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
