@@ -17,9 +17,12 @@ class GLPipeline
 public:
     VkPipeline pipeline;
 
-    GLPipeline(const GLRenderPass& glRenderPass, int subpassIndex,
-               const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
-               MultisampleState multisampleState = {});
+    GLPipeline(
+        const std::vector<GLShader>& glShaderLayout,
+        const GLMeshLayout& glMeshLayout,
+        const GLPipelineLayout& glPipelineLayout,
+        const GLRenderPass* glRenderPass = nullptr, int subpassIndex = 0,
+        MultisampleState multisampleState = {});
     GLPipeline(const GLPipeline&) = delete;
     ~GLPipeline();
 };

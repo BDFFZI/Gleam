@@ -1,20 +1,26 @@
 ﻿#pragma once
+#include "Buffer.h"
 #include "Shader.h"
+#include "Texture2D.h"
 #include "LightGL/Runtime/Resource/GLDescriptorSet.h"
 
-class MaterialBase
+namespace LightRuntime
 {
-public:
-    MaterialBase(const std::shared_ptr<Shader>& shader): shader(shader)
+    class Material
     {
-    }
-    virtual ~MaterialBase() = default;
+    public:
+        Material(Shader& shader);
+        Material(const Material&) = delete;
+        ~Material();
 
-    virtual const Shader& GetShader() = 0;
-private:
-    std::shared_ptr<Shader> shader;
-};
+        const Shader& GetShader() const;
+        const std::vector<VkWriteDescriptorSet>& GetDescriptorSet() const;
 
-class Material
-{
-};
+        void SetBuffer(int slotIndex, const Buffer& buffer) const;
+        void SetTexture2D(int slotIndex, const Texture2D& texture2D) const;
+
+    private:
+        Shader* shader;
+        std::vector<VkWriteDescriptorSet> descriptorSet;
+    };
+}

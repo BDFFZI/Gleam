@@ -177,8 +177,8 @@ public:
             GLShader("assets/frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, "main"),
         }; //着色器
         glPipeline = std::make_unique<GLPipeline>(
-            *glRenderPass, 0,
             glShaderLayout, glMeshLayout, *glPipelineLayout,
+            glRenderPass.get(), 0,
             MultisampleState{VK_SAMPLE_COUNT_8_BIT}
         );
 
@@ -233,7 +233,10 @@ public:
         for (size_t i = 0; i < maxFramesInFlight; ++i)
             glCommandBuffers[i] = std::make_unique<GLCommandBuffer>();
     }
-
+    ~GLTester()
+    {
+        vkDeviceWaitIdle(GLFoundation::glDevice->device);
+    }
 
     void DrawFrame()
     {
@@ -266,16 +269,16 @@ public:
 
         //准备绘图命令
         GLCommandBuffer& glCommandBuffer = *glCommandBuffers[bufferIndex];
-        glCommandBuffer.BeginRecord();
+        glCommandBuffer.BeginRecording();
+        glCommandBuffer.SetViewportAndScissor(0, 0, glSwapChain->imageExtent);
         glCommandBuffer.BeginRenderPass(*glRenderPass, *glFramebuffers[imageIndex]);
         glCommandBuffer.BindPipeline(*glPipeline);
         glCommandBuffer.BindVertexBuffers(*vertexBuffer);
         glCommandBuffer.BindIndexBuffer(*indexBuffer);
         glCommandBuffer.BindDescriptorSets(*glPipelineLayout, *glDescriptorSets[bufferIndex]);
-        glCommandBuffer.SetViewportAndScissor(glSwapChain->imageExtent);
         glCommandBuffer.Draw(static_cast<int>(indexBuffer->size / sizeof(uint32_t)));
         glCommandBuffer.EndRenderPass();
-        glCommandBuffer.EndRecord();
+        glCommandBuffer.EndRecording();
 
         //提交命令
         glCommandBuffer.ExecuteCommandBufferAsync(
@@ -336,13 +339,10 @@ public:
                 glSwapChain->imageExtent);
         }
     }
-    ~GLTester()
-    {
-        vkDeviceWaitIdle(GLFoundation::glDevice->device);
-    }
 };
 
-TEST(GLTests, ALL)
+// TEST(GLTests, ALL)
+void main()
 {
     constexpr uint32_t WIDTH = 800;
     constexpr uint32_t HEIGHT = 600;
