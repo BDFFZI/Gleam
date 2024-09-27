@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 GLDescriptorBinding::GLDescriptorBinding(const VkDescriptorType descriptorType, const VkShaderStageFlags stageFlags)
     : descriptorType(descriptorType),
@@ -31,10 +31,10 @@ GLDescriptorSetLayout::GLDescriptorSetLayout(const std::vector<GLDescriptorBindi
     layoutInfo.bindingCount = static_cast<uint32_t>(vkDescriptorSetLayoutBindings.size());
     layoutInfo.pBindings = vkDescriptorSetLayoutBindings.data();
 
-    if (vkCreateDescriptorSetLayout(GLFoundation::glDevice->device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+    if (vkCreateDescriptorSetLayout(GL::glDevice->device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
         throw std::runtime_error("创建描述符集布局失败!");
 }
 GLDescriptorSetLayout::~GLDescriptorSetLayout()
 {
-    vkDestroyDescriptorSetLayout(GLFoundation::glDevice->device, descriptorSetLayout, nullptr);
+    vkDestroyDescriptorSetLayout(GL::glDevice->device, descriptorSetLayout, nullptr);
 }

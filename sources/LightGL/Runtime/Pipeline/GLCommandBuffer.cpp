@@ -3,7 +3,7 @@
 #include <array>
 #include <stdexcept>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 void GLCommandBuffer::ExecuteSingleTimeCommands(const std::function<void(const GLCommandBuffer&)>& setCommands)
 {
@@ -19,22 +19,22 @@ GLCommandBuffer::GLCommandBuffer()
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = GLFoundation::glCommandPool->commandPool;
+    allocInfo.commandPool = GL::glCommandPool->commandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; //直接用于提交到命令管道，而不是作为子命令由其他缓冲区调用
     allocInfo.commandBufferCount = 1;
 
-    if (vkAllocateCommandBuffers(GLFoundation::glDevice->device, &allocInfo, &commandBuffer) != VK_SUCCESS)
+    if (vkAllocateCommandBuffers(GL::glDevice->device, &allocInfo, &commandBuffer) != VK_SUCCESS)
         throw std::runtime_error("创建命令缓冲区失败!");
 
     VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    if (vkCreateFence(GLFoundation::glDevice->device, &fenceInfo, nullptr, &fence) != VK_SUCCESS)
+    if (vkCreateFence(GL::glDevice->device, &fenceInfo, nullptr, &fence) != VK_SUCCESS)
         throw std::runtime_error("创建信号围栏失败!");
 }
 GLCommandBuffer::~GLCommandBuffer()
 {
-    vkFreeCommandBuffers(GLFoundation::glDevice->device, GLFoundation::glCommandPool->commandPool, 1, &commandBuffer);
-    vkDestroyFence(GLFoundation::glDevice->device, fence, nullptr);
+    vkFreeCommandBuffers(GL::glDevice->device, GL::glCommandPool->commandPool, 1, &commandBuffer);
+    vkDestroyFence(GL::glDevice->device, fence, nullptr);
 }
 
 void GLCommandBuffer::BeginRecording(const VkCommandBufferUsageFlags flags)
@@ -212,7 +212,7 @@ void GLCommandBuffer::BindDescriptorSets(const GLPipelineLayout& glPipelineLayou
 }
 void GLCommandBuffer::PushDescriptorSet(const GLPipelineLayout& glPipelineLayout, const std::vector<VkWriteDescriptorSet>& writeDescriptorSets) const
 {
-    PFN_vkCmdPushDescriptorSetKHR pushDescriptorSetKhr = reinterpret_cast<PFN_vkCmdPushDescriptorSetKHR>(vkGetDeviceProcAddr(GLFoundation::glDevice->device, "vkCmdPushDescriptorSetKHR"));
+    PFN_vkCmdPushDescriptorSetKHR pushDescriptorSetKhr = reinterpret_cast<PFN_vkCmdPushDescriptorSetKHR>(vkGetDeviceProcAddr(GL::glDevice->device, "vkCmdPushDescriptorSetKHR"));
 
     pushDescriptorSetKhr(
         commandBuffer,
@@ -259,7 +259,7 @@ void GLCommandBuffer::ExecuteCommandBufferAsync(const std::vector<VkPipelineStag
     //完成后需要发出的信号量
     submitInfo.pSignalSemaphores = signalSemaphores.data();
     submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
-    if (vkQueueSubmit(GLFoundation::glDevice->graphicQueue, 1, &submitInfo, fence) != VK_SUCCESS)
+    if (vkQueueSubmit(GL::glDevice->graphicQueue, 1, &submitInfo, fence) != VK_SUCCESS)
         throw std::runtime_error("无法提交命令缓冲区!");
 
     executing = true;
@@ -274,7 +274,7 @@ void GLCommandBuffer::WaitExecutionFinish()
     if (executing == false)
         return;
 
-    vkWaitForFences(GLFoundation::glDevice->device, 1, &fence, VK_TRUE, UINT64_MAX);
-    vkResetFences(GLFoundation::glDevice->device, 1, &fence);
+    vkWaitForFences(GL::glDevice->device, 1, &fence, VK_TRUE, UINT64_MAX);
+    vkResetFences(GL::glDevice->device, 1, &fence);
     executing = false;
 }

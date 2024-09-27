@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 #include "../Pipeline/GLCommandBuffer.h"
 
 GLBuffer* GLBuffer::CreateTransmitter(const void* data, const int size)
@@ -25,23 +25,23 @@ GLBuffer::GLBuffer(const int size, const VkBufferUsageFlags usage, const VkMemor
     bufferInfo.size = size;
     bufferInfo.usage = usage; //使用途径
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //队列共享模式，一般都由图形队列独占，故不需要共享
-    if (vkCreateBuffer(GLFoundation::glDevice->device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+    if (vkCreateBuffer(GL::glDevice->device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
         throw std::runtime_error("创建缓冲区失败!");
 
     //获取此种缓冲区的内存需求
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(GLFoundation::glDevice->device, buffer, &memRequirements);
+    vkGetBufferMemoryRequirements(GL::glDevice->device, buffer, &memRequirements);
 
     //分配缓冲区内存
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = GLFoundation::glDevice->FindMemoryType(memRequirements.memoryTypeBits, properties);
-    if (vkAllocateMemory(GLFoundation::glDevice->device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+    allocInfo.memoryTypeIndex = GL::glDevice->FindMemoryType(memRequirements.memoryTypeBits, properties);
+    if (vkAllocateMemory(GL::glDevice->device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
         throw std::runtime_error("分配缓冲区内存失败!");
 
     //绑定内存与缓冲区
-    vkBindBufferMemory(GLFoundation::glDevice->device, buffer, bufferMemory, 0);
+    vkBindBufferMemory(GL::glDevice->device, buffer, bufferMemory, 0);
 }
 GLBuffer::GLBuffer(const int size, const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties, const void* data)
     : GLBuffer(size, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, properties)
@@ -50,19 +50,19 @@ GLBuffer::GLBuffer(const int size, const VkBufferUsageFlags usage, const VkMemor
 }
 GLBuffer::~GLBuffer()
 {
-    vkDestroyBuffer(GLFoundation::glDevice->device, buffer, nullptr);
-    vkFreeMemory(GLFoundation::glDevice->device, bufferMemory, nullptr);
+    vkDestroyBuffer(GL::glDevice->device, buffer, nullptr);
+    vkFreeMemory(GL::glDevice->device, bufferMemory, nullptr);
 }
 
 void* GLBuffer::MapMemory() const
 {
     void* result;
-    vkMapMemory(GLFoundation::glDevice->device, bufferMemory, 0, size, 0, &result);
+    vkMapMemory(GL::glDevice->device, bufferMemory, 0, size, 0, &result);
     return result;
 }
 void GLBuffer::UnmapMemory() const
 {
-    vkUnmapMemory(GLFoundation::glDevice->device, bufferMemory);
+    vkUnmapMemory(GL::glDevice->device, bufferMemory);
 }
 void GLBuffer::CopyFrom(const void* data) const
 {

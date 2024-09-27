@@ -1,12 +1,8 @@
 addTests()
 
+target_link_libraries("${ModuleName}" PUBLIC LightImport)
+
 find_package(glm CONFIG REQUIRED)
-target_link_libraries(${ModuleName} PRIVATE glm::glm)
-
-find_package(Stb REQUIRED)
-target_include_directories(${ModuleName} PRIVATE ${Stb_INCLUDE_DIR})
-
-find_package(tinyobjloader CONFIG REQUIRED)
-target_link_libraries(${ModuleName} PRIVATE tinyobjloader::tinyobjloader)
+target_link_libraries("${ModuleName}" PUBLIC glm::glm)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

@@ -2,8 +2,6 @@
 #include <vulkan/vulkan_core.h>
 #include <functional>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_ENABLE_EXPERIMENTAL
@@ -11,13 +9,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
 
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
 #include <gtest/gtest.h>
 
-#include "LightGL/Runtime/Foundation/GLFoundation.h"
+#include "LightGL/Runtime/GL.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
 #include "LightGL/Runtime/Resource/GLImageView.h"
+#include "LightImport/Runtime/ImageImport.h"
+
+using namespace LightRuntime;
 
 struct Vertex
 {
@@ -42,6 +41,23 @@ struct std::hash<Vertex>
     }
 };
 
+std::vector<char> ReadFile(const std::string& filename)
+{
+    //通过ate标志初始就将指针放在流末尾
+    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+    if (!file.is_open())
+        throw std::runtime_error("文件打开失败！");
+
+    //由于指针在流末尾，故其位置即文件长度
+    const std::streamsize fileSize = file.tellg();
+    std::vector<char> buffer(fileSize);
+    file.seekg(0);
+    file.read(buffer.data(), fileSize);
+
+    file.close();
+
+    return buffer;
+}
 inline void LoadModel(const std::string& modelPath, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
 {
     static std::unordered_map<Vertex, uint32_t> uniqueVertices{};
@@ -70,7 +86,7 @@ inline void LoadModel(const std::string& modelPath, std::vector<Vertex>& vertice
                 1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
             };
 
-            vertex.color = {1.0f, 1.0f, 1.0f};
+            vertex.color = {0.1f, 1.0f, 1.0f};
 
             if (!uniqueVertices.contains(vertex))
             {
@@ -120,15 +136,15 @@ class GLTester
 public:
     GLTester(GLFWwindow* window)
     {
-        GLFoundation::Initialize(window);
+        GL::Initialize(window);
 
         //创建交换链
         RecreateSwapChain();
 
         //创建渲染pass
         std::vector<GLAttachmentInfo> glAttachments = {
-            {GLAttachmentType::Color, glSwapChain->imageFormat, GLFoundation::glDevice->maxUsableSampleCount},
-            {GLAttachmentType::DepthStencil, depthImageView->format, GLFoundation::glDevice->maxUsableSampleCount},
+            {GLAttachmentType::Color, glSwapChain->imageFormat, GL::glDevice->maxUsableSampleCount},
+            {GLAttachmentType::DepthStencil, depthImageView->format, GL::glDevice->maxUsableSampleCount},
             {GLAttachmentType::ColorResolve, glSwapChain->imageFormat, VK_SAMPLE_COUNT_1_BIT}
         };
         std::vector<GLSubpass> glSubpasses = {
@@ -173,8 +189,8 @@ public:
         });
         glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout); //描述符布局
         std::vector glShaderLayout{
-            GLShader("assets/vert.spv", VK_SHADER_STAGE_VERTEX_BIT, "main"),
-            GLShader("assets/frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, "main"),
+            GLShader(ReadFile("assets/vertexShader.spv"), "VertexShader", VK_SHADER_STAGE_VERTEX_BIT),
+            GLShader(ReadFile("assets/fragmentShader.spv"), "FragmentShader", VK_SHADER_STAGE_FRAGMENT_BIT),
         }; //着色器
         glPipeline = std::make_unique<GLPipeline>(
             glShaderLayout, glMeshLayout, *glPipelineLayout,
@@ -209,12 +225,10 @@ public:
         }
 
         //创建纹理及采样器
-        int texWidth, texHeight, texChannels;
-        stbi_uc* pixels = stbi_load("assets/viking_room.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        const int imageSize = texWidth * texHeight * 4;
-        if (!pixels)
-            throw std::runtime_error("加载图片数据失败!");
-        texture = std::unique_ptr<GLImage>(GLImage::CreateTexture2D(texWidth, texHeight, pixels, imageSize, true));
+        RawImage rawImage = ImportPng("assets/viking_room.png");
+        texture = std::unique_ptr<GLImage>(GLImage::CreateTexture2D(
+            rawImage.width, rawImage.height,
+            rawImage.pixels.data(), rawImage.pixels.size(), true));
         textureView = std::make_unique<GLImageView>(*texture, VK_IMAGE_ASPECT_COLOR_BIT);
         textureSampler = std::make_unique<GLImageSampler>();
 
@@ -235,7 +249,7 @@ public:
     }
     ~GLTester()
     {
-        vkDeviceWaitIdle(GLFoundation::glDevice->device);
+        vkDeviceWaitIdle(GL::glDevice->device);
     }
 
     void DrawFrame()
@@ -247,7 +261,7 @@ public:
         if (glSwapChain->SwitchImageAsync(&imageIndex, &bufferIndex,
                                           &imageAvailable, &renderFinishedSemaphores) == false)
         {
-            vkDeviceWaitIdle(GLFoundation::glDevice->device);
+            vkDeviceWaitIdle(GL::glDevice->device);
             glFramebuffers.clear();
             glSwapChain.reset();
             RecreateSwapChain();
@@ -297,10 +311,10 @@ public:
     void RecreateSwapChain()
     {
         int width = 0, height = 0;
-        glfwGetFramebufferSize(GLFoundation::glSurface->window, &width, &height);
+        glfwGetFramebufferSize(GL::glSurface->window, &width, &height);
         while (width == 0 || height == 0)
         {
-            glfwGetFramebufferSize(GLFoundation::glSurface->window, &width, &height);
+            glfwGetFramebufferSize(GL::glSurface->window, &width, &height);
             glfwWaitEvents();
         }
 
@@ -309,10 +323,10 @@ public:
 
         colorImage = std::unique_ptr<GLImage>(GLImage::CreateFrameBufferColor(
             glSwapChain->imageExtent.width, glSwapChain->imageExtent.height,
-            glSwapChain->imageFormat, GLFoundation::glDevice->maxUsableSampleCount));
+            glSwapChain->imageFormat, GL::glDevice->maxUsableSampleCount));
         colorImageView = std::make_unique<GLImageView>(*colorImage, VK_IMAGE_ASPECT_COLOR_BIT);
 
-        VkFormat depthFormat = GLFoundation::glDevice->FindImageFormat(
+        VkFormat depthFormat = GL::glDevice->FindImageFormat(
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
             VK_IMAGE_TILING_OPTIMAL,
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
@@ -320,7 +334,7 @@ public:
 
         depthImage = std::unique_ptr<GLImage>(GLImage::CreateFrameBufferDepth(
             glSwapChain->imageExtent.width, glSwapChain->imageExtent.height,
-            depthFormat, GLFoundation::glDevice->maxUsableSampleCount));
+            depthFormat, GL::glDevice->maxUsableSampleCount));
         depthImageView = std::make_unique<GLImageView>(*depthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
     }
     void RecreateFrameBuffers()

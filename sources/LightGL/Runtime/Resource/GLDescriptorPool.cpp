@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <unordered_map>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 
 GLDescriptorPool::GLDescriptorPool(const GLDescriptorSetLayout& descriptorSetLayout, const int descriptorSetCount)
@@ -32,11 +32,11 @@ GLDescriptorPool::GLDescriptorPool(const GLDescriptorSetLayout& descriptorSetLay
     //描述符集数量
     poolInfo.maxSets = static_cast<uint32_t>(descriptorSetCount);
 
-    if (vkCreateDescriptorPool(GLFoundation::glDevice->device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+    if (vkCreateDescriptorPool(GL::glDevice->device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
         throw std::runtime_error("创建描述符集池失败!");
 }
 
 GLDescriptorPool::~GLDescriptorPool()
 {
-    vkDestroyDescriptorPool(GLFoundation::glDevice->device, descriptorPool, nullptr);
+    vkDestroyDescriptorPool(GL::glDevice->device, descriptorPool, nullptr);
 }

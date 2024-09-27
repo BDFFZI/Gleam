@@ -11,7 +11,7 @@ void Graphics::Initialize(GLFWwindow* window)
 
     presentColorFormat = VK_FORMAT_B8G8R8A8_SRGB;
     presentDepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;
-    presentSampleCount = GLFoundation::glDevice->maxUsableSampleCount;
+    presentSampleCount = GL::glDevice->maxUsableSampleCount;
 
     CreateSwapChain();
 
@@ -21,7 +21,7 @@ void Graphics::Initialize(GLFWwindow* window)
 }
 void Graphics::UnInitialize()
 {
-    vkDeviceWaitIdle(GLFoundation::glDevice->device);
+    vkDeviceWaitIdle(GL::glDevice->device);
 }
 
 const std::unique_ptr<GLSwapChain>& Graphics::GetGLSwapChain()
@@ -54,7 +54,7 @@ void Graphics::Present(const std::function<void(CommandBuffer& commandBuffer)>& 
         &imageAvailable, &renderFinishedSemaphores
     ) == false) //交换链过时，需重建
     {
-        vkDeviceWaitIdle(GLFoundation::glDevice->device);
+        vkDeviceWaitIdle(GL::glDevice->device);
         CreateSwapChain();
         return;
     }
@@ -80,10 +80,10 @@ void Graphics::WaitPresent()
 void Graphics::CreateSwapChain()
 {
     int width = 0, height = 0;
-    glfwGetFramebufferSize(GLFoundation::glSurface->window, &width, &height);
+    glfwGetFramebufferSize(GL::glSurface->window, &width, &height);
     while (width == 0 || height == 0)
     {
-        glfwGetFramebufferSize(GLFoundation::glSurface->window, &width, &height);
+        glfwGetFramebufferSize(GL::glSurface->window, &width, &height);
         glfwWaitEvents();
     }
 

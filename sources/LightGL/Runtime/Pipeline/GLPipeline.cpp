@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 GLPipeline::GLPipeline(
     const std::vector<GLShader>& glShaderLayout,
@@ -21,7 +21,7 @@ GLPipeline::GLPipeline(
             createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
             createInfo.codeSize = glShaderLayout[i].shaderCode.size();
             createInfo.pCode = reinterpret_cast<const uint32_t*>(glShaderLayout[i].shaderCode.data());
-            if (vkCreateShaderModule(GLFoundation::glDevice->device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+            if (vkCreateShaderModule(GL::glDevice->device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
                 throw std::runtime_error("创建着色器模型失败!");
 
             VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
@@ -154,14 +154,14 @@ GLPipeline::GLPipeline(
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
     pipelineCreateInfo.basePipelineIndex = -1; // Optional
 
-    if (vkCreateGraphicsPipelines(GLFoundation::glDevice->device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
+    if (vkCreateGraphicsPipelines(GL::glDevice->device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
         throw std::runtime_error("创建图形管线失败!");
 
     //回收着色器的包装器内存
     for (auto& shaderStage : shaderStages)
-        vkDestroyShaderModule(GLFoundation::glDevice->device, shaderStage.module, nullptr);
+        vkDestroyShaderModule(GL::glDevice->device, shaderStage.module, nullptr);
 }
 GLPipeline::~GLPipeline()
 {
-    vkDestroyPipeline(GLFoundation::glDevice->device, pipeline, nullptr);
+    vkDestroyPipeline(GL::glDevice->device, pipeline, nullptr);
 }

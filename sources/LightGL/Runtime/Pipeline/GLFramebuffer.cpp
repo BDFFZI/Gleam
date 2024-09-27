@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 GLFramebuffer::GLFramebuffer(
     const GLRenderPass& glRenderPass,
@@ -19,10 +19,10 @@ GLFramebuffer::GLFramebuffer(
     framebufferInfo.height = extent.height;
     framebufferInfo.layers = 1;
 
-    if (vkCreateFramebuffer(GLFoundation::glDevice->device, &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS)
+    if (vkCreateFramebuffer(GL::glDevice->device, &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS)
         throw std::runtime_error("帧缓冲区创建失败!");
 }
 GLFramebuffer::~GLFramebuffer()
 {
-    vkDestroyFramebuffer(GLFoundation::glDevice->device, framebuffer, nullptr);
+    vkDestroyFramebuffer(GL::glDevice->device, framebuffer, nullptr);
 }

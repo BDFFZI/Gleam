@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 VkAttachmentDescription CreateAttachmentDescription(const GLAttachmentInfo& attachment)
 {
@@ -96,10 +96,10 @@ GLRenderPass::GLRenderPass(const std::vector<GLAttachmentInfo>& glAttachmentInfo
         renderPassInfo.pDependencies = glSubpassDependencies.data();
     }
 
-    if (vkCreateRenderPass(GLFoundation::glDevice->device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS)
+    if (vkCreateRenderPass(GL::glDevice->device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS)
         throw std::runtime_error("无法创建渲染过程!");
 }
 GLRenderPass::~GLRenderPass()
 {
-    vkDestroyRenderPass(GLFoundation::glDevice->device, renderPass, nullptr);
+    vkDestroyRenderPass(GL::glDevice->device, renderPass, nullptr);
 }

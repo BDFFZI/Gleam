@@ -5,7 +5,7 @@
 
 #include "GLBuffer.h"
 #include "../Pipeline/GLCommandBuffer.h"
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 void CmdTransitionImageLayout(
     const GLCommandBuffer& glCommandBuffer, const VkImage& image,
@@ -74,7 +74,7 @@ GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, c
     const uint32_t mipLevels = mipChain ? static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))) + 1) : 1;
     if (mipLevels != 1)
     {
-        VkFormatProperties formatProperties = GLFoundation::glDevice->GetFormatProperties(VK_FORMAT_R8G8B8A8_SRGB);
+        VkFormatProperties formatProperties = GL::glDevice->GetFormatProperties(VK_FORMAT_R8G8B8A8_SRGB);
         if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
             throw std::runtime_error("该纹理格式不支持线性过滤，故无法自动生成mipmap！");
     }
@@ -179,25 +179,25 @@ GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat for
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //图形队列独占
     imageInfo.samples = sampleCount; //多重采样
     imageInfo.flags = 0; // Optional
-    if (vkCreateImage(GLFoundation::glDevice->device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+    if (vkCreateImage(GL::glDevice->device, &imageInfo, nullptr, &image) != VK_SUCCESS)
         throw std::runtime_error("创建图片失败！");
 
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(GLFoundation::glDevice->device, image, &memRequirements);
+    vkGetImageMemoryRequirements(GL::glDevice->device, image, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     //VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT是GPU访问最高效的内存属性，但通常也无法被CPU直接访问
-    allocInfo.memoryTypeIndex = GLFoundation::glDevice->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    allocInfo.memoryTypeIndex = GL::glDevice->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    if (vkAllocateMemory(GLFoundation::glDevice->device, &allocInfo, nullptr, &memory) != VK_SUCCESS)
+    if (vkAllocateMemory(GL::glDevice->device, &allocInfo, nullptr, &memory) != VK_SUCCESS)
         throw std::runtime_error("分配图片内存失败！");
 
-    vkBindImageMemory(GLFoundation::glDevice->device, image, memory, 0);
+    vkBindImageMemory(GL::glDevice->device, image, memory, 0);
 }
 GLImage::~GLImage()
 {
-    vkDestroyImage(GLFoundation::glDevice->device, image, nullptr);
-    vkFreeMemory(GLFoundation::glDevice->device, memory, nullptr);
+    vkDestroyImage(GL::glDevice->device, image, nullptr);
+    vkFreeMemory(GL::glDevice->device, memory, nullptr);
 }

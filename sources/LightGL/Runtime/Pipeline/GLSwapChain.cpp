@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 SwapChainSupportDetails QuerySwapChainSupport(const VkPhysicalDevice physicalDevice, const VkSurfaceKHR surface)
 {
@@ -65,23 +65,23 @@ bool SwapChainSupportDetails::CheckSwapPresentMode(const VkPresentModeKHR presen
 GLSwapChain::GLSwapChain(const VkSurfaceFormatKHR surfaceFormat, const VkPresentModeKHR presentMode)
 {
     //获取显卡支持的最适合的交换链缓冲区格式、呈现模式、缓冲区大小、缓冲区数量。
-    const SwapChainSupportDetails& swapChainSupport = QuerySwapChainSupport(GLFoundation::glDevice->physicalDevice, GLFoundation::glSurface->surface);
+    const SwapChainSupportDetails& swapChainSupport = QuerySwapChainSupport(GL::glDevice->physicalDevice, GL::glSurface->surface);
 
     if (swapChainSupport.CheckSwapSurfaceFormat(surfaceFormat) == false)
         throw std::runtime_error("不支持的交换链缓冲区格式！");
     if (swapChainSupport.CheckSwapPresentMode(presentMode) == false)
         throw std::runtime_error("不支持的交换链呈现模式！");
 
-    const VkExtent2D extent = ChooseSwapExtent(swapChainSupport.surfaceCapabilities, GLFoundation::glSurface->window);
+    const VkExtent2D extent = ChooseSwapExtent(swapChainSupport.surfaceCapabilities, GL::glSurface->window);
     uint32_t minImageCount = swapChainSupport.surfaceCapabilities.minImageCount + 1;
     if (swapChainSupport.surfaceCapabilities.maxImageCount > 0 && minImageCount > swapChainSupport.surfaceCapabilities.maxImageCount)
         minImageCount = swapChainSupport.surfaceCapabilities.maxImageCount;
 
-    uint32_t queueFamilyIndices[] = {GLFoundation::glDevice->graphicQueueFamily, GLFoundation::glDevice->presentQueueFamily};
+    uint32_t queueFamilyIndices[] = {GL::glDevice->graphicQueueFamily, GL::glDevice->presentQueueFamily};
 
     VkSwapchainCreateInfoKHR swapChainCreateInfo{};
     swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapChainCreateInfo.surface = GLFoundation::glSurface->surface;
+    swapChainCreateInfo.surface = GL::glSurface->surface;
     swapChainCreateInfo.minImageCount = minImageCount;
     swapChainCreateInfo.imageFormat = surfaceFormat.format;
     swapChainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -107,7 +107,7 @@ GLSwapChain::GLSwapChain(const VkSurfaceFormatKHR surfaceFormat, const VkPresent
     swapChainCreateInfo.clipped = VK_TRUE; //窗口被遮挡时允许裁剪像素
     swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    VkDevice vkDevice = GLFoundation::glDevice->device;
+    VkDevice vkDevice = GL::glDevice->device;
 
     if (vkCreateSwapchainKHR(vkDevice, &swapChainCreateInfo, nullptr, &swapChain) != VK_SUCCESS)
         throw std::runtime_error("创建交换链失败！");
@@ -133,8 +133,8 @@ GLSwapChain::GLSwapChain(const VkSurfaceFormatKHR surfaceFormat, const VkPresent
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     for (size_t i = 0; i < imageCount; i++)
     {
-        if (vkCreateSemaphore(GLFoundation::glDevice->device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(GLFoundation::glDevice->device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS)
+        if (vkCreateSemaphore(GL::glDevice->device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(GL::glDevice->device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS)
             throw std::runtime_error("创建信号量失败!");
     }
 }
@@ -142,12 +142,12 @@ GLSwapChain::~GLSwapChain()
 {
     for (size_t i = 0; i < images.size(); i++)
     {
-        vkDestroySemaphore(GLFoundation::glDevice->device, imageAvailableSemaphores[i], nullptr);
-        vkDestroySemaphore(GLFoundation::glDevice->device, renderFinishedSemaphores[i], nullptr);
+        vkDestroySemaphore(GL::glDevice->device, imageAvailableSemaphores[i], nullptr);
+        vkDestroySemaphore(GL::glDevice->device, renderFinishedSemaphores[i], nullptr);
     }
     imageViews.clear();
     images.clear();
-    vkDestroySwapchainKHR(GLFoundation::glDevice->device, swapChain, nullptr);
+    vkDestroySwapchainKHR(GL::glDevice->device, swapChain, nullptr);
 }
 
 uint32_t GLSwapChain::GetCurrentBufferIndex() const
@@ -171,7 +171,7 @@ bool GLSwapChain::SwitchImageAsync(uint32_t* outImageIndex, uint32_t* outBufferI
 
     //获取用于呈现的图片
     const VkResult result = vkAcquireNextImageKHR(
-        GLFoundation::glDevice->device, swapChain,
+        GL::glDevice->device, swapChain,
         UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &currentImageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
@@ -202,7 +202,7 @@ void GLSwapChain::PresentImageAsync()
     //要呈现的图片索引
     presentInfo.pImageIndices = &currentImageIndex;
     presentInfo.pResults = nullptr; // Optional
-    vkQueuePresentKHR(GLFoundation::glDevice->presentQueue, &presentInfo);
+    vkQueuePresentKHR(GL::glDevice->presentQueue, &presentInfo);
 
     currentBufferIndex = (currentBufferIndex + 1) % images.size();
 }
