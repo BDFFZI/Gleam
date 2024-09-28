@@ -5,27 +5,6 @@
 
 #include "../GL.h"
 
-SwapChainSupportDetails QuerySwapChainSupport(const VkPhysicalDevice physicalDevice, const VkSurfaceKHR surface)
-{
-    SwapChainSupportDetails details;
-
-    //缓存设备对目标表面的支持功能
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &details.surfaceCapabilities);
-
-    //缓存设备对目标窗口支持的交换链纹理格式
-    uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
-    details.surfaceFormats.resize(formatCount);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, details.surfaceFormats.data());
-
-    //缓存设备对目标窗口支持的交换链呈现模式
-    uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
-    details.presentModes.resize(presentModeCount);
-    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, details.presentModes.data());
-
-    return details;
-}
 VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window)
 {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
@@ -47,35 +26,86 @@ VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwi
     return actualExtent;
 }
 
-bool SwapChainSupportDetails::CheckSwapSurfaceFormat(const VkSurfaceFormatKHR surfaceFormat) const
+VkSurfaceCapabilitiesKHR GLSwapChain::QuerySurfaceCapabilitySupport()
 {
-    return std::ranges::any_of(surfaceFormats, [&](const VkSurfaceFormatKHR& availableFormat)
-    {
-        return availableFormat.format == surfaceFormat.format && availableFormat.colorSpace == surfaceFormat.colorSpace;
-    });
+    const auto physicalDevice = GL::glDevice->physicalDevice;
+    const auto surface = GL::glSurface->surface;
+
+    VkSurfaceCapabilitiesKHR surfaceCapabilities = {};
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);
+    return surfaceCapabilities;
 }
-bool SwapChainSupportDetails::CheckSwapPresentMode(const VkPresentModeKHR presentMode) const
+std::vector<VkSurfaceFormatKHR> GLSwapChain::QuerySurfaceFormatSupport()
 {
-    return std::ranges::any_of(presentModes, [&](const VkPresentModeKHR& availablePresentMode)
+    const auto physicalDevice = GL::glDevice->physicalDevice;
+    const auto surface = GL::glSurface->surface;
+
+    std::vector<VkSurfaceFormatKHR> surfaceFormats = {};
+
+    //设备对目标窗口支持的交换链纹理格式
+    uint32_t formatCount;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
+    surfaceFormats.resize(formatCount);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, surfaceFormats.data());
+
+    return surfaceFormats;
+}
+std::vector<VkPresentModeKHR> GLSwapChain::QueryPresentModeSupport()
+{
+    const auto physicalDevice = GL::glDevice->physicalDevice;
+    const auto surface = GL::glSurface->surface;
+
+    std::vector<VkPresentModeKHR> presentModes = {};
+
+    //设备对目标窗口支持的交换链呈现模式
+    uint32_t presentModeCount;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
+    presentModes.resize(presentModeCount);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
+
+    return presentModes;
+}
+
+VkSurfaceFormatKHR GLSwapChain::ChooseSwapSurfaceFormat(const VkSurfaceFormatKHR desiredSurfaceFormat)
+{
+    const std::vector<VkSurfaceFormatKHR> surfaceFormats = QuerySurfaceFormatSupport();
+    for (const auto& surfaceFormat : surfaceFormats)
     {
-        return availablePresentMode == presentMode;
-    });
+        if (surfaceFormat.format == desiredSurfaceFormat.format && surfaceFormat.colorSpace == desiredSurfaceFormat.colorSpace)
+            return desiredSurfaceFormat;
+    }
+
+    return surfaceFormats[0];
+}
+VkPresentModeKHR GLSwapChain::ChooseSwapPresentMode(const VkPresentModeKHR desiredPresentMode)
+{
+    const std::vector<VkPresentModeKHR> presentModes = QueryPresentModeSupport();
+    for (const auto& presentMode : presentModes)
+    {
+        if (presentMode == desiredPresentMode)
+            return desiredPresentMode;
+    }
+
+    return presentModes[0];
 }
 
 GLSwapChain::GLSwapChain(const VkSurfaceFormatKHR surfaceFormat, const VkPresentModeKHR presentMode)
 {
-    //获取显卡支持的最适合的交换链缓冲区格式、呈现模式、缓冲区大小、缓冲区数量。
-    const SwapChainSupportDetails& swapChainSupport = QuerySwapChainSupport(GL::glDevice->physicalDevice, GL::glSurface->surface);
-
-    if (swapChainSupport.CheckSwapSurfaceFormat(surfaceFormat) == false)
+#ifdef _DEBUG
+    VkSurfaceFormatKHR surfaceFormatAvailable = ChooseSwapSurfaceFormat(surfaceFormat);
+    VkPresentModeKHR presentModeAvailable = ChooseSwapPresentMode(presentMode);
+    if (surfaceFormatAvailable.format != surfaceFormat.format || surfaceFormatAvailable.colorSpace != surfaceFormat.colorSpace)
         throw std::runtime_error("不支持的交换链缓冲区格式！");
-    if (swapChainSupport.CheckSwapPresentMode(presentMode) == false)
+    if (presentModeAvailable != presentMode)
         throw std::runtime_error("不支持的交换链呈现模式！");
+#endif
 
-    const VkExtent2D extent = ChooseSwapExtent(swapChainSupport.surfaceCapabilities, GL::glSurface->window);
-    uint32_t minImageCount = swapChainSupport.surfaceCapabilities.minImageCount + 1;
-    if (swapChainSupport.surfaceCapabilities.maxImageCount > 0 && minImageCount > swapChainSupport.surfaceCapabilities.maxImageCount)
-        minImageCount = swapChainSupport.surfaceCapabilities.maxImageCount;
+    const VkSurfaceCapabilitiesKHR surfaceCapabilities = QuerySurfaceCapabilitySupport();
+
+    const VkExtent2D extent = ChooseSwapExtent(surfaceCapabilities, GL::glSurface->window);
+    uint32_t minImageCount = surfaceCapabilities.minImageCount + 1;
+    if (surfaceCapabilities.maxImageCount > 0 && minImageCount > surfaceCapabilities.maxImageCount)
+        minImageCount = surfaceCapabilities.maxImageCount;
 
     uint32_t queueFamilyIndices[] = {GL::glDevice->graphicQueueFamily, GL::glDevice->presentQueueFamily};
 
@@ -102,7 +132,7 @@ GLSwapChain::GLSwapChain(const VkSurfaceFormatKHR surfaceFormat, const VkPresent
     }
 
     swapChainCreateInfo.presentMode = presentMode;
-    swapChainCreateInfo.preTransform = swapChainSupport.surfaceCapabilities.currentTransform; //不做图像变换
+    swapChainCreateInfo.preTransform = surfaceCapabilities.currentTransform; //不做图像变换
     swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; //不与其他窗口混合
     swapChainCreateInfo.clipped = VK_TRUE; //窗口被遮挡时允许裁剪像素
     swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;

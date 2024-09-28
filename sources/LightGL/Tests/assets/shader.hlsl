@@ -1,4 +1,4 @@
-﻿cbuffer ubo : register(b0)
+cbuffer ubo : register(b0)
 {
     float4x4 model;
     float4x4 view;

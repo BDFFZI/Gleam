@@ -3,16 +3,16 @@
 using namespace LightRuntime;
 
 
-void Input::PushInputEvent(const InputEvent& inputEvent)
+void Input::PushInputHandler(const InputHandler& inputHandler)
 {
-    inputEvents.push(inputEvent);
+    inputHandlers.push(inputHandler);
 }
-void Input::PopInputEvent(const InputEvent& inputEvent)
+void Input::PopInputHandler(const InputHandler& inputHandler)
 {
-    if (inputEvents.top().name != inputEvent.name)
+    if (inputHandlers.top().name != inputHandler.name)
         throw std::exception("输入回调出栈顺序异常");
 
-    inputEvents.pop();
+    inputHandlers.pop();
 }
 
 bool Input::GetMouseButtonDown(MouseButton mouseButton)
@@ -66,7 +66,7 @@ float2 Input::GetMouseMoveDelta()
 
 void Input::Initialize(GLFWwindow* glfwWindow)
 {
-    Input::glfWwindow = glfwWindow;
+    Input::glfwWindow = glfwWindow;
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods)
     {
         keyboardState[key][2] = action != GLFW_RELEASE;
@@ -86,7 +86,7 @@ void Input::Initialize(GLFWwindow* glfwWindow)
 
 
     //添加一个默认输入回调，这样后续不需要总是判断是否存在
-    inputEvents.push(
+    inputHandlers.push(
         {
             "default",
             []
@@ -115,5 +115,5 @@ void Input::Update()
     mousePositionDelta = mousePosition[1] - mousePosition[0];
     mousePosition[0] = mousePosition[1];
 
-    inputEvents.top().event();
+    inputHandlers.top().event();
 }

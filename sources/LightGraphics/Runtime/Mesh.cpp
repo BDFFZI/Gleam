@@ -39,7 +39,7 @@ namespace LightRuntime
 
     GetProperty(Positions, float3, position)
     GetProperty(Normals, float3, normal)
-    GetProperty(Tangents, float3, tangent)
+    GetProperty(Tangents, float4, tangent)
     GetProperty(UVs, float2, uv)
     GetProperty(Colors, float4, color)
     void Mesh::GetVertices(std::vector<Vertex>& buffer) const
@@ -63,7 +63,7 @@ namespace LightRuntime
 
     SetProperty(Positions, float3, position)
     SetProperty(Normals, float3, normal)
-    SetProperty(Tangents, float3, tangent)
+    SetProperty(Tangents, float4, tangent)
     SetProperty(UVs, float2, uv)
     SetProperty(Colors, float4, color)
     void Mesh::SetVertices(const std::vector<Vertex>& data)

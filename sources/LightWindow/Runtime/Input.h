@@ -61,7 +61,7 @@ namespace LightRuntime
         Middle = GLFW_MOUSE_BUTTON_MIDDLE,
     };
 
-    struct InputEvent
+    struct InputHandler
     {
         std::string name;
         std::function<void()> event;
@@ -71,8 +71,8 @@ namespace LightRuntime
     class Input
     {
     public:
-        static void PushInputEvent(const InputEvent& inputEvent);
-        static void PopInputEvent(const InputEvent& inputEvent);
+        static void PushInputHandler(const InputHandler& inputHandler);
+        static void PopInputHandler(const InputHandler& inputHandler);
 
         static bool GetMouseButtonDown(MouseButton mouseButton);
         static bool GetMouseButton(MouseButton mouseButton);
@@ -86,9 +86,9 @@ namespace LightRuntime
         static float2 GetMouseMoveDelta();
 
     private:
-        inline static std::stack<InputEvent> inputEvents;
+        inline static std::stack<InputHandler> inputHandlers;
 
-        inline static GLFWwindow* glfWwindow;
+        inline static GLFWwindow* glfwWindow;
         inline static bool mouseButtonState[3][3];
         inline static bool keyboardState[349][3];
         inline static float2 mouseScrollDelta[2];

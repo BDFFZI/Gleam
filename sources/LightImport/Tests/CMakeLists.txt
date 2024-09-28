@@ -1,1 +1,1 @@
-﻿addTests()
+addTests()

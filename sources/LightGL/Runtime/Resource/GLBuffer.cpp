@@ -5,7 +5,7 @@
 #include "../GL.h"
 #include "../Pipeline/GLCommandBuffer.h"
 
-GLBuffer* GLBuffer::CreateTransmitter(const void* data, const int size)
+GLBuffer* GLBuffer::CreateTransmitter(const void* data, const size_t size)
 {
     GLBuffer* glBuffer = new GLBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
@@ -16,7 +16,7 @@ GLBuffer* GLBuffer::CreateTransmitter(const void* data, const int size)
     return glBuffer;
 }
 
-GLBuffer::GLBuffer(const int size, const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties)
+GLBuffer::GLBuffer(const size_t size, const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties)
     : size(size)
 {
     //创建缓冲区

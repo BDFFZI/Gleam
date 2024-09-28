@@ -5,19 +5,16 @@
 #include "../Pipeline/GLCommandBuffer.h"
 #include "../Resource/GLImageView.h"
 
-struct SwapChainSupportDetails
-{
-    VkSurfaceCapabilitiesKHR surfaceCapabilities = {};
-    std::vector<VkSurfaceFormatKHR> surfaceFormats = {};
-    std::vector<VkPresentModeKHR> presentModes = {};
-
-    bool CheckSwapSurfaceFormat(VkSurfaceFormatKHR surfaceFormat) const;
-    bool CheckSwapPresentMode(VkPresentModeKHR presentMode) const;
-};
-
 class GLSwapChain
 {
 public:
+    static VkSurfaceCapabilitiesKHR QuerySurfaceCapabilitySupport();
+    static std::vector<VkSurfaceFormatKHR> QuerySurfaceFormatSupport();
+    static std::vector<VkPresentModeKHR> QueryPresentModeSupport();
+
+    static VkSurfaceFormatKHR ChooseSwapSurfaceFormat(VkSurfaceFormatKHR desiredSurfaceFormat);
+    static VkPresentModeKHR ChooseSwapPresentMode(VkPresentModeKHR desiredPresentMode);
+
     VkSwapchainKHR swapChain = VK_NULL_HANDLE;
     std::vector<VkImage> images = {};
     VkExtent2D imageExtent = {};
@@ -25,8 +22,8 @@ public:
     std::vector<std::unique_ptr<GLImageView>> imageViews = {};
 
     GLSwapChain(
-        VkSurfaceFormatKHR surfaceFormat = {VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR},
-        VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR
+        VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat({VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR}),
+        VkPresentModeKHR presentMode = ChooseSwapPresentMode(VK_PRESENT_MODE_MAILBOX_KHR)
     );
     GLSwapChain(const GLSwapChain&) = delete;
     ~GLSwapChain();

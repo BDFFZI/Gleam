@@ -5,7 +5,7 @@
 
 struct GLShader
 {
-    std::vector<char> shaderCode;
+    std::vector<std::byte> shaderCode;
     std::string shaderName;
     VkShaderStageFlagBits shaderStage;
 
@@ -16,5 +16,5 @@ struct GLShader
      * @param shaderStage shader作用的图像管道阶段
      * @return 
      */
-    GLShader(const std::vector<char>& shaderCode, std::string shaderName, VkShaderStageFlagBits shaderStage);
+    GLShader(const std::vector<std::byte>& shaderCode, std::string shaderName, VkShaderStageFlagBits shaderStage);
 };

@@ -13,7 +13,7 @@ public:
      * @param mipChain
      * @return 
      */
-    static GLImage* CreateTexture2D(uint32_t width, uint32_t height, const void* data, int size, bool mipChain = false);
+    static GLImage* CreateTexture2D(uint32_t width, uint32_t height, const void* data, size_t size, bool mipChain = false);
     static GLImage* CreateFrameBufferColor(uint32_t width, uint32_t height, VkFormat colorFormat, VkSampleCountFlagBits sampleCount);
     static GLImage* CreateFrameBufferDepth(uint32_t width, uint32_t height, VkFormat depthFormat, VkSampleCountFlagBits sampleCount);
 

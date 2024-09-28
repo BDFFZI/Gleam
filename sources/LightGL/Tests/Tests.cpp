@@ -1,47 +1,28 @@
 ﻿#include <chrono>
-#include <vulkan/vulkan_core.h>
-#include <functional>
 
-
+#include <fstream>
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/hash.hpp>
-
-#include <gtest/gtest.h>
 
 #include "LightGL/Runtime/GL.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
 #include "LightGL/Runtime/Resource/GLImageView.h"
-#include "LightImport/Runtime/ImageImport.h"
+
+#include "LightImport/Runtime/ImageImporter.h"
+#include "LightImport/Runtime/ModelImporter.h"
+#include "LightImport/Runtime/ShaderImporter.h"
 
 using namespace LightRuntime;
 
 struct Vertex
 {
-    glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 texCoord;
-
-    bool operator==(const Vertex& other) const
-    {
-        return pos == other.pos && color == other.color && texCoord == other.texCoord;
-    }
+    float3 pos;
+    float3 color;
+    float2 texCoord;
 };
 
-template <>
-struct std::hash<Vertex>
-{
-    size_t operator()(Vertex const& vertex) const noexcept
-    {
-        return ((hash<glm::vec3>()(vertex.pos) ^
-                (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
-            (hash<glm::vec2>()(vertex.texCoord) << 1);
-    }
-};
-
-std::vector<char> ReadFile(const std::string& filename)
+std::string ReadFile(const std::string& filename)
 {
     //通过ate标志初始就将指针放在流末尾
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -50,53 +31,15 @@ std::vector<char> ReadFile(const std::string& filename)
 
     //由于指针在流末尾，故其位置即文件长度
     const std::streamsize fileSize = file.tellg();
-    std::vector<char> buffer(fileSize);
+    std::string content(fileSize, '0');
+
+    //读取内容
     file.seekg(0);
-    file.read(buffer.data(), fileSize);
+    file.read(content.data(), fileSize);
 
     file.close();
 
-    return buffer;
-}
-inline void LoadModel(const std::string& modelPath, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
-{
-    static std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string warn, err;
-
-    if (!LoadObj(&attrib, &shapes, &materials, &warn, &err, modelPath.c_str()))
-        throw std::runtime_error(warn + err);
-
-    for (const auto& shape : shapes)
-    {
-        for (const auto& index : shape.mesh.indices)
-        {
-            Vertex vertex{};
-            vertex.pos = {
-                attrib.vertices[3 * index.vertex_index + 0],
-                attrib.vertices[3 * index.vertex_index + 1],
-                attrib.vertices[3 * index.vertex_index + 2]
-            };
-
-            vertex.texCoord = {
-                attrib.texcoords[2 * index.texcoord_index + 0],
-                1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-            };
-
-            vertex.color = {0.1f, 1.0f, 1.0f};
-
-            if (!uniqueVertices.contains(vertex))
-            {
-                uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-                vertices.push_back(vertex);
-            }
-
-            indices.push_back(uniqueVertices[vertex]);
-        }
-    }
+    return content;
 }
 
 struct UniformBufferObject
@@ -134,10 +77,8 @@ class GLTester
     std::vector<std::unique_ptr<GLCommandBuffer>> glCommandBuffers;
 
 public:
-    GLTester(GLFWwindow* window)
+    GLTester()
     {
-        GL::Initialize(window);
-
         //创建交换链
         RecreateSwapChain();
 
@@ -163,10 +104,14 @@ public:
         //dst必须高于src以避免循环，但序号可以不连续，这意味着可以有多个subpass在同样的起点并行执行
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL; //在srcSubPass中定义该值表示前置隐式subpass（放dstSubpass中表示后置）
         dependency.dstSubpass = 0; //表明srcSubpass的后一个执行的subpass，此处即我们的subpass，通过srcSubpass+dstSubpass便实现了subpass执行顺序的确定
-        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT; //等待交换链完成从图像的读取（颜色附件可用）并且上一次片段测试结束时执行（深度附件可用）
-        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT; //等待交换链完成从图像的读取（颜色附件可用）并且当前片段测试开始（使用深度附件）
-        dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; //当颜色和深度缓冲区可写入时执行（多缓冲帧共用了一样的附件）
-        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; //当颜色和深度缓冲区可写入时执行
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+            VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT; //等待交换链完成从图像的读取（颜色附件可用）并且上一次片段测试结束时执行（深度附件可用）
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT; //等待交换链完成从图像的读取（颜色附件可用）并且当前片段测试开始（使用深度附件）
+        dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        //当颜色和深度缓冲区可写入时执行（多缓冲帧共用了一样的附件）
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        //当颜色和深度缓冲区可写入时执行
         std::vector glSubpassDependencies = {dependency};
 
         glRenderPass = std::make_unique<GLRenderPass>(
@@ -176,22 +121,28 @@ public:
         //创建帧缓冲区
         RecreateFrameBuffers();
 
-        //创建渲染管线
+        //网格布局
         GLMeshLayout glMeshLayout(sizeof(Vertex), {
                                       GLVertexAttribute{offsetof(Vertex, pos), VK_FORMAT_R32G32B32_SFLOAT},
                                       GLVertexAttribute{offsetof(Vertex, color), VK_FORMAT_R32G32B32_SFLOAT},
                                       GLVertexAttribute{offsetof(Vertex, texCoord), VK_FORMAT_R32G32_SFLOAT},
-                                  }, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST); //网格布局
-
-        std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(std::vector{
-            GLDescriptorBinding{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-            GLDescriptorBinding{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
-        });
-        glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout); //描述符布局
+                                  }, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        //描述符布局
+        std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(
+            std::vector{
+                GLDescriptorBinding{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+                GLDescriptorBinding{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+            });
+        glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout);
+        //着色器布局
+        std::string code = ReadFile("assets/shader.hlsl");
         std::vector glShaderLayout{
-            GLShader(ReadFile("assets/vertexShader.spv"), "VertexShader", VK_SHADER_STAGE_VERTEX_BIT),
-            GLShader(ReadFile("assets/fragmentShader.spv"), "FragmentShader", VK_SHADER_STAGE_FRAGMENT_BIT),
-        }; //着色器
+            GLShader(ShaderImporter::ImportHlsl(shaderc_vertex_shader, code, "VertexShader"),
+                     "VertexShader", VK_SHADER_STAGE_VERTEX_BIT),
+            GLShader(ShaderImporter::ImportHlsl(shaderc_fragment_shader, code, "FragmentShader"),
+                     "FragmentShader", VK_SHADER_STAGE_FRAGMENT_BIT),
+        };
+        //创建渲染管线
         glPipeline = std::make_unique<GLPipeline>(
             glShaderLayout, glMeshLayout, *glPipelineLayout,
             glRenderPass.get(), 0,
@@ -199,18 +150,26 @@ public:
         );
 
         //创建顶点索引缓冲区
-        std::vector<Vertex> vertices;
-        std::vector<uint32_t> indices;
-        LoadModel("assets/viking_room.obj", vertices, indices);
+        RawMesh mesh = ModelImporter::ImportObj("assets/viking_room.obj");
+        std::vector<Vertex> vertices(mesh.positions.size());
+        for (size_t i = 0; i < vertices.size(); ++i)
+        {
+            vertices[i] = {
+                mesh.positions[i],
+                {0.1f, 1, 1},
+                mesh.uvs[i]
+            };
+        }
+
         vertexBuffer = std::make_unique<GLBuffer>(
             static_cast<int>(sizeof(Vertex) * vertices.size()),
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             vertices.data()
         );
         indexBuffer = std::make_unique<GLBuffer>(
-            static_cast<int>(sizeof(uint32_t) * indices.size()),
+            static_cast<int>(sizeof(uint32_t) * mesh.triangles.size()),
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            indices.data()
+            mesh.triangles.data()
         );
 
         //创建常量缓冲区
@@ -220,12 +179,13 @@ public:
         {
             constantBuffers[i] = std::make_unique<GLBuffer>(
                 sizeof(UniformBufferObject),
-                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
             constantBufferAddresses[i] = constantBuffers[i]->MapMemory();
         }
 
         //创建纹理及采样器
-        RawImage rawImage = ImportPng("assets/viking_room.png");
+        RawImage rawImage = ImageImporter::Import("assets/viking_room.png");
         texture = std::unique_ptr<GLImage>(GLImage::CreateTexture2D(
             rawImage.width, rawImage.height,
             rawImage.pixels.data(), rawImage.pixels.size(), true));
@@ -233,7 +193,8 @@ public:
         textureSampler = std::make_unique<GLImageSampler>();
 
         //创建描述符集并绑定资源
-        glDescriptorPool = std::make_unique<GLDescriptorPool>(*descriptorSetLayout, static_cast<int>(maxFramesInFlight));
+        glDescriptorPool = std::make_unique<
+            GLDescriptorPool>(*descriptorSetLayout, static_cast<int>(maxFramesInFlight));
         glDescriptorSets.resize(maxFramesInFlight);
         for (size_t i = 0; i < maxFramesInFlight; ++i)
         {
@@ -247,6 +208,7 @@ public:
         for (size_t i = 0; i < maxFramesInFlight; ++i)
             glCommandBuffers[i] = std::make_unique<GLCommandBuffer>();
     }
+
     ~GLTester()
     {
         vkDeviceWaitIdle(GL::glDevice->device);
@@ -277,7 +239,8 @@ public:
         ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.proj = glm::perspective(glm::radians(45.0f),
-                                    static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain->imageExtent.height), 0.1f, 10.0f);
+                                    static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain
+                                                                                                            ->imageExtent.height), 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
         memcpy(constantBufferAddresses[bufferIndex], &ubo, sizeof(ubo));
 
@@ -303,11 +266,13 @@ public:
 
         glSwapChain->PresentImageAsync();
     }
+
     void WaitDrawFrame() const
     {
         //等待信号量可用
         glCommandBuffers[glSwapChain->GetCurrentBufferIndex()]->WaitExecutionFinish();
     }
+
     void RecreateSwapChain()
     {
         int width = 0, height = 0;
@@ -337,6 +302,7 @@ public:
             depthFormat, GL::glDevice->maxUsableSampleCount));
         depthImageView = std::make_unique<GLImageView>(*depthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
     }
+
     void RecreateFrameBuffers()
     {
         //创建帧缓冲区
@@ -365,7 +331,8 @@ void main()
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 
-    GLTester glTester(window);
+    GL::Initialize(window);
+    GLTester glTester = {};
 
     while (!glfwWindowShouldClose(window))
     {

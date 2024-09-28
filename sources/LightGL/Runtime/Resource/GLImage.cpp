@@ -69,7 +69,7 @@ void CmdBlitImageMipmap(
                    VK_FILTER_LINEAR);
 }
 
-GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, const void* data, const int size, const bool mipChain)
+GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, const void* data, const size_t size, const bool mipChain)
 {
     const uint32_t mipLevels = mipChain ? static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))) + 1) : 1;
     if (mipLevels != 1)

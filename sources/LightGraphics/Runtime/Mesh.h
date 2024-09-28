@@ -21,7 +21,7 @@ namespace LightRuntime
     {
         float3 position;
         float3 normal;
-        float3 tangent;
+        float4 tangent;
         float2 uv;
         float4 color;
     };
@@ -43,7 +43,7 @@ namespace LightRuntime
 
         void GetPositions(std::vector<float3>& buffer) const;
         void GetNormals(std::vector<float3>& buffer) const;
-        void GetTangents(std::vector<float3>& buffer) const;
+        void GetTangents(std::vector<float4>& buffer) const;
         void GetUVs(std::vector<float2>& buffer) const;
         void GetColors(std::vector<float4>& buffer) const;
         void GetVertices(std::vector<Vertex>& buffer) const;
@@ -51,7 +51,7 @@ namespace LightRuntime
 
         void SetPositions(const std::vector<float3>& data);
         void SetNormals(const std::vector<float3>& data);
-        void SetTangents(const std::vector<float3>& data);
+        void SetTangents(const std::vector<float4>& data);
         void SetUVs(const std::vector<float2>& data);
         void SetColors(const std::vector<float4>& data);
         void SetVertices(const std::vector<Vertex>& data);

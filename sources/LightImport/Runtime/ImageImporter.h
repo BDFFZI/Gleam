@@ -11,5 +11,9 @@ namespace LightRuntime
         std::vector<std::byte> pixels;
     };
 
-    RawImage ImportPng(const std::string& filePath);
+    class ImageImporter
+    {
+    public:
+        static RawImage Import(const std::string& filePath);
+    };
 }

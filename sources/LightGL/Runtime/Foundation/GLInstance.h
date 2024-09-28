@@ -5,6 +5,8 @@
 class GLInstance
 {
 public:
+    static bool CheckValidationLayerSupport(const std::vector<const char*>& validationLayers);
+
     VkInstance instance = VK_NULL_HANDLE;
 
     explicit GLInstance(const std::vector<const char*>& validationLayers = {});

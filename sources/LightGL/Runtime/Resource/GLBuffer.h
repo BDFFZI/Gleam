@@ -13,13 +13,13 @@ public:
      * @param size 
      * @return 支持CPU内存写入且可做GPU传输源的临时缓冲区
      */
-    static GLBuffer* CreateTransmitter(const void* data, int size);
+    static GLBuffer* CreateTransmitter(const void* data, size_t size);
 
     VkBuffer buffer;
     VkDeviceMemory bufferMemory;
-    int size;
+    size_t size;
 
-    GLBuffer(int size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+    GLBuffer(size_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
     /**
     * 自动添加VK_BUFFER_USAGE_TRANSFER_DST_BIT，并传入初始值
     * @param size 
