@@ -137,15 +137,17 @@ public:
         //着色器布局
         std::string code = ReadFile("assets/shader.hlsl");
         std::vector glShaderLayout{
-            GLShader(ShaderImporter::ImportHlsl(shaderc_vertex_shader, code, "VertexShader"),
-                     "VertexShader", VK_SHADER_STAGE_VERTEX_BIT),
-            GLShader(ShaderImporter::ImportHlsl(shaderc_fragment_shader, code, "FragmentShader"),
-                     "FragmentShader", VK_SHADER_STAGE_FRAGMENT_BIT),
+            GLShader(VK_SHADER_STAGE_VERTEX_BIT,
+                     ShaderImporter::ImportHlsl(shaderc_vertex_shader, code, "VertexShader"),
+                     "VertexShader"),
+            GLShader(VK_SHADER_STAGE_FRAGMENT_BIT,
+                     ShaderImporter::ImportHlsl(shaderc_fragment_shader, code, "FragmentShader"),
+                     "FragmentShader"),
         };
         //创建渲染管线
         glPipeline = std::make_unique<GLPipeline>(
+            *glRenderPass, 0,
             glShaderLayout, glMeshLayout, *glPipelineLayout,
-            glRenderPass.get(), 0,
             MultisampleState{VK_SAMPLE_COUNT_8_BIT}
         );
 

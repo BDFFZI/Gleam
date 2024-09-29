@@ -12,25 +12,13 @@ void CommandBuffer::BeginRecording()
 {
     glCommandBuffer.BeginRecording();
 }
-void CommandBuffer::EndRecording()
+void CommandBuffer::EndRecording() const
 {
-    if (isRendering)
-    {
-        glCommandBuffer.EndRendering();
-        isRendering = false;
-    }
-
     glCommandBuffer.EndRecording();
 }
 
-void CommandBuffer::SetRenderTarget(const RenderTexture* renderTarget)
+void CommandBuffer::BeginRendering(const RenderTexture* renderTarget, const bool clearColor) const
 {
-    if (isRendering)
-    {
-        glCommandBuffer.EndRendering();
-        isRendering = false;
-    }
-
     if (renderTarget != nullptr)
     {
         glCommandBuffer.BeginRendering(
@@ -39,8 +27,7 @@ void CommandBuffer::SetRenderTarget(const RenderTexture* renderTarget)
                     static_cast<uint32_t>(renderTarget->GetWidth()),
                     static_cast<uint32_t>(renderTarget->GetHeight())
                 }
-            },
-            false, false,
+            }, clearColor,
             *renderTarget->GetGLColorImageView(),
             renderTarget->GetGLDepthStencilImageView().get(),
             renderTarget->GetGLColorResolveImageView().get()
@@ -53,14 +40,18 @@ void CommandBuffer::SetRenderTarget(const RenderTexture* renderTarget)
 
         glCommandBuffer.BeginRendering(
             VkRect2D{{0, 0}, glSwapChain->imageExtent},
-            false, true,
+            clearColor,
             *Graphics::GetPresentColorImageView(),
             Graphics::GetPresentDepthStencilImageView().get(),
             Graphics::GetPresentColorResolveImageView().get()
         );
     }
-    isRendering = true;
 }
+void CommandBuffer::EndRendering() const
+{
+    glCommandBuffer.EndRendering();
+}
+
 void CommandBuffer::SetViewport(const rect& viewport) const
 {
     glCommandBuffer.SetViewportAndScissor(
@@ -68,18 +59,18 @@ void CommandBuffer::SetViewport(const rect& viewport) const
         {static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)}
     );
 }
-void CommandBuffer::ClearRenderTarget()
+void CommandBuffer::Draw(MeshBase& mesh, const Material& material) const
 {
-    
-}
-void CommandBuffer::Draw(const MeshBase& mesh, const Material& material) const
-{
+    //绑定网格
+    mesh.UpdateGLBuffer();
     glCommandBuffer.BindVertexBuffers(mesh.GetGLVertexBuffer());
     glCommandBuffer.BindIndexBuffer(mesh.GetGLIndexBuffer());
-
+    //绑定着色器
     const Shader& shader = material.GetShader();
     glCommandBuffer.BindPipeline(shader.GetGLPipeline());
-    glCommandBuffer.PushDescriptorSet(shader.GetGLPipelineLayout(), material.GetDescriptorSet());
+    //绑定标识符
+    if (!material.GetDescriptorSet().empty())
+        glCommandBuffer.PushDescriptorSet(shader.GetGLPipelineLayout(), material.GetDescriptorSet());
 
     glCommandBuffer.Draw(mesh.GetIndexCount());
 }

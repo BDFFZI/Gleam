@@ -1,6 +1,5 @@
 ﻿#include "Graphics.h"
 
-#include "LightGL/Runtime/Foundation/GLFoundation.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
 
 using namespace LightRuntime;
@@ -11,7 +10,8 @@ void Graphics::Initialize(GLFWwindow* window)
 
     presentColorFormat = VK_FORMAT_B8G8R8A8_SRGB;
     presentDepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;
-    presentSampleCount = GL::glDevice->maxUsableSampleCount;
+    // presentSampleCount = GL::glDevice->maxUsableSampleCount;
+    presentSampleCount = VK_SAMPLE_COUNT_1_BIT;
 
     CreateSwapChain();
 
@@ -40,6 +40,14 @@ const std::unique_ptr<GLImageView>& Graphics::GetPresentColorResolveImageView()
 {
     return presentSampleCount != VK_SAMPLE_COUNT_1_BIT ? glSwapChain->GetCurrentImageView() : colorImageView;
 }
+VkFormat Graphics::GetPresentColorFormat()
+{
+    return presentColorFormat;
+}
+VkFormat Graphics::GetPresentDepthStencilFormat()
+{
+    return presentDepthStencilFormat;
+}
 
 
 void Graphics::Present(const std::function<void(CommandBuffer& commandBuffer)>& addCommand)
@@ -55,13 +63,21 @@ void Graphics::Present(const std::function<void(CommandBuffer& commandBuffer)>& 
     ) == false) //交换链过时，需重建
     {
         vkDeviceWaitIdle(GL::glDevice->device);
+        glSwapChain.reset();
         CreateSwapChain();
         return;
     }
 
     //添加命令
     CommandBuffer& commandBuffer = *commandBuffers[imageIndex];
+    commandBuffer.BeginRecording();
     addCommand(commandBuffer);
+    commandBuffer.GetGLCommandBuffer().TransitionImageLayout(
+        glSwapChain->images[imageIndex],VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    );
+    commandBuffer.EndRecording();
 
     //提交命令
     commandBuffer.GetGLCommandBuffer().ExecuteCommandBufferAsync(

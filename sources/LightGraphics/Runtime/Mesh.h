@@ -3,6 +3,7 @@
 
 #include "LightGL/Runtime/Pipeline/GLMeshLayout.h"
 #include "LightGL/Runtime/Resource/GLBuffer.h"
+#include "LightMath/Runtime/Graphics.h"
 #include "LightMath/Runtime/Vector.h"
 
 namespace LightRuntime
@@ -15,6 +16,8 @@ namespace LightRuntime
         virtual const GLBuffer& GetGLVertexBuffer() const = 0;
         virtual const GLBuffer& GetGLIndexBuffer() const = 0;
         virtual int GetIndexCount() const = 0;
+
+        virtual void UpdateGLBuffer() = 0;
     };
 
     struct Vertex
@@ -23,7 +26,7 @@ namespace LightRuntime
         float3 normal;
         float4 tangent;
         float2 uv;
-        float4 color;
+        color color;
     };
 
     class Mesh : public MeshBase
@@ -45,7 +48,7 @@ namespace LightRuntime
         void GetNormals(std::vector<float3>& buffer) const;
         void GetTangents(std::vector<float4>& buffer) const;
         void GetUVs(std::vector<float2>& buffer) const;
-        void GetColors(std::vector<float4>& buffer) const;
+        void GetColors(std::vector<color>& buffer) const;
         void GetVertices(std::vector<Vertex>& buffer) const;
         void GetTriangles(std::vector<uint32_t>& buffer) const;
 
@@ -53,11 +56,11 @@ namespace LightRuntime
         void SetNormals(const std::vector<float3>& data);
         void SetTangents(const std::vector<float4>& data);
         void SetUVs(const std::vector<float2>& data);
-        void SetColors(const std::vector<float4>& data);
+        void SetColors(const std::vector<color>& data);
         void SetVertices(const std::vector<Vertex>& data);
         void SetTriangles(const std::vector<uint32_t>& data);
 
-        void UploadGL();
+        void UpdateGLBuffer() override;
 
     private:
         static inline GLMeshLayout glMeshLayout = {
@@ -66,7 +69,7 @@ namespace LightRuntime
                 GLVertexAttribute{offsetof(Vertex, normal), VK_FORMAT_R32G32B32_SFLOAT},
                 GLVertexAttribute{offsetof(Vertex, tangent), VK_FORMAT_R32G32B32_SFLOAT},
                 GLVertexAttribute{offsetof(Vertex, uv), VK_FORMAT_R32G32_SFLOAT},
-                GLVertexAttribute{offsetof(Vertex, color), VK_FORMAT_R8G8B8A8_UNORM},
+                GLVertexAttribute{offsetof(Vertex, color), VK_FORMAT_R32G32B32A32_SFLOAT},
             },
             VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
         };

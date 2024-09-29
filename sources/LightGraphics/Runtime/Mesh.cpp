@@ -41,7 +41,7 @@ namespace LightRuntime
     GetProperty(Normals, float3, normal)
     GetProperty(Tangents, float4, tangent)
     GetProperty(UVs, float2, uv)
-    GetProperty(Colors, float4, color)
+    GetProperty(Colors, color, color)
     void Mesh::GetVertices(std::vector<Vertex>& buffer) const
     {
         buffer = vertices;
@@ -65,7 +65,7 @@ namespace LightRuntime
     SetProperty(Normals, float3, normal)
     SetProperty(Tangents, float4, tangent)
     SetProperty(UVs, float2, uv)
-    SetProperty(Colors, float4, color)
+    SetProperty(Colors, color, color)
     void Mesh::SetVertices(const std::vector<Vertex>& data)
     {
         vertices = data;
@@ -75,7 +75,7 @@ namespace LightRuntime
         triangles = data;
     }
 
-    void Mesh::UploadGL()
+    void Mesh::UpdateGLBuffer()
     {
         glVertexBuffer = std::make_unique<GLBuffer>(
             static_cast<int>(sizeof(Vertex) * vertices.size()),

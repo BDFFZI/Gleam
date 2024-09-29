@@ -12,6 +12,10 @@ namespace LightRuntime
 
     struct color
     {
+        static color red;
+        static color green;
+        static color blue;
+
         float r;
         float g;
         float b;

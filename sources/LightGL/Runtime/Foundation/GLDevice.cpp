@@ -110,9 +110,12 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
     VkPhysicalDeviceFeatures necessaryFeatures = {};
     necessaryFeatures.samplerAnisotropy = VK_TRUE; //需支持各向异性
     necessaryFeatures.sampleRateShading = VK_TRUE; //需支持着色多重采样（改善来自纹理中的锯齿）
+    VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures = {};
+    dynamicRenderingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+    dynamicRenderingFeatures.dynamicRendering = VK_TRUE; //需支持动态渲染
     std::vector necessaryExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME, //需支持交换链
-        VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME //需支持推送描述符
+        VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME, //需支持推送描述符
     };
 
     //挑选首个满足需求的显卡
@@ -159,6 +162,7 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     //显卡需要启用的功能特征
     createInfo.pEnabledFeatures = &necessaryFeatures;
+    createInfo.pNext = &dynamicRenderingFeatures;
     //显卡需要启用的功能扩展
     createInfo.enabledExtensionCount = static_cast<uint32_t>(necessaryExtensions.size());
     createInfo.ppEnabledExtensionNames = necessaryExtensions.data();

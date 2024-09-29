@@ -16,14 +16,15 @@ namespace LightRuntime
         GLCommandBuffer& GetGLCommandBuffer();
 
         void BeginRecording();
-        void EndRecording();
-        void SetRenderTarget(const RenderTexture* renderTarget);
+        void EndRecording() const;
+
+        void BeginRendering(const RenderTexture* renderTarget, bool clearColor = false) const;
+        void EndRendering() const;
+
         void SetViewport(const rect& viewport) const;
-        void ClearRenderTarget();
-        void Draw(const MeshBase& mesh, const Material& material) const;
+        void Draw(MeshBase& mesh, const Material& material) const;
 
     private:
         GLCommandBuffer glCommandBuffer;
-        bool isRendering = false;
     };
 }

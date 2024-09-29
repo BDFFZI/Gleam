@@ -121,6 +121,40 @@ void GLCommandBuffer::BlitImage(const VkImage source, const VkRect2D sourceRect,
                    1, &blit,
                    VK_FILTER_LINEAR);
 }
+void GLCommandBuffer::TransitionImageLayout(
+    const VkImage& image, const VkImageLayout oldLayout, const VkImageLayout newLayout,
+    const VkAccessFlags srcAccessMask, const VkAccessFlags dstAccessMask,
+    const VkPipelineStageFlags srcStage, const VkPipelineStageFlags dstStage) const
+{
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    //转换图形内存布局
+    barrier.oldLayout = oldLayout;
+    barrier.newLayout = newLayout;
+    //不使用队列所有权转移功能
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    //受影响的图形
+    barrier.image = image;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; //视作颜色纹理
+    barrier.subresourceRange.levelCount = 1; //转换mipmap的数量
+    barrier.subresourceRange.baseMipLevel = 0; //转换mipmap的起点
+    barrier.subresourceRange.layerCount = 1; //非数组
+    barrier.subresourceRange.baseArrayLayer = 0;
+    //屏障执行前后需要等待的操作类型
+    barrier.srcAccessMask = srcAccessMask;
+    barrier.dstAccessMask = dstAccessMask;
+
+    vkCmdPipelineBarrier(
+        commandBuffer,
+        srcStage, //屏障要在哪个阶段后开始
+        dstStage, //屏障要在哪个阶段前完成
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier
+    );
+}
 
 void GLCommandBuffer::BeginRenderPass(const GLRenderPass& glRenderPass, const GLFramebuffer& glFramebuffer) const
 {
@@ -142,23 +176,21 @@ void GLCommandBuffer::EndRenderPass() const
     vkCmdEndRenderPass(commandBuffer);
 }
 void GLCommandBuffer::BeginRendering(
-    const VkRect2D renderArea, const bool retainColor, const bool toPresent,
+    const VkRect2D renderArea, const bool clearColor,
     const GLImageView& colorView, const GLImageView* depthStencilView, const GLImageView* colorResolveView) const
 {
     VkRenderingAttachmentInfo colorAttachmentInfo{};
     colorAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     colorAttachmentInfo.imageView = colorView.imageView;
-    colorAttachmentInfo.imageLayout = toPresent ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    colorAttachmentInfo.loadOp = retainColor ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachmentInfo.loadOp = clearColor ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
     colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     colorAttachmentInfo.clearValue.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
-    if (colorResolveView == nullptr)
+    if (colorResolveView != nullptr)
     {
-        colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
         colorAttachmentInfo.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
         colorAttachmentInfo.resolveImageView = colorResolveView->imageView;
-        colorAttachmentInfo.resolveImageLayout = toPresent ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        colorAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     }
 
     VkRenderingAttachmentInfo depthStencilAttachmentInfo{};

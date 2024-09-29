@@ -22,12 +22,16 @@ public:
     void CopyBuffer(const GLBuffer& source, const GLBuffer& buffer) const;
     void CopyBufferToImage(const GLBuffer& source, const GLImage& image) const;
     void BlitImage(VkImage source, VkRect2D sourceRect, VkImage destination, VkRect2D destinationRect) const;
+    void TransitionImageLayout(
+        const VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout,
+        VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
+        VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage) const;
 
     void BeginRenderPass(const GLRenderPass& glRenderPass, const GLFramebuffer& glFramebuffer) const;
     void EndRenderPass() const;
 
     void BeginRendering(
-        VkRect2D renderArea, bool retainColor, bool toPresent,
+        VkRect2D renderArea, bool clearColor,
         const GLImageView& colorView, const GLImageView* depthStencilView, const GLImageView* colorResolveView
     ) const;
     void EndRendering() const;

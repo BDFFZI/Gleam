@@ -15,6 +15,8 @@ namespace LightRuntime
         static const std::unique_ptr<GLImageView>& GetPresentColorImageView();
         static const std::unique_ptr<GLImageView>& GetPresentDepthStencilImageView();
         static const std::unique_ptr<GLImageView>& GetPresentColorResolveImageView();
+        static VkFormat GetPresentColorFormat();
+        static VkFormat GetPresentDepthStencilFormat();
 
         static void Present(const std::function<void(CommandBuffer& commandBuffer)>& addCommand);
         static void WaitPresent();

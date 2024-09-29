@@ -1,15 +1,16 @@
 #include "GLPipeline.h"
 
+#include <functional>
 #include <stdexcept>
 
 #include "../GL.h"
 
-GLPipeline::GLPipeline(
+VkPipeline CreatePipeline(
     const std::vector<GLShader>& glShaderLayout,
     const GLMeshLayout& glMeshLayout,
     const GLPipelineLayout& glPipelineLayout,
-    const GLRenderPass* glRenderPass, int subpassIndex,
-    MultisampleState multisampleState)
+    MultisampleState multisampleState,
+    const std::function<void(VkGraphicsPipelineCreateInfo& pipelineCreateInfo)>& modifyPipelineCreateInfo)
 {
     //着色器状态
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages(glShaderLayout.size());
@@ -27,7 +28,7 @@ GLPipeline::GLPipeline(
             VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
             vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
             vertShaderStageInfo.stage = glShaderLayout[i].shaderStage;
-            vertShaderStageInfo.pName = glShaderLayout[i].shaderName.c_str();
+            vertShaderStageInfo.pName = glShaderLayout[i].entryPoint.c_str();
             vertShaderStageInfo.module = shaderModule;
 
             shaderStages[i] = vertShaderStageInfo;
@@ -37,19 +38,10 @@ GLPipeline::GLPipeline(
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = glMeshLayout.vertexInputInfo;
     //基元装配状态
     VkPipelineInputAssemblyStateCreateInfo inputAssembly = glMeshLayout.inputAssembly;
-
-
-    //视口和裁剪阶段状态
+    
+    //视口和裁剪阶段状态（已设置为动态状态，故在渲染时设置）
     VkViewport viewport{}; //视口信息（将着色器输出到图像的映射范围）
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = 0;
-    viewport.height = 0;
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
     VkRect2D scissor{}; //裁剪信息（裁剪掉图像在裁剪范围外的像素）
-    scissor.offset = {0, 0};
-    scissor.extent = {0, 0};
     VkPipelineViewportStateCreateInfo viewportState{}; //创建视口裁剪状态信息
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportState.viewportCount = 1;
@@ -147,19 +139,58 @@ GLPipeline::GLPipeline(
     pipelineCreateInfo.pDepthStencilState = &depthStencil; //深度模板信息
     pipelineCreateInfo.pColorBlendState = &colorBlending; //颜色混合信息
     pipelineCreateInfo.pDynamicState = &dynamicState; //需要支持动态修改的状态信息
-    //是哪个subpass对应的管道
-    pipelineCreateInfo.renderPass = glRenderPass != nullptr ? glRenderPass->renderPass : VK_NULL_HANDLE;
-    pipelineCreateInfo.subpass = subpassIndex;
     //不使用管线派生功能
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
     pipelineCreateInfo.basePipelineIndex = -1; // Optional
 
-    if (vkCreateGraphicsPipelines(GL::glDevice->device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pipeline) != VK_SUCCESS)
-        throw std::runtime_error("创建图形管线失败!");
+    modifyPipelineCreateInfo(pipelineCreateInfo);
+
+    VkPipeline pipeline;
+    VkResult result = vkCreateGraphicsPipelines(GL::glDevice->device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pipeline);
 
     //回收着色器的包装器内存
     for (auto& shaderStage : shaderStages)
         vkDestroyShaderModule(GL::glDevice->device, shaderStage.module, nullptr);
+
+    if (result != VK_SUCCESS)
+        throw std::runtime_error("创建图形管线失败!");
+
+    return pipeline;
+}
+
+GLPipeline::GLPipeline(
+    const GLRenderPass& glRenderPass, const int subpassIndex,
+    const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
+    const MultisampleState multisampleState)
+{
+    pipeline = CreatePipeline(
+        glShaderLayout, glMeshLayout, glPipelineLayout, multisampleState,
+        [&](VkGraphicsPipelineCreateInfo& pipelineCreateInfo)
+        {
+            pipelineCreateInfo.renderPass = glRenderPass.renderPass;
+            pipelineCreateInfo.subpass = subpassIndex;
+        });
+}
+GLPipeline::GLPipeline(
+    const std::vector<VkFormat>& colorAttachments, const VkFormat depthStencilAttachment,
+    const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
+    const MultisampleState multisampleState)
+{
+    VkPipelineRenderingCreateInfo pipelineRenderingCreate = {};
+    pipelineRenderingCreate.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    pipelineRenderingCreate.pNext = VK_NULL_HANDLE;
+    pipelineRenderingCreate.colorAttachmentCount = static_cast<uint32_t>(colorAttachments.size());
+    pipelineRenderingCreate.pColorAttachmentFormats = colorAttachments.data();
+    pipelineRenderingCreate.depthAttachmentFormat = depthStencilAttachment;
+    pipelineRenderingCreate.stencilAttachmentFormat = depthStencilAttachment;
+
+    pipeline = CreatePipeline(
+        glShaderLayout, glMeshLayout, glPipelineLayout, multisampleState,
+        [&](VkGraphicsPipelineCreateInfo& pipelineCreateInfo)
+        {
+            pipelineCreateInfo.renderPass = VK_NULL_HANDLE;
+            pipelineCreateInfo.pNext = &pipelineRenderingCreate;
+        });
 }
 GLPipeline::~GLPipeline()
 {
