@@ -1,23 +1,21 @@
-#include <gtest/gtest.h>
-#include <magic_enum.hpp>
+#include <iostream>
 
 #include "LightMath/Runtime/Math.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Time.h"
 #include "LightWindow/Runtime/Window.h"
 
-using namespace LightEngine;
-
+using namespace LightRuntime;
 
 //TODO：发现问题：长按检测有延迟，鼠标不支持长按
-TEST(WindowTests, ALL)
+void main()
 {
     Window::Initialize();
 
     static float2 moveInput;
     static bool fireInput;
 
-    static InputEvent inputEvent;
+    static InputHandler inputEvent;
     inputEvent.name = "Test";
     inputEvent.event = []
     {
@@ -37,13 +35,14 @@ TEST(WindowTests, ALL)
 
         fireInput = Input::GetMouseButton(MouseButton::Left);
     };
+    
     Window::SetWindowBeginEvent([]()
     {
-        Input::PushInputEvent(inputEvent);
+        Input::PushInputHandler(inputEvent);
     });
     Window::SetWindowEndEvent([]
     {
-        Input::PopInputEvent(inputEvent);
+        Input::PopInputHandler(inputEvent);
     });
     Window::SetWindowUpdateEvent([]
     {
@@ -52,7 +51,7 @@ TEST(WindowTests, ALL)
             std::cout
                 << Time::GetTime() << "\t"
                 << to_string(moveInput)
-                << std::endl;
+                << '\n';
         }
     });
 

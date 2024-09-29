@@ -13,8 +13,9 @@ public:
      * @param mipChain
      * @return 
      */
-    static GLImage* CreateTexture2D(uint32_t width, uint32_t height, const void* data, int size, bool mipChain = false);
-    static GLImage* CreateRenderTargetDepth(uint32_t width, uint32_t height);
+    static GLImage* CreateTexture2D(uint32_t width, uint32_t height, const void* data, size_t size, bool mipChain = false);
+    static GLImage* CreateFrameBufferColor(uint32_t width, uint32_t height, VkFormat colorFormat, VkSampleCountFlagBits sampleCount);
+    static GLImage* CreateFrameBufferDepth(uint32_t width, uint32_t height, VkFormat depthFormat, VkSampleCountFlagBits sampleCount);
 
     VkImage image;
     VkDeviceMemory memory;
@@ -24,7 +25,7 @@ public:
     uint32_t height;
     uint32_t mipLevels;
 
-    GLImage(uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usageFlags, uint32_t mipLevels = 1);
+    GLImage(uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usageFlags, uint32_t mipmapCount = 1, VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
     GLImage(const GLImage&) = delete;
     ~GLImage();
 };

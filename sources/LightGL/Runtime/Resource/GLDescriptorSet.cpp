@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 GLDescriptorSet::GLDescriptorSet(const GLDescriptorPool& glDescriptorPool, const GLDescriptorSetLayout& glDescriptorSetLayout)
     : glDescriptorSetLayout(glDescriptorSetLayout)
@@ -13,7 +13,7 @@ GLDescriptorSet::GLDescriptorSet(const GLDescriptorPool& glDescriptorPool, const
     allocInfo.descriptorSetCount = 1;
     allocInfo.pSetLayouts = &glDescriptorSetLayout.descriptorSetLayout;
 
-    if (vkAllocateDescriptorSets(GLFoundation::glDevice->device, &allocInfo, &descriptorSet) != VK_SUCCESS)
+    if (vkAllocateDescriptorSets(GL::glDevice->device, &allocInfo, &descriptorSet) != VK_SUCCESS)
         throw std::runtime_error("创建描述符集失败！");
 }
 GLDescriptorSet::~GLDescriptorSet() = default;
@@ -35,7 +35,7 @@ void GLDescriptorSet::BindBuffer(const int slotIndex, const GLBuffer& glBuffer) 
     writeDescriptorSet.descriptorCount = 1;
     writeDescriptorSet.pBufferInfo = &bufferInfo;
 
-    vkUpdateDescriptorSets(GLFoundation::glDevice->device, 1, &writeDescriptorSet, 0, nullptr);
+    vkUpdateDescriptorSets(GL::glDevice->device, 1, &writeDescriptorSet, 0, nullptr);
 }
 void GLDescriptorSet::BindImage(const int slotIndex, const GLImageView& glImageView, const GLImageSampler& glImageSampler) const
 {
@@ -53,5 +53,5 @@ void GLDescriptorSet::BindImage(const int slotIndex, const GLImageView& glImageV
     writeDescriptorSet.descriptorCount = 1;
     writeDescriptorSet.pImageInfo = &imageInfo;
 
-    vkUpdateDescriptorSets(GLFoundation::glDevice->device, 1, &writeDescriptorSet, 0, nullptr);
+    vkUpdateDescriptorSets(GL::glDevice->device, 1, &writeDescriptorSet, 0, nullptr);
 }

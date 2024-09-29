@@ -1,15 +1,15 @@
 #include "GLFramebuffer.h"
 
-#include <array>
 #include <stdexcept>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
-GLFramebuffer::GLFramebuffer(const GLRenderPass& glRenderPass, const GLImageView& colorAttachment, const GLImageView& depthAttachment, const VkExtent2D extent)
-    : colorFormat(colorAttachment.format), depthFormat(depthAttachment.format), extent(extent)
+GLFramebuffer::GLFramebuffer(
+    const GLRenderPass& glRenderPass,
+    const std::vector<VkImageView>& attachments,
+    const VkExtent2D extent)
+    : extent(extent)
 {
-    std::array<VkImageView, 2> attachments = {colorAttachment.imageView, depthAttachment.imageView};
-
     VkFramebufferCreateInfo framebufferInfo{};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     framebufferInfo.renderPass = glRenderPass.renderPass; //哪个渲染过程所用的帧缓冲区
@@ -19,10 +19,10 @@ GLFramebuffer::GLFramebuffer(const GLRenderPass& glRenderPass, const GLImageView
     framebufferInfo.height = extent.height;
     framebufferInfo.layers = 1;
 
-    if (vkCreateFramebuffer(GLFoundation::glDevice->device, &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS)
+    if (vkCreateFramebuffer(GL::glDevice->device, &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS)
         throw std::runtime_error("帧缓冲区创建失败!");
 }
 GLFramebuffer::~GLFramebuffer()
 {
-    vkDestroyFramebuffer(GLFoundation::glDevice->device, framebuffer, nullptr);
+    vkDestroyFramebuffer(GL::glDevice->device, framebuffer, nullptr);
 }

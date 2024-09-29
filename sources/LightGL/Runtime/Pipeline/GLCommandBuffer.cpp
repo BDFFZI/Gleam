@@ -3,14 +3,14 @@
 #include <array>
 #include <stdexcept>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 void GLCommandBuffer::ExecuteSingleTimeCommands(const std::function<void(const GLCommandBuffer&)>& setCommands)
 {
     GLCommandBuffer glCommandBuffer = {};
-    glCommandBuffer.BeginRecord(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    glCommandBuffer.BeginRecording(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     setCommands(glCommandBuffer);
-    glCommandBuffer.EndRecord();
+    glCommandBuffer.EndRecording();
     glCommandBuffer.ExecuteCommandBuffer();
 }
 
@@ -19,25 +19,25 @@ GLCommandBuffer::GLCommandBuffer()
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = GLFoundation::glCommandPool->commandPool;
+    allocInfo.commandPool = GL::glCommandPool->commandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; //直接用于提交到命令管道，而不是作为子命令由其他缓冲区调用
     allocInfo.commandBufferCount = 1;
 
-    if (vkAllocateCommandBuffers(GLFoundation::glDevice->device, &allocInfo, &commandBuffer) != VK_SUCCESS)
+    if (vkAllocateCommandBuffers(GL::glDevice->device, &allocInfo, &commandBuffer) != VK_SUCCESS)
         throw std::runtime_error("创建命令缓冲区失败!");
 
     VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    if (vkCreateFence(GLFoundation::glDevice->device, &fenceInfo, nullptr, &fence) != VK_SUCCESS)
+    if (vkCreateFence(GL::glDevice->device, &fenceInfo, nullptr, &fence) != VK_SUCCESS)
         throw std::runtime_error("创建信号围栏失败!");
 }
 GLCommandBuffer::~GLCommandBuffer()
 {
-    vkFreeCommandBuffers(GLFoundation::glDevice->device, GLFoundation::glCommandPool->commandPool, 1, &commandBuffer);
-    vkDestroyFence(GLFoundation::glDevice->device, fence, nullptr);
+    vkFreeCommandBuffers(GL::glDevice->device, GL::glCommandPool->commandPool, 1, &commandBuffer);
+    vkDestroyFence(GL::glDevice->device, fence, nullptr);
 }
 
-void GLCommandBuffer::BeginRecord(const VkCommandBufferUsageFlags flags)
+void GLCommandBuffer::BeginRecording(const VkCommandBufferUsageFlags flags)
 {
     //确保处于可用状态
     WaitExecutionFinish();
@@ -51,7 +51,7 @@ void GLCommandBuffer::BeginRecord(const VkCommandBufferUsageFlags flags)
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
         throw std::runtime_error("开始命令录制失败!");
 }
-void GLCommandBuffer::EndRecord() const
+void GLCommandBuffer::EndRecording() const
 {
     //真正提交命令，并检查命令是否错误
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
@@ -99,6 +99,62 @@ void GLCommandBuffer::CopyBufferToImage(const GLBuffer& source, const GLImage& i
         &region
     );
 }
+void GLCommandBuffer::BlitImage(const VkImage source, const VkRect2D sourceRect, const VkImage destination, const VkRect2D destinationRect) const
+{
+    VkImageBlit blit{};
+    blit.srcOffsets[0] = {sourceRect.offset.x, sourceRect.offset.y, 0};
+    blit.srcOffsets[1] = {static_cast<int32_t>(sourceRect.extent.width), static_cast<int32_t>(sourceRect.extent.height), 1};
+    blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    blit.srcSubresource.mipLevel = 0;
+    blit.srcSubresource.baseArrayLayer = 0;
+    blit.srcSubresource.layerCount = 1;
+    blit.dstOffsets[0] = {destinationRect.offset.x, destinationRect.offset.y, 0};
+    blit.dstOffsets[1] = {static_cast<int32_t>(destinationRect.extent.width), static_cast<int32_t>(destinationRect.extent.height), 1};
+    blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    blit.dstSubresource.mipLevel = 0;
+    blit.dstSubresource.baseArrayLayer = 0;
+    blit.dstSubresource.layerCount = 1;
+
+    vkCmdBlitImage(commandBuffer,
+                   source, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                   destination, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                   1, &blit,
+                   VK_FILTER_LINEAR);
+}
+void GLCommandBuffer::TransitionImageLayout(
+    const VkImage& image, const VkImageLayout oldLayout, const VkImageLayout newLayout,
+    const VkAccessFlags srcAccessMask, const VkAccessFlags dstAccessMask,
+    const VkPipelineStageFlags srcStage, const VkPipelineStageFlags dstStage) const
+{
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    //转换图形内存布局
+    barrier.oldLayout = oldLayout;
+    barrier.newLayout = newLayout;
+    //不使用队列所有权转移功能
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    //受影响的图形
+    barrier.image = image;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; //视作颜色纹理
+    barrier.subresourceRange.levelCount = 1; //转换mipmap的数量
+    barrier.subresourceRange.baseMipLevel = 0; //转换mipmap的起点
+    barrier.subresourceRange.layerCount = 1; //非数组
+    barrier.subresourceRange.baseArrayLayer = 0;
+    //屏障执行前后需要等待的操作类型
+    barrier.srcAccessMask = srcAccessMask;
+    barrier.dstAccessMask = dstAccessMask;
+
+    vkCmdPipelineBarrier(
+        commandBuffer,
+        srcStage, //屏障要在哪个阶段后开始
+        dstStage, //屏障要在哪个阶段前完成
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier
+    );
+}
 
 void GLCommandBuffer::BeginRenderPass(const GLRenderPass& glRenderPass, const GLFramebuffer& glFramebuffer) const
 {
@@ -118,6 +174,53 @@ void GLCommandBuffer::BeginRenderPass(const GLRenderPass& glRenderPass, const GL
 void GLCommandBuffer::EndRenderPass() const
 {
     vkCmdEndRenderPass(commandBuffer);
+}
+void GLCommandBuffer::BeginRendering(
+    const VkRect2D renderArea, const bool clearColor,
+    const GLImageView& colorView, const GLImageView* depthStencilView, const GLImageView* colorResolveView) const
+{
+    VkRenderingAttachmentInfo colorAttachmentInfo{};
+    colorAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAttachmentInfo.imageView = colorView.imageView;
+    colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachmentInfo.loadOp = clearColor ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+    colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachmentInfo.clearValue.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+    if (colorResolveView != nullptr)
+    {
+        colorAttachmentInfo.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
+        colorAttachmentInfo.resolveImageView = colorResolveView->imageView;
+        colorAttachmentInfo.resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    }
+
+    VkRenderingAttachmentInfo depthStencilAttachmentInfo{};
+    depthStencilAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    depthStencilAttachmentInfo.imageView = depthStencilView->imageView;
+    depthStencilAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depthStencilAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthStencilAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthStencilAttachmentInfo.clearValue.depthStencil = {1.0f, 0};
+
+    VkRenderingInfo renderingInfo{};
+    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    renderingInfo.flags = 0;
+    renderingInfo.renderArea = renderArea;
+    renderingInfo.layerCount = 1;
+    renderingInfo.viewMask = 0;
+    renderingInfo.colorAttachmentCount = 1;
+    renderingInfo.pColorAttachments = &colorAttachmentInfo;
+    if (depthStencilView != nullptr)
+    {
+        renderingInfo.pDepthAttachment = &depthStencilAttachmentInfo;
+        renderingInfo.pStencilAttachment = &depthStencilAttachmentInfo;
+    }
+
+
+    vkCmdBeginRendering(commandBuffer, &renderingInfo);
+}
+void GLCommandBuffer::EndRendering() const
+{
+    vkCmdEndRendering(commandBuffer);
 }
 
 void GLCommandBuffer::BindPipeline(const GLPipeline& glPipeline) const
@@ -139,11 +242,32 @@ void GLCommandBuffer::BindDescriptorSets(const GLPipelineLayout& glPipelineLayou
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, glPipelineLayout.pipelineLayout,
                             0, 1, &glDescriptorSet.descriptorSet, 0, nullptr);
 }
-void GLCommandBuffer::SetViewportAndScissor(const VkExtent2D& extent) const
+void GLCommandBuffer::PushDescriptorSet(const GLPipelineLayout& glPipelineLayout, const std::vector<VkWriteDescriptorSet>& writeDescriptorSets) const
+{
+    PFN_vkVoidFunction functionAddr = vkGetDeviceProcAddr(GL::glDevice->device, "vkCmdPushDescriptorSetKHR");
+    PFN_vkCmdPushDescriptorSetKHR pushDescriptorSetKhr = reinterpret_cast<PFN_vkCmdPushDescriptorSetKHR>(functionAddr); // NOLINT(clang-diagnostic-cast-function-type-strict)
+
+    pushDescriptorSetKhr(
+        commandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        glPipelineLayout.pipelineLayout,
+        0, //述符集布局中的第几组描述符集
+        static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data());
+}
+void GLCommandBuffer::PushConstant(const GLPipelineLayout& glPipelineLayout, const VkPushConstantRange& pushConstantRange, void* data) const
+{
+    vkCmdPushConstants(
+        commandBuffer, glPipelineLayout.pipelineLayout,
+        pushConstantRange.stageFlags,
+        pushConstantRange.offset,
+        pushConstantRange.size,
+        data);
+}
+void GLCommandBuffer::SetViewportAndScissor(const float x, const float y, const VkExtent2D& extent) const
 {
     VkViewport viewport;
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
+    viewport.x = x;
+    viewport.y = y;
     viewport.width = static_cast<float>(extent.width);
     viewport.height = static_cast<float>(extent.height);
     viewport.minDepth = 0.0f;
@@ -155,6 +279,7 @@ void GLCommandBuffer::SetViewportAndScissor(const VkExtent2D& extent) const
     scissor.extent = extent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
+
 void GLCommandBuffer::Draw(const int indicesCount) const
 {
     vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
@@ -176,7 +301,7 @@ void GLCommandBuffer::ExecuteCommandBufferAsync(const std::vector<VkPipelineStag
     //完成后需要发出的信号量
     submitInfo.pSignalSemaphores = signalSemaphores.data();
     submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
-    if (vkQueueSubmit(GLFoundation::glDevice->graphicQueue, 1, &submitInfo, fence) != VK_SUCCESS)
+    if (vkQueueSubmit(GL::glDevice->graphicQueue, 1, &submitInfo, fence) != VK_SUCCESS)
         throw std::runtime_error("无法提交命令缓冲区!");
 
     executing = true;
@@ -191,7 +316,7 @@ void GLCommandBuffer::WaitExecutionFinish()
     if (executing == false)
         return;
 
-    vkWaitForFences(GLFoundation::glDevice->device, 1, &fence, VK_TRUE, UINT64_MAX);
-    vkResetFences(GLFoundation::glDevice->device, 1, &fence);
+    vkWaitForFences(GL::glDevice->device, 1, &fence, VK_TRUE, UINT64_MAX);
+    vkResetFences(GL::glDevice->device, 1, &fence);
     executing = false;
 }

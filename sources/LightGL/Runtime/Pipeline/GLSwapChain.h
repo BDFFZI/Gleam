@@ -5,32 +5,37 @@
 #include "../Pipeline/GLCommandBuffer.h"
 #include "../Resource/GLImageView.h"
 
-struct SwapChainSupportDetails
-{
-    VkSurfaceCapabilitiesKHR surfaceCapabilities = {};
-    std::vector<VkSurfaceFormatKHR> surfaceFormats = {};
-    std::vector<VkPresentModeKHR> presentModes = {};
-};
-
 class GLSwapChain
 {
 public:
-    VkSwapchainKHR swapChain = VK_NULL_HANDLE;
-    VkFormat swapChainImageFormat = {};
-    VkExtent2D swapChainImageExtent = {};
-    std::vector<VkImage> swapChainImages = {};
-    std::vector<std::unique_ptr<GLImageView>> swapChainImageViews = {};
+    static VkSurfaceCapabilitiesKHR QuerySurfaceCapabilitySupport();
+    static std::vector<VkSurfaceFormatKHR> QuerySurfaceFormatSupport();
+    static std::vector<VkPresentModeKHR> QueryPresentModeSupport();
 
-    GLSwapChain();
+    static VkSurfaceFormatKHR ChooseSwapSurfaceFormat(VkSurfaceFormatKHR desiredSurfaceFormat);
+    static VkPresentModeKHR ChooseSwapPresentMode(VkPresentModeKHR desiredPresentMode);
+
+    VkSwapchainKHR swapChain = VK_NULL_HANDLE;
+    std::vector<VkImage> images = {};
+    VkExtent2D imageExtent = {};
+    VkFormat imageFormat = {};
+    std::vector<std::unique_ptr<GLImageView>> imageViews = {};
+
+    GLSwapChain(
+        VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat({VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR}),
+        VkPresentModeKHR presentMode = ChooseSwapPresentMode(VK_PRESENT_MODE_MAILBOX_KHR)
+    );
     GLSwapChain(const GLSwapChain&) = delete;
     ~GLSwapChain();
 
     uint32_t GetCurrentBufferIndex() const;
+    uint32_t GetCurrentImageIndex() const;
+    const std::unique_ptr<GLImageView>& GetCurrentImageView() const;
 
     /**
      * 
      * @param outImageIndex 返回被用于呈现的图像视图，获取后用户需将呈现内容写入其中。
-     * @param outBufferIndex
+     * @param outBufferIndex 返回交换链内部当前要使用的缓冲区索引，用户在外部构建相同的缓冲区后（如命令缓冲区列表），可以此确定缓冲区可用性
      * @param outImageAvailableSemaphore 返回呈现图像可用时的GPU信号，写入内容时需先等待该信号激活
      * @param outPresentSemaphore 返回当内容已写入完毕，确实可以呈现时用户需要发出的GPU信号
      * @return 

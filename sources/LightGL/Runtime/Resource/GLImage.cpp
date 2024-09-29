@@ -5,7 +5,7 @@
 
 #include "GLBuffer.h"
 #include "../Pipeline/GLCommandBuffer.h"
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 void CmdTransitionImageLayout(
     const GLCommandBuffer& glCommandBuffer, const VkImage& image,
@@ -69,12 +69,12 @@ void CmdBlitImageMipmap(
                    VK_FILTER_LINEAR);
 }
 
-GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, const void* data, const int size, const bool mipChain)
+GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, const void* data, const size_t size, const bool mipChain)
 {
     const uint32_t mipLevels = mipChain ? static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))) + 1) : 1;
     if (mipLevels != 1)
     {
-        VkFormatProperties formatProperties = GLFoundation::glDevice->GetFormatProperties(VK_FORMAT_R8G8B8A8_SRGB);
+        VkFormatProperties formatProperties = GL::glDevice->GetFormatProperties(VK_FORMAT_R8G8B8A8_SRGB);
         if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
             throw std::runtime_error("该纹理格式不支持线性过滤，故无法自动生成mipmap！");
     }
@@ -150,18 +150,18 @@ GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, c
     glImage->layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     return glImage;
 }
-GLImage* GLImage::CreateRenderTargetDepth(const uint32_t width, const uint32_t height)
+GLImage* GLImage::CreateFrameBufferColor(const uint32_t width, const uint32_t height, const VkFormat colorFormat, const VkSampleCountFlagBits sampleCount)
 {
-    VkFormat depthImageFormat = GLFoundation::glDevice->FindImageFormat(
-        {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
-    );
-
-    return new GLImage(width, height, depthImageFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    return new GLImage(width, height, colorFormat,
+                       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT, 1, sampleCount);
+}
+GLImage* GLImage::CreateFrameBufferDepth(const uint32_t width, const uint32_t height, const VkFormat depthFormat, const VkSampleCountFlagBits sampleCount)
+{
+    return new GLImage(width, height, depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 1, sampleCount);
 }
 
-GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat format, const VkImageUsageFlags usageFlags, const uint32_t mipLevels)
+GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat format, const VkImageUsageFlags usageFlags,
+                 const uint32_t mipLevels, const VkSampleCountFlagBits sampleCount)
     : layout(VK_IMAGE_LAYOUT_UNDEFINED), format(format), width(width), height(height), mipLevels(mipLevels)
 {
     VkImageCreateInfo imageInfo{};
@@ -177,27 +177,27 @@ GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat for
     imageInfo.initialLayout = layout;
     imageInfo.usage = usageFlags;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //图形队列独占
-    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT; //不使用多重采样
+    imageInfo.samples = sampleCount; //多重采样
     imageInfo.flags = 0; // Optional
-    if (vkCreateImage(GLFoundation::glDevice->device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+    if (vkCreateImage(GL::glDevice->device, &imageInfo, nullptr, &image) != VK_SUCCESS)
         throw std::runtime_error("创建图片失败！");
 
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(GLFoundation::glDevice->device, image, &memRequirements);
+    vkGetImageMemoryRequirements(GL::glDevice->device, image, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     //VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT是GPU访问最高效的内存属性，但通常也无法被CPU直接访问
-    allocInfo.memoryTypeIndex = GLFoundation::glDevice->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    allocInfo.memoryTypeIndex = GL::glDevice->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    if (vkAllocateMemory(GLFoundation::glDevice->device, &allocInfo, nullptr, &memory) != VK_SUCCESS)
+    if (vkAllocateMemory(GL::glDevice->device, &allocInfo, nullptr, &memory) != VK_SUCCESS)
         throw std::runtime_error("分配图片内存失败！");
 
-    vkBindImageMemory(GLFoundation::glDevice->device, image, memory, 0);
+    vkBindImageMemory(GL::glDevice->device, image, memory, 0);
 }
 GLImage::~GLImage()
 {
-    vkDestroyImage(GLFoundation::glDevice->device, image, nullptr);
-    vkFreeMemory(GLFoundation::glDevice->device, memory, nullptr);
+    vkDestroyImage(GL::glDevice->device, image, nullptr);
+    vkFreeMemory(GL::glDevice->device, memory, nullptr);
 }

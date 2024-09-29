@@ -2,7 +2,7 @@
 #include <string>
 #include "Vector.h"
 
-namespace LightEngine
+namespace LightRuntime
 {
     float2 operator+(float2 left, float2 right);
     float2 operator-(float2 left, float2 right);

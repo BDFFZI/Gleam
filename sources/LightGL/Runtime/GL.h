@@ -1,21 +1,17 @@
 ﻿#pragma once
-#include <GLFW/glfw3.h>
+#include <memory>
 
-// ReSharper disable CppUnusedIncludeDirective
-#include "Foundation/GLSurface.h"
-#include "Foundation/GLFoundation.h"
-#include "Pipeline/GLFramebuffer.h"
-#include "Pipeline/GLPipeline.h"
-#include "Pipeline/GLRenderPass.h"
-#include "Resource/GLDescriptorPool.h"
-#include "Resource/GLImageSampler.h"
-#include "Resource/GLBuffer.h"
-#include "Pipeline/GLCommandBuffer.h"
-#include "Pipeline/GLSwapChain.h"
-// ReSharper restore CppUnusedIncludeDirective
+#include "Foundation/GLCommandPool.h"
+#include "Foundation/GLDevice.h"
+#include "Foundation/GLInstance.h"
 
 class GL
 {
 public:
     static void Initialize(GLFWwindow* window);
+
+    inline static std::unique_ptr<GLInstance> glInstance = {};
+    inline static std::unique_ptr<GLSurface> glSurface = {};
+    inline static std::unique_ptr<GLDevice> glDevice = {};
+    inline static std::unique_ptr<GLCommandPool> glCommandPool = {};
 };

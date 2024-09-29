@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "../Foundation/GLFoundation.h"
+#include "../GL.h"
 
 GLImageView::GLImageView(const VkImage image, const VkFormat format, const VkImageAspectFlags& aspectFlags, const uint32_t mipLevels)
     : format(format)
@@ -24,7 +24,7 @@ GLImageView::GLImageView(const VkImage image, const VkFormat format, const VkIma
     createInfo.subresourceRange.layerCount = 1; //不使用纹理数组
     createInfo.subresourceRange.baseArrayLayer = 0;
 
-    if (vkCreateImageView(GLFoundation::glDevice->device, &createInfo, nullptr, &imageView) != VK_SUCCESS)
+    if (vkCreateImageView(GL::glDevice->device, &createInfo, nullptr, &imageView) != VK_SUCCESS)
         throw std::runtime_error("创建图片视图失败！");
 }
 GLImageView::GLImageView(const GLImage& glImage, const VkImageAspectFlags& aspectFlags)
@@ -33,5 +33,5 @@ GLImageView::GLImageView(const GLImage& glImage, const VkImageAspectFlags& aspec
 }
 GLImageView::~GLImageView()
 {
-    vkDestroyImageView(GLFoundation::glDevice->device, imageView, nullptr);
+    vkDestroyImageView(GL::glDevice->device, imageView, nullptr);
 }

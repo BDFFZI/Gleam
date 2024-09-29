@@ -2,6 +2,7 @@
   "dependencies": [
     "vulkan",
     "glfw3",
+    "shaderc",
     "gtest",
     "magic-enum",
     "glm","stb","tinyobjloader"
