@@ -12,6 +12,12 @@ struct MultisampleState
     VkSampleCountFlagBits rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 };
 
+struct RasterizationState
+{
+    VkCullModeFlags cullMode = VK_CULL_MODE_BACK_BIT;
+    VkFrontFace frontFace = VK_FRONT_FACE_CLOCKWISE;
+};
+
 class GLPipeline
 {
 public:
@@ -22,14 +28,16 @@ public:
         const std::vector<GLShader>& glShaderLayout,
         const GLMeshLayout& glMeshLayout,
         const GLPipelineLayout& glPipelineLayout,
-        MultisampleState multisampleState = {});
+        const MultisampleState& multisampleState = {},
+        const RasterizationState& rasterizationState = {});
     GLPipeline(
         const std::vector<VkFormat>& colorAttachments,
         VkFormat depthStencilAttachment,
         const std::vector<GLShader>& glShaderLayout,
         const GLMeshLayout& glMeshLayout,
         const GLPipelineLayout& glPipelineLayout,
-        MultisampleState multisampleState = {});
+        const MultisampleState& multisampleState = {},
+        const RasterizationState& rasterizationState = {});
     GLPipeline(const GLPipeline&) = delete;
     ~GLPipeline();
 };

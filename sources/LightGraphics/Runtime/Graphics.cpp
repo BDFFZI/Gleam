@@ -8,10 +8,12 @@ void Graphics::Initialize(GLFWwindow* window)
 {
     GL::Initialize(window);
 
-    presentColorFormat = VK_FORMAT_B8G8R8A8_SRGB;
+    surfaceFormat = GLSwapChain::PickSwapSurfaceFormat({VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR});
+    presentMode = GLSwapChain::PickSwapPresentMode(VK_PRESENT_MODE_MAILBOX_KHR);
+
+    presentColorFormat = surfaceFormat.format;
     presentDepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;
-    // presentSampleCount = GL::glDevice->maxUsableSampleCount;
-    presentSampleCount = VK_SAMPLE_COUNT_1_BIT;
+    presentSampleCount = GL::glDevice->maxUsableSampleCount;
 
     CreateSwapChain();
 
@@ -48,6 +50,10 @@ VkFormat Graphics::GetPresentDepthStencilFormat()
 {
     return presentDepthStencilFormat;
 }
+VkSampleCountFlagBits Graphics::GetPresentSampleCount()
+{
+    return presentSampleCount;
+}
 
 
 void Graphics::Present(const std::function<void(CommandBuffer& commandBuffer)>& addCommand)
@@ -73,9 +79,9 @@ void Graphics::Present(const std::function<void(CommandBuffer& commandBuffer)>& 
     commandBuffer.BeginRecording();
     addCommand(commandBuffer);
     commandBuffer.GetGLCommandBuffer().TransitionImageLayout(
-        glSwapChain->images[imageIndex],VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+        glSwapChain->images[imageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
     );
     commandBuffer.EndRecording();
 
@@ -103,10 +109,7 @@ void Graphics::CreateSwapChain()
         glfwWaitEvents();
     }
 
-    glSwapChain = std::make_unique<GLSwapChain>(
-        VkSurfaceFormatKHR{presentColorFormat, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR},
-        VkPresentModeKHR{VK_PRESENT_MODE_MAILBOX_KHR}
-    );
+    glSwapChain = std::make_unique<GLSwapChain>(surfaceFormat, presentMode);
     glSwapChainBufferCount = glSwapChain->images.size();
 
     if (presentSampleCount != VK_SAMPLE_COUNT_1_BIT)

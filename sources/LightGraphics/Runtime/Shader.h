@@ -13,9 +13,10 @@ namespace LightRuntime
     public:
         Shader(
             const std::vector<GLShader>& shaderLayout,
-            const std::vector<GLDescriptorBinding>& descriptorSetLayout,
+            const std::vector<GLDescriptorBinding>& descriptorSetLayout, const std::vector<VkPushConstantRange>& pushConstantRanges,
             const GLMeshLayout& meshLayout,
-            VkFormat colorFormat, VkFormat depthStencilFormat);
+            VkFormat colorFormat, VkFormat depthStencilFormat,
+            const MultisampleState& multisampleState);
         Shader(
             const std::vector<GLShader>& shaderLayout,
             const std::vector<GLDescriptorBinding>& descriptorSetLayout);

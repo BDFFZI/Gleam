@@ -66,7 +66,7 @@ std::vector<VkPresentModeKHR> GLSwapChain::QueryPresentModeSupport()
     return presentModes;
 }
 
-VkSurfaceFormatKHR GLSwapChain::ChooseSwapSurfaceFormat(const VkSurfaceFormatKHR desiredSurfaceFormat)
+VkSurfaceFormatKHR GLSwapChain::PickSwapSurfaceFormat(const VkSurfaceFormatKHR desiredSurfaceFormat)
 {
     const std::vector<VkSurfaceFormatKHR> surfaceFormats = QuerySurfaceFormatSupport();
     for (const auto& surfaceFormat : surfaceFormats)
@@ -77,7 +77,7 @@ VkSurfaceFormatKHR GLSwapChain::ChooseSwapSurfaceFormat(const VkSurfaceFormatKHR
 
     return surfaceFormats[0];
 }
-VkPresentModeKHR GLSwapChain::ChooseSwapPresentMode(const VkPresentModeKHR desiredPresentMode)
+VkPresentModeKHR GLSwapChain::PickSwapPresentMode(const VkPresentModeKHR desiredPresentMode)
 {
     const std::vector<VkPresentModeKHR> presentModes = QueryPresentModeSupport();
     for (const auto& presentMode : presentModes)
@@ -92,8 +92,8 @@ VkPresentModeKHR GLSwapChain::ChooseSwapPresentMode(const VkPresentModeKHR desir
 GLSwapChain::GLSwapChain(const VkSurfaceFormatKHR surfaceFormat, const VkPresentModeKHR presentMode)
 {
 #ifdef _DEBUG
-    VkSurfaceFormatKHR surfaceFormatAvailable = ChooseSwapSurfaceFormat(surfaceFormat);
-    VkPresentModeKHR presentModeAvailable = ChooseSwapPresentMode(presentMode);
+    VkSurfaceFormatKHR surfaceFormatAvailable = PickSwapSurfaceFormat(surfaceFormat);
+    VkPresentModeKHR presentModeAvailable = PickSwapPresentMode(presentMode);
     if (surfaceFormatAvailable.format != surfaceFormat.format || surfaceFormatAvailable.colorSpace != surfaceFormat.colorSpace)
         throw std::runtime_error("不支持的交换链缓冲区格式！");
     if (presentModeAvailable != presentMode)

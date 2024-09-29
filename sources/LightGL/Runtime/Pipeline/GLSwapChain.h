@@ -12,8 +12,8 @@ public:
     static std::vector<VkSurfaceFormatKHR> QuerySurfaceFormatSupport();
     static std::vector<VkPresentModeKHR> QueryPresentModeSupport();
 
-    static VkSurfaceFormatKHR ChooseSwapSurfaceFormat(VkSurfaceFormatKHR desiredSurfaceFormat);
-    static VkPresentModeKHR ChooseSwapPresentMode(VkPresentModeKHR desiredPresentMode);
+    static VkSurfaceFormatKHR PickSwapSurfaceFormat(VkSurfaceFormatKHR desiredSurfaceFormat);
+    static VkPresentModeKHR PickSwapPresentMode(VkPresentModeKHR desiredPresentMode);
 
     VkSwapchainKHR swapChain = VK_NULL_HANDLE;
     std::vector<VkImage> images = {};
@@ -22,8 +22,8 @@ public:
     std::vector<std::unique_ptr<GLImageView>> imageViews = {};
 
     GLSwapChain(
-        VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat({VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR}),
-        VkPresentModeKHR presentMode = ChooseSwapPresentMode(VK_PRESENT_MODE_MAILBOX_KHR)
+        VkSurfaceFormatKHR surfaceFormat = PickSwapSurfaceFormat({VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR}),
+        VkPresentModeKHR presentMode = PickSwapPresentMode(VK_PRESENT_MODE_MAILBOX_KHR)
     );
     GLSwapChain(const GLSwapChain&) = delete;
     ~GLSwapChain();

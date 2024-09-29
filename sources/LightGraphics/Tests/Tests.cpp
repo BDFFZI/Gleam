@@ -20,9 +20,9 @@ void main()
 
     Mesh mesh = {};
     mesh.SetPositions({
-        float3(0, -0.5, 0),
-        float3(0.5f, 0.5f, 0),
-        float3(-0.5f, 0.5f, 0),
+        float3(0, 0.5f, 0),
+        float3(0.5, -0.5, 0),
+        float3(-0.5, -0.5, 0),
     });
     mesh.SetTriangles({
         0, 1, 2,
@@ -96,8 +96,8 @@ float4 FragmentShader(VertexOutput input):SV_Target
         int64_t duration = currentTime - lastTime;
         lastTime = currentTime;
 
-        int fps = static_cast<int>(1 / (static_cast<float>(duration) * 0.001f));
-        std::cout << fps << "FPS\n" << std::flush;
+        // int fps = static_cast<int>(1 / (static_cast<float>(duration) * 0.001f));
+        // std::cout << fps << "FPS\n" << std::flush;
     }
 
     Graphics::UnInitialize();

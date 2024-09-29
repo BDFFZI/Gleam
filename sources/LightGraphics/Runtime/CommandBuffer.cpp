@@ -54,10 +54,19 @@ void CommandBuffer::EndRendering() const
 
 void CommandBuffer::SetViewport(const rect& viewport) const
 {
-    glCommandBuffer.SetViewportAndScissor(
-        viewport.x, viewport.y,
-        {static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)}
-    );
+    glCommandBuffer.SetViewport(
+        viewport.x, viewport.y + viewport.height,
+        viewport.width, -viewport.height
+    ); //利用-height的特性，实现剪辑空间的上下反转。这样传入左手坐标系的顶点后就可以负负得正了。
+    glCommandBuffer.SetScissor(
+        {
+            static_cast<int32_t>(viewport.x),
+            static_cast<int32_t>(viewport.y)
+        },
+        {
+            static_cast<uint32_t>(viewport.width),
+            static_cast<uint32_t>(viewport.height)
+        });
 }
 void CommandBuffer::Draw(MeshBase& mesh, const Material& material) const
 {

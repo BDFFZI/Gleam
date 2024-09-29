@@ -7,22 +7,24 @@ using namespace LightRuntime;
 
 Shader::Shader(
     const std::vector<GLShader>& shaderLayout,
-    const std::vector<GLDescriptorBinding>& descriptorSetLayout,
+    const std::vector<GLDescriptorBinding>& descriptorSetLayout, const std::vector<VkPushConstantRange>& pushConstantRanges,
     const GLMeshLayout& meshLayout,
-    const VkFormat colorFormat, const VkFormat depthStencilFormat
+    const VkFormat colorFormat, const VkFormat depthStencilFormat,
+    const MultisampleState& multisampleState
 )
 {
     glDescriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(descriptorSetLayout);
-    glPipelineLayout = std::make_unique<GLPipelineLayout>(*glDescriptorSetLayout);
+    glPipelineLayout = std::make_unique<GLPipelineLayout>(*glDescriptorSetLayout, pushConstantRanges);
     glPipeline = std::make_unique<GLPipeline>(
         std::vector{colorFormat}, depthStencilFormat,
-        shaderLayout,
-        meshLayout,
-        *this->glPipelineLayout);
+        shaderLayout, meshLayout, *this->glPipelineLayout,
+        multisampleState);
 }
 Shader::Shader(const std::vector<GLShader>& shaderLayout, const std::vector<GLDescriptorBinding>& descriptorSetLayout)
-    : Shader(shaderLayout, descriptorSetLayout, Mesh::GetMeshLayout(),
-             Graphics::GetPresentColorFormat(), Graphics::GetPresentDepthStencilFormat())
+    : Shader(shaderLayout, descriptorSetLayout, std::vector<VkPushConstantRange>{}, Mesh::GetMeshLayout(),
+             Graphics::GetPresentColorFormat(), Graphics::GetPresentDepthStencilFormat(),
+             MultisampleState{Graphics::GetPresentSampleCount()}
+    )
 {
 }
 

@@ -42,7 +42,8 @@ public:
     void BindDescriptorSets(const GLPipelineLayout& glPipelineLayout, const GLDescriptorSet& glDescriptorSet) const;
     void PushDescriptorSet(const GLPipelineLayout& glPipelineLayout, const std::vector<VkWriteDescriptorSet>& writeDescriptorSets) const;
     void PushConstant(const GLPipelineLayout& glPipelineLayout, const VkPushConstantRange& pushConstantRange, void* data) const;
-    void SetViewportAndScissor(float x, float y, const VkExtent2D& extent) const;
+    void SetViewport(float x, float y, float width, float height) const;
+    void SetScissor(VkOffset2D offset, VkExtent2D extent) const;
     void Draw(int indicesCount) const;
 
     void ExecuteCommandBufferAsync(const std::vector<VkPipelineStageFlags>& waitStages, const std::vector<VkSemaphore>& waitSemaphores,

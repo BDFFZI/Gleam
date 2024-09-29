@@ -263,19 +263,21 @@ void GLCommandBuffer::PushConstant(const GLPipelineLayout& glPipelineLayout, con
         pushConstantRange.size,
         data);
 }
-void GLCommandBuffer::SetViewportAndScissor(const float x, const float y, const VkExtent2D& extent) const
+void GLCommandBuffer::SetViewport(const float x, const float y, const float width, const float height) const
 {
     VkViewport viewport;
     viewport.x = x;
     viewport.y = y;
-    viewport.width = static_cast<float>(extent.width);
-    viewport.height = static_cast<float>(extent.height);
+    viewport.width = width;
+    viewport.height = height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
+}
+void GLCommandBuffer::SetScissor(const VkOffset2D offset, const VkExtent2D extent) const
+{
     VkRect2D scissor;
-    scissor.offset = {0, 0};
+    scissor.offset = offset;
     scissor.extent = extent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }

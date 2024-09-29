@@ -10,6 +10,7 @@ RawImage ImageImporter::Import(const std::string& filePath)
 {
     RawImage image;
 
+    //像素布局为从左上开始，逐行扫描
     stbi_uc* pixels = stbi_load(
         filePath.c_str(),
         &image.width, &image.height,

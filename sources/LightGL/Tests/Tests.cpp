@@ -148,7 +148,9 @@ public:
         glPipeline = std::make_unique<GLPipeline>(
             *glRenderPass, 0,
             glShaderLayout, glMeshLayout, *glPipelineLayout,
-            MultisampleState{VK_SAMPLE_COUNT_8_BIT}
+            MultisampleState{VK_SAMPLE_COUNT_8_BIT},
+            //由于在投影矩阵中直接反转了y，三角面也因此反转，故需修改三角形的正向顺序
+            RasterizationState{VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE}
         );
 
         //创建顶点索引缓冲区
@@ -159,7 +161,7 @@ public:
             vertices[i] = {
                 mesh.positions[i],
                 {0.1f, 1, 1},
-                mesh.uvs[i]
+                {mesh.uvs[i].x, 1 - mesh.uvs[i].y} //由于图片加载像素顺序的问题，vulkan会误认为左上角为原点，故需要反转y轴
             };
         }
 
@@ -227,15 +229,17 @@ public:
         PushConstant ubo;
         ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.proj = glm::perspective(glm::radians(45.0f),
-                                    static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain
-                                                                                                            ->imageExtent.height), 0.1f, 10.0f);
-        ubo.proj[1][1] *= -1;
+        ubo.proj = glm::perspective(
+            glm::radians(45.0f),
+            static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain->imageExtent.height),
+            0.1f, 10.0f);
+        ubo.proj[1][1] *= -1; //glm为opengl设计，输出的剪辑空间坐标y与vk相反，故需反转。但不反转前三角形也是可以绘制的，因为obj模型中的三角面是逆时针方向。
 
         //准备绘图命令
         GLCommandBuffer& glCommandBuffer = *glCommandBuffers[bufferIndex];
         glCommandBuffer.BeginRecording();
-        glCommandBuffer.SetViewportAndScissor(0, 0, glSwapChain->imageExtent);
+        glCommandBuffer.SetViewport(0, 0, static_cast<float>(glSwapChain->imageExtent.width), static_cast<float>(glSwapChain->imageExtent.height));
+        glCommandBuffer.SetScissor({0, 0}, glSwapChain->imageExtent);
         glCommandBuffer.BeginRenderPass(*glRenderPass, *glFramebuffers[imageIndex]);
         glCommandBuffer.BindPipeline(*glPipeline);
         glCommandBuffer.BindVertexBuffers(*vertexBuffer);
