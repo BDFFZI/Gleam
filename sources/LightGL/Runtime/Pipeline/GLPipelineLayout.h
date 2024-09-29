@@ -14,7 +14,7 @@ class GLPipelineLayout
 public:
     VkPipelineLayout pipelineLayout;
 
-    explicit GLPipelineLayout(const GLDescriptorSetLayout& glDescriptorSetLayout);
+    explicit GLPipelineLayout(const GLDescriptorSetLayout& glDescriptorSetLayout, const std::vector<VkPushConstantRange>& pushConstantRanges = {});
     GLPipelineLayout(const GLPipelineLayout&) = delete;
     ~GLPipelineLayout();
 };

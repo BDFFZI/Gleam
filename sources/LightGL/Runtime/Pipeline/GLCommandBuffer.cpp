@@ -244,7 +244,8 @@ void GLCommandBuffer::BindDescriptorSets(const GLPipelineLayout& glPipelineLayou
 }
 void GLCommandBuffer::PushDescriptorSet(const GLPipelineLayout& glPipelineLayout, const std::vector<VkWriteDescriptorSet>& writeDescriptorSets) const
 {
-    PFN_vkCmdPushDescriptorSetKHR pushDescriptorSetKhr = reinterpret_cast<PFN_vkCmdPushDescriptorSetKHR>(vkGetDeviceProcAddr(GL::glDevice->device, "vkCmdPushDescriptorSetKHR"));
+    PFN_vkVoidFunction functionAddr = vkGetDeviceProcAddr(GL::glDevice->device, "vkCmdPushDescriptorSetKHR");
+    PFN_vkCmdPushDescriptorSetKHR pushDescriptorSetKhr = reinterpret_cast<PFN_vkCmdPushDescriptorSetKHR>(functionAddr); // NOLINT(clang-diagnostic-cast-function-type-strict)
 
     pushDescriptorSetKhr(
         commandBuffer,
@@ -252,6 +253,15 @@ void GLCommandBuffer::PushDescriptorSet(const GLPipelineLayout& glPipelineLayout
         glPipelineLayout.pipelineLayout,
         0, //述符集布局中的第几组描述符集
         static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data());
+}
+void GLCommandBuffer::PushConstant(const GLPipelineLayout& glPipelineLayout, const VkPushConstantRange& pushConstantRange, void* data) const
+{
+    vkCmdPushConstants(
+        commandBuffer, glPipelineLayout.pipelineLayout,
+        pushConstantRange.stageFlags,
+        pushConstantRange.offset,
+        pushConstantRange.size,
+        data);
 }
 void GLCommandBuffer::SetViewportAndScissor(const float x, const float y, const VkExtent2D& extent) const
 {

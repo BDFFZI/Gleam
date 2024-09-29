@@ -42,7 +42,7 @@ std::string ReadFile(const std::string& filename)
     return content;
 }
 
-struct UniformBufferObject
+struct PushConstant
 {
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
@@ -66,8 +66,6 @@ class GLTester
 
     std::unique_ptr<GLBuffer> vertexBuffer;
     std::unique_ptr<GLBuffer> indexBuffer;
-    std::vector<std::unique_ptr<GLBuffer>> constantBuffers;
-    std::vector<void*> constantBufferAddresses;
     std::unique_ptr<GLImage> texture;
     std::unique_ptr<GLImageView> textureView;
     std::unique_ptr<GLImageSampler> textureSampler;
@@ -127,13 +125,15 @@ public:
                                       GLVertexAttribute{offsetof(Vertex, color), VK_FORMAT_R32G32B32_SFLOAT},
                                       GLVertexAttribute{offsetof(Vertex, texCoord), VK_FORMAT_R32G32_SFLOAT},
                                   }, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-        //描述符布局
+        //管线布局
         std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(
             std::vector{
-                GLDescriptorBinding{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
                 GLDescriptorBinding{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
             });
-        glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout);
+        std::vector<VkPushConstantRange> pushConstantRanges = {
+            {VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant)}
+        };
+        glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout, pushConstantRanges);
         //着色器布局
         std::string code = ReadFile("assets/shader.hlsl");
         std::vector glShaderLayout{
@@ -174,18 +174,6 @@ public:
             mesh.triangles.data()
         );
 
-        //创建常量缓冲区
-        constantBuffers.resize(maxFramesInFlight);
-        constantBufferAddresses.resize(maxFramesInFlight);
-        for (size_t i = 0; i < maxFramesInFlight; ++i)
-        {
-            constantBuffers[i] = std::make_unique<GLBuffer>(
-                sizeof(UniformBufferObject),
-                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-            constantBufferAddresses[i] = constantBuffers[i]->MapMemory();
-        }
-
         //创建纹理及采样器
         RawImage rawImage = ImageImporter::Import("assets/viking_room.png");
         texture = std::unique_ptr<GLImage>(GLImage::CreateTexture2D(
@@ -201,8 +189,7 @@ public:
         for (size_t i = 0; i < maxFramesInFlight; ++i)
         {
             glDescriptorSets[i] = std::make_unique<GLDescriptorSet>(*glDescriptorPool, *descriptorSetLayout);
-            glDescriptorSets[i]->BindBuffer(0, *constantBuffers[i]);
-            glDescriptorSets[i]->BindImage(1, *textureView, *textureSampler);
+            glDescriptorSets[i]->BindImage(0, *textureView, *textureSampler);
         }
 
         //创建命令缓冲区
@@ -233,18 +220,17 @@ public:
             return;
         }
 
-        //更新常量缓冲区
+        //计算推送常量
         static auto startTime = std::chrono::high_resolution_clock::now();
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float>(currentTime - startTime).count();
-        UniformBufferObject ubo;
+        PushConstant ubo;
         ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.proj = glm::perspective(glm::radians(45.0f),
                                     static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain
                                                                                                             ->imageExtent.height), 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
-        memcpy(constantBufferAddresses[bufferIndex], &ubo, sizeof(ubo));
 
         //准备绘图命令
         GLCommandBuffer& glCommandBuffer = *glCommandBuffers[bufferIndex];
@@ -255,6 +241,7 @@ public:
         glCommandBuffer.BindVertexBuffers(*vertexBuffer);
         glCommandBuffer.BindIndexBuffer(*indexBuffer);
         glCommandBuffer.BindDescriptorSets(*glPipelineLayout, *glDescriptorSets[bufferIndex]);
+        glCommandBuffer.PushConstant(*glPipelineLayout, {VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant)}, &ubo);
         glCommandBuffer.Draw(static_cast<int>(indexBuffer->size / sizeof(uint32_t)));
         glCommandBuffer.EndRenderPass();
         glCommandBuffer.EndRecording();
