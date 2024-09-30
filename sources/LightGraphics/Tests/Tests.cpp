@@ -73,7 +73,6 @@ float4 FragmentShader(VertexOutput input):SV_Target
     };
     Material material = {shader};
 
-    int64_t lastTime = std::chrono::steady_clock::now().time_since_epoch().count();
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -81,23 +80,21 @@ float4 FragmentShader(VertexOutput input):SV_Target
         //逻辑处理
         //...
 
-        Graphics::WaitPresent();
-        Graphics::Present([&](CommandBuffer& commandBuffer)
+        Graphics::WaitPresentable();
+
+        CommandBuffer* commandBuffer = Graphics::GetCommandBuffer();
+        commandBuffer->BeginRecording();
+        commandBuffer->BeginRendering(nullptr, true);
+        commandBuffer->SetViewport({0, 0, Graphics::GetGLSwapChainExtent().x, Graphics::GetGLSwapChainExtent().y});
+        commandBuffer->Draw(mesh, material);
+        commandBuffer->EndRendering();
+        commandBuffer->EndRecording();
+
+        Graphics::PresentAsync(*commandBuffer);
+        Graphics::WaitPresentAsync([=]
         {
-            VkExtent2D extent2D = Graphics::GetGLSwapChain()->imageExtent;
-
-            commandBuffer.BeginRendering(nullptr, true);
-            commandBuffer.SetViewport({0, 0, static_cast<float>(extent2D.width), static_cast<float>(extent2D.height)});
-            commandBuffer.Draw(mesh, material);
-            commandBuffer.EndRendering();
+            Graphics::ReleaseCommandBuffer(commandBuffer);
         });
-
-        int64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-        int64_t duration = currentTime - lastTime;
-        lastTime = currentTime;
-
-        // int fps = static_cast<int>(1 / (static_cast<float>(duration) * 0.001f));
-        // std::cout << fps << "FPS\n" << std::flush;
     }
 
     Graphics::UnInitialize();

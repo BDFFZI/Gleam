@@ -246,7 +246,7 @@ public:
         glCommandBuffer.BindIndexBuffer(*indexBuffer);
         glCommandBuffer.BindDescriptorSets(*glPipelineLayout, *glDescriptorSets[bufferIndex]);
         glCommandBuffer.PushConstant(*glPipelineLayout, {VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant)}, &ubo);
-        glCommandBuffer.Draw(static_cast<int>(indexBuffer->size / sizeof(uint32_t)));
+        glCommandBuffer.DrawIndexed(static_cast<int>(indexBuffer->size / sizeof(uint32_t)));
         glCommandBuffer.EndRenderPass();
         glCommandBuffer.EndRecording();
 

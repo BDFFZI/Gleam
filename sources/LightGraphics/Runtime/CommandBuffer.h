@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <stack>
+
 #include "Material.h"
 #include "Mesh.h"
 #include "RenderTexture.h"
@@ -10,7 +12,7 @@ namespace LightRuntime
     class CommandBuffer
     {
     public:
-        CommandBuffer() = default;
+        CommandBuffer();
         CommandBuffer(const CommandBuffer&) = delete;
 
         GLCommandBuffer& GetGLCommandBuffer();
@@ -25,6 +27,8 @@ namespace LightRuntime
         void Draw(MeshBase& mesh, const Material& material) const;
 
     private:
+        inline static std::stack<CommandBuffer*> commandBufferPool = {};
+
         GLCommandBuffer glCommandBuffer;
     };
 }

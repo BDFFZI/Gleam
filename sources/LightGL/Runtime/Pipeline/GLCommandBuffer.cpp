@@ -14,13 +14,13 @@ void GLCommandBuffer::ExecuteSingleTimeCommands(const std::function<void(const G
     glCommandBuffer.ExecuteCommandBuffer();
 }
 
-GLCommandBuffer::GLCommandBuffer()
-    : executing(false)
+GLCommandBuffer::GLCommandBuffer(const VkCommandBufferLevel level)
+    : level(level), executing(false)
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = GL::glCommandPool->commandPool;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; //直接用于提交到命令管道，而不是作为子命令由其他缓冲区调用
+    allocInfo.level = level;
     allocInfo.commandBufferCount = 1;
 
     if (vkAllocateCommandBuffers(GL::glDevice->device, &allocInfo, &commandBuffer) != VK_SUCCESS)
@@ -46,8 +46,12 @@ void GLCommandBuffer::BeginRecording(const VkCommandBufferUsageFlags flags)
     //开始命令录制
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = flags; // Optional
-    beginInfo.pInheritanceInfo = nullptr; // Optional
+    beginInfo.flags = flags;
+
+    VkCommandBufferInheritanceInfo inheritanceInfo{};
+    inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+    beginInfo.pInheritanceInfo = level == VK_COMMAND_BUFFER_LEVEL_SECONDARY ? &inheritanceInfo : nullptr;
+    
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
         throw std::runtime_error("开始命令录制失败!");
 }
@@ -282,9 +286,13 @@ void GLCommandBuffer::SetScissor(const VkOffset2D offset, const VkExtent2D exten
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
-void GLCommandBuffer::Draw(const int indicesCount) const
+void GLCommandBuffer::DrawIndexed(const int indicesCount) const
 {
     vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
+}
+void GLCommandBuffer::ExecuteCommands(const GLCommandBuffer& subCommandBuffer) const
+{
+    vkCmdExecuteCommands(commandBuffer, 1, &subCommandBuffer.commandBuffer);
 }
 
 void GLCommandBuffer::ExecuteCommandBufferAsync(const std::vector<VkPipelineStageFlags>& waitStages, const std::vector<VkSemaphore>& waitSemaphores,

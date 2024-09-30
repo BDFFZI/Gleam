@@ -4,6 +4,10 @@
 
 using namespace LightRuntime;
 
+CommandBuffer::CommandBuffer(): glCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY)
+{
+}
+
 GLCommandBuffer& CommandBuffer::GetGLCommandBuffer()
 {
     return glCommandBuffer;
@@ -81,5 +85,5 @@ void CommandBuffer::Draw(MeshBase& mesh, const Material& material) const
     if (!material.GetDescriptorSet().empty())
         glCommandBuffer.PushDescriptorSet(shader.GetGLPipelineLayout(), material.GetDescriptorSet());
 
-    glCommandBuffer.Draw(mesh.GetIndexCount());
+    glCommandBuffer.DrawIndexed(mesh.GetIndexCount());
 }
