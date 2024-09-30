@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <functional>
+#include <memory>
 #include <stack>
 
 namespace LightRuntime
@@ -10,35 +11,31 @@ namespace LightRuntime
     public:
         ObjectPool() = default;
         ObjectPool(const ObjectPool&) = delete;
-        ~ObjectPool()
-        {
-            while (!pool.empty())
-            {
-                delete pool.top();
-                pool.pop();
-            }
-        }
 
-        TObject* Get()
+        std::unique_ptr<TObject>& Get()
         {
-            TObject* object;
+            TObject* objectPtr;
             if (pool.empty())
-                object = new TObject(Args...);
+            {
+                objectPtr = new TObject(Args...);
+                objects[objectPtr] = std::unique_ptr<TObject>(objectPtr);
+            }
             else
             {
-                object = pool.top();
+                objectPtr = pool.top();
                 pool.pop();
             }
 
-            return object;
+            return objects[objectPtr];
         }
 
-        void Release(TObject* element)
+        void Release(std::unique_ptr<TObject>& element)
         {
-            pool.push(element);
+            pool.push(element.get());
         }
 
     private:
         std::stack<TObject*> pool;
+        std::unordered_map<TObject*, std::unique_ptr<TObject>> objects;
     };
 }

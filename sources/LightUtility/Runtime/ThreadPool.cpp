@@ -2,9 +2,7 @@
 
 using namespace LightRuntime;
 
-ThreadPool::ThreadPool()
+void ThreadPool::Submit(const std::function<void()>& task)
 {
-    thread = std::jthread([this]
-    {
-    });
+    // pool.Get()
 }
