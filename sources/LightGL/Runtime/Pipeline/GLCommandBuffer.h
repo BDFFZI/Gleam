@@ -12,7 +12,7 @@ public:
 
     VkCommandBuffer commandBuffer;
 
-    GLCommandBuffer();
+    GLCommandBuffer(VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
     GLCommandBuffer(const GLCommandBuffer&) = delete;
     ~GLCommandBuffer();
 
@@ -44,7 +44,8 @@ public:
     void PushConstant(const GLPipelineLayout& glPipelineLayout, const VkPushConstantRange& pushConstantRange, void* data) const;
     void SetViewport(float x, float y, float width, float height) const;
     void SetScissor(VkOffset2D offset, VkExtent2D extent) const;
-    void Draw(int indicesCount) const;
+    void DrawIndexed(int indicesCount) const;
+    void ExecuteCommands(const GLCommandBuffer& subCommandBuffer) const;
 
     void ExecuteCommandBufferAsync(const std::vector<VkPipelineStageFlags>& waitStages, const std::vector<VkSemaphore>& waitSemaphores,
                                    const std::vector<VkSemaphore>& signalSemaphores);
@@ -52,6 +53,7 @@ public:
     void WaitExecutionFinish();
 
 private:
+    VkCommandBufferLevel level;
     VkFence fence;
     bool executing;
 };

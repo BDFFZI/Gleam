@@ -6,7 +6,7 @@
 
 using namespace LightRuntime;
 
-RawImage ImageImporter::Import(const std::string& filePath)
+RawImage ImageImporter::Import(const std::string& filePath, const int desiredChannel)
 {
     RawImage image;
 
@@ -14,12 +14,14 @@ RawImage ImageImporter::Import(const std::string& filePath)
     stbi_uc* pixels = stbi_load(
         filePath.c_str(),
         &image.width, &image.height,
-        nullptr, STBI_rgb_alpha
+        &image.channel, desiredChannel
     );
     if (pixels == nullptr)
         throw std::runtime_error("加载图片数据失败!");
+    if (desiredChannel != STBI_default)
+        image.channel = desiredChannel;
 
-    size_t size = static_cast<size_t>(image.width * image.height * STBI_rgb_alpha);
+    size_t size = static_cast<size_t>(image.width * image.height * image.channel);
     image.pixels.resize(size);
     memcpy(image.pixels.data(), pixels, size);
 

@@ -4,6 +4,10 @@
 
 using namespace LightRuntime;
 
+CommandBuffer::CommandBuffer(): glCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY)
+{
+}
+
 GLCommandBuffer& CommandBuffer::GetGLCommandBuffer()
 {
     return glCommandBuffer;
@@ -12,9 +16,12 @@ void CommandBuffer::BeginRecording()
 {
     glCommandBuffer.BeginRecording();
 }
-void CommandBuffer::EndRecording() const
+void CommandBuffer::EndRecording()
 {
     glCommandBuffer.EndRecording();
+    lastMesh = nullptr;
+    lastMaterial = nullptr;
+    lastShader = nullptr;
 }
 
 void CommandBuffer::BeginRendering(const RenderTexture* renderTarget, const bool clearColor) const
@@ -36,7 +43,6 @@ void CommandBuffer::BeginRendering(const RenderTexture* renderTarget, const bool
     else
     {
         const std::unique_ptr<GLSwapChain>& glSwapChain = Graphics::GetGLSwapChain();
-
 
         glCommandBuffer.BeginRendering(
             VkRect2D{{0, 0}, glSwapChain->imageExtent},
@@ -68,18 +74,37 @@ void CommandBuffer::SetViewport(const rect& viewport) const
             static_cast<uint32_t>(viewport.height)
         });
 }
-void CommandBuffer::Draw(MeshBase& mesh, const Material& material) const
+void CommandBuffer::PushConstant(const Shader& shader, const int slotIndex, void* data) const
+{
+    glCommandBuffer.PushConstant(
+        shader.GetGLPipelineLayout(),
+        shader.GetPushConstantBinding()[slotIndex],
+        data);
+}
+void CommandBuffer::Draw(const MeshBase& mesh, const Material& material)
 {
     //绑定网格
-    mesh.UpdateGLBuffer();
-    glCommandBuffer.BindVertexBuffers(mesh.GetGLVertexBuffer());
-    glCommandBuffer.BindIndexBuffer(mesh.GetGLIndexBuffer());
-    //绑定着色器
-    const Shader& shader = material.GetShader();
-    glCommandBuffer.BindPipeline(shader.GetGLPipeline());
-    //绑定标识符
-    if (!material.GetDescriptorSet().empty())
-        glCommandBuffer.PushDescriptorSet(shader.GetGLPipelineLayout(), material.GetDescriptorSet());
+    if (&mesh != lastMesh)
+    {
+        glCommandBuffer.BindVertexBuffers(mesh.GetGLVertexBuffer());
+        glCommandBuffer.BindIndexBuffer(mesh.GetGLIndexBuffer());
+        lastMesh = &mesh;
+    }
 
-    glCommandBuffer.Draw(mesh.GetIndexCount());
+    //绑定材质球
+    if (&material != lastMaterial)
+    {
+        const Shader& shader = material.GetShader();
+        glCommandBuffer.PushDescriptorSet(shader.GetGLPipelineLayout(), material.GetDescriptorSet());
+        lastMaterial = &material;
+
+        //绑定着色器
+        if (&shader != lastShader)
+        {
+            glCommandBuffer.BindPipeline(shader.GetGLPipeline());
+            lastShader = &shader;
+        }
+    }
+
+    glCommandBuffer.DrawIndexed(mesh.GetIndexCount());
 }

@@ -1,10 +1,13 @@
 {
   "dependencies": [
+    "gtest",
+    "benchmark",
     "vulkan",
     "glfw3",
     "shaderc",
-    "gtest",
     "magic-enum",
-    "glm","stb","tinyobjloader"
+    "glm",
+    "stb",
+    "tinyobjloader"
   ]
 }

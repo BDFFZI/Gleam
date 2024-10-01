@@ -8,16 +8,11 @@
 class Texture2D
 {
 public:
-    Texture2D(const int width, const int height, const void* data, const int size)
-    {
-        glImage = std::unique_ptr<GLImage>(GLImage::CreateTexture2D(width, height, data, size, true));
-        glImageView = std::make_unique<GLImageView>(*glImage, VK_IMAGE_ASPECT_COLOR_BIT);
-        glImageSampler = std::make_unique<GLImageSampler>();
-    }
+    Texture2D(int width, int height, VkFormat format, const void* data, size_t size);
 
-    const GLImage& GetGLImage() const { return *glImage; }
-    const GLImageView& GetGLImageView() const { return *glImageView; }
-    const GLImageSampler& GetGLImageSampler() const { return *glImageSampler; }
+    const GLImage& GetGLImage() const;
+    const GLImageView& GetGLImageView() const;
+    const GLImageSampler& GetGLImageSampler() const;
 
 private:
     std::unique_ptr<GLImage> glImage;

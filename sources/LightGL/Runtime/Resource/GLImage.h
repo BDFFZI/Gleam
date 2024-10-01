@@ -7,13 +7,14 @@ public:
     /**
      * 支持作为传输目标（解决当内存为仅GPU可用时的内容初始化）和着色器采样的纹理
      * @param width 
-     * @param height 
+     * @param height
+     * @param format 
      * @param data 初始像素内容
      * @param size 初始像素内容大小
      * @param mipChain
      * @return 
      */
-    static GLImage* CreateTexture2D(uint32_t width, uint32_t height, const void* data, size_t size, bool mipChain = false);
+    static GLImage* CreateTexture2D(uint32_t width, uint32_t height, VkFormat format, const void* data, size_t size, bool mipChain = false);
     static GLImage* CreateFrameBufferColor(uint32_t width, uint32_t height, VkFormat colorFormat, VkSampleCountFlagBits sampleCount);
     static GLImage* CreateFrameBufferDepth(uint32_t width, uint32_t height, VkFormat depthFormat, VkSampleCountFlagBits sampleCount);
 

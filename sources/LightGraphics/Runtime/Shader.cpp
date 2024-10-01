@@ -11,7 +11,7 @@ Shader::Shader(
     const GLMeshLayout& meshLayout,
     const VkFormat colorFormat, const VkFormat depthStencilFormat,
     const MultisampleState& multisampleState
-)
+): pushConstantRanges(pushConstantRanges)
 {
     glDescriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(descriptorSetLayout);
     glPipelineLayout = std::make_unique<GLPipelineLayout>(*glDescriptorSetLayout, pushConstantRanges);
@@ -20,18 +20,17 @@ Shader::Shader(
         shaderLayout, meshLayout, *this->glPipelineLayout,
         multisampleState);
 }
-Shader::Shader(const std::vector<GLShader>& shaderLayout, const std::vector<GLDescriptorBinding>& descriptorSetLayout)
-    : Shader(shaderLayout, descriptorSetLayout, std::vector<VkPushConstantRange>{}, Mesh::GetMeshLayout(),
+Shader::Shader(
+    const std::vector<GLShader>& shaderLayout,
+    const std::vector<GLDescriptorBinding>& descriptorSetLayout,
+    const std::vector<VkPushConstantRange>& pushConstantRanges)
+    : Shader(shaderLayout, descriptorSetLayout, pushConstantRanges, Mesh::GetMeshLayout(),
              Graphics::GetPresentColorFormat(), Graphics::GetPresentDepthStencilFormat(),
              MultisampleState{Graphics::GetPresentSampleCount()}
     )
 {
 }
 
-const GLDescriptorSetLayout& Shader::GetGLDescriptorSetLayout() const
-{
-    return *glDescriptorSetLayout;
-}
 const GLPipelineLayout& Shader::GetGLPipelineLayout() const
 {
     return *glPipelineLayout;
@@ -39,4 +38,13 @@ const GLPipelineLayout& Shader::GetGLPipelineLayout() const
 const GLPipeline& Shader::GetGLPipeline() const
 {
     return *glPipeline;
+}
+
+const std::vector<GLDescriptorBinding>& Shader::GetDescriptorBinding() const
+{
+    return glDescriptorSetLayout->descriptorBindings;
+}
+const std::vector<VkPushConstantRange>& Shader::GetPushConstantBinding() const
+{
+    return pushConstantRanges;
 }

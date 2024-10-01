@@ -44,6 +44,8 @@ std::string ReadFile(const std::string& filename)
 
 struct PushConstant
 {
+    ///vulkan对常量缓冲区内存布局要求必须16字节对齐
+    ///如float2（16byte），float4（32byte），float3就不符合（24byte）
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
@@ -177,9 +179,9 @@ public:
         );
 
         //创建纹理及采样器
-        RawImage rawImage = ImageImporter::Import("assets/viking_room.png");
+        RawImage rawImage = ImageImporter::Import("assets/viking_room.png", STBI_rgb_alpha);
         texture = std::unique_ptr<GLImage>(GLImage::CreateTexture2D(
-            rawImage.width, rawImage.height,
+            rawImage.width, rawImage.height, VK_FORMAT_R8G8B8A8_SRGB,
             rawImage.pixels.data(), rawImage.pixels.size(), true));
         textureView = std::make_unique<GLImageView>(*texture, VK_IMAGE_ASPECT_COLOR_BIT);
         textureSampler = std::make_unique<GLImageSampler>();
@@ -246,7 +248,7 @@ public:
         glCommandBuffer.BindIndexBuffer(*indexBuffer);
         glCommandBuffer.BindDescriptorSets(*glPipelineLayout, *glDescriptorSets[bufferIndex]);
         glCommandBuffer.PushConstant(*glPipelineLayout, {VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant)}, &ubo);
-        glCommandBuffer.Draw(static_cast<int>(indexBuffer->size / sizeof(uint32_t)));
+        glCommandBuffer.DrawIndexed(static_cast<int>(indexBuffer->size / sizeof(uint32_t)));
         glCommandBuffer.EndRenderPass();
         glCommandBuffer.EndRecording();
 

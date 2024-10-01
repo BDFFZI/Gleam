@@ -6,7 +6,7 @@ using namespace LightRuntime;
 
 Material::Material(Shader& shader): shader(&shader)
 {
-    const std::vector<GLDescriptorBinding>& descriptorBindings = shader.GetGLDescriptorSetLayout().descriptorBindings;
+    const std::vector<GLDescriptorBinding>& descriptorBindings = shader.GetDescriptorBinding();
     descriptorSet.resize(descriptorBindings.size());
     for (size_t i = 0; i < descriptorBindings.size(); i++)
     {
