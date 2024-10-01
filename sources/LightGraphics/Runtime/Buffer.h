@@ -8,7 +8,7 @@ namespace LightRuntime
     class Buffer
     {
     public:
-        explicit Buffer(int size);
+        explicit Buffer(size_t size);
 
         const GLBuffer& GetGLBuffer() const;
 

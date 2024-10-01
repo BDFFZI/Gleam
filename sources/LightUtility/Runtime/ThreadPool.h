@@ -1,44 +1,42 @@
 ﻿#pragma once
 
-#include <queue>
+#include <iostream>
+#include <mutex>
 #include <thread>
-#include <condition_variable>
+#include <semaphore>
 
 #include "ObjectPool.h"
 
 namespace LightRuntime
 {
+    class Worker
+    {
+    public:
+        Worker();
+        ~Worker();
+
+        void Execute(const std::function<void()>& task, const std::function<void()>& taskFinished = nullptr);
+        bool IsCompleted();
+
+    private:
+        std::binary_semaphore executionSignal{0};
+        std::binary_semaphore completionSignal{1};
+        std::function<void()> task;
+        std::function<void()> taskFinished;
+        std::jthread thread;
+    };
+
     class ThreadPool
     {
     public:
-        void Submit(const std::function<void()>& task);
+        ~ThreadPool();
+        size_t GetThreadCount();
+
+        void Schedule(const std::function<void()>& task, std::function<void()> taskFinished = nullptr);
+        void WaitAll();
 
     private:
-        // struct Worker
-        // {
-        //     std::mutex mutex;
-        //     std::condition_variable conditionVariable;
-        //     std::function<void()> task;
-        //     std::jthread thread = std::jthread([this]
-        //     {
-        //         std::unique_lock lock(mutex);
-        //
-        //         while (true)
-        //         {
-        //         }
-        //
-        //
-        //         conditionVariable.wait()
-        //         while (std::thread::)
-        //         {
-        //         }
-        //     });
-        // };
-        //
-        // std::queue<std::function<void()>> tasks;
-
-        // void ThreadUpdate();
-        //
-        // ObjectPool<std::jthread,&ThreadUpdate> pool;
+        std::mutex poolMutex;
+        ObjectPool<Worker> workerPool;
     };
 }

@@ -1,7 +1,5 @@
 ﻿#include "Graphics.h"
 
-#include <thread>
-
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
 
 using namespace LightRuntime;
@@ -61,15 +59,19 @@ VkSampleCountFlagBits Graphics::GetPresentSampleCount()
     return presentSampleCount;
 }
 
-CommandBuffer* Graphics::GetCommandBuffer(const std::string& name)
+CommandBuffer& Graphics::GetCommandBuffer(const std::string& name)
 {
     return commandBufferPool.Get();
 }
-void Graphics::ReleaseCommandBuffer(CommandBuffer* commandBuffer)
+void Graphics::ReleaseCommandBuffer(CommandBuffer& commandBuffer)
 {
     commandBufferPool.Release(commandBuffer);
 }
 
+void Graphics::WaitPresentable()
+{
+    presentCommandBuffers[glSwapChain->GetCurrentBufferIndex()]->WaitExecutionFinish();
+}
 void Graphics::PresentAsync(CommandBuffer& commandBuffer)
 {
     //获取交换链下次呈现使用的相关信息
@@ -112,20 +114,7 @@ void Graphics::WaitPresent()
 {
     presentCommandBuffers[(glSwapChainBufferCount + glSwapChain->GetCurrentBufferIndex() - 1) % glSwapChainBufferCount]->WaitExecutionFinish();
 }
-void Graphics::WaitPresentAsync(const std::function<void()>& callback)
-{
-    size_t lastBufferIndex = (glSwapChainBufferCount + glSwapChain->GetCurrentBufferIndex() - 1) % glSwapChainBufferCount;
-    std::jthread thread([=]
-    {
-        presentCommandBuffers[lastBufferIndex]->WaitExecutionFinish();
-        callback();
-    });
-}
 
-void Graphics::WaitPresentable()
-{
-    presentCommandBuffers[glSwapChain->GetCurrentBufferIndex()]->WaitExecutionFinish();
-}
 
 void Graphics::CreateSwapChain()
 {

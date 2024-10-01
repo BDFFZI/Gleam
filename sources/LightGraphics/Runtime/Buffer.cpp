@@ -2,7 +2,7 @@
 
 using namespace LightRuntime;
 
-Buffer::Buffer(int size)
+Buffer::Buffer(size_t size)
 {
     glBuffer = std::make_unique<GLBuffer>(
         size,

@@ -44,6 +44,8 @@ std::string ReadFile(const std::string& filename)
 
 struct PushConstant
 {
+    ///vulkan对常量缓冲区内存布局要求必须16字节对齐
+    ///如float2（16byte），float4（32byte），float3就不符合（24byte）
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;

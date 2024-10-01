@@ -69,19 +69,19 @@ void CmdBlitImageMipmap(
                    VK_FILTER_LINEAR);
 }
 
-GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, const void* data, const size_t size, const bool mipChain)
+GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, const VkFormat format, const void* data, const size_t size, const bool mipChain)
 {
     const uint32_t mipLevels = mipChain ? static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))) + 1) : 1;
     if (mipLevels != 1)
     {
-        VkFormatProperties formatProperties = GL::glDevice->GetFormatProperties(VK_FORMAT_R8G8B8A8_SRGB);
+        VkFormatProperties formatProperties = GL::glDevice->GetFormatProperties(format);
         if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
             throw std::runtime_error("该纹理格式不支持线性过滤，故无法自动生成mipmap！");
     }
 
     GLImage* glImage = new GLImage(
         width, height,
-        VK_FORMAT_R8G8B8A8_SRGB,
+        format,
         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
         mipLevels
     );

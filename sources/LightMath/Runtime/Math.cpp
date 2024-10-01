@@ -17,6 +17,18 @@ namespace LightRuntime
     float2Operation(*)
     float2Operation(/)
 
+#define float3Operation(operation) float3 operator##operation(const float3 left, const float3 right)\
+    {\
+        return {\
+            left.x operation right.x,\
+            left.y operation right.y,\
+            left.z operation right.z,\
+        };\
+    }
+    float3Operation(+)
+    float3Operation(-)
+    float3Operation(*)
+    float3Operation(/)
 
     std::stringstream stringStream;
     std::string to_string(const float2 value)

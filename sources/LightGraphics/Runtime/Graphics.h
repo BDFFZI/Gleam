@@ -3,6 +3,7 @@
 #include "LightGL/Runtime/GL.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
 #include "LightUtility/Runtime/ObjectPool.h"
+#include "LightUtility/Runtime/ThreadPool.h"
 
 namespace LightRuntime
 {
@@ -21,19 +22,25 @@ namespace LightRuntime
         static const std::unique_ptr<GLImageView>& GetPresentDepthStencilImageView();
         static const std::unique_ptr<GLImageView>& GetPresentColorResolveImageView();
 
-        static CommandBuffer* GetCommandBuffer(const std::string& name = "");
-        static void ReleaseCommandBuffer(CommandBuffer* commandBuffer);
+        static CommandBuffer& GetCommandBuffer(const std::string& name = "");
+        static void ReleaseCommandBuffer(CommandBuffer& commandBuffer);
 
-        static void PresentAsync(CommandBuffer& commandBuffer);
         /**
-         * 等待上一次调用的PresentAsync完成
-         */
-        static void WaitPresent();
-        static void WaitPresentAsync(const std::function<void()>& callback);
-        /**
-         * 等待到可再次执行PresentAsync
+         * 等待到可再次执行PresentAsync()
+         * 详细：等待到下次用于实现呈现绘制的命令缓冲区闲置。因为是异步渲染，所以命令缓冲区存在仍被其他帧占用的情况。
          */
         static void WaitPresentable();
+        /**
+         * 绘制并呈现画面
+         * @param commandBuffer 
+         */
+        static void PresentAsync(CommandBuffer& commandBuffer);
+        /**
+         * 等待上一次调用的PresentAsync完成。
+         * 详细：更准确的说是等待绘制用的命令缓冲区执行完毕，可以安全的释放绘制资源，但此时真正的呈现命令甚至还未开始。
+         * 提示：如果每帧结束时都调用了WaitPresent()，那将退化为同步渲染，因此不存在缓冲区冲突的问题，那样就可不用每帧开始前调用WaitPresentable()
+         */
+        static void WaitPresent();
 
     private:
         inline static std::unique_ptr<GLSwapChain> glSwapChain = {};

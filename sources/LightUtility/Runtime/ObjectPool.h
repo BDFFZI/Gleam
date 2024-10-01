@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include <functional>
-#include <memory>
 #include <stack>
+#include <memory>
+#include <stdexcept>
 
 namespace LightRuntime
 {
@@ -11,31 +12,47 @@ namespace LightRuntime
     public:
         ObjectPool() = default;
         ObjectPool(const ObjectPool&) = delete;
-
-        std::unique_ptr<TObject>& Get()
+        ~ObjectPool()
         {
-            TObject* objectPtr;
-            if (pool.empty())
+            if (GetUsableObjectsCount() != GetAllObjectsCount())
+                throw std::runtime_error("对象池开始销毁，但物体并没有全部归还！");
+            for (auto* object : managedObjectPool)
+                delete object;
+        }
+
+        size_t GetUsableObjectsCount()
+        {
+            return usableObjectPool.size();
+        }
+        size_t GetAllObjectsCount()
+        {
+            return managedObjectPool.size();
+        }
+
+        TObject& Get()
+        {
+            TObject* object;
+            if (usableObjectPool.empty())
             {
-                objectPtr = new TObject(Args...);
-                objects[objectPtr] = std::unique_ptr<TObject>(objectPtr);
+                object = new TObject(Args...);
+                managedObjectPool.emplace_back(object);
             }
             else
             {
-                objectPtr = pool.top();
-                pool.pop();
+                object = usableObjectPool.top();
+                usableObjectPool.pop();
             }
 
-            return objects[objectPtr];
+            return *object;
         }
 
-        void Release(std::unique_ptr<TObject>& element)
+        void Release(TObject& element)
         {
-            pool.push(element.get());
+            usableObjectPool.push(&element);
         }
 
     private:
-        std::stack<TObject*> pool;
-        std::unordered_map<TObject*, std::unique_ptr<TObject>> objects;
+        std::stack<TObject*> usableObjectPool;
+        std::vector<TObject*> managedObjectPool;
     };
 }

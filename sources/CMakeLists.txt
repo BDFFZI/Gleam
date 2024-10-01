@@ -28,7 +28,9 @@ macro(addTests)
 
     find_package(GTest CONFIG REQUIRED)
     target_link_libraries(${ModuleName} PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
-
+    
+    find_package(benchmark CONFIG REQUIRED)
+    target_link_libraries(${ModuleName} PRIVATE benchmark::benchmark)
 endmacro()
 
 file(GLOB ModulePaths "*")
