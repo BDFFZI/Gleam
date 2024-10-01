@@ -179,9 +179,9 @@ public:
         );
 
         //创建纹理及采样器
-        RawImage rawImage = ImageImporter::Import("assets/viking_room.png");
+        RawImage rawImage = ImageImporter::Import("assets/viking_room.png", STBI_rgb_alpha);
         texture = std::unique_ptr<GLImage>(GLImage::CreateTexture2D(
-            rawImage.width, rawImage.height,
+            rawImage.width, rawImage.height, VK_FORMAT_R8G8B8A8_SRGB,
             rawImage.pixels.data(), rawImage.pixels.size(), true));
         textureView = std::make_unique<GLImageView>(*texture, VK_IMAGE_ASPECT_COLOR_BIT);
         textureSampler = std::make_unique<GLImageSampler>();
