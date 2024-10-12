@@ -50,6 +50,12 @@ Vector3 Vector3::Angle(const Vector3 left, const Vector3 right)
 {
     return acos(Dot(left, right) / sqrt(SqrMagnitude(left) * SqrMagnitude(right)));
 }
+Vector3 Vector3::Rotate(const Vector3 vector, const Vector3 normal, const float radian)
+{
+    Vector3 parallel = Project(vector, normal);
+    Vector3 perpendicular = vector - parallel;
+    return cos(radian) * perpendicular + sin(radian) * Cross(normal, perpendicular) + parallel;
+}
 
 Vector3::Vector3(const float value)
 {

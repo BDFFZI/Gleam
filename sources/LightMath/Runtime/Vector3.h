@@ -20,15 +20,22 @@ struct Vector3
     static Vector3 Lerp(Vector3 origin, Vector3 destination, float rate);
     static float Dot(Vector3 left, Vector3 right);
     static Vector3 Cross(Vector3 left, Vector3 right);
+    static Vector3 Angle(Vector3 left, Vector3 right);
     /**
      * 
      * @param vector 
-     * @param normal 投影的单位法线
+     * @param normal 请确保是单位向量
      * @return 
      */
     static Vector3 Project(Vector3 vector, Vector3 normal);
-    static Vector3 Angle(Vector3 left, Vector3 right);
-    static Vector3 Rotate(Vector3 vector, Vector3 axis, float degree);
+    /**
+     * 
+     * @param vector 
+     * @param normal 请确保是单位向量
+     * @param radian 
+     * @return 
+     */
+    static Vector3 Rotate(Vector3 vector, Vector3 normal, float radian);
 
 
     float x;
