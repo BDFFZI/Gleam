@@ -3,8 +3,8 @@
 
 #include "LightGL/Runtime/Pipeline/GLMeshLayout.h"
 #include "LightGL/Runtime/Resource/GLBuffer.h"
-#include "LightMath/Runtime/Graphics.h"
-#include "LightMath/Runtime/Vector.h"
+#include "LightMath/Runtime/Color.h"
+#include "LightMath/Runtime/Vector4.h"
 
 namespace LightRuntime
 {
@@ -22,11 +22,11 @@ namespace LightRuntime
 
     struct Vertex
     {
-        float3 position;
-        float3 normal;
-        float4 tangent;
-        float2 uv;
-        color color;
+        Vector3 position;
+        Vector3 normal;
+        Vector4 tangent;
+        Vector2 uv;
+        Color color;
     };
 
     class Mesh : public MeshBase
@@ -44,19 +44,19 @@ namespace LightRuntime
         int GetVerticesCount() const;
         int GetTrianglesCount() const;
 
-        void GetPositions(std::vector<float3>& buffer) const;
-        void GetNormals(std::vector<float3>& buffer) const;
-        void GetTangents(std::vector<float4>& buffer) const;
-        void GetUVs(std::vector<float2>& buffer) const;
-        void GetColors(std::vector<color>& buffer) const;
+        void GetPositions(std::vector<Vector3>& buffer) const;
+        void GetNormals(std::vector<Vector3>& buffer) const;
+        void GetTangents(std::vector<Vector4>& buffer) const;
+        void GetUVs(std::vector<Vector2>& buffer) const;
+        void GetColors(std::vector<Color>& buffer) const;
         void GetVertices(std::vector<Vertex>& buffer) const;
         void GetTriangles(std::vector<uint32_t>& buffer) const;
 
-        void SetPositions(const std::vector<float3>& data);
-        void SetNormals(const std::vector<float3>& data);
-        void SetTangents(const std::vector<float4>& data);
-        void SetUVs(const std::vector<float2>& data);
-        void SetColors(const std::vector<color>& data);
+        void SetPositions(const std::vector<Vector3>& data);
+        void SetNormals(const std::vector<Vector3>& data);
+        void SetTangents(const std::vector<Vector4>& data);
+        void SetUVs(const std::vector<Vector2>& data);
+        void SetColors(const std::vector<Color>& data);
         void SetVertices(const std::vector<Vertex>& data);
         void SetTriangles(const std::vector<uint32_t>& data);
 

@@ -61,8 +61,8 @@ RawMesh ModelImporter::ImportObj(const std::string& filePath)
             if (!uniqueVertices.contains(vertex))
             {
                 uniqueVertices[vertex] = static_cast<uint32_t>(mesh.positions.size());
-                mesh.positions.push_back(*reinterpret_cast<float3*>(&vertex.pos));
-                mesh.uvs.push_back(*reinterpret_cast<float2*>(&vertex.texCoord));
+                mesh.positions.push_back(*reinterpret_cast<Vector3*>(&vertex.pos));
+                mesh.uvs.push_back(*reinterpret_cast<Vector2*>(&vertex.texCoord));
             }
 
             mesh.triangles.push_back(uniqueVertices[vertex]);

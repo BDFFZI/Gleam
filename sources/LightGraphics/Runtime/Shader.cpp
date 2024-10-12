@@ -7,13 +7,14 @@ using namespace LightRuntime;
 
 Shader::Shader(
     const std::vector<GLShader>& shaderLayout,
-    const std::vector<GLDescriptorBinding>& descriptorSetLayout, const std::vector<VkPushConstantRange>& pushConstantRanges,
+    const std::vector<GLDescriptorBinding>& descriptorBindings, VkDescriptorSetLayoutCreateFlags descriptorFlags,
+    const std::vector<VkPushConstantRange>& pushConstantRanges,
     const GLMeshLayout& meshLayout,
     const VkFormat colorFormat, const VkFormat depthStencilFormat,
     const MultisampleState& multisampleState
 ): pushConstantRanges(pushConstantRanges)
 {
-    glDescriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(descriptorSetLayout);
+    glDescriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(descriptorBindings, descriptorFlags);
     glPipelineLayout = std::make_unique<GLPipelineLayout>(*glDescriptorSetLayout, pushConstantRanges);
     glPipeline = std::make_unique<GLPipeline>(
         std::vector{colorFormat}, depthStencilFormat,
@@ -24,7 +25,10 @@ Shader::Shader(
     const std::vector<GLShader>& shaderLayout,
     const std::vector<GLDescriptorBinding>& descriptorSetLayout,
     const std::vector<VkPushConstantRange>& pushConstantRanges)
-    : Shader(shaderLayout, descriptorSetLayout, pushConstantRanges, Mesh::GetMeshLayout(),
+    : Shader(shaderLayout,
+             descriptorSetLayout, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,
+             pushConstantRanges,
+             Mesh::GetMeshLayout(),
              Graphics::GetPresentColorFormat(), Graphics::GetPresentDepthStencilFormat(),
              MultisampleState{Graphics::GetPresentSampleCount()}
     )

@@ -4,10 +4,6 @@
 
 using namespace LightRuntime;
 
-CommandBuffer::CommandBuffer(): glCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY)
-{
-}
-
 GLCommandBuffer& CommandBuffer::GetGLCommandBuffer()
 {
     return glCommandBuffer;
@@ -58,20 +54,20 @@ void CommandBuffer::EndRendering() const
     glCommandBuffer.EndRendering();
 }
 
-void CommandBuffer::SetViewport(const rect& viewport) const
+void CommandBuffer::SetViewport(float x, float y, float width, float height) const
 {
     glCommandBuffer.SetViewport(
-        viewport.x, viewport.y + viewport.height,
-        viewport.width, -viewport.height
+        x, y + height,
+        width, -height
     ); //利用-height的特性，实现剪辑空间的上下反转。这样传入左手坐标系的顶点后就可以负负得正了。
     glCommandBuffer.SetScissor(
         {
-            static_cast<int32_t>(viewport.x),
-            static_cast<int32_t>(viewport.y)
+            static_cast<int32_t>(x),
+            static_cast<int32_t>(y)
         },
         {
-            static_cast<uint32_t>(viewport.width),
-            static_cast<uint32_t>(viewport.height)
+            static_cast<uint32_t>(width),
+            static_cast<uint32_t>(height)
         });
 }
 void CommandBuffer::PushConstant(const Shader& shader, const int slotIndex, void* data) const

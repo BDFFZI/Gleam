@@ -17,9 +17,9 @@ using namespace LightRuntime;
 
 struct Vertex
 {
-    float3 pos;
-    float3 color;
-    float2 texCoord;
+    Vector3 pos;
+    Vector3 color;
+    Vector2 texCoord;
 };
 
 std::string ReadFile(const std::string& filename)
