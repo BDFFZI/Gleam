@@ -51,15 +51,15 @@ bool Input::GetKeyUp(KeyCode keyCode)
     return keyboardState[index][0] == true &&
         keyboardState[index][1] == false;
 }
-float2 Input::GetMouseScrollDelta()
+Vector2 Input::GetMouseScrollDelta()
 {
     return mouseScrollDelta[0];
 }
-float2 Input::GetMousePosition()
+Vector2 Input::GetMousePosition()
 {
     return mousePosition[0];
 }
-float2 Input::GetMouseMoveDelta()
+Vector2 Input::GetMouseMoveDelta()
 {
     return mousePositionDelta;
 }

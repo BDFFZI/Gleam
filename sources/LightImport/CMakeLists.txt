@@ -10,6 +10,3 @@ target_link_libraries("${ModuleName}" PRIVATE tinyobjloader::tinyobjloader)
 
 find_package(unofficial-shaderc CONFIG REQUIRED)
 target_link_libraries("${ModuleName}" PRIVATE unofficial::shaderc::shaderc)
-
-find_package(glm CONFIG REQUIRED)
-target_link_libraries("${ModuleName}" PUBLIC glm::glm)

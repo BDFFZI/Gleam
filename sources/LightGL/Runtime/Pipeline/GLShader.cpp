@@ -5,7 +5,7 @@
 
 #include "../GL.h"
 
-GLShader::GLShader(const VkShaderStageFlagBits shaderStage, const std::vector<std::byte>& shaderCode, std::string entryPoint)
-    : shaderCode(shaderCode), entryPoint(std::move(entryPoint)), shaderStage(shaderStage)
+GLShader::GLShader(const VkShaderStageFlagBits shaderStage, const std::vector<std::byte>& shaderBytecode, std::string shaderEntrance)
+    : shaderBytecode(shaderBytecode), shaderEntrance(std::move(shaderEntrance)), shaderStage(shaderStage)
 {
 }

@@ -1,19 +1,17 @@
 ﻿#include "LightGraphics/Runtime/CommandBuffer.h"
 #include "LightGraphics/Runtime/Graphics.h"
+#include "LightImport/Runtime/ModelImporter.h"
 #include "LightImport/Runtime/ShaderImporter.h"
+#include "LightMath/Runtime/Matrix4x4.h"
 #include "LightUtility/Runtime/Chronograph.h"
-#include "LightMath/Runtime/Math.h"
 
 using namespace LightRuntime;
 
-struct WorldBuffer
+struct PushConstantBuffer
 {
-    alignas(16) float time;
-};
-struct TransformBuffer
-{
-    alignas(16) float3 scale;
-    alignas(16) float3 move;
+    alignas(16) Matrix4x4 objectToWorld;
+    alignas(16) Matrix4x4 worldToView;
+    alignas(16) Matrix4x4 viewToClip;
 };
 
 std::unique_ptr<Mesh> CreateMesh()
@@ -21,24 +19,39 @@ std::unique_ptr<Mesh> CreateMesh()
     std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
 
     mesh->SetPositions({
-        float3(0, 0.5f, 0),
-        float3(0.5, -0.5, 0),
-        float3(-0.5, -0.5, 0),
+        Vector3(-0.5f, -0.5f, -0.5f),
+        Vector3(-0.5f, 0.5, -0.5f),
+        Vector3(0.5f, 0.5f, -0.5f),
+        Vector3(0.5f, -0.5f, -0.5f),
+        Vector3(-0.5f, -0.5f, 0.5f),
+        Vector3(-0.5f, 0.5, 0.5f),
+        Vector3(0.5f, 0.5f, 0.5f),
+        Vector3(0.5f, -0.5f, 0.5f),
     });
     mesh->SetUVs({
-        float2(0.5f, 1.0f),
-        float2(1, 0),
-        float2(0, 0),
-    });
-    mesh->SetColors({
-        color::red,
-        color::green,
-        color::blue,
+        Vector2(0, 0),
+        Vector2(0, 1),
+        Vector2(1, 1),
+        Vector2(1, 0),
+        Vector2(0, 0),
+        Vector2(0, 1),
+        Vector2(1, 1),
+        Vector2(1, 0),
     });
     mesh->SetTriangles({
-        0, 1, 2,
+        0, 1, 2, 2, 3, 0,
+        3, 2, 6, 6, 7, 3,
+        7, 6, 5, 5, 4, 7,
+        4, 5, 1, 1, 0, 4,
+        1, 5, 6, 6, 2, 1,
+        4, 0, 3, 3, 7, 4,
     });
     mesh->UpdateGLBuffer();
+
+    // RawMesh rawMesh = ModelImporter::ImportObj(R"(C:\Users\MediVision\Desktop\LightBuild\sources\LightGL\Tests\assets\viking_room.obj)");
+    // mesh->SetPositions(rawMesh.positions);
+    // mesh->SetTriangles(rawMesh.triangles);
+    // mesh->UpdateGLBuffer();
 
     return mesh;
 }
@@ -46,11 +59,11 @@ std::unique_ptr<Shader> CreateShader()
 {
     std::string shaderCode = R"(
 [[vk::push_constant]]
-cbuffer UniformBuffer
+cbuffer PushConstantBuffer
 {
-    float time;
-    float3 scale;
-    float3 move;
+    float4x4 objectToWorld;
+    float4x4 worldToView;
+    float4x4 viewToClip;
 }
 
 Texture2D tex : register(t0);
@@ -75,13 +88,15 @@ struct VertexOutput
 
 VertexOutput VertexShader(VertexInput input)
 {
-    float3 offset = move;
-    offset.xy *= time * 2 % 5;
+    float4 positionOS = float4(input.positionOS,1);
+    float4 positionWS = mul(objectToWorld,positionOS);
+    float4 positionVS = mul(worldToView,positionWS);
+    float4 positionCS = mul(viewToClip,positionVS);
 
     VertexOutput output;
-    output.positionCS = float4(input.positionOS * scale + offset,1);
+    output.positionCS = positionCS;
     output.uv = input.uv;
-    output.color = input.color;
+    output.color = positionOS;
     return output;
 }
 
@@ -103,16 +118,15 @@ float4 FragmentShader(VertexOutput input):SV_Target
             GLDescriptorBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
         },
         std::vector{
-            VkPushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof WorldBuffer),
-            VkPushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, sizeof WorldBuffer, sizeof TransformBuffer),
+            VkPushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof PushConstantBuffer),
         });
     return shader;
 }
 std::unique_ptr<Texture2D> CreateTexture2D()
 {
-    std::vector data(9, color::white);
-    data[4] = color::black;
-    return std::make_unique<Texture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, data.data(), sizeof color * data.size());
+    std::vector data(9, Color::white);
+    data[4] = Color::black;
+    return std::make_unique<Texture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, data.data(), sizeof Color * data.size());
 }
 std::unique_ptr<Material> CreateMaterial(const std::unique_ptr<Shader>& shader, const std::unique_ptr<Texture2D>& texture)
 {
@@ -124,8 +138,8 @@ std::unique_ptr<Material> CreateMaterial(const std::unique_ptr<Shader>& shader, 
 // TEST(GraphicsTests, ALL)
 void main()
 {
-    constexpr uint32_t WIDTH = 800;
-    constexpr uint32_t HEIGHT = 600;
+    constexpr uint32_t WIDTH = 1920 / 3;
+    constexpr uint32_t HEIGHT = 1080 / 3;
 
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -138,15 +152,19 @@ void main()
     auto texture = CreateTexture2D();
     auto material = CreateMaterial(shader, texture);
 
-    float3 move[4] = {
-        float3(-0.1f, 0.1f, 1.0f),
-        float3(0.1f, 0.1f, 0.75f),
-        float3(-0.1f, -0.1f, 0.25f),
-        float3(0.1f, -0.1f, 0.0f),
+    Vector3 move[4] = {
+        Vector3(-1, 1, 1),
+        Vector3(1, 1, -1),
+        Vector3(1, -1, 1),
+        Vector3(-1, -1, -1),
     };
 
     Chronograph chronograph;
     chronograph.Tick();
+
+    PushConstantBuffer pushConstantBuffer;
+    pushConstantBuffer.worldToView = Matrix4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1}).GetInverse();
+    pushConstantBuffer.viewToClip = Matrix4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -158,14 +176,17 @@ void main()
         //逻辑处理完成，开始绘制
         CommandBuffer& commandBuffer = Graphics::GetCommandBuffer();
         commandBuffer.BeginRecording();
-        commandBuffer.SetViewport({0, 0, Graphics::GetGLSwapChainExtent().x, Graphics::GetGLSwapChainExtent().y});
-        WorldBuffer world = WorldBuffer{static_cast<float>(chronograph.Time()) / 1000};
-        commandBuffer.PushConstant(material->GetShader(), 0, &world);
+        commandBuffer.SetViewport(0, 0, Graphics::GetGLSwapChainExtent().x, Graphics::GetGLSwapChainExtent().y);
         commandBuffer.BeginRendering(nullptr, true);
         for (int i = 0; i < 4; ++i)
         {
-            TransformBuffer transformBuffer = {static_cast<float>(4 - i) / 4.0f, move[i]};
-            commandBuffer.PushConstant(material->GetShader(), 1, &transformBuffer);
+            pushConstantBuffer.objectToWorld = Matrix4x4::TRS(
+                Vector3{0, 0, static_cast<float>(i) * 0.1f} + move[i] * fmod(static_cast<float>(chronograph.Time()) / 6000, 1.0f),
+                {-90, 0, 0},
+                static_cast<float>(i + 1) / 4.0f
+            );
+
+            commandBuffer.PushConstant(material->GetShader(), 0, &pushConstantBuffer);
             commandBuffer.Draw(*mesh, *material);
         }
         commandBuffer.EndRendering();

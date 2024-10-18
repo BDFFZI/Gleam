@@ -10,7 +10,7 @@ GLDescriptorBinding::GLDescriptorBinding(const VkDescriptorType descriptorType, 
 {
 }
 
-GLDescriptorSetLayout::GLDescriptorSetLayout(const std::vector<GLDescriptorBinding>& descriptorBindings)
+GLDescriptorSetLayout::GLDescriptorSetLayout(const std::vector<GLDescriptorBinding>& descriptorBindings, const VkDescriptorSetLayoutCreateFlags createFlags)
     : descriptorBindings(descriptorBindings)
 {
     //槽位绑定信息
@@ -30,6 +30,7 @@ GLDescriptorSetLayout::GLDescriptorSetLayout(const std::vector<GLDescriptorBindi
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(vkDescriptorSetLayoutBindings.size());
     layoutInfo.pBindings = vkDescriptorSetLayoutBindings.data();
+    layoutInfo.flags = createFlags;
 
     if (vkCreateDescriptorSetLayout(GL::glDevice->device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
         throw std::runtime_error("创建描述符集布局失败!");

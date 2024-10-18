@@ -5,14 +5,13 @@
 #include "Mesh.h"
 #include "RenderTexture.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
-#include "LightMath/Runtime/Graphics.h"
 
 namespace LightRuntime
 {
     class CommandBuffer
     {
     public:
-        CommandBuffer();
+        CommandBuffer() = default;
         CommandBuffer(const CommandBuffer&) = delete;
 
         GLCommandBuffer& GetGLCommandBuffer();
@@ -23,16 +22,16 @@ namespace LightRuntime
         void BeginRendering(const RenderTexture* renderTarget, bool clearColor = false) const;
         void EndRendering() const;
 
-        void SetViewport(const rect& viewport) const;
+        void SetViewport(float x, float y, float width, float height) const;
         void PushConstant(const Shader& shader, int slotIndex, void* data) const;
         void Draw(const MeshBase& mesh, const Material& material);
 
     private:
         inline static std::stack<CommandBuffer*> commandBufferPool = {};
 
-        GLCommandBuffer glCommandBuffer;
-        const MeshBase* lastMesh;
-        const Material* lastMaterial;
-        const Shader* lastShader;
+        GLCommandBuffer glCommandBuffer = GLCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+        const MeshBase* lastMesh = nullptr;
+        const Material* lastMaterial = nullptr;
+        const Shader* lastShader = nullptr;
     };
 }

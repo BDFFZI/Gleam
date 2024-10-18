@@ -2,16 +2,14 @@
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
+#include <unordered_map>
 
 using namespace LightRuntime;
 
 struct ObjVertex
 {
-    glm::vec3 pos;
-    glm::vec2 texCoord;
+    Vector3 pos;
+    Vector2 texCoord;
 
     bool operator==(const ObjVertex& other) const
     {
@@ -24,7 +22,7 @@ struct std::hash<ObjVertex>
 {
     size_t operator()(ObjVertex const& vertex) const noexcept
     {
-        return hash<glm::vec3>()(vertex.pos) >> 1 ^ hash<glm::vec2>()(vertex.texCoord) << 1;
+        return hash<Vector3>()(vertex.pos) >> 1 ^ hash<Vector2>()(vertex.texCoord) << 1;
     }
 };
 
@@ -61,8 +59,8 @@ RawMesh ModelImporter::ImportObj(const std::string& filePath)
             if (!uniqueVertices.contains(vertex))
             {
                 uniqueVertices[vertex] = static_cast<uint32_t>(mesh.positions.size());
-                mesh.positions.push_back(*reinterpret_cast<float3*>(&vertex.pos));
-                mesh.uvs.push_back(*reinterpret_cast<float2*>(&vertex.texCoord));
+                mesh.positions.push_back(vertex.pos);
+                mesh.uvs.push_back(vertex.texCoord);
             }
 
             mesh.triangles.push_back(uniqueVertices[vertex]);

@@ -21,15 +21,15 @@ VkPipeline CreatePipeline(
             VkShaderModule shaderModule;
             VkShaderModuleCreateInfo createInfo{};
             createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-            createInfo.codeSize = glShaderLayout[i].shaderCode.size();
-            createInfo.pCode = reinterpret_cast<const uint32_t*>(glShaderLayout[i].shaderCode.data());
+            createInfo.codeSize = glShaderLayout[i].shaderBytecode.size();
+            createInfo.pCode = reinterpret_cast<const uint32_t*>(glShaderLayout[i].shaderBytecode.data());
             if (vkCreateShaderModule(GL::glDevice->device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
                 throw std::runtime_error("创建着色器模型失败!");
 
             VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
             vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
             vertShaderStageInfo.stage = glShaderLayout[i].shaderStage;
-            vertShaderStageInfo.pName = glShaderLayout[i].entryPoint.c_str();
+            vertShaderStageInfo.pName = glShaderLayout[i].shaderEntrance.c_str();
             vertShaderStageInfo.module = shaderModule;
 
             shaderStages[i] = vertShaderStageInfo;
