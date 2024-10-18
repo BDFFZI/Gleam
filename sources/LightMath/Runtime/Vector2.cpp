@@ -2,6 +2,8 @@
 
 #include <format>
 
+#include "Math.h"
+
 Vector2::Vector2(const float value)
 {
     x = value;
@@ -15,7 +17,7 @@ Vector2::Vector2(const float x, const float y)
 
 std::string to_string(const Vector2 value)
 {
-    return std::format("({},{})", value.x, value.y);
+    return std::format("({:f},{:f})", value.x, value.y);
 }
 #define Vector2Operation(operation) Vector2 operator##operation(const Vector2 left, const Vector2 right)\
 {\
@@ -32,5 +34,5 @@ bool operator==(const Vector2 left, const Vector2 right)
 {
     float a = left.x - right.x;
     float b = left.y - right.y;
-    return a * a + b * b < FLT_EPSILON;
+    return a * a + b * b < SqrEPSILON * 2;
 }

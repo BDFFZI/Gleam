@@ -3,6 +3,8 @@
 #include <cmath>
 #include <format>
 
+#include "Math.h"
+
 Vector3 Vector3::zero = 0;
 Vector3 Vector3::one = 1;
 Vector3 Vector3::left = {-1, 0, 0};
@@ -12,20 +14,6 @@ Vector3 Vector3::down = {0, -1, 0};
 Vector3 Vector3::front = {0, 0, 1};
 Vector3 Vector3::back = {0, 0, -1};
 
-float Vector3::Magnitude(const Vector3 vector)
-{
-    //勾股定理
-    return sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
-}
-float Vector3::SqrMagnitude(const Vector3 vector)
-{
-    return vector.x * vector.x + vector.y * vector.y + vector.z * vector.z;
-}
-Vector3 Vector3::Normalize(const Vector3 vector)
-{
-    float sqrMagnitude = SqrMagnitude(vector);
-    return sqrMagnitude > FLT_EPSILON ? vector / sqrt(sqrMagnitude) : 0;
-}
 Vector3 Vector3::Lerp(const Vector3 origin, const Vector3 destination, const float rate)
 {
     return origin + rate * (destination - origin);
@@ -46,12 +34,13 @@ Vector3 Vector3::Project(const Vector3 vector, const Vector3 normal)
 {
     return normal * Dot(vector, normal);
 }
-Vector3 Vector3::Angle(const Vector3 left, const Vector3 right)
+float Vector3::Angle(const Vector3 left, const Vector3 right)
 {
-    return acos(Dot(left, right) / sqrt(SqrMagnitude(left) * SqrMagnitude(right)));
+    return acos(Dot(left, right) / sqrt(left.GetSqrMagnitude() * right.GetSqrMagnitude())) * Rad2Deg;
 }
-Vector3 Vector3::Rotate(const Vector3 vector, const Vector3 normal, const float radian)
+Vector3 Vector3::Rotate(const Vector3 vector, const Vector3 normal, const float angle)
 {
+    float radian = angle * Deg2Rad;
     Vector3 parallel = Project(vector, normal);
     Vector3 perpendicular = vector - parallel;
     return cos(radian) * perpendicular + sin(radian) * Cross(normal, perpendicular) + parallel;
@@ -76,9 +65,23 @@ Vector3::Vector3(const Vector2 xy, const float z)
     this->z = z;
 }
 
+float Vector3::GetSqrMagnitude() const
+{
+    return x * x + y * y + z * z;
+}
+float Vector3::GetMagnitude() const
+{
+    return sqrt(GetSqrMagnitude());
+}
+Vector3 Vector3::GetNormalized() const
+{
+    float sqrMagnitude = GetSqrMagnitude();
+    return sqrMagnitude > FLT_EPSILON ? *this / sqrt(sqrMagnitude) : 0;
+}
+
 std::string to_string(const Vector3 value)
 {
-    return std::format("({},{},{})", value.x, value.y, value.z);
+    return std::format("({:f},{:f},{:f})", value.x, value.y, value.z);
 }
 #define Vector3Operation(operation) Vector3 operator##operation(const Vector3 left, const Vector3 right)\
 {\
@@ -97,5 +100,5 @@ bool operator==(const Vector3 left, const Vector3 right)
     float a = left.x - right.x;
     float b = left.y - right.y;
     float c = left.z - right.z;
-    return a * a + b * b + c * c < FLT_EPSILON;
+    return a * a + b * b + c * c < SqrEPSILON * 3;
 }

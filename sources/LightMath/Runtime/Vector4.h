@@ -15,3 +15,4 @@ struct Vector4
 };
 
 std::string to_string(Vector4 value);
+bool operator==(Vector4 left, Vector4 right);

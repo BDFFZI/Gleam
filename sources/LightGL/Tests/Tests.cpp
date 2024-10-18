@@ -1,9 +1,6 @@
 ﻿#include <chrono>
 
 #include <fstream>
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "LightGL/Runtime/GL.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
@@ -12,6 +9,7 @@
 #include "LightImport/Runtime/ImageImporter.h"
 #include "LightImport/Runtime/ModelImporter.h"
 #include "LightImport/Runtime/ShaderImporter.h"
+#include "LightMath/Runtime/Matrix4x4.h"
 
 using namespace LightRuntime;
 
@@ -46,9 +44,9 @@ struct PushConstant
 {
     ///vulkan对常量缓冲区内存布局要求必须16字节对齐
     ///如float2（16byte），float4（32byte），float3就不符合（24byte）
-    alignas(16) glm::mat4 model;
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
+    alignas(16) Matrix4x4 model;
+    alignas(16) Matrix4x4 view;
+    alignas(16) Matrix4x4 proj;
 };
 
 class GLTester
@@ -150,9 +148,7 @@ public:
         glPipeline = std::make_unique<GLPipeline>(
             *glRenderPass, 0,
             glShaderLayout, glMeshLayout, *glPipelineLayout,
-            MultisampleState{VK_SAMPLE_COUNT_8_BIT},
-            //由于在投影矩阵中直接反转了y，三角面也因此反转，故需修改三角形的正向顺序
-            RasterizationState{VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE}
+            MultisampleState{VK_SAMPLE_COUNT_8_BIT}
         );
 
         //创建顶点索引缓冲区
@@ -229,13 +225,10 @@ public:
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float>(currentTime - startTime).count();
         PushConstant ubo;
-        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.proj = glm::perspective(
-            glm::radians(45.0f),
-            static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain->imageExtent.height),
-            0.1f, 10.0f);
-        ubo.proj[1][1] *= -1; //glm为opengl设计，输出的剪辑空间坐标y与vk相反，故需反转。但不反转前三角形也是可以绘制的，因为obj模型中的三角面是逆时针方向。
+        ubo.model = Matrix4x4::TRS(Vector3::zero, {-90, time * 90, 0}, Vector3::one);
+        ubo.view = Matrix4x4::TRS({2, 2, 2}, {32, -135, 0}, Vector3::one).GetInverse();
+        ubo.proj = Matrix4x4::Perspective(45.0f, static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain->imageExtent.height), 0.1f, 10.0f);
+        ubo.proj.m11 *= -1; //Matrix4x4以Direct3D为准，输出的剪辑空间坐标y与vk相反，故需反转。
 
         //准备绘图命令
         GLCommandBuffer& glCommandBuffer = *glCommandBuffers[bufferIndex];

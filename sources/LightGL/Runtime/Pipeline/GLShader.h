@@ -6,15 +6,15 @@
 struct GLShader
 {
     VkShaderStageFlagBits shaderStage;
-    std::vector<std::byte> shaderCode;
-    std::string entryPoint;
+    std::vector<std::byte> shaderBytecode;
+    std::string shaderEntrance;
 
     /**
      * 
      * @param shaderStage shader作用的图像管道阶段
-     * @param shaderCode shader编译后的字节码
-     * @param entryPoint shader源码中的函数名
+     * @param shaderBytecode shader编译后的字节码
+     * @param shaderEntrance shader源码中的函数名
      * @return 
      */
-    GLShader(VkShaderStageFlagBits shaderStage, const std::vector<std::byte>& shaderCode, std::string entryPoint);
+    GLShader(VkShaderStageFlagBits shaderStage, const std::vector<std::byte>& shaderBytecode, std::string shaderEntrance);
 };

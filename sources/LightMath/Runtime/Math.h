@@ -1,6 +1,15 @@
 #pragma once
-#include <cmath>
+#include <cfloat>
+#include <numbers>
 
-#define Pi 3.1415926535897932384626433832795f
-#define Deg2Rad 0.01745329251994329576923690768489f
-#define Rad2Deg 57.295779513082320876798154814105f
+inline constexpr float Pi = std::numbers::pi_v<float>;
+inline constexpr float Deg2Rad = Pi / 180.0f;
+inline constexpr float Rad2Deg = 180.0f / Pi;
+inline constexpr float SqrEPSILON = FLT_EPSILON * FLT_EPSILON;
+
+/**
+ * 
+ * @param seed 用于存储合并后的哈希值
+ * @param hash 
+ */
+void CombineHash(size_t& seed, size_t hash);
