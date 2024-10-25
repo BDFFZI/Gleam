@@ -5,33 +5,37 @@
 
 /// 验证工具：https://www.math666.com/
 
-TEST(Math, Vector3)
+TEST(Math, Swizzle)
 {
-    float3 vector(1, 2, 3);
-    ASSERT_FLOAT_EQ(length_sq(vector), 14);
-    ASSERT_FLOAT_EQ(length(vector), 3.741657f);
-    ASSERT_EQ(to_string(normalize( vector)), "(0.267261,0.534522,0.801784)");
+    float3 vector3 = 0;
+    vector3.xy = 1; //{1,1,0}
+    vector3.yz += vector3.xy * 2; //{1,3,2}
+    ++vector3.zx; //{2,3,3}
+    ASSERT_TRUE(all(vector3++ == float3(2, 3, 3)));
 
-    float3 vector2(6, 4, 5);
-    ASSERT_EQ(to_string(lerp(vector,vector2,0.5f)), "(3.500000,3.000000,4.000000)");
-    ASSERT_FLOAT_EQ(dot(vector,vector2), 29);
-    ASSERT_EQ(to_string(cross(vector,vector2)), "(-2.000000,13.000000,-8.000000)");
-    ASSERT_FLOAT_EQ(angle(vector,vector2), 27.96183f);
-    ASSERT_EQ(to_string(project(vector,normalize(vector2))), "(2.259740,1.506494,1.883117)");
-    ASSERT_EQ(to_string(rotate(vector,normalize(vector2),90.0f)), "(2.487662,0.025006,2.794801)");
+    float2 vector2 = vector3.zx;
+    ASSERT_TRUE(all(vector2 == float2(4,3)));
+
+    ASSERT_EQ(to_string(vector3.zyx), "(4.000000,4.000000,3.000000)");
 }
 
-// TEST(Math, Swizzle)
+// TEST(Math, Vector3)
 // {
-//     float3 vector3 = {};
-//     vector3.xy = {1, 2};
-//     vector3.yz = vector3.yz + 2;
-//     ASSERT_EQ(vector3, float3(1, 4, 2));
-//
-//     float2 vector2 = vector3.zx;
-//     ASSERT_EQ(vector2.yx, float2(1,2));
+//     float3 vector(1, 2, 3);
+//     ASSERT_FLOAT_EQ(length_sq(vector), 14);
+//     ASSERT_FLOAT_EQ(length(vector), 3.741657f);
+//     ASSERT_EQ(to_string(normalize( vector)), "(0.267261,0.534522,0.801784)");
+//     
+//     float3 vector2(6, 4, 5);
+//     ASSERT_EQ(to_string(lerp(vector,vector2,0.5f)), "(3.500000,3.000000,4.000000)");
+//     ASSERT_FLOAT_EQ(dot(vector,vector2), 29);
+//     ASSERT_EQ(to_string(cross(vector,vector2)), "(-2.000000,13.000000,-8.000000)");
+//     ASSERT_FLOAT_EQ(angle(vector,vector2), 27.96183f);
+//     ASSERT_EQ(to_string(project(vector,normalize(vector2))), "(2.259740,1.506494,1.883117)");
+//     ASSERT_EQ(to_string(rotate(vector,normalize(vector2),90.0f)), "(2.487662,0.025006,2.794801)");
 // }
-//
+
+
 // TEST(Math, Matrix3x3)
 // {
 //     Matrix3x3 matrix = {

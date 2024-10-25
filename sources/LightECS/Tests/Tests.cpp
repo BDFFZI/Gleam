@@ -9,6 +9,8 @@
 #include <source_location>
 #include <unordered_set>
 
+#include "LightMath/Runtime/VectorMath.hpp"
+
 #ifdef BENCHMARK_Heap
 struct Data
 {
@@ -117,58 +119,18 @@ struct Velocity
 constinit Archetype physicalArchetype = RegisterArchetype<Position, Velocity>();
 constinit Archetype physicalArchetypeWithDrug = RegisterArchetype<int>(physicalArchetype);
 
-template <class Type, int Number>
-struct vectorFunc
+
+float2 operator+=(const float2& v1, const float2& v2)
 {
-    void Increase()
-    {
-    }
-};
-
-
-template <class Type, int Number>
-struct vector : vectorFunc<Type, Number>
-{
-    Type data[Number];
-};
-
-template <class TResult, class TParameter>
-using Function = TResult(*)(TParameter);
-
-template <class TResult, class VectorType, int VectorNumber>
-TResult Func(Function<TResult, VectorType> function, vector<VectorType, VectorNumber> vector)
-{
-    for (int i = 0; i < VectorNumber; i++)
-        vector.data[i] = function(i);
-    return {};
+    float2& v = const_cast<float2&>(v1);
+    v[0] += v2[0];
 }
-
-
-struct A
-{
-    int get()
-    {
-        return value;
-    }
-
-    int value = 3;
-};
-
-struct B : A
-{
-    int get()
-    {
-        return value;
-    }
-    
-    int value = 12;
-};
 
 
 void main()
 {
-    B b;
-    std::cout << b.get() << "\n";
+    VectorSwizzle<float, 1, 2> a;
+    a += 1;
 
     std::cout << to_string(physicalArchetypeWithDrug) << "\n";
     std::cout << physicalArchetypeWithDrug.Contains<Position>() << "\n";

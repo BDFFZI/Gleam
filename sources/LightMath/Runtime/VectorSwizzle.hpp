@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 #define VectorMemberFunction(Type,Number) \
+constexpr vector() { };\
 constexpr vector(const Type value)\
 {\
 for (int i = 0; i < (Number); i++)\
@@ -27,37 +28,11 @@ struct vector
 template <class Type, int... Index>
 struct VectorSwizzle
 {
-    VectorSwizzle(): address(reinterpret_cast<Type*>(this))
-    {
-    }
-    VectorSwizzle(Type* address): address(address)
-    {
-    }
-
-    Type& At(const int i)
-    {
-        return address[i];
-    }
-    const Type& At(const int i) const
-    {
-        return address[i];
-    }
-
     constexpr VectorSwizzle& operator=(const vector<Type, sizeof...(Index)>& value)
     {
         constexpr int indices[] = {Index...};
         for (int i = 0; i < sizeof...(Index); i++)
             At(indices[i]) = value[i];
-        return *this;
-    }
-    constexpr VectorSwizzle& operator=(const VectorSwizzle& value)
-    {
-        if (&value == this)
-            return *this;
-
-        constexpr int indices[] = {Index...};
-        for (int i = 0; i < sizeof...(Index); i++)
-            At(indices[i]) = value.At(i);
         return *this;
     }
     constexpr operator vector<Type, sizeof...(Index)>() const
@@ -69,8 +44,73 @@ struct VectorSwizzle
         return result;
     }
 
-private:
-    Type* address;
+    constexpr VectorSwizzle& operator+=(const vector<Type, sizeof...(Index)>& value)
+    {
+        constexpr int indices[] = {Index...};
+        for (int i = 0; i < sizeof...(Index); i++)
+            At(indices[i]) += value[i];
+        return *this;
+    }
+    constexpr VectorSwizzle& operator-=(const vector<Type, sizeof...(Index)>& value)
+    {
+        constexpr int indices[] = {Index...};
+        for (int i = 0; i < sizeof...(Index); i++)
+            At(indices[i]) -= value[i];
+        return *this;
+    }
+    constexpr VectorSwizzle& operator*=(const vector<Type, sizeof...(Index)>& value)
+    {
+        constexpr int indices[] = {Index...};
+        for (int i = 0; i < sizeof...(Index); i++)
+            At(indices[i]) *= value[i];
+        return *this;
+    }
+    constexpr VectorSwizzle& operator/=(const vector<Type, sizeof...(Index)>& value)
+    {
+        constexpr int indices[] = {Index...};
+        for (int i = 0; i < sizeof...(Index); i++)
+            At(indices[i]) /= value[i];
+        return *this;
+    }
+    constexpr VectorSwizzle& operator++()
+    {
+        constexpr int indices[] = {Index...};
+        for (int i = 0; i < sizeof...(Index); i++)
+            ++At(indices[i]);
+        return *this;
+    }
+    constexpr VectorSwizzle& operator--()
+    {
+        constexpr int indices[] = {Index...};
+        for (int i = 0; i < sizeof...(Index); i++)
+            ++At(indices[i]);
+        return *this;
+    }
+    constexpr vector<Type, sizeof...(Index)> operator++(int)
+    {
+        vector<Type, sizeof...(Index)> temp = *this;
+        constexpr int indices[] = {Index...};
+        for (int i = 0; i < sizeof...(Index); i++)
+            ++At(indices[i]);
+        return temp;
+    }
+    constexpr vector<Type, sizeof...(Index)> operator--(int)
+    {
+        vector<Type, sizeof...(Index)> temp = *this;
+        constexpr int indices[] = {Index...};
+        for (int i = 0; i < sizeof...(Index); i++)
+            --At(indices[i]);
+        return temp;
+    }
+
+    Type& At(const int i)
+    {
+        return reinterpret_cast<Type*>(this)[i];
+    }
+    const Type& At(const int i) const
+    {
+        return reinterpret_cast<const Type*>(this)[i];
+    }
 };
 
 consteval int VertexComponentMap(const std::string_view& str)

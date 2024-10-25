@@ -1,11 +1,8 @@
 ﻿#pragma once
 #include <format>
-
 #include "VectorSwizzle.hpp"
 
-using float2 = vector<float, 2>;
-using float3 = vector<float, 3>;
-using float4 = vector<float, 4>;
+//由于头文件依赖的原因，vector模板原型放在了VectorSwizzle.hpp文件中
 
 template <class Type>
 struct vector<Type, 2>
@@ -27,8 +24,6 @@ struct vector<Type, 2>
         PlaceSwizzleGroup2(VertexComponentMap, Type, r, g)
     };
 
-
-    constexpr vector() = default;
     constexpr vector(const Type x, const Type y)
     {
         this->x = x;
@@ -69,7 +64,6 @@ struct vector<Type, 3>
         PlaceSwizzleGroup3(VertexComponentMap, Type, r, g, b)
     };
 
-    constexpr vector() = default;
     constexpr vector(const Type x, const Type y, const Type z)
     {
         this->x = x;
@@ -116,7 +110,6 @@ struct vector<Type, 4>
         PlaceSwizzleGroup4(VertexComponentMap, vector, r, g, b, a)
     };
 
-    constexpr vector() = default;
     constexpr vector(Type x, Type y, Type z, Type w)
     {
         this->x = x;
@@ -135,19 +128,6 @@ struct vector<Type, 4>
     VectorMemberFunction(Type, 4)
 };
 
-inline std::string to_string(float2 value)
-{
-    return std::format("({:f},{:f})", value.x, value.y);
-}
-inline std::string to_string(float3 value)
-{
-    return std::format("({:f},{:f},{:f})", value.x, value.y, value.z);
-}
-inline std::string to_string(float4 value)
-{
-    return std::format("({:f},{:f},{:f},{:f})", value.x, value.y, value.z, value.w);
-}
-
 /**
  * 将哈希值hash合并到seed中
  * @param seed 用于存储合并后的哈希值
@@ -160,42 +140,16 @@ constexpr void CombineVectorHash(size_t* seed, size_t hash)
     hash += 0x9e3779b9 + (*seed << 6) + (*seed >> 2);
     *seed ^= hash;
 }
-template <>
-struct std::hash<float2>
+
+template <class Type, int Number>
+struct std::hash<vector<Type, Number>>
 {
-    size_t operator()(float2 const& value) const noexcept
+    size_t operator()(const ::vector<Type, Number>& value) const noexcept
     {
         size_t seed = 0;
         hash<float> hasher;
-        CombineVectorHash(&seed, hasher(value.x));
-        CombineVectorHash(&seed, hasher(value.y));
-        return seed;
-    }
-};
-template <>
-struct std::hash<float3>
-{
-    size_t operator()(float3 const& value) const noexcept
-    {
-        size_t seed = 0;
-        hash<float> hasher;
-        CombineVectorHash(&seed, hasher(value.x));
-        CombineVectorHash(&seed, hasher(value.y));
-        CombineVectorHash(&seed, hasher(value.z));
-        return seed;
-    }
-};
-template <>
-struct std::hash<float4>
-{
-    size_t operator()(float4 const& value) const noexcept
-    {
-        size_t seed = 0;
-        hash<float> hasher;
-        CombineVectorHash(&seed, hasher(value.x));
-        CombineVectorHash(&seed, hasher(value.y));
-        CombineVectorHash(&seed, hasher(value.z));
-        CombineVectorHash(&seed, hasher(value.w));
+        for (int i = 0; i < Number; i++)
+            CombineVectorHash(&seed, hasher(value[i]));
         return seed;
     }
 };

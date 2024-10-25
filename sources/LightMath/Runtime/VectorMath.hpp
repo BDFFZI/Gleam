@@ -6,11 +6,14 @@
 #include "Vector.hpp"
 
 template <typename Type>
+    requires std::is_arithmetic_v<Type>
 constexpr Type max(const Type a, const Type b) { return std::max(a, b); }
 template <typename Type>
+    requires std::is_arithmetic_v<Type>
 constexpr Type min(const Type a, const Type b) { return std::min(a, b); }
 template <typename Type>
-constexpr Type rsqrt(const Type a) { return 1 / sqrtf(a); }
+    requires std::is_arithmetic_v<Type>
+constexpr Type rsqrt(const Type a) { return 1 / static_cast<Type>(sqrt(a)); }
 
 /**
  * 弧度转角度
@@ -18,9 +21,10 @@ constexpr Type rsqrt(const Type a) { return 1 / sqrtf(a); }
  * @return 
  */
 template <typename Type>
+    requires std::is_arithmetic_v<Type>
 constexpr Type degrees(const Type radian)
 {
-    constexpr Type Rad2Deg = 180.0f / std::numbers::pi_v<Type>;
+    constexpr Type Rad2Deg = Type(180) / std::numbers::pi_v<Type>;
     return radian * Rad2Deg;
 }
 /**
@@ -29,374 +33,139 @@ constexpr Type degrees(const Type radian)
  * @return 
  */
 template <typename Type>
-constexpr float radians(const Type degree)
+    requires std::is_arithmetic_v<Type>
+constexpr Type radians(const Type degree)
 {
-    constexpr Type Deg2Rad = std::numbers::pi_v<Type> / 180.0f;
+    constexpr Type Deg2Rad = std::numbers::pi_v<Type> / Type(180);
     return degree * Deg2Rad;
 }
 
-template <class Type, int Number>
-constexpr vector<Type, Number> operator+(const vector<Type, Number>& a, const Type b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = a[i] + b;
-    return result;
-}
-template <class Type, int Number>
-constexpr vector<Type, Number> operator+(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = a[i] + b[i];
-    return result;
+//模板没法触发自动类型转换，因此只能利用宏来大批量定义函数
+
+#define MakeFunction_SymbolV1V(Symbol,Type,Number)\
+constexpr vector<Type, Number>& operator##Symbol##(vector<Type, Number>& a)\
+{\
+for (int i = 0; i < (Number); i++)\
+Symbol##a[i];\
+return a;\
 }
 
-template <class Type, int Number>
-constexpr vector<Type, Number> operator-(const vector<Type, Number>& a, const Type b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = a[i] - b;
-    return result;
-}
-template <class Type, int Number>
-constexpr vector<Type, Number> operator-(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = a[i] - b[i];
-    return result;
+#define MakeFunction_SymbolV1VSuf(Symbol,Type,Number)\
+constexpr vector<Type, Number> operator##Symbol##(vector<Type, Number>& a,int)\
+{\
+vector<Type, Number> temp = a;\
+for (int i = 0; i < (Number); i++)\
+Symbol##a[i];\
+return temp;\
 }
 
-template <class Type, int Number>
-constexpr vector<Type, Number> operator*(const vector<Type, Number>& a, const Type b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = a[i] * b;
-    return result;
-}
-template <class Type, int Number>
-constexpr vector<Type, Number> operator*(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = a[i] * b[i];
-    return result;
+#define MakeFunction_SymbolVV1V(Symbol,Type,Number)\
+constexpr vector<Type, Number>& operator##Symbol##(vector<Type, Number>& a, const vector<Type, Number>& b)\
+{\
+for (int i = 0; i < (Number); i++)\
+a[i] Symbol b[i];\
+return a;\
 }
 
-template <class Type, int Number>
-constexpr vector<Type, Number> operator/(const vector<Type, Number>& a, const Type b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = a[i] / b;
-    return result;
-}
-template <class Type, int Number>
-constexpr vector<Type, Number> operator/(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = a[i] / b[i];
-    return result;
+#define MakeFunction_SymbolVV2V(Symbol,Type,Number)\
+constexpr vector<Type, Number> operator##Symbol##(const vector<Type, Number>& a, const vector<Type, Number>& b)\
+{\
+    vector<Type, Number> result;\
+    for (int i = 0; i < (Number); i++)\
+        result[i] = a[i] Symbol b[i];\
+    return result;\
 }
 
-template <class Type, int Number>
-constexpr vector<bool, Number> operator==(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    vector<bool, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = abs(a[i] - b[i]) <= std::numeric_limits<Type>::epsilon();
-    return result;
+#define MakeFunction_FunctionV2V(Function,Type,Number)\
+constexpr vector<Type, Number> Function##(const vector<Type, Number>& a)\
+{\
+vector<Type, Number> result;\
+for (int i = 0; i < (Number); i++)\
+result[i] = Function(a[i]);\
+return result;\
 }
 
-template <class Type, int Number>
-constexpr vector<bool, Number> operator!=(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    return !operator==<Type, Number>(a, b);
+#define MakeFunction_FunctionVV2V(Function,Type,Number)\
+constexpr vector<Type, Number> Function##(const vector<Type, Number>& a, const vector<Type, Number>& b)\
+{\
+vector<Type, Number> result;\
+for (int i = 0; i < (Number); i++)\
+result[i] = std::Function(a[i],b[i]);\
+return result;\
 }
 
-template <class Type, int Number>
-constexpr bool all(const vector<Type, Number>& a)
-{
-    for (int i = 0; i < Number; i++)
-        if (a[i] == 0)
-            return false;
-
-    return true;
+#define MakeFunction_FunctionVVV2V(Function,Type,Number)\
+constexpr vector<Type, Number> Function##(const vector<Type, Number>& a, const vector<Type, Number>& b, const vector<Type, Number>& c)\
+{\
+vector<Type, Number> result;\
+for (int i = 0; i < (Number); i++)\
+result[i] = std::Function(a[i], b[i], c[i]);\
+return result;\
 }
 
-template <class Type, int Number>
-constexpr vector<Type, Number> fmod(const vector<Type, Number>& a, const Type b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = fmod(a[i], b);
-    return result;
-}
-template <class Type, int Number>
-constexpr vector<Type, Number> fmod(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = fmod(a[i], b[i]);
-    return result;
-}
-
-template <class Type, int Number>
-constexpr vector<Type, Number> pow(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = pow(a[i], b[i]);
-    return result;
+#define MakeFunction_Equal(Type,Number)\
+constexpr vector<bool, Number> operator==(const vector<Type, Number>& a, const vector<Type, Number>& b)\
+{\
+vector<bool, Number> result;\
+for (int i = 0; i < (Number); i++)\
+    result[i] = abs(a[i] - b[i]) <= std::numeric_limits<Type>::epsilon();\
+return result;\
+}\
+constexpr vector<bool, Number> operator!=(const vector<Type, Number>& a, const vector<Type, Number>& b)\
+{\
+vector<bool, Number> result;\
+for (int i = 0; i < (Number); i++)\
+result[i] = abs(a[i] - b[i]) > std::numeric_limits<Type>::epsilon();\
+return result;\
 }
 
-template <class Type, int Number>
-constexpr vector<Type, Number> cos(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = cos(a[i]);
-    return result;
+#define MakeFunction_All(Type,Number)\
+constexpr bool all(const vector<Type, Number>& a)\
+{\
+    for (int i = 0; i < (Number); i++)\
+        if (a[i] == 0)\
+            return false;\
+    return true;\
 }
 
-template <class Type, int Number>
-constexpr vector<Type, Number> acos(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = acos(a[i]);
-    return result;
+#define MakeFunction_Dot(Type,Number)\
+constexpr Type dot(const vector<Type, Number>& a, const vector<Type, Number>& b)\
+{\
+Type result = 0;\
+for (int i = 0; i < (Number); i++)\
+result += a[i] * b[i];\
+return result;\
 }
 
-template <class Type, int Number>
-constexpr vector<Type, Number> sin(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = sin(a[i]);
-    return result;
+#define MakeFunction_Length(Type,Number)\
+constexpr Type lengthsq(const vector<Type, Number>& a)\
+{\
+return dot(a, a);\
+}\
+inline Type length(const vector<Type, Number>& a)\
+{\
+return sqrt(lengthsq(a));\
 }
 
-template <class Type, int Number>
-constexpr vector<Type, Number> asin(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = asin(a[i]);
-    return result;
-}
-
-template <class Type, int Number>
-constexpr vector<Type, Number> tan(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = tan(a[i]);
-    return result;
-}
-
-template <class Type, int Number>
-constexpr vector<Type, Number> atan(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = atan(a[i]);
-    return result;
-}
-
-template <class Type, int Number>
-constexpr vector<Type, Number> degrees(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = degrees(a[i]);
-    return result;
-}
-
-template <class Type, int Number>
-constexpr vector<Type, Number> radians(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = radians(a[i]);
-    return result;
-}
-
-template <class Type, int Number>
-constexpr vector<Type, Number> sqrt(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = sqrt(a[i]);
-    return result;
-}
-
-template <class Type, int Number>
-constexpr vector<Type, Number> rsqrt(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = rsqrt(a[i]);
-    return result;
-}
-
-template <class Type, int Number>
-constexpr vector<Type, Number> abs(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = abs(a[i]);
-    return result;
-}
-
-/**
- * 将小数四舍五入为整数
- * @tparam Type 
- * @tparam Number 
- * @param a 
- * @return 
- */
-template <class Type, int Number>
-constexpr vector<Type, Number> round(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = round(a[i]);
-    return result;
-}
-
-/**
- * 将小数截断为整数
- * @tparam Type 
- * @tparam Number 
- * @param a 
- * @return 
- */
-template <class Type, int Number>
-constexpr vector<Type, Number> trunc(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = trunc(a[i]);
-    return result;
-}
-
-/**
- * 将小数向上取整
- * @tparam Type 
- * @tparam Number 
- * @param a 
- * @return 
- */
-template <class Type, int Number>
-constexpr vector<Type, Number> ceil(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = ceil(a[i]);
-    return result;
-}
-
-/**
- * 将小数向下取整
- * @tparam Type 
- * @tparam Number 
- * @param a 
- * @return 
- */
-template <class Type, int Number>
-constexpr vector<Type, Number> floor(const vector<Type, Number>& a)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = floor(a[i]);
-    return result;
-}
-
-template <class Type, int Number>
-constexpr vector<Type, Number> max(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = max(a[i], b[i]);
-    return result;
-}
-
-template <class Type, int Number>
-constexpr vector<Type, Number> min(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = min(a[i], b[i]);
-    return result;
-}
-
-/**
- * 将小数向下取整
- * @tparam Type 
- * @tparam Number 
- * @param a
- * @param min
- * @param max 
- * @return 
- */
-template <class Type, int Number>
-constexpr vector<Type, Number> clamp(const vector<Type, Number>& a, const vector<Type, Number>& min, const vector<Type, Number>& max)
-{
-    vector<Type, Number> result;
-    for (int i = 0; i < Number; i++)
-        result[i] = clamp(a[i], min[i], max[i]);
-    return result;
+#define MakeFunction_Normalize(Type,Number)\
+constexpr vector<Type, Number> normalize(const vector<Type, Number>& a)\
+{\
+return a / length(a);\
 }
 
 /**
  * 线性插值
  * @tparam Type 
  * @tparam Number 
- * @param a 起点
- * @param b 终点
+ * @param origin 起点
+ * @param destination 终点
  * @param rate 插值比率
  * @return 
  */
-template <class Type, int Number>
-constexpr vector<Type, Number> lerp(const vector<Type, Number>& a, const vector<Type, Number>& b, const float rate)
-{
-    return a + vector<Type, Number>(rate) * (b - a);
-}
-
-template <class Type, int Number>
-constexpr Type dot(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    Type result = 0;
-    for (int i = 0; i < Number; i++)
-        result += a[i] * b[i];
-    return result;
-}
-
-template <class Type>
-constexpr vector<Type, 3> cross(const vector<Type, 3>& a, const vector<Type, 3>& b)
-{
-    return {
-        a.y * b.z - a.z * b.y,
-        -(a.x * b.z - a.z * b.x),
-        a.x * b.y - a.y * b.x
-    };
-}
-
-template <class Type, int Number>
-constexpr Type length_sq(const vector<Type, Number>& a)
-{
-    return dot(a, a);
-}
-
-template <class Type, int Number>
-constexpr Type length(const vector<Type, Number>& a)
-{
-    return sqrt(length_sq(a));
+#define MakeFunction_Lerp(Type,Number)\
+constexpr vector<Type, Number> lerp(const vector<Type, Number>& origin, const vector<Type, Number>& destination, const Type rate)\
+{\
+    return origin + rate * (destination - origin);\
 }
 
 /**
@@ -407,16 +176,10 @@ constexpr Type length(const vector<Type, Number>& a)
  * @param b 
  * @return 
  */
-template <class Type, int Number>
-constexpr Type angle(const vector<Type, Number>& a, const vector<Type, Number>& b)
-{
-    return degrees(acos(dot(a, b) / sqrt(length_sq(a) * length_sq(b))));
-}
-
-template <class Type, int Number>
-constexpr vector<Type, Number> normalize(const vector<Type, Number>& a)
-{
-    return a / length(a);
+#define MakeFunction_Angle(Type,Number)\
+constexpr Type angle(const vector<Type, Number>& a, const vector<Type, Number>& b)\
+{\
+    return degrees(acos(dot(a, b) / sqrt(lengthsq(a) * lengthsq(b))));\
 }
 
 /**
@@ -427,26 +190,113 @@ constexpr vector<Type, Number> normalize(const vector<Type, Number>& a)
  * @param n 投影到的单位法线
  * @return 
  */
-template <class Type, int Number>
-constexpr vector<Type, Number> project(const vector<Type, Number>& v, const vector<Type, Number>& n)
-{
-    return n * dot(v, n);
+#define MakeFunction_Project(Type,Number)\
+constexpr vector<Type, Number> project(const vector<Type, Number>& v, const vector<Type, Number>& n)\
+{\
+    return n * dot(v, n);\
+}
+
+#define MakeFunction_ToString(Type,Number)\
+std::string to_string(vector<Type, Number> value)\
+{\
+    std::string str = "(";\
+    for (int i = 0; i < (Number); i++)\
+        str += std::format("{:f},", value[i]);\
+    str.pop_back();\
+    return str + ")";\
+}
+
+#define MakeFunction_Vector(Type,Number)\
+MakeFunction_SymbolV1V(++, Type, Number);\
+MakeFunction_SymbolV1V(--, Type, Number);\
+MakeFunction_SymbolV1VSuf(++, Type, Number);\
+MakeFunction_SymbolV1VSuf(--, Type, Number);\
+MakeFunction_SymbolVV1V(+=, Type, Number);\
+MakeFunction_SymbolVV1V(-=, Type, Number);\
+MakeFunction_SymbolVV1V(*=, Type, Number);\
+MakeFunction_SymbolVV1V(/=, Type, Number);\
+MakeFunction_SymbolVV2V(+, Type, Number);\
+MakeFunction_SymbolVV2V(-, Type, Number);\
+MakeFunction_SymbolVV2V(*, Type, Number);\
+MakeFunction_SymbolVV2V(/, Type, Number);\
+MakeFunction_FunctionV2V(cos, Type, Number);\
+MakeFunction_FunctionV2V(acos, Type, Number);\
+MakeFunction_FunctionV2V(sin, Type, Number);\
+MakeFunction_FunctionV2V(asin, Type, Number);\
+MakeFunction_FunctionV2V(tan, Type, Number);\
+MakeFunction_FunctionV2V(atan, Type, Number);\
+MakeFunction_FunctionV2V(degrees, Type, Number);\
+MakeFunction_FunctionV2V(radians, Type, Number);\
+MakeFunction_FunctionV2V(sqrt, Type, Number);\
+MakeFunction_FunctionV2V(rsqrt, Type, Number);\
+MakeFunction_FunctionV2V(abs, Type, Number);\
+MakeFunction_FunctionV2V(round, Type, Number);\
+MakeFunction_FunctionV2V(trunc, Type, Number);\
+MakeFunction_FunctionV2V(ceil, Type, Number);\
+MakeFunction_FunctionV2V(floor, Type, Number);\
+MakeFunction_FunctionVV2V(fmod, Type, Number);\
+MakeFunction_FunctionVV2V(pow, Type, Number);\
+MakeFunction_FunctionVV2V(max, Type, Number);\
+MakeFunction_FunctionVV2V(min, Type, Number);\
+MakeFunction_FunctionVVV2V(clamp, Type, Number);\
+MakeFunction_Equal(Type, Number);\
+MakeFunction_All(Type, Number);\
+MakeFunction_Dot(Type, Number);\
+MakeFunction_Length(Type, Number);\
+MakeFunction_Normalize(Type, Number);\
+MakeFunction_Lerp(Type, Number);\
+MakeFunction_Angle(Type, Number);\
+MakeFunction_Project(Type, Number);\
+MakeFunction_ToString(Type, Number);
+
+
+/**
+ * 三维向量叉乘
+ * @param Type 
+ */
+#define MakeFunction_Cross3(Type)\
+constexpr vector<Type, 3> cross(const vector<Type, 3>& a, const vector<Type, 3>& b)\
+{\
+return {\
+a.y * b.z - a.z * b.y,\
+-(a.x * b.z - a.z * b.x),\
+a.x * b.y - a.y * b.x\
+};\
 }
 
 /**
- * 向量绕轴旋转
+ * 三维向量绕轴旋转
  * @tparam Type 
- * @tparam Number 
  * @param v 被旋转的向量
  * @param n 作为旋转轴的单位向量
  * @param angle 旋转的角度
  * @return 
  */
-template <class Type, int Number>
-constexpr vector<Type, Number> rotate(const vector<Type, Number>& v, const vector<Type, Number>& n, const Type angle)
-{
-    Type rad = radians(angle);
-    vector<Type, Number> parallel = project(v, n);
-    vector<Type, Number> perpendicular = v - parallel;
-    return perpendicular * cos(rad) + cross(n, perpendicular) * sin(rad) + parallel;
+#define MakeFunction_Rotate3(Type)\
+constexpr vector<Type, 3> rotate(const vector<Type, 3>& v, const vector<Type, 3>& n, const Type angle)\
+{\
+Type rad = radians(angle);\
+vector<Type, 3> parallel = project(v, n);\
+vector<Type, 3> perpendicular = v - parallel;\
+return perpendicular * cos(rad) + cross(n, perpendicular) * sin(rad) + parallel;\
 }
+
+#define MakeFunction_Vector3Plus(Type)\
+MakeFunction_Cross3(Type)\
+MakeFunction_Rotate3(Type)
+
+
+MakeFunction_Vector(float, 2)
+MakeFunction_Vector(float, 3)
+MakeFunction_Vector(float, 4)
+MakeFunction_Vector3Plus(float)
+using float2 = vector<float, 2>;
+using float3 = vector<float, 3>;
+using float4 = vector<float, 4>;
+
+MakeFunction_All(bool, 2)
+MakeFunction_All(bool, 3)
+MakeFunction_All(bool, 4)
+using bool2 = vector<bool, 2>;
+using bool3 = vector<bool, 3>;
+using bool4 = vector<bool, 4>;
