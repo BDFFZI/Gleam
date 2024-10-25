@@ -37,11 +37,11 @@ namespace LightRuntime
             buffer[index] = vertices[index].propertyName; \
     }
 
-    GetProperty(Positions, Vector3, position)
-    GetProperty(Normals, Vector3, normal)
-    GetProperty(Tangents, Vector4, tangent)
-    GetProperty(UVs, Vector2, uv)
-    GetProperty(Colors, Color, color)
+    GetProperty(Positions, float3, position)
+    GetProperty(Normals, float3, normal)
+    GetProperty(Tangents, float4, tangent)
+    GetProperty(UVs, float2, uv)
+    GetProperty(Colors, color, color)
     void Mesh::GetVertices(std::vector<Vertex>& buffer) const
     {
         buffer = vertices;
@@ -61,11 +61,11 @@ namespace LightRuntime
             vertices[index].propertyName = data[index]; \
     }
 
-    SetProperty(Positions, Vector3, position)
-    SetProperty(Normals, Vector3, normal)
-    SetProperty(Tangents, Vector4, tangent)
-    SetProperty(UVs, Vector2, uv)
-    SetProperty(Colors, Color, color)
+    SetProperty(Positions, float3, position)
+    SetProperty(Normals, float3, normal)
+    SetProperty(Tangents, float4, tangent)
+    SetProperty(UVs, float2, uv)
+    SetProperty(Colors, color, color)
     void Mesh::SetVertices(const std::vector<Vertex>& data)
     {
         vertices = data;

@@ -15,9 +15,9 @@ using namespace LightRuntime;
 
 struct Vertex
 {
-    Vector3 pos;
-    Vector3 color;
-    Vector2 texCoord;
+    float3 pos;
+    float3 color;
+    float2 texCoord;
 };
 
 std::string ReadFile(const std::string& filename)
@@ -225,8 +225,8 @@ public:
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float>(currentTime - startTime).count();
         PushConstant ubo;
-        ubo.model = Matrix4x4::TRS(Vector3::zero, {-90, time * 90, 0}, Vector3::one);
-        ubo.view = Matrix4x4::TRS({2, 2, 2}, {32, -135, 0}, Vector3::one).GetInverse();
+        ubo.model = Matrix4x4::TRS(float3::zero, {-90, time * 90, 0}, float3::one);
+        ubo.view = Matrix4x4::TRS({2, 2, 2}, {32, -135, 0}, float3::one).GetInverse();
         ubo.proj = Matrix4x4::Perspective(45.0f, static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain->imageExtent.height), 0.1f, 10.0f);
         ubo.proj.m11 *= -1; //Matrix4x4以Direct3D为准，输出的剪辑空间坐标y与vk相反，故需反转。
 

@@ -3,7 +3,7 @@
 #include <stack>
 #include <string>
 #include <GLFW/glfw3.h>
-#include "LightMath/Runtime/Math.h"
+#include "LightMath/Runtime/VectorMath.hpp"
 
 namespace LightRuntime
 {

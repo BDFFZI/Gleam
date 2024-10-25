@@ -4,8 +4,8 @@ macro(addModule)
 
     project(${ModuleName})
     file(GLOB_RECURSE ALL_FILE "README.md"
-        "Editor/**.cpp" "Editor/**.h"
-        "Runtime/**.cpp" "Runtime/**.h")
+        "Editor/**.cpp" "Editor/**.h" "Editor/**.hpp"
+        "Runtime/**.cpp" "Runtime/**.h" "Runtime/**.hpp")
     add_library(${ModuleName} STATIC "${ALL_FILE}")
 
     source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES "${ALL_FILE}")
