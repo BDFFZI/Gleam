@@ -20,8 +20,8 @@ struct vector<Type, 2>
             Type r;
             Type g;
         };
-        PlaceSwizzleGroup2(VertexComponentMap, Type, x, y)
-        PlaceSwizzleGroup2(VertexComponentMap, Type, r, g)
+        MakeSwizzleGroup2(VertexComponentMap, Type, x, y)
+        MakeSwizzleGroup2(VertexComponentMap, Type, r, g)
     };
 
     constexpr vector(const Type x, const Type y)
@@ -30,7 +30,8 @@ struct vector<Type, 2>
         this->y = y;
     }
 
-    VectorMemberFunction(Type, 2)
+    MakeVectorMemberFunctions(Type, 2)
+    MakeVectorMemberFunctions_Indexer(Type)
 };
 
 template <class Type>
@@ -60,8 +61,8 @@ struct vector<Type, 3>
             Type g;
             Type b;
         };
-        PlaceSwizzleGroup3(VertexComponentMap, Type, x, y, z)
-        PlaceSwizzleGroup3(VertexComponentMap, Type, r, g, b)
+        MakeSwizzleGroup3(VertexComponentMap, Type, x, y, z)
+        MakeSwizzleGroup3(VertexComponentMap, Type, r, g, b)
     };
 
     constexpr vector(const Type x, const Type y, const Type z)
@@ -77,7 +78,8 @@ struct vector<Type, 3>
         this->z = z;
     }
 
-    VectorMemberFunction(Type, 3)
+    MakeVectorMemberFunctions(Type, 3)
+    MakeVectorMemberFunctions_Indexer(Type)
 };
 
 template <class Type>
@@ -106,8 +108,8 @@ struct vector<Type, 4>
             Type b;
             Type a;
         };
-        PlaceSwizzleGroup4(VertexComponentMap, vector, x, y, z, w)
-        PlaceSwizzleGroup4(VertexComponentMap, vector, r, g, b, a)
+        MakeSwizzleGroup4(VertexComponentMap, vector, x, y, z, w)
+        MakeSwizzleGroup4(VertexComponentMap, vector, r, g, b, a)
     };
 
     constexpr vector(Type x, Type y, Type z, Type w)
@@ -125,7 +127,8 @@ struct vector<Type, 4>
         this->w = w;
     }
 
-    VectorMemberFunction(Type, 4)
+    MakeVectorMemberFunctions(Type, 4)
+    MakeVectorMemberFunctions_Indexer(Type)
 };
 
 /**

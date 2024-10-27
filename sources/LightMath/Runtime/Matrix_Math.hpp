@@ -1,6 +1,9 @@
 ﻿#pragma once
-#include "Vector_Math.hpp"
+#include "VectorMath.hpp"
 #include "Matrix.hpp"
+
+MakeFunctions_Vector(float, 9)
+MakeFunctions_Vector(float, 16)
 
 /**
 * 创建一个旋转矩阵

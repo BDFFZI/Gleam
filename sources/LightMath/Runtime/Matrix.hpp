@@ -4,9 +4,6 @@
 template <class Type, int Row, int Column>
 using matrix = vector<Type, Row * Column>;
 
-using float3x3 = matrix<float, 3, 3>;
-using float4x4 = matrix<float, 4, 4>;
-
 template <class Type>
 struct vector<Type, 3 * 3>
 {
@@ -28,13 +25,6 @@ struct vector<Type, 3 * 3>
         };
     };
 
-    constexpr vector() = default;
-    constexpr vector(float value)
-        : _m00(value), _m10(value), _m20(value),
-          _m01(value), _m11(value), _m21(value),
-          _m02(value), _m12(value), _m22(value)
-    {
-    }
     constexpr vector(
         const float m00, const float m01, const float m02,
         const float m10, const float m11, const float m12,
@@ -44,23 +34,25 @@ struct vector<Type, 3 * 3>
           _m02(m02), _m12(m12), _m22(m22)
     {
     }
+
+    MakeVectorMemberFunctions(Type, 3*3)
 };
 
 template <class Type>
 struct vector<Type, 4 * 4>
 {
-    constexpr static vector zero = {
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0
-    };
-    constexpr static vector identity = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    };
+    // constexpr static vector zero = {
+    //     0, 0, 0, 0,
+    //     0, 0, 0, 0,
+    //     0, 0, 0, 0,
+    //     0, 0, 0, 0
+    // };
+    // constexpr static vector identity = {
+    //     1, 0, 0, 0,
+    //     0, 1, 0, 0,
+    //     0, 0, 1, 0,
+    //     0, 0, 0, 1
+    // };
 
     //为了与图像接口兼容故采用按列存储
     union
@@ -81,15 +73,7 @@ struct vector<Type, 4 * 4>
             Type _14, _24, _34, _44;
         };
     };
-
-    constexpr vector() = default;
-    constexpr vector(float value)
-        : _m00(value), _m10(value), _m20(value), _m30(value),
-          _m01(value), _m11(value), _m21(value), _m31(value),
-          _m02(value), _m12(value), _m22(value), _m32(value),
-          _m03(value), _m13(value), _m23(value), _m33(value)
-    {
-    }
+    
     constexpr vector(const float m00, const float m01, const float m02, const float m03,
                      const float m10, const float m11, const float m12, const float m13,
                      const float m20, const float m21, const float m22, const float m23,
@@ -107,6 +91,8 @@ struct vector<Type, 4 * 4>
           _m03(0), _m13(0), _m23(0), _m33(1)
     {
     }
+
+    MakeVectorMemberFunctions(Type, 3*3)
 
     vector<Type, 4> operator[](int row)
     {

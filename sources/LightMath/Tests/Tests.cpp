@@ -1,6 +1,7 @@
 ﻿#include <format>
 #include <gtest/gtest.h>
 
+#include "LightMath/Runtime/Matrix.hpp"
 #include "LightMath/Runtime/VectorMath.hpp"
 
 /// 验证工具：https://www.math666.com/
@@ -19,44 +20,44 @@ TEST(Math, Swizzle)
     ASSERT_EQ(to_string(vector3.zyx), "(4.000000,4.000000,3.000000)");
 }
 
-// TEST(Math, Vector3)
-// {
-//     float3 vector(1, 2, 3);
-//     ASSERT_FLOAT_EQ(length_sq(vector), 14);
-//     ASSERT_FLOAT_EQ(length(vector), 3.741657f);
-//     ASSERT_EQ(to_string(normalize( vector)), "(0.267261,0.534522,0.801784)");
-//     
-//     float3 vector2(6, 4, 5);
-//     ASSERT_EQ(to_string(lerp(vector,vector2,0.5f)), "(3.500000,3.000000,4.000000)");
-//     ASSERT_FLOAT_EQ(dot(vector,vector2), 29);
-//     ASSERT_EQ(to_string(cross(vector,vector2)), "(-2.000000,13.000000,-8.000000)");
-//     ASSERT_FLOAT_EQ(angle(vector,vector2), 27.96183f);
-//     ASSERT_EQ(to_string(project(vector,normalize(vector2))), "(2.259740,1.506494,1.883117)");
-//     ASSERT_EQ(to_string(rotate(vector,normalize(vector2),90.0f)), "(2.487662,0.025006,2.794801)");
-// }
+TEST(Math, Vector3)
+{
+    float3 vector(1, 2, 3);
+    ASSERT_FLOAT_EQ(lengthsq(vector), 14);
+    ASSERT_FLOAT_EQ(length(vector), 3.741657f);
+    ASSERT_EQ(to_string(normalize( vector)), "(0.267261,0.534522,0.801784)");
+    
+    float3 vector2(6, 4, 5);
+    ASSERT_EQ(to_string(lerp(vector,vector2,0.5f)), "(3.500000,3.000000,4.000000)");
+    ASSERT_FLOAT_EQ(dot(vector,vector2), 29);
+    ASSERT_EQ(to_string(cross(vector,vector2)), "(-2.000000,13.000000,-8.000000)");
+    ASSERT_FLOAT_EQ(angle(vector,vector2), 27.96183f);
+    ASSERT_EQ(to_string(project(vector,normalize(vector2))), "(2.259740,1.506494,1.883117)");
+    ASSERT_EQ(to_string(rotate(vector,normalize(vector2),90.0f)), "(2.487662,0.025006,2.794801)");
+}
 
 
-// TEST(Math, Matrix3x3)
-// {
-//     Matrix3x3 matrix = {
-//         17, 7, 8,
-//         10, 11, 12,
-//         9, 5, 1
-//     };
-//
-//     ASSERT_FLOAT_EQ(matrix.GetDeterminant(), -539);
-//
-//     Matrix3x3 matrix2 = {
-//         4, 1, 8,
-//         1, 2, 7,
-//         6, 6, 4
-//     };
-//     ASSERT_EQ(matrix*matrix2, Matrix3x3(
-//                   123,79,217,
-//                   123,104,205,
-//                   47,25,111
-//               ));
-// }
+TEST(Math, Matrix3x3)
+{
+    float3x3 matrix = {
+        17, 7, 8,
+        10, 11, 12,
+        9, 5, 1
+    };
+
+    ASSERT_FLOAT_EQ(matrix.GetDeterminant(), -539);
+
+    Matrix3x3 matrix2 = {
+        4, 1, 8,
+        1, 2, 7,
+        6, 6, 4
+    };
+    ASSERT_EQ(matrix*matrix2, Matrix3x3(
+                  123,79,217,
+                  123,104,205,
+                  47,25,111
+              ));
+}
 //
 // TEST(Math, Matrix4x4)
 // {

@@ -42,102 +42,102 @@ constexpr Type radians(const Type degree)
 
 //模板没法触发自动类型转换，因此只能利用宏来大批量定义函数
 
-#define MakeFunction_SymbolV1V(Symbol,Type,Number)\
+#define MakeVectorFunction_SymbolV1V(Symbol,Type,Number)\
 constexpr vector<Type, Number>& operator##Symbol##(vector<Type, Number>& a)\
 {\
 for (int i = 0; i < (Number); i++)\
-Symbol##a[i];\
+Symbol##a.data[i];\
 return a;\
 }
 
-#define MakeFunction_SymbolV1VSuf(Symbol,Type,Number)\
+#define MakeVectorFunction_SymbolV1VSuf(Symbol,Type,Number)\
 constexpr vector<Type, Number> operator##Symbol##(vector<Type, Number>& a,int)\
 {\
 vector<Type, Number> temp = a;\
 for (int i = 0; i < (Number); i++)\
-Symbol##a[i];\
+Symbol##a.data[i];\
 return temp;\
 }
 
-#define MakeFunction_SymbolVV1V(Symbol,Type,Number)\
+#define MakeVectorFunction_SymbolVV1V(Symbol,Type,Number)\
 constexpr vector<Type, Number>& operator##Symbol##(vector<Type, Number>& a, const vector<Type, Number>& b)\
 {\
 for (int i = 0; i < (Number); i++)\
-a[i] Symbol b[i];\
+a.data[i] Symbol b.data[i];\
 return a;\
 }
 
-#define MakeFunction_SymbolVV2V(Symbol,Type,Number)\
+#define MakeVectorFunction_SymbolVV2V(Symbol,Type,Number)\
 constexpr vector<Type, Number> operator##Symbol##(const vector<Type, Number>& a, const vector<Type, Number>& b)\
 {\
     vector<Type, Number> result;\
     for (int i = 0; i < (Number); i++)\
-        result[i] = a[i] Symbol b[i];\
+        result.data[i] = a.data[i] Symbol b.data[i];\
     return result;\
 }
 
-#define MakeFunction_FunctionV2V(Function,Type,Number)\
+#define MakeVectorFunction_FunctionV2V(Function,Type,Number)\
 constexpr vector<Type, Number> Function##(const vector<Type, Number>& a)\
 {\
 vector<Type, Number> result;\
 for (int i = 0; i < (Number); i++)\
-result[i] = Function(a[i]);\
+result.data[i] = Function(a.data[i]);\
 return result;\
 }
 
-#define MakeFunction_FunctionVV2V(Function,Type,Number)\
+#define MakeVectorFunction_FunctionVV2V(Function,Type,Number)\
 constexpr vector<Type, Number> Function##(const vector<Type, Number>& a, const vector<Type, Number>& b)\
 {\
 vector<Type, Number> result;\
 for (int i = 0; i < (Number); i++)\
-result[i] = std::Function(a[i],b[i]);\
+result.data[i] = std::Function(a.data[i],b.data[i]);\
 return result;\
 }
 
-#define MakeFunction_FunctionVVV2V(Function,Type,Number)\
+#define MakeVectorFunction_FunctionVVV2V(Function,Type,Number)\
 constexpr vector<Type, Number> Function##(const vector<Type, Number>& a, const vector<Type, Number>& b, const vector<Type, Number>& c)\
 {\
 vector<Type, Number> result;\
 for (int i = 0; i < (Number); i++)\
-result[i] = std::Function(a[i], b[i], c[i]);\
+result.data[i] = std::Function(a.data[i], b.data[i], c.data[i]);\
 return result;\
 }
 
-#define MakeFunction_Equal(Type,Number)\
+#define MakeVectorFunction_Equal(Type,Number)\
 constexpr vector<bool, Number> operator==(const vector<Type, Number>& a, const vector<Type, Number>& b)\
 {\
 vector<bool, Number> result;\
 for (int i = 0; i < (Number); i++)\
-    result[i] = abs(a[i] - b[i]) <= std::numeric_limits<Type>::epsilon();\
+    result.data[i] = abs(a.data[i] - b.data[i]) <= std::numeric_limits<Type>::epsilon();\
 return result;\
 }\
 constexpr vector<bool, Number> operator!=(const vector<Type, Number>& a, const vector<Type, Number>& b)\
 {\
 vector<bool, Number> result;\
 for (int i = 0; i < (Number); i++)\
-result[i] = abs(a[i] - b[i]) > std::numeric_limits<Type>::epsilon();\
+result.data[i] = abs(a.data[i] - b.data[i]) > std::numeric_limits<Type>::epsilon();\
 return result;\
 }
 
-#define MakeFunction_All(Type,Number)\
+#define MakeVectorFunction_All(Type,Number)\
 constexpr bool all(const vector<Type, Number>& a)\
 {\
     for (int i = 0; i < (Number); i++)\
-        if (a[i] == 0)\
+        if (a.data[i] == 0)\
             return false;\
     return true;\
 }
 
-#define MakeFunction_Dot(Type,Number)\
+#define MakeVectorFunction_Dot(Type,Number)\
 constexpr Type dot(const vector<Type, Number>& a, const vector<Type, Number>& b)\
 {\
 Type result = 0;\
 for (int i = 0; i < (Number); i++)\
-result += a[i] * b[i];\
+result += a.data[i] * b.data[i];\
 return result;\
 }
 
-#define MakeFunction_Length(Type,Number)\
+#define MakeVectorFunction_Length(Type,Number)\
 constexpr Type lengthsq(const vector<Type, Number>& a)\
 {\
 return dot(a, a);\
@@ -147,7 +147,7 @@ inline Type length(const vector<Type, Number>& a)\
 return sqrt(lengthsq(a));\
 }
 
-#define MakeFunction_Normalize(Type,Number)\
+#define MakeVectorFunction_Normalize(Type,Number)\
 constexpr vector<Type, Number> normalize(const vector<Type, Number>& a)\
 {\
 return a / length(a);\
@@ -162,7 +162,7 @@ return a / length(a);\
  * @param rate 插值比率
  * @return 
  */
-#define MakeFunction_Lerp(Type,Number)\
+#define MakeVectorFunction_Lerp(Type,Number)\
 constexpr vector<Type, Number> lerp(const vector<Type, Number>& origin, const vector<Type, Number>& destination, const Type rate)\
 {\
     return origin + rate * (destination - origin);\
@@ -176,7 +176,7 @@ constexpr vector<Type, Number> lerp(const vector<Type, Number>& origin, const ve
  * @param b 
  * @return 
  */
-#define MakeFunction_Angle(Type,Number)\
+#define MakeVectorFunction_Angle(Type,Number)\
 constexpr Type angle(const vector<Type, Number>& a, const vector<Type, Number>& b)\
 {\
     return degrees(acos(dot(a, b) / sqrt(lengthsq(a) * lengthsq(b))));\
@@ -190,71 +190,71 @@ constexpr Type angle(const vector<Type, Number>& a, const vector<Type, Number>& 
  * @param n 投影到的单位法线
  * @return 
  */
-#define MakeFunction_Project(Type,Number)\
+#define MakeVectorFunction_Project(Type,Number)\
 constexpr vector<Type, Number> project(const vector<Type, Number>& v, const vector<Type, Number>& n)\
 {\
     return n * dot(v, n);\
 }
 
-#define MakeFunction_ToString(Type,Number)\
-std::string to_string(vector<Type, Number> value)\
+#define MakeVectorFunction_ToString(Type,Number)\
+std::string to_string(vector<Type, Number> a)\
 {\
     std::string str = "(";\
     for (int i = 0; i < (Number); i++)\
-        str += std::format("{:f},", value[i]);\
+        str += std::format("{:f},", a.data[i]);\
     str.pop_back();\
     return str + ")";\
 }
 
-#define MakeFunction_Vector(Type,Number)\
-MakeFunction_SymbolV1V(++, Type, Number);\
-MakeFunction_SymbolV1V(--, Type, Number);\
-MakeFunction_SymbolV1VSuf(++, Type, Number);\
-MakeFunction_SymbolV1VSuf(--, Type, Number);\
-MakeFunction_SymbolVV1V(+=, Type, Number);\
-MakeFunction_SymbolVV1V(-=, Type, Number);\
-MakeFunction_SymbolVV1V(*=, Type, Number);\
-MakeFunction_SymbolVV1V(/=, Type, Number);\
-MakeFunction_SymbolVV2V(+, Type, Number);\
-MakeFunction_SymbolVV2V(-, Type, Number);\
-MakeFunction_SymbolVV2V(*, Type, Number);\
-MakeFunction_SymbolVV2V(/, Type, Number);\
-MakeFunction_FunctionV2V(cos, Type, Number);\
-MakeFunction_FunctionV2V(acos, Type, Number);\
-MakeFunction_FunctionV2V(sin, Type, Number);\
-MakeFunction_FunctionV2V(asin, Type, Number);\
-MakeFunction_FunctionV2V(tan, Type, Number);\
-MakeFunction_FunctionV2V(atan, Type, Number);\
-MakeFunction_FunctionV2V(degrees, Type, Number);\
-MakeFunction_FunctionV2V(radians, Type, Number);\
-MakeFunction_FunctionV2V(sqrt, Type, Number);\
-MakeFunction_FunctionV2V(rsqrt, Type, Number);\
-MakeFunction_FunctionV2V(abs, Type, Number);\
-MakeFunction_FunctionV2V(round, Type, Number);\
-MakeFunction_FunctionV2V(trunc, Type, Number);\
-MakeFunction_FunctionV2V(ceil, Type, Number);\
-MakeFunction_FunctionV2V(floor, Type, Number);\
-MakeFunction_FunctionVV2V(fmod, Type, Number);\
-MakeFunction_FunctionVV2V(pow, Type, Number);\
-MakeFunction_FunctionVV2V(max, Type, Number);\
-MakeFunction_FunctionVV2V(min, Type, Number);\
-MakeFunction_FunctionVVV2V(clamp, Type, Number);\
-MakeFunction_Equal(Type, Number);\
-MakeFunction_All(Type, Number);\
-MakeFunction_Dot(Type, Number);\
-MakeFunction_Length(Type, Number);\
-MakeFunction_Normalize(Type, Number);\
-MakeFunction_Lerp(Type, Number);\
-MakeFunction_Angle(Type, Number);\
-MakeFunction_Project(Type, Number);\
-MakeFunction_ToString(Type, Number);
+#define MakeVectorFunctions(Type,Number)\
+MakeVectorFunction_SymbolV1V(++, Type, Number);\
+MakeVectorFunction_SymbolV1V(--, Type, Number);\
+MakeVectorFunction_SymbolV1VSuf(++, Type, Number);\
+MakeVectorFunction_SymbolV1VSuf(--, Type, Number);\
+MakeVectorFunction_SymbolVV1V(+=, Type, Number);\
+MakeVectorFunction_SymbolVV1V(-=, Type, Number);\
+MakeVectorFunction_SymbolVV1V(*=, Type, Number);\
+MakeVectorFunction_SymbolVV1V(/=, Type, Number);\
+MakeVectorFunction_SymbolVV2V(+, Type, Number);\
+MakeVectorFunction_SymbolVV2V(-, Type, Number);\
+MakeVectorFunction_SymbolVV2V(*, Type, Number);\
+MakeVectorFunction_SymbolVV2V(/, Type, Number);\
+MakeVectorFunction_FunctionV2V(cos, Type, Number);\
+MakeVectorFunction_FunctionV2V(acos, Type, Number);\
+MakeVectorFunction_FunctionV2V(sin, Type, Number);\
+MakeVectorFunction_FunctionV2V(asin, Type, Number);\
+MakeVectorFunction_FunctionV2V(tan, Type, Number);\
+MakeVectorFunction_FunctionV2V(atan, Type, Number);\
+MakeVectorFunction_FunctionV2V(degrees, Type, Number);\
+MakeVectorFunction_FunctionV2V(radians, Type, Number);\
+MakeVectorFunction_FunctionV2V(sqrt, Type, Number);\
+MakeVectorFunction_FunctionV2V(rsqrt, Type, Number);\
+MakeVectorFunction_FunctionV2V(abs, Type, Number);\
+MakeVectorFunction_FunctionV2V(round, Type, Number);\
+MakeVectorFunction_FunctionV2V(trunc, Type, Number);\
+MakeVectorFunction_FunctionV2V(ceil, Type, Number);\
+MakeVectorFunction_FunctionV2V(floor, Type, Number);\
+MakeVectorFunction_FunctionVV2V(fmod, Type, Number);\
+MakeVectorFunction_FunctionVV2V(pow, Type, Number);\
+MakeVectorFunction_FunctionVV2V(max, Type, Number);\
+MakeVectorFunction_FunctionVV2V(min, Type, Number);\
+MakeVectorFunction_FunctionVVV2V(clamp, Type, Number);\
+MakeVectorFunction_Equal(Type, Number);\
+MakeVectorFunction_All(Type, Number);\
+MakeVectorFunction_Dot(Type, Number);\
+MakeVectorFunction_Length(Type, Number);\
+MakeVectorFunction_Normalize(Type, Number);\
+MakeVectorFunction_Lerp(Type, Number);\
+MakeVectorFunction_Angle(Type, Number);\
+MakeVectorFunction_Project(Type, Number);\
+MakeVectorFunction_ToString(Type, Number);
 
 
 /**
  * 三维向量叉乘
  * @param Type 
  */
-#define MakeFunction_Cross3(Type)\
+#define MakeVectorFunction_Cross3(Type)\
 constexpr vector<Type, 3> cross(const vector<Type, 3>& a, const vector<Type, 3>& b)\
 {\
 return {\
@@ -272,7 +272,7 @@ a.x * b.y - a.y * b.x\
  * @param angle 旋转的角度
  * @return 
  */
-#define MakeFunction_Rotate3(Type)\
+#define MakeVectorFunction_Rotate3(Type)\
 constexpr vector<Type, 3> rotate(const vector<Type, 3>& v, const vector<Type, 3>& n, const Type angle)\
 {\
 Type rad = radians(angle);\
@@ -281,22 +281,22 @@ vector<Type, 3> perpendicular = v - parallel;\
 return perpendicular * cos(rad) + cross(n, perpendicular) * sin(rad) + parallel;\
 }
 
-#define MakeFunction_Vector3Plus(Type)\
-MakeFunction_Cross3(Type)\
-MakeFunction_Rotate3(Type)
+#define MakeVectorFunctions_Vector3Extra(Type)\
+MakeVectorFunction_Cross3(Type)\
+MakeVectorFunction_Rotate3(Type)
 
 
-MakeFunction_Vector(float, 2)
-MakeFunction_Vector(float, 3)
-MakeFunction_Vector(float, 4)
-MakeFunction_Vector3Plus(float)
+MakeVectorFunctions(float, 2)
+MakeVectorFunctions(float, 3)
+MakeVectorFunctions(float, 4)
+MakeVectorFunctions_Vector3Extra(float)
 using float2 = vector<float, 2>;
 using float3 = vector<float, 3>;
 using float4 = vector<float, 4>;
 
-MakeFunction_All(bool, 2)
-MakeFunction_All(bool, 3)
-MakeFunction_All(bool, 4)
+MakeVectorFunction_All(bool, 2)
+MakeVectorFunction_All(bool, 3)
+MakeVectorFunction_All(bool, 4)
 using bool2 = vector<bool, 2>;
 using bool3 = vector<bool, 3>;
 using bool4 = vector<bool, 4>;

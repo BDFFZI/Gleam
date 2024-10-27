@@ -1,13 +1,15 @@
 ﻿#pragma once
 #include <stdexcept>
 
-#define VectorMemberFunction(Type,Number) \
+#define MakeVectorMemberFunctions(Type,Number) \
 constexpr vector() { };\
 constexpr vector(const Type value)\
 {\
 for (int i = 0; i < (Number); i++)\
 data[i] = value;\
-}\
+}
+
+#define MakeVectorMemberFunctions_Indexer(Type)\
 constexpr Type##& operator[](const int i)\
 {\
 return data[i];\
@@ -22,11 +24,37 @@ struct vector
 {
     Type data[Number];
 
-    VectorMemberFunction(Type, Number)
+    MakeVectorMemberFunctions(Type, Number)
+    MakeVectorMemberFunctions_Indexer(Type)
 };
 
-template <class Type, int... Index>
-struct VectorSwizzle
+template <class Type>
+struct MemberVectorSwizzle
+{
+    Type& At(const int i)
+    {
+        return reinterpret_cast<Type*>(this)[i];
+    }
+    const Type& At(const int i) const
+    {
+        return reinterpret_cast<const Type*>(this)[i];
+    }
+};
+
+template <class Type>
+struct VariableVectorSwizzle
+{
+    Type* ptr;
+    
+    Type& At(const int i)
+    {
+        return ptr[i];
+    }
+};
+
+
+template <class Base, class Type, int... Index>
+struct VectorSwizzle : Base
 {
     constexpr VectorSwizzle& operator=(const vector<Type, sizeof...(Index)>& value)
     {
@@ -102,15 +130,6 @@ struct VectorSwizzle
             --At(indices[i]);
         return temp;
     }
-
-    Type& At(const int i)
-    {
-        return reinterpret_cast<Type*>(this)[i];
-    }
-    const Type& At(const int i) const
-    {
-        return reinterpret_cast<const Type*>(this)[i];
-    }
 };
 
 consteval int VertexComponentMap(const std::string_view& str)
@@ -123,54 +142,54 @@ consteval int VertexComponentMap(const std::string_view& str)
     throw std::out_of_range("不支持的变量名！");
 }
 
-#define PlaceSwizzle2(map,type,a,b) VectorSwizzle<type,map(#a),map(#b)> a##b;
-#define PlaceSwizzle3(map,type,a,b,c) VectorSwizzle<type,map(#a),map(#b),map(#c)> a##b##c;
-#define PlaceSwizzle4(map,type,a,b,c,d) VectorSwizzle<type,map(#a),map(#b),map(#c),map(#d)> a##b##c##d;
+#define MakeSwizzle2(map,type,a,b) VectorSwizzle<MemberVectorSwizzle<type>,type,map(#a),map(#b)> a##b;
+#define MakeSwizzle3(map,type,a,b,c) VectorSwizzle<MemberVectorSwizzle<type>,type,map(#a),map(#b),map(#c)> a##b##c;
+#define MakeSwizzle4(map,type,a,b,c,d) VectorSwizzle<MemberVectorSwizzle<type>,type,map(#a),map(#b),map(#c),map(#d)> a##b##c##d;
 
-#define PlaceSwizzle2Group(map,type,a,b) \
-PlaceSwizzle2(map,type,a,b)\
-PlaceSwizzle2(map,type,b,a)
+#define MakeSwizzle2Group(map,type,a,b) \
+MakeSwizzle2(map,type,a,b)\
+MakeSwizzle2(map,type,b,a)
 
-#define PlaceSwizzle3Group(map,type,a,b,c) \
-PlaceSwizzle3(map,type,a,b,c)\
-PlaceSwizzle3(map,type,a,c,b)\
-PlaceSwizzle3(map,type,b,a,c)\
-PlaceSwizzle3(map,type,b,c,a)\
-PlaceSwizzle3(map,type,c,a,b)\
-PlaceSwizzle3(map,type,c,b,a)
+#define MakeSwizzle3Group(map,type,a,b,c) \
+MakeSwizzle3(map,type,a,b,c)\
+MakeSwizzle3(map,type,a,c,b)\
+MakeSwizzle3(map,type,b,a,c)\
+MakeSwizzle3(map,type,b,c,a)\
+MakeSwizzle3(map,type,c,a,b)\
+MakeSwizzle3(map,type,c,b,a)
 
-#define PlaceSwizzle4QuarterGroup(map,type,head,a,b,c)\
-    PlaceSwizzle4(map,type,head,a,b,c)\
-    PlaceSwizzle4(map,type,head,a,c,b)\
-    PlaceSwizzle4(map,type,head,b,a,c)\
-    PlaceSwizzle4(map,type,head,b,c,a)\
-    PlaceSwizzle4(map,type,head,c,a,b)\
-    PlaceSwizzle4(map,type,head,c,b,a)
+#define MakeSwizzle4QuarterGroup(map,type,head,a,b,c)\
+    MakeSwizzle4(map,type,head,a,b,c)\
+    MakeSwizzle4(map,type,head,a,c,b)\
+    MakeSwizzle4(map,type,head,b,a,c)\
+    MakeSwizzle4(map,type,head,b,c,a)\
+    MakeSwizzle4(map,type,head,c,a,b)\
+    MakeSwizzle4(map,type,head,c,b,a)
 
-#define PlaceSwizzle4Group(map,type,a,b,c,d) \
-PlaceSwizzle4QuarterGroup(map,type,a,b,c,d)\
-PlaceSwizzle4QuarterGroup(map,type,b,a,c,d)\
-PlaceSwizzle4QuarterGroup(map,type,c,a,b,d)\
-PlaceSwizzle4QuarterGroup(map,type,d,a,b,c)
+#define MakeSwizzle4Group(map,type,a,b,c,d) \
+MakeSwizzle4QuarterGroup(map,type,a,b,c,d)\
+MakeSwizzle4QuarterGroup(map,type,b,a,c,d)\
+MakeSwizzle4QuarterGroup(map,type,c,a,b,d)\
+MakeSwizzle4QuarterGroup(map,type,d,a,b,c)
 
-#define PlaceSwizzleGroup2(map,type,a,b)\
-PlaceSwizzle2Group(map,type,a,b)
+#define MakeSwizzleGroup2(map,type,a,b)\
+MakeSwizzle2Group(map,type,a,b)
 
-#define PlaceSwizzleGroup3(map,type,a,b,c)\
-PlaceSwizzle2Group(map,type,a,b)\
-PlaceSwizzle2Group(map,type,a,c)\
-PlaceSwizzle2Group(map,type,b,c)\
-PlaceSwizzle3Group(map,type,a,b,c)
+#define MakeSwizzleGroup3(map,type,a,b,c)\
+MakeSwizzle2Group(map,type,a,b)\
+MakeSwizzle2Group(map,type,a,c)\
+MakeSwizzle2Group(map,type,b,c)\
+MakeSwizzle3Group(map,type,a,b,c)
 
-#define PlaceSwizzleGroup4(map,type,a,b,c,d)\
-PlaceSwizzle2Group(map,type,a,b)\
-PlaceSwizzle2Group(map,type,a,c)\
-PlaceSwizzle2Group(map,type,a,d)\
-PlaceSwizzle2Group(map,type,b,c)\
-PlaceSwizzle2Group(map,type,b,d)\
-PlaceSwizzle2Group(map,type,c,d)\
-PlaceSwizzle3Group(map,type,a,b,c)\
-PlaceSwizzle3Group(map,type,a,b,d)\
-PlaceSwizzle3Group(map,type,a,c,d)\
-PlaceSwizzle3Group(map,type,b,c,d)\
-PlaceSwizzle4Group(map,type,a,b,c,d)
+#define MakeSwizzleGroup4(map,type,a,b,c,d)\
+MakeSwizzle2Group(map,type,a,b)\
+MakeSwizzle2Group(map,type,a,c)\
+MakeSwizzle2Group(map,type,a,d)\
+MakeSwizzle2Group(map,type,b,c)\
+MakeSwizzle2Group(map,type,b,d)\
+MakeSwizzle2Group(map,type,c,d)\
+MakeSwizzle3Group(map,type,a,b,c)\
+MakeSwizzle3Group(map,type,a,b,d)\
+MakeSwizzle3Group(map,type,a,c,d)\
+MakeSwizzle3Group(map,type,b,c,d)\
+MakeSwizzle4Group(map,type,a,b,c,d)
