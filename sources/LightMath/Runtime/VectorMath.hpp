@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <numbers>
 #include <cmath>
+#include <format>
 
 #include "Vector.hpp"
 
@@ -284,6 +285,7 @@ return perpendicular * cos(rad) + cross(n, perpendicular) * sin(rad) + parallel;
 #define MakeVectorFunctions_Vector3Extra(Type)\
 MakeVectorFunction_Cross3(Type)\
 MakeVectorFunction_Rotate3(Type)
+
 
 
 MakeVectorFunctions(float, 2)

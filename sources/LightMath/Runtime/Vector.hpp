@@ -1,8 +1,18 @@
 ﻿#pragma once
-#include <format>
+#include <stdexcept>
 #include "VectorSwizzle.hpp"
 
 //由于头文件依赖的原因，vector模板原型放在了VectorSwizzle.hpp文件中
+
+consteval int VectorComponentMap(const std::string_view& str)
+{
+    if (str == "x" || str == "r") return 0;
+    if (str == "y" || str == "g") return 1;
+    if (str == "z" || str == "b") return 2;
+    if (str == "w" || str == "a") return 3;
+
+    throw std::out_of_range("不支持的变量名！");
+}
 
 template <class Type>
 struct vector<Type, 2>
@@ -20,8 +30,13 @@ struct vector<Type, 2>
             Type r;
             Type g;
         };
-        MakeSwizzleGroup2(VertexComponentMap, Type, x, y)
-        MakeSwizzleGroup2(VertexComponentMap, Type, r, g)
+
+
+#define xi 1
+#define yi 2
+        
+        MakeVectorSwizzleGroup2(VectorComponentMap, Type, x, y)
+        MakeVectorSwizzleGroup2(VectorComponentMap, Type, r, g)
     };
 
     constexpr vector(const Type x, const Type y)
@@ -61,8 +76,9 @@ struct vector<Type, 3>
             Type g;
             Type b;
         };
-        MakeSwizzleGroup3(VertexComponentMap, Type, x, y, z)
-        MakeSwizzleGroup3(VertexComponentMap, Type, r, g, b)
+        
+        MakeVectorSwizzleGroup3(VectorComponentMap, Type, x, y, z)
+        MakeVectorSwizzleGroup3(VectorComponentMap, Type, r, g, b)
     };
 
     constexpr vector(const Type x, const Type y, const Type z)
@@ -108,8 +124,9 @@ struct vector<Type, 4>
             Type b;
             Type a;
         };
-        MakeSwizzleGroup4(VertexComponentMap, vector, x, y, z, w)
-        MakeSwizzleGroup4(VertexComponentMap, vector, r, g, b, a)
+        
+        MakeVectorSwizzleGroup4(VectorComponentMap, vector, x, y, z, w)
+        MakeVectorSwizzleGroup4(VectorComponentMap, vector, r, g, b, a)
     };
 
     constexpr vector(Type x, Type y, Type z, Type w)
