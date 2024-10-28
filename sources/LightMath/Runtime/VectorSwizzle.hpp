@@ -107,54 +107,57 @@ struct VectorSwizzle
     }
 };
 
-#define MakeVectorSwizzle2(map,type,a,b) VectorSwizzle<type,a##i,b##i> a##b;
-#define MakeVectorSwizzle3(map,type,a,b,c) VectorSwizzle<type,a,b,c> a##b##c;
-#define MakeVectorSwizzle4(map,type,a,b,c,d) VectorSwizzle<type,a,b,c,d> a##b##c##d;
+///快速定义swizzle的宏，可以自动生成排列组合出的变量。
+///使用前需提供类似“xi”的宏定义来提供内存偏移信息。之前也有试过用常量函数，但编译效率太低了。
 
-#define MakeVectorSwizzle2Group(map,type,a,b) \
-MakeVectorSwizzle2(map,type,a,b)\
-MakeVectorSwizzle2(map,type,b,a)
+#define MakeVectorSwizzle2(type,a,b) VectorSwizzle<type,a##i,b##i> a##b;
+#define MakeVectorSwizzle3(type,a,b,c) VectorSwizzle<type,a##i,b##i,c##i> a##b##c;
+#define MakeVectorSwizzle4(type,a,b,c,d) VectorSwizzle<type,a##i,b##i,c##i,d##i> a##b##c##d;
 
-#define MakeVectorSwizzle3Group(map,type,a,b,c) \
-MakeVectorSwizzle3(map,type,a,b,c)\
-MakeVectorSwizzle3(map,type,a,c,b)\
-MakeVectorSwizzle3(map,type,b,a,c)\
-MakeVectorSwizzle3(map,type,b,c,a)\
-MakeVectorSwizzle3(map,type,c,a,b)\
-MakeVectorSwizzle3(map,type,c,b,a)
+#define MakeVectorSwizzle2Group(type,a,b) \
+MakeVectorSwizzle2(type,a,b)\
+MakeVectorSwizzle2(type,b,a)
 
-#define MakeVectorSwizzle4QuarterGroup(map,type,head,a,b,c)\
-    MakeVectorSwizzle4(map,type,head,a,b,c)\
-    MakeVectorSwizzle4(map,type,head,a,c,b)\
-    MakeVectorSwizzle4(map,type,head,b,a,c)\
-    MakeVectorSwizzle4(map,type,head,b,c,a)\
-    MakeVectorSwizzle4(map,type,head,c,a,b)\
-    MakeVectorSwizzle4(map,type,head,c,b,a)
+#define MakeVectorSwizzle3Group(type,a,b,c) \
+MakeVectorSwizzle3(type,a,b,c)\
+MakeVectorSwizzle3(type,a,c,b)\
+MakeVectorSwizzle3(type,b,a,c)\
+MakeVectorSwizzle3(type,b,c,a)\
+MakeVectorSwizzle3(type,c,a,b)\
+MakeVectorSwizzle3(type,c,b,a)
 
-#define MakeVectorSwizzle4Group(map,type,a,b,c,d) \
-MakeVectorSwizzle4QuarterGroup(map,type,a,b,c,d)\
-MakeVectorSwizzle4QuarterGroup(map,type,b,a,c,d)\
-MakeVectorSwizzle4QuarterGroup(map,type,c,a,b,d)\
-MakeVectorSwizzle4QuarterGroup(map,type,d,a,b,c)
+#define MakeVectorSwizzle4QuarterGroup(type,head,a,b,c)\
+    MakeVectorSwizzle4(type,head,a,b,c)\
+    MakeVectorSwizzle4(type,head,a,c,b)\
+    MakeVectorSwizzle4(type,head,b,a,c)\
+    MakeVectorSwizzle4(type,head,b,c,a)\
+    MakeVectorSwizzle4(type,head,c,a,b)\
+    MakeVectorSwizzle4(type,head,c,b,a)
 
-#define MakeVectorSwizzleGroup2(map,type,a,b)\
-MakeVectorSwizzle2Group(map,type,a,b)
+#define MakeVectorSwizzle4Group(type,a,b,c,d) \
+MakeVectorSwizzle4QuarterGroup(type,a,b,c,d)\
+MakeVectorSwizzle4QuarterGroup(type,b,a,c,d)\
+MakeVectorSwizzle4QuarterGroup(type,c,a,b,d)\
+MakeVectorSwizzle4QuarterGroup(type,d,a,b,c)
 
-#define MakeVectorSwizzleGroup3(map,type,a,b,c)\
-MakeVectorSwizzle2Group(map,type,a,b)\
-MakeVectorSwizzle2Group(map,type,a,c)\
-MakeVectorSwizzle2Group(map,type,b,c)\
-MakeVectorSwizzle3Group(map,type,a,b,c)
+#define MakeVectorSwizzleGroup2(type,a,b)\
+MakeVectorSwizzle2Group(type,a,b)
 
-#define MakeVectorSwizzleGroup4(map,type,a,b,c,d)\
-MakeVectorSwizzle2Group(map,type,a,b)\
-MakeVectorSwizzle2Group(map,type,a,c)\
-MakeVectorSwizzle2Group(map,type,a,d)\
-MakeVectorSwizzle2Group(map,type,b,c)\
-MakeVectorSwizzle2Group(map,type,b,d)\
-MakeVectorSwizzle2Group(map,type,c,d)\
-MakeVectorSwizzle3Group(map,type,a,b,c)\
-MakeVectorSwizzle3Group(map,type,a,b,d)\
-MakeVectorSwizzle3Group(map,type,a,c,d)\
-MakeVectorSwizzle3Group(map,type,b,c,d)\
-MakeVectorSwizzle4Group(map,type,a,b,c,d)
+#define MakeVectorSwizzleGroup3(type,a,b,c)\
+MakeVectorSwizzle2Group(type,a,b)\
+MakeVectorSwizzle2Group(type,a,c)\
+MakeVectorSwizzle2Group(type,b,c)\
+MakeVectorSwizzle3Group(type,a,b,c)
+
+#define MakeVectorSwizzleGroup4(type,a,b,c,d)\
+MakeVectorSwizzle2Group(type,a,b)\
+MakeVectorSwizzle2Group(type,a,c)\
+MakeVectorSwizzle2Group(type,a,d)\
+MakeVectorSwizzle2Group(type,b,c)\
+MakeVectorSwizzle2Group(type,b,d)\
+MakeVectorSwizzle2Group(type,c,d)\
+MakeVectorSwizzle3Group(type,a,b,c)\
+MakeVectorSwizzle3Group(type,a,b,d)\
+MakeVectorSwizzle3Group(type,a,c,d)\
+MakeVectorSwizzle3Group(type,b,c,d)\
+MakeVectorSwizzle4Group(type,a,b,c,d)

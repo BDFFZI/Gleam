@@ -8,23 +8,6 @@ using matrix = vector<Type, Row * Column>;
 template <class Type>
 struct vector<Type, 3 * 3>
 {
-    consteval static int Matrix3x3ComponentMap(const std::string_view& str)
-    {
-        return 0;
-
-        // if (str == "_m00" || str == "_11") return 0;
-        // if (str == "_m10" || str == "_21") return 1;
-        // if (str == "_m20" || str == "_31") return 2;
-        // if (str == "_m01" || str == "_12") return 3;
-        // if (str == "_m11" || str == "_22") return 4;
-        // if (str == "_m21" || str == "_32") return 5;
-        // if (str == "_m02" || str == "_13") return 6;
-        // if (str == "_m12" || str == "_23") return 7;
-        // if (str == "_m22" || str == "_33") return 8;
-        //
-        // throw std::out_of_range("不支持的变量名！");
-    }
-
     /**
     * 创建一个旋转矩阵
      * @param degree 基于欧拉角的三轴旋转角度
@@ -91,24 +74,62 @@ struct vector<Type, 3 * 3>
             Type _13, _23, _33;
         };
 
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _m00, _m10, _m20)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _m01, _m11, _m21)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _m02, _m12, _m22)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _11, _21, _31)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _12, _22, _32)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _13, _23, _33)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _m00, _m01, _m02)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _m10, _m11, _m12)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _m20, _m21, _m22)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _11, _12, _13)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _21, _22, _23)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _31, _32, _33)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _m00, _m11, _m22)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _m10, _m21, _m02)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _m20, _m01, _m12)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _11, _22, _33)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _12, _23, _31)
-        MakeVectorSwizzleGroup3(Matrix3x3ComponentMap, Type, _13, _21, _32)
+#define _m00i 0
+#define _m10i 1
+#define _m20i 2
+#define _m01i 3
+#define _m11i 4
+#define _m21i 5
+#define _m02i 6
+#define _m12i 7
+#define _m22i 8
+#define _11i 0
+#define _21i 1
+#define _31i 2
+#define _12i 3
+#define _22i 4
+#define _32i 5
+#define _13i 6
+#define _23i 7
+#define _33i 8
+
+        MakeVectorSwizzleGroup3(Type, _m00, _m10, _m20)
+        MakeVectorSwizzleGroup3(Type, _m01, _m11, _m21)
+        MakeVectorSwizzleGroup3(Type, _m02, _m12, _m22)
+        MakeVectorSwizzleGroup3(Type, _11, _21, _31)
+        MakeVectorSwizzleGroup3(Type, _12, _22, _32)
+        MakeVectorSwizzleGroup3(Type, _13, _23, _33)
+        MakeVectorSwizzleGroup3(Type, _m00, _m01, _m02)
+        MakeVectorSwizzleGroup3(Type, _m10, _m11, _m12)
+        MakeVectorSwizzleGroup3(Type, _m20, _m21, _m22)
+        MakeVectorSwizzleGroup3(Type, _11, _12, _13)
+        MakeVectorSwizzleGroup3(Type, _21, _22, _23)
+        MakeVectorSwizzleGroup3(Type, _31, _32, _33)
+        MakeVectorSwizzleGroup3(Type, _m00, _m11, _m22)
+        MakeVectorSwizzleGroup3(Type, _m10, _m21, _m02)
+        MakeVectorSwizzleGroup3(Type, _m20, _m01, _m12)
+        MakeVectorSwizzleGroup3(Type, _11, _22, _33)
+        MakeVectorSwizzleGroup3(Type, _12, _23, _31)
+        MakeVectorSwizzleGroup3(Type, _13, _21, _32)
+
+#undef _m00i
+#undef _m10i
+#undef _m20i
+#undef _m01i
+#undef _m11i
+#undef _m21i
+#undef _m02i
+#undef _m12i
+#undef _m22i
+#undef _11i
+#undef _21i
+#undef _31i
+#undef _12i
+#undef _22i
+#undef _32i
+#undef _13i
+#undef _23i
+#undef _33i
     };
 
     constexpr vector(
@@ -144,32 +165,7 @@ struct vector<Type, 4 * 4>
     //     0, 0, 1, 0,
     //     0, 0, 0, 1
     // };
-
-    consteval static int Matrix4x4ComponentMap(const std::string_view& str)
-    {
-        if (str == "_m00" || str == "_11") return 0;
-        if (str == "_m10" || str == "_21") return 1;
-        if (str == "_m20" || str == "_31") return 2;
-        if (str == "_m30" || str == "_41") return 3;
-        
-        if (str == "_m01" || str == "_12") return 4;
-        if (str == "_m11" || str == "_22") return 5;
-        if (str == "_m21" || str == "_32") return 6;
-        if (str == "_m31" || str == "_42") return 7;
-        
-        if (str == "_m02" || str == "_13") return 8;
-        if (str == "_m12" || str == "_23") return 9;
-        if (str == "_m22" || str == "_33") return 10;
-        if (str == "_m32" || str == "_43") return 11;
-        
-        if (str == "_m03" || str == "_14") return 12;
-        if (str == "_m13" || str == "_24") return 13;
-        if (str == "_m23" || str == "_34") return 14;
-        if (str == "_m33" || str == "_44") return 15;
-        
-        throw std::out_of_range("不支持的变量名！");
-    }
-
+    
     constexpr static vector Translate(vector<Type, 3> position)
     {
         return {
@@ -250,30 +246,96 @@ struct vector<Type, 4 * 4>
             Type _14, _24, _34, _44;
         };
 
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m00, _m10, _m20, _m30)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m01, _m11, _m21, _m31)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m02, _m12, _m22, _m32)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m03, _m13, _m23, _m33)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _11, _21, _31, _41)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _12, _22, _32, _42)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _13, _23, _33, _43)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _14, _24, _34, _44)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m00, _m01, _m02, _m03)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m10, _m11, _m12, _m13)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m20, _m21, _m22, _m23)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m30, _m31, _m32, _m33)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _11, _12, _13, _14)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _21, _22, _23, _24)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _31, _32, _33, _34)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _41, _42, _43, _44)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m00, _m11, _m22, _m33)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m01, _m12, _m23, _m30)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m02, _m13, _m20, _m31)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _m03, _m10, _m21, _m32)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _11, _22, _33, _44)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _12, _23, _34, _41)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _13, _24, _31, _42)
-        MakeVectorSwizzleGroup4(Matrix4x4ComponentMap, Type, _14, _21, _32, _43)
+#define _m00i 0
+#define _m10i 1
+#define _m20i 2
+#define _m30i 3
+#define _m01i 4
+#define _m11i 5
+#define _m21i 6
+#define _m31i 7
+#define _m02i 8
+#define _m12i 9
+#define _m22i 10
+#define _m32i 11
+#define _m03i 12
+#define _m13i 13
+#define _m23i 14
+#define _m33i 15
+#define _11i 0
+#define _21i 1
+#define _31i 2
+#define _41i 3
+#define _12i 4
+#define _22i 5
+#define _32i 6
+#define _42i 7
+#define _13i 8
+#define _23i 9
+#define _33i 10
+#define _43i 11
+#define _14i 12
+#define _24i 13
+#define _34i 14
+#define _44i 15
+
+        MakeVectorSwizzleGroup4(Type, _m00, _m10, _m20, _m30)
+        MakeVectorSwizzleGroup4(Type, _m01, _m11, _m21, _m31)
+        MakeVectorSwizzleGroup4(Type, _m02, _m12, _m22, _m32)
+        MakeVectorSwizzleGroup4(Type, _m03, _m13, _m23, _m33)
+        MakeVectorSwizzleGroup4(Type, _11, _21, _31, _41)
+        MakeVectorSwizzleGroup4(Type, _12, _22, _32, _42)
+        MakeVectorSwizzleGroup4(Type, _13, _23, _33, _43)
+        MakeVectorSwizzleGroup4(Type, _14, _24, _34, _44)
+        MakeVectorSwizzleGroup4(Type, _m00, _m01, _m02, _m03)
+        MakeVectorSwizzleGroup4(Type, _m10, _m11, _m12, _m13)
+        MakeVectorSwizzleGroup4(Type, _m20, _m21, _m22, _m23)
+        MakeVectorSwizzleGroup4(Type, _m30, _m31, _m32, _m33)
+        MakeVectorSwizzleGroup4(Type, _11, _12, _13, _14)
+        MakeVectorSwizzleGroup4(Type, _21, _22, _23, _24)
+        MakeVectorSwizzleGroup4(Type, _31, _32, _33, _34)
+        MakeVectorSwizzleGroup4(Type, _41, _42, _43, _44)
+        MakeVectorSwizzleGroup4(Type, _m00, _m11, _m22, _m33)
+        MakeVectorSwizzleGroup4(Type, _m01, _m12, _m23, _m30)
+        MakeVectorSwizzleGroup4(Type, _m02, _m13, _m20, _m31)
+        MakeVectorSwizzleGroup4(Type, _m03, _m10, _m21, _m32)
+        MakeVectorSwizzleGroup4(Type, _11, _22, _33, _44)
+        MakeVectorSwizzleGroup4(Type, _12, _23, _34, _41)
+        MakeVectorSwizzleGroup4(Type, _13, _24, _31, _42)
+        MakeVectorSwizzleGroup4(Type, _14, _21, _32, _43)
+
+#undef _m00i
+#undef _m10i
+#undef _m20i
+#undef _m30i
+#undef _m01i
+#undef _m11i
+#undef _m21i
+#undef _m31i
+#undef _m02i
+#undef _m12i
+#undef _m22i
+#undef _m32i
+#undef _m03i
+#undef _m13i
+#undef _m23i
+#undef _m33i
+#undef _11i
+#undef _21i
+#undef _31i
+#undef _41i
+#undef _12i
+#undef _22i
+#undef _32i
+#undef _42i
+#undef _13i
+#undef _23i
+#undef _33i
+#undef _43i
+#undef _14i
+#undef _24i
+#undef _34i
+#undef _44i
     };
 
     constexpr vector(const float m00, const float m01, const float m02, const float m03,

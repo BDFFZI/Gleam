@@ -1,18 +1,16 @@
 ﻿#pragma once
-#include <stdexcept>
 #include "VectorSwizzle.hpp"
 
 //由于头文件依赖的原因，vector模板原型放在了VectorSwizzle.hpp文件中
 
-consteval int VectorComponentMap(const std::string_view& str)
-{
-    if (str == "x" || str == "r") return 0;
-    if (str == "y" || str == "g") return 1;
-    if (str == "z" || str == "b") return 2;
-    if (str == "w" || str == "a") return 3;
-
-    throw std::out_of_range("不支持的变量名！");
-}
+#define xi 0
+#define yi 1
+#define zi 2
+#define wi 3
+#define ri 0
+#define gi 1
+#define bi 2
+#define ai 3
 
 template <class Type>
 struct vector<Type, 2>
@@ -32,11 +30,8 @@ struct vector<Type, 2>
         };
 
 
-#define xi 1
-#define yi 2
-        
-        MakeVectorSwizzleGroup2(VectorComponentMap, Type, x, y)
-        MakeVectorSwizzleGroup2(VectorComponentMap, Type, r, g)
+        MakeVectorSwizzleGroup2(Type, x, y)
+        MakeVectorSwizzleGroup2(Type, r, g)
     };
 
     constexpr vector(const Type x, const Type y)
@@ -76,9 +71,9 @@ struct vector<Type, 3>
             Type g;
             Type b;
         };
-        
-        MakeVectorSwizzleGroup3(VectorComponentMap, Type, x, y, z)
-        MakeVectorSwizzleGroup3(VectorComponentMap, Type, r, g, b)
+
+        MakeVectorSwizzleGroup3(Type, x, y, z)
+        MakeVectorSwizzleGroup3(Type, r, g, b)
     };
 
     constexpr vector(const Type x, const Type y, const Type z)
@@ -124,9 +119,9 @@ struct vector<Type, 4>
             Type b;
             Type a;
         };
-        
-        MakeVectorSwizzleGroup4(VectorComponentMap, vector, x, y, z, w)
-        MakeVectorSwizzleGroup4(VectorComponentMap, vector, r, g, b, a)
+
+        MakeVectorSwizzleGroup4(vector, x, y, z, w)
+        MakeVectorSwizzleGroup4(vector, r, g, b, a)
     };
 
     constexpr vector(Type x, Type y, Type z, Type w)
@@ -147,6 +142,15 @@ struct vector<Type, 4>
     MakeVectorMemberFunctions(Type, 4)
     MakeVectorMemberFunctions_Indexer(Type)
 };
+
+#undef xi
+#undef yi
+#undef zi
+#undef wi
+#undef ri
+#undef gi
+#undef bi
+#undef ai
 
 /**
  * 将哈希值hash合并到seed中
