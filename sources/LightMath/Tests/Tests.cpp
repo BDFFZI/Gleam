@@ -60,7 +60,7 @@ TEST(Math, MatrixMath)
         1, 2, 7,
         6, 6, 4
     };
-    float3x3 matrix3 = matrix * matrix2;
+    float3x3 matrix3 = mul(matrix,matrix2);
     ASSERT_TRUE(all(
         matrix3 ==float3x3(
             123,79,217,
@@ -69,52 +69,52 @@ TEST(Math, MatrixMath)
     ));
 }
 
-// TEST(Math, Matrix4x4)
-// {
-//     float4x4 matrix = {
-//         1, 5, 9, 13,
-//         2, 6, 10, 14,
-//         3, 7, 11, 15,
-//         4, 8, 12, 16
-//     };
-//
-//     ASSERT_FLOAT_EQ(matrix._m22, 11);
-//     ASSERT_EQ(to_string(matrix._m02_m12_m22_m32), to_string(float4(9,10,11,12)));
-//     ASSERT_EQ(to_string(matrix[2]), to_string(float4(3,7,11,15)));
-//     matrix._m11 = 17;
-//     matrix._m03_m13_m23_m33 = float4(13, 9, 5, 1);
-//     matrix[0] = float4(16, 15, 14, 13);
-//     ASSERT_EQ(to_string(matrix), R"(|16.000000 15.000000 14.000000 13.000000|
-// |2.000000 17.000000 10.000000 9.000000|
-// |3.000000 7.000000 11.000000 5.000000|
-// |4.000000 8.000000 12.000000 1.000000|)");
-//
-//     float4x4 matrix2 = adjoint<float, 4, 4>(matrix);
-//     ASSERT_TRUE(all(matrix2 == float4x4(
-//         -539,325,912,-478,
-//         0,-650,1300,-650,
-//         187,325,-1046,-126,
-//         -88,0,-1496,1474
-//     )));
-//     ASSERT_FLOAT_EQ(determinant(matrix), -7150);
-//
-//     ASSERT_EQ(to_string(inverse(matrix)), R"(|0.075385 -0.045455 -0.127552 0.066853|
-// |0.000000 0.090909 -0.181818 0.090909|
-// |-0.026154 -0.045455 0.146294 0.017622|
-// |0.012308 -0.000000 0.209231 -0.206154|)");
-//
-//     float4x4 matrix3 = float3x3{
-//         1, 5, 9,
-//         2, 6, 10,
-//         3, 7, 11,
-//     };
-//     ASSERT_TRUE(all(matrix3 == float4x4(
-//         1,5,9,0,
-//         2,6,10,0,
-//         3,7,11,0,
-//         0,0,0,1
-//     )));
-// }
+TEST(Math, Matrix4x4)
+{
+    float4x4 matrix = {
+        1, 5, 9, 13,
+        2, 6, 10, 14,
+        3, 7, 11, 15,
+        4, 8, 12, 16
+    };//!< sadasd
+
+    ASSERT_FLOAT_EQ(matrix._m22, 11);
+    ASSERT_EQ(to_string(matrix._m02_m12_m22_m32), to_string(float4(9,10,11,12)));
+    ASSERT_EQ(to_string(matrix[2]), to_string(float4(3,7,11,15)));
+    matrix._m11 = 17;
+    matrix._m03_m13_m23_m33 = float4(13, 9, 5, 1);
+    matrix[0] = float4(16, 15, 14, 13);
+    ASSERT_EQ(to_string(matrix), R"(|16.000000 15.000000 14.000000 13.000000|
+|2.000000 17.000000 10.000000 9.000000|
+|3.000000 7.000000 11.000000 5.000000|
+|4.000000 8.000000 12.000000 1.000000|)");
+
+    float4x4 matrix2 = adjoint<float, 4, 4>(matrix);
+    ASSERT_TRUE(all(matrix2 == float4x4(
+        -539,325,912,-478,
+        0,-650,1300,-650,
+        187,325,-1046,-126,
+        -88,0,-1496,1474
+    )));
+    ASSERT_FLOAT_EQ(determinant(matrix), -7150);
+
+    ASSERT_EQ(to_string(inverse(matrix)), R"(|0.075385 -0.045455 -0.127552 0.066853|
+|0.000000 0.090909 -0.181818 0.090909|
+|-0.026154 -0.045455 0.146294 0.017622|
+|0.012308 -0.000000 0.209231 -0.206154|)");
+
+    float4x4 matrix3 = float3x3{
+        1, 5, 9,
+        2, 6, 10,
+        3, 7, 11,
+    };
+    ASSERT_TRUE(all(matrix3 == float4x4(
+        1,5,9,0,
+        2,6,10,0,
+        3,7,11,0,
+        0,0,0,1
+    )));
+}
 // //
 // // TEST(Math, TRSMatrix)
 // // {

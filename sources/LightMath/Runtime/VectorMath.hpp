@@ -1,45 +1,10 @@
 #pragma once
 #include <algorithm>
-#include <numbers>
 #include <cmath>
 #include <format>
 
+#include "Math.hpp"
 #include "Vector.hpp"
-
-template <typename Type>
-    requires std::is_arithmetic_v<Type>
-constexpr Type max(const Type a, const Type b) { return std::max(a, b); }
-template <typename Type>
-    requires std::is_arithmetic_v<Type>
-constexpr Type min(const Type a, const Type b) { return std::min(a, b); }
-template <typename Type>
-    requires std::is_arithmetic_v<Type>
-constexpr Type rsqrt(const Type a) { return 1 / static_cast<Type>(sqrt(a)); }
-
-/**
- * 弧度转角度
- * @param radian 
- * @return 
- */
-template <typename Type>
-    requires std::is_arithmetic_v<Type>
-constexpr Type degrees(const Type radian)
-{
-    constexpr Type Rad2Deg = Type(180) / std::numbers::pi_v<Type>;
-    return radian * Rad2Deg;
-}
-/**
- * 角度转弧度
- * @param degree 
- * @return 
- */
-template <typename Type>
-    requires std::is_arithmetic_v<Type>
-constexpr Type radians(const Type degree)
-{
-    constexpr Type Deg2Rad = std::numbers::pi_v<Type> / Type(180);
-    return degree * Deg2Rad;
-}
 
 //模板没法触发自动类型转换，因此只能利用宏来大批量定义函数
 
@@ -287,18 +252,10 @@ MakeVectorFunction_Cross3(Type)\
 MakeVectorFunction_Rotate3(Type)
 
 
-
 MakeVectorFunctions(float, 2)
 MakeVectorFunctions(float, 3)
 MakeVectorFunctions(float, 4)
 MakeVectorFunctions_Vector3Extra(float)
-using float2 = vector<float, 2>;
-using float3 = vector<float, 3>;
-using float4 = vector<float, 4>;
-
 MakeVectorFunction_All(bool, 2)
 MakeVectorFunction_All(bool, 3)
 MakeVectorFunction_All(bool, 4)
-using bool2 = vector<bool, 2>;
-using bool3 = vector<bool, 3>;
-using bool4 = vector<bool, 4>;

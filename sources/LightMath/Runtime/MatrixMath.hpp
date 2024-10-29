@@ -34,7 +34,7 @@ Type cofactor_determinant(const matrix<Type, Row, Column>& m, const int row, con
 {
     int cofactorSign;
     matrix<Type, Row - 1, Column - 1> c = cofactor<Type, Row, Column>(m, row, column, &cofactorSign);
-    return determinant<Type>(c) * cofactorSign;
+    return determinant<Type>(c) * static_cast<float>(cofactorSign);
 }
 template <class Type, int Row, int Column>
 matrix<Type, Row, Column> cofactor_matrix(const matrix<Type, Row, Column>& m)
@@ -146,60 +146,60 @@ matrix<Type, 4, 4> inverse(const matrix<Type, 4, 4>& m)
 }
 
 template <class Type>
-matrix<Type, 3, 3> operator*(const matrix<Type, 3, 3>& left, const matrix<Type, 3, 3>& right)
+matrix<Type, 3, 3> mul(const matrix<Type, 3, 3>& left, const matrix<Type, 3, 3>& right)
 {
     matrix<Type, 3, 3> matrix;
 
-    matrix.m00 = left.m00 * right.m00 + left.m01 * right.m10 + left.m02 * right.m20;
-    matrix.m01 = left.m00 * right.m01 + left.m01 * right.m11 + left.m02 * right.m21;
-    matrix.m02 = left.m00 * right.m02 + left.m01 * right.m12 + left.m02 * right.m22;
+    matrix._m00 = left._m00 * right._m00 + left._m01 * right._m10 + left._m02 * right._m20;
+    matrix._m01 = left._m00 * right._m01 + left._m01 * right._m11 + left._m02 * right._m21;
+    matrix._m02 = left._m00 * right._m02 + left._m01 * right._m12 + left._m02 * right._m22;
 
-    matrix.m10 = left.m10 * right.m00 + left.m11 * right.m10 + left.m12 * right.m20;
-    matrix.m11 = left.m10 * right.m01 + left.m11 * right.m11 + left.m12 * right.m21;
-    matrix.m12 = left.m10 * right.m02 + left.m11 * right.m12 + left.m12 * right.m22;
+    matrix._m10 = left._m10 * right._m00 + left._m11 * right._m10 + left._m12 * right._m20;
+    matrix._m11 = left._m10 * right._m01 + left._m11 * right._m11 + left._m12 * right._m21;
+    matrix._m12 = left._m10 * right._m02 + left._m11 * right._m12 + left._m12 * right._m22;
 
-    matrix.m20 = left.m20 * right.m00 + left.m21 * right.m10 + left.m22 * right.m20;
-    matrix.m21 = left.m20 * right.m01 + left.m21 * right.m11 + left.m22 * right.m21;
-    matrix.m22 = left.m20 * right.m02 + left.m21 * right.m12 + left.m22 * right.m22;
+    matrix._m20 = left._m20 * right._m00 + left._m21 * right._m10 + left._m22 * right._m20;
+    matrix._m21 = left._m20 * right._m01 + left._m21 * right._m11 + left._m22 * right._m21;
+    matrix._m22 = left._m20 * right._m02 + left._m21 * right._m12 + left._m22 * right._m22;
 
     return matrix;
 }
 template <class Type>
-matrix<Type, 4, 4> operator*(const matrix<Type, 4, 4>& left, const matrix<Type, 4, 4>& right)
+matrix<Type, 4, 4> mul(const matrix<Type, 4, 4>& left, const matrix<Type, 4, 4>& right)
 {
     matrix<Type, 4, 4> matrix;
 
-    matrix.m00 = left.m00 * right.m00 + left.m01 * right.m10 + left.m02 * right.m20 + left.m03 * right.m30;
-    matrix.m01 = left.m00 * right.m01 + left.m01 * right.m11 + left.m02 * right.m21 + left.m03 * right.m31;
-    matrix.m02 = left.m00 * right.m02 + left.m01 * right.m12 + left.m02 * right.m22 + left.m03 * right.m32;
-    matrix.m03 = left.m00 * right.m03 + left.m01 * right.m13 + left.m02 * right.m23 + left.m03 * right.m33;
+    matrix._m00 = left._m00 * right._m00 + left._m01 * right._m10 + left._m02 * right._m20 + left._m03 * right._m30;
+    matrix._m01 = left._m00 * right._m01 + left._m01 * right._m11 + left._m02 * right._m21 + left._m03 * right._m31;
+    matrix._m02 = left._m00 * right._m02 + left._m01 * right._m12 + left._m02 * right._m22 + left._m03 * right._m32;
+    matrix._m03 = left._m00 * right._m03 + left._m01 * right._m13 + left._m02 * right._m23 + left._m03 * right._m33;
 
-    matrix.m10 = left.m10 * right.m00 + left.m11 * right.m10 + left.m12 * right.m20 + left.m13 * right.m30;
-    matrix.m11 = left.m10 * right.m01 + left.m11 * right.m11 + left.m12 * right.m21 + left.m13 * right.m31;
-    matrix.m12 = left.m10 * right.m02 + left.m11 * right.m12 + left.m12 * right.m22 + left.m13 * right.m32;
-    matrix.m13 = left.m10 * right.m03 + left.m11 * right.m13 + left.m12 * right.m23 + left.m13 * right.m33;
+    matrix._m10 = left._m10 * right._m00 + left._m11 * right._m10 + left._m12 * right._m20 + left._m13 * right._m30;
+    matrix._m11 = left._m10 * right._m01 + left._m11 * right._m11 + left._m12 * right._m21 + left._m13 * right._m31;
+    matrix._m12 = left._m10 * right._m02 + left._m11 * right._m12 + left._m12 * right._m22 + left._m13 * right._m32;
+    matrix._m13 = left._m10 * right._m03 + left._m11 * right._m13 + left._m12 * right._m23 + left._m13 * right._m33;
 
-    matrix.m20 = left.m20 * right.m00 + left.m21 * right.m10 + left.m22 * right.m20 + left.m23 * right.m30;
-    matrix.m21 = left.m20 * right.m01 + left.m21 * right.m11 + left.m22 * right.m21 + left.m23 * right.m31;
-    matrix.m22 = left.m20 * right.m02 + left.m21 * right.m12 + left.m22 * right.m22 + left.m23 * right.m32;
-    matrix.m23 = left.m20 * right.m03 + left.m21 * right.m13 + left.m22 * right.m23 + left.m23 * right.m33;
+    matrix._m20 = left._m20 * right._m00 + left._m21 * right._m10 + left._m22 * right._m20 + left._m23 * right._m30;
+    matrix._m21 = left._m20 * right._m01 + left._m21 * right._m11 + left._m22 * right._m21 + left._m23 * right._m31;
+    matrix._m22 = left._m20 * right._m02 + left._m21 * right._m12 + left._m22 * right._m22 + left._m23 * right._m32;
+    matrix._m23 = left._m20 * right._m03 + left._m21 * right._m13 + left._m22 * right._m23 + left._m23 * right._m33;
 
-    matrix.m30 = left.m30 * right.m00 + left.m31 * right.m10 + left.m32 * right.m20 + left.m33 * right.m30;
-    matrix.m31 = left.m30 * right.m01 + left.m31 * right.m11 + left.m32 * right.m21 + left.m33 * right.m31;
-    matrix.m32 = left.m30 * right.m02 + left.m31 * right.m12 + left.m32 * right.m22 + left.m33 * right.m32;
-    matrix.m33 = left.m30 * right.m03 + left.m31 * right.m13 + left.m32 * right.m23 + left.m33 * right.m33;
+    matrix._m30 = left._m30 * right._m00 + left._m31 * right._m10 + left._m32 * right._m20 + left._m33 * right._m30;
+    matrix._m31 = left._m30 * right._m01 + left._m31 * right._m11 + left._m32 * right._m21 + left._m33 * right._m31;
+    matrix._m32 = left._m30 * right._m02 + left._m31 * right._m12 + left._m32 * right._m22 + left._m33 * right._m32;
+    matrix._m33 = left._m30 * right._m03 + left._m31 * right._m13 + left._m32 * right._m23 + left._m33 * right._m33;
 
     return matrix;
 }
 
 template <class Type>
-vector<Type, 4> operator*(const matrix<Type, 4, 4>& left, const vector<Type, 4>& right)
+vector<Type, 4> mul(const matrix<Type, 4, 4>& left, const vector<Type, 4>& right)
 {
     return {
-        left.m00 * right.x + left.m01 * right.y + left.m02 * right.z + left.m03 * right.w,
-        left.m10 * right.x + left.m11 * right.y + left.m12 * right.z + left.m13 * right.w,
-        left.m20 * right.x + left.m21 * right.y + left.m22 * right.z + left.m23 * right.w,
-        left.m30 * right.x + left.m31 * right.y + left.m32 * right.z + left.m33 * right.w,
+        left._m00 * right.x + left._m01 * right.y + left._m02 * right.z + left._m03 * right.w,
+        left._m10 * right.x + left._m11 * right.y + left._m12 * right.z + left._m13 * right.w,
+        left._m20 * right.x + left._m21 * right.y + left._m22 * right.z + left._m23 * right.w,
+        left._m30 * right.x + left._m31 * right.y + left._m32 * right.z + left._m33 * right.w,
     };
 }
 
@@ -227,10 +227,6 @@ constexpr std::string to_string(const matrix<Type, 4, 4>& m)
 
 MakeVectorFunctions(float, 3*3)
 MakeVectorFunctions(float, 4*4)
-using float3x3 = vector<float, 3 * 3>;
-using float4x4 = vector<float, 4 * 4>;
-
 MakeVectorFunction_All(bool, 3*3)
 MakeVectorFunction_All(bool, 4*4)
-using bool3x3 = vector<bool, 3 * 3>;
-using bool4x4 = vector<bool, 4 * 4>;
+

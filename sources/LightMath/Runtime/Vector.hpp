@@ -3,6 +3,13 @@
 
 //由于头文件依赖的原因，vector模板原型放在了VectorSwizzle.hpp文件中
 
+using float2 = vector<float, 2>;
+using float3 = vector<float, 3>;
+using float4 = vector<float, 4>;
+using bool2 = vector<bool, 2>;
+using bool3 = vector<bool, 3>;
+using bool4 = vector<bool, 4>;
+
 #define xi 0
 #define yi 1
 #define zi 2

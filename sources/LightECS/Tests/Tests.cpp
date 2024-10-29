@@ -9,8 +9,6 @@
 #include <source_location>
 #include <unordered_set>
 
-#include "LightMath/Runtime/VectorMath.hpp"
-
 #ifdef BENCHMARK_Heap
 struct Data
 {
@@ -119,19 +117,8 @@ struct Velocity
 constinit Archetype physicalArchetype = RegisterArchetype<Position, Velocity>();
 constinit Archetype physicalArchetypeWithDrug = RegisterArchetype<int>(physicalArchetype);
 
-
-float2 operator+=(const float2& v1, const float2& v2)
-{
-    float2& v = const_cast<float2&>(v1);
-    v[0] += v2[0];
-}
-
-
 void main()
 {
-    VectorSwizzle<float, 1, 2> a;
-    a += 1;
-
     std::cout << to_string(physicalArchetypeWithDrug) << "\n";
     std::cout << physicalArchetypeWithDrug.Contains<Position>() << "\n";
     std::cout << physicalArchetypeWithDrug.Contains<Position, int>() << "\n";

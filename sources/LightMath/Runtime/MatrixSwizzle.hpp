@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <stdexcept>
 #include "VectorSwizzle.hpp"
 
 template <class Type, int Index>
