@@ -3,57 +3,70 @@
 #include "VectorMath.hpp"
 #include "Matrix.hpp"
 
-template <class Type, int Row, int Column>
-constexpr matrix<Type, Row, Column> transpose(const matrix<Type, Row, Column>& m)
-{
-    matrix<Type, Row, Column> result;
-    for (int row = 0; row < Row; row++)
-        for (int column = 0; column < Column; column++)
-            result[row][column] = m.data[column + row * Row];
-    return result;
+#define MakeMatrixFunction_Transpose(Type,Row,Column)\
+constexpr matrix<Type, Row, Column> transpose(const matrix<Type, Row, Column>& m)\
+{\
+    matrix<Type, Row, Column> result;\
+    for (int row = 0; row < (Row); row++)\
+        for (int column = 0; column < (Column); column++)\
+            result[row][column] = m.data[column + row * (Row)];\
+    return result;\
+}
+#define MakeMatrixFunction_Cofactor(Type,Row,Column)\
+constexpr matrix<Type, (Row) - 1, (Column) - 1> cofactor(const matrix<Type, Row, Column>& m, const int row, const int column, int* sign)\
+{\
+    if (sign != nullptr)\
+        *sign = (row + column) % 2 == 0 ? 1 : -1;\
+    matrix<Type, (Row) - 1, (Column) - 1> cofactor;\
+    int i = 0;\
+    for (int columnIndex = 0; columnIndex < (Column); columnIndex++)\
+        for (int rowIndex = 0; rowIndex < (Row); rowIndex++)\
+            if (columnIndex != column && rowIndex != row)\
+            {\
+                cofactor.data[i] = m.data[rowIndex + columnIndex * (Row)];\
+                i++;\
+            }\
+    return cofactor;\
+}
+#define MakeMatrixFunction_CofactorDeterminant(Type,Row,Column)\
+Type cofactor_determinant(const matrix<Type, Row, Column>& m, const int row, const int column)\
+{\
+    int cofactorSign;\
+    matrix<Type, (Row) - 1, (Column) - 1> c = cofactor(m, row, column, &cofactorSign);\
+    return determinant(c) * static_cast<float>(cofactorSign);\
+}
+#define MakeMatrixFunction_CofactorMatrix(Type,Row,Column)\
+matrix<Type, Row, Column> cofactor_matrix(const matrix<Type, Row, Column>& m)\
+{\
+    matrix<Type, Row, Column> cofactorMatrix;\
+    for (int column = 0; column < (Column); column++)\
+        for (int row = 0; row < (Row); row++)\
+        {\
+            float cofactorDeterminant = cofactor_determinant(m, row, column);\
+            cofactorMatrix[row][column] = cofactorDeterminant;\
+        }\
+    return cofactorMatrix;\
+}
+#define MakeMatrixFunction_Adjoint(Type,Row,Column)\
+matrix<Type, Row, Column> adjoint(const matrix<Type, Row, Column>& m)\
+{\
+    return transpose(cofactor_matrix(m));\
 }
 
-template <class Type, int Row, int Column>
-constexpr matrix<Type, Row - 1, Column - 1> cofactor(const matrix<Type, Row, Column>& m, const int row, const int column, int* sign)
-{
-    if (sign != nullptr)
-        *sign = (row + column) % 2 == 0 ? 1 : -1;
-    matrix<Type, Row - 1, Column - 1> cofactor;
-    int i = 0;
-    for (int columnIndex = 0; columnIndex < Column; columnIndex++)
-        for (int rowIndex = 0; rowIndex < Row; rowIndex++)
-            if (columnIndex != column && rowIndex != row)
-            {
-                cofactor.data[i] = m.data[rowIndex + columnIndex * Row];
-                i++;
-            }
-    return cofactor;
-}
-template <class Type, int Row, int Column>
-Type cofactor_determinant(const matrix<Type, Row, Column>& m, const int row, const int column)
-{
-    int cofactorSign;
-    matrix<Type, Row - 1, Column - 1> c = cofactor<Type, Row, Column>(m, row, column, &cofactorSign);
-    return determinant<Type>(c) * static_cast<float>(cofactorSign);
-}
-template <class Type, int Row, int Column>
-matrix<Type, Row, Column> cofactor_matrix(const matrix<Type, Row, Column>& m)
-{
-    matrix<Type, Row, Column> cofactorMatrix;
-    for (int column = 0; column < Column; column++)
-        for (int row = 0; row < Row; row++)
-        {
-            float cofactorDeterminant = cofactor_determinant<Type, Row, Column>(m, row, column);
-            cofactorMatrix[row][column] = cofactorDeterminant;
-        }
-    return cofactorMatrix;
-}
-template <class Type, int Row, int Column>
-matrix<Type, Row, Column> adjoint(const matrix<Type, Row, Column>& m)
-{
-    return transpose<Type, Row, Column>(cofactor_matrix<Type, Row, Column>(m));
-}
+#define MakeMatrixFunctions(Type,Row,Column)\
+MakeVectorFunctions(Type, (Row) * (Column))\
+MakeMatrixFunction_Transpose(Type,Row,Column)\
+MakeMatrixFunction_Cofactor(Type,Row,Column)\
+MakeMatrixFunction_CofactorDeterminant(Type,Row,Column)\
+MakeMatrixFunction_CofactorMatrix(Type,Row,Column)\
+MakeMatrixFunction_Adjoint(Type,Row,Column)
 
+
+template <class Type>
+constexpr Type determinant(const matrix<Type, 2, 2>& m)
+{
+    return m[0] * m[3] - m[2] * m[1];
+}
 template <class Type>
 constexpr Type determinant(const matrix<Type, 3, 3>& m)
 {
@@ -109,25 +122,25 @@ constexpr Type determinant(const matrix<Type, 4, 4>& m)
 template <class Type>
 matrix<Type, 4, 4> inverse(const matrix<Type, 4, 4>& m)
 {
-    Type determinant00 = cofactor_determinant<Type, 4, 4>(m, 0, 0);
-    Type determinant10 = cofactor_determinant<Type, 4, 4>(m, 1, 0);
-    Type determinant20 = cofactor_determinant<Type, 4, 4>(m, 2, 0);
-    Type determinant30 = cofactor_determinant<Type, 4, 4>(m, 3, 0);
+    Type determinant00 = cofactor_determinant(m, 0, 0);
+    Type determinant10 = cofactor_determinant(m, 1, 0);
+    Type determinant20 = cofactor_determinant(m, 2, 0);
+    Type determinant30 = cofactor_determinant(m, 3, 0);
 
-    Type determinant01 = cofactor_determinant<Type, 4, 4>(m, 0, 1);
-    Type determinant11 = cofactor_determinant<Type, 4, 4>(m, 1, 1);
-    Type determinant21 = cofactor_determinant<Type, 4, 4>(m, 2, 1);
-    Type determinant31 = cofactor_determinant<Type, 4, 4>(m, 3, 1);
+    Type determinant01 = cofactor_determinant(m, 0, 1);
+    Type determinant11 = cofactor_determinant(m, 1, 1);
+    Type determinant21 = cofactor_determinant(m, 2, 1);
+    Type determinant31 = cofactor_determinant(m, 3, 1);
 
-    Type determinant02 = cofactor_determinant<Type, 4, 4>(m, 0, 2);
-    Type determinant12 = cofactor_determinant<Type, 4, 4>(m, 1, 2);
-    Type determinant22 = cofactor_determinant<Type, 4, 4>(m, 2, 2);
-    Type determinant32 = cofactor_determinant<Type, 4, 4>(m, 3, 2);
+    Type determinant02 = cofactor_determinant(m, 0, 2);
+    Type determinant12 = cofactor_determinant(m, 1, 2);
+    Type determinant22 = cofactor_determinant(m, 2, 2);
+    Type determinant32 = cofactor_determinant(m, 3, 2);
 
-    Type determinant03 = cofactor_determinant<Type, 4, 4>(m, 0, 3);
-    Type determinant13 = cofactor_determinant<Type, 4, 4>(m, 1, 3);
-    Type determinant23 = cofactor_determinant<Type, 4, 4>(m, 2, 3);
-    Type determinant33 = cofactor_determinant<Type, 4, 4>(m, 3, 3);
+    Type determinant03 = cofactor_determinant(m, 0, 3);
+    Type determinant13 = cofactor_determinant(m, 1, 3);
+    Type determinant23 = cofactor_determinant(m, 2, 3);
+    Type determinant33 = cofactor_determinant(m, 3, 3);
 
     matrix<Type, 4, 4> adjoint = {
         determinant00, determinant10, determinant20, determinant30,
@@ -142,7 +155,8 @@ matrix<Type, 4, 4> inverse(const matrix<Type, 4, 4>& m)
         m._m02 * determinant02 +
         m._m03 * determinant03;
 
-    return adjoint / determinant;
+    matrix<Type, 4, 4> inverse = adjoint / determinant;
+    return inverse;
 }
 
 template <class Type>
@@ -191,7 +205,6 @@ matrix<Type, 4, 4> mul(const matrix<Type, 4, 4>& left, const matrix<Type, 4, 4>&
 
     return matrix;
 }
-
 template <class Type>
 vector<Type, 4> mul(const matrix<Type, 4, 4>& left, const vector<Type, 4>& right)
 {
@@ -225,8 +238,5 @@ constexpr std::string to_string(const matrix<Type, 4, 4>& m)
     );
 }
 
-MakeVectorFunctions(float, 3*3)
-MakeVectorFunctions(float, 4*4)
-MakeVectorFunction_All(bool, 3*3)
-MakeVectorFunction_All(bool, 4*4)
-
+MakeMatrixFunctions(float, 3, 3)
+MakeMatrixFunctions(float, 4, 4)

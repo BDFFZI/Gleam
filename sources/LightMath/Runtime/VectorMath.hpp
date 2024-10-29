@@ -6,7 +6,7 @@
 #include "Math.hpp"
 #include "Vector.hpp"
 
-//模板没法触发自动类型转换，因此只能利用宏来大批量定义函数
+//模板没法触发自动类型转换，且有候选优先级较低的问题，因此只能利用宏来大批量定义函数
 
 #define MakeVectorFunction_SymbolV1V(Symbol,Type,Number)\
 constexpr vector<Type, Number>& operator##Symbol##(vector<Type, Number>& a)\
@@ -162,16 +162,6 @@ constexpr vector<Type, Number> project(const vector<Type, Number>& v, const vect
     return n * dot(v, n);\
 }
 
-#define MakeVectorFunction_ToString(Type,Number)\
-std::string to_string(vector<Type, Number> a)\
-{\
-    std::string str = "(";\
-    for (int i = 0; i < (Number); i++)\
-        str += std::format("{:f},", a.data[i]);\
-    str.pop_back();\
-    return str + ")";\
-}
-
 #define MakeVectorFunctions(Type,Number)\
 MakeVectorFunction_SymbolV1V(++, Type, Number);\
 MakeVectorFunction_SymbolV1V(--, Type, Number);\
@@ -207,13 +197,13 @@ MakeVectorFunction_FunctionVV2V(min, Type, Number);\
 MakeVectorFunction_FunctionVVV2V(clamp, Type, Number);\
 MakeVectorFunction_Equal(Type, Number);\
 MakeVectorFunction_All(Type, Number);\
+MakeVectorFunction_All(bool, Number)\
 MakeVectorFunction_Dot(Type, Number);\
 MakeVectorFunction_Length(Type, Number);\
 MakeVectorFunction_Normalize(Type, Number);\
 MakeVectorFunction_Lerp(Type, Number);\
 MakeVectorFunction_Angle(Type, Number);\
-MakeVectorFunction_Project(Type, Number);\
-MakeVectorFunction_ToString(Type, Number);
+MakeVectorFunction_Project(Type, Number);
 
 
 /**
@@ -251,11 +241,21 @@ return perpendicular * cos(rad) + cross(n, perpendicular) * sin(rad) + parallel;
 MakeVectorFunction_Cross3(Type)\
 MakeVectorFunction_Rotate3(Type)
 
+#define MakeVectorFunction_ToString(Type,Number)\
+std::string to_string(const vector<Type, Number>& a)\
+{\
+std::string str = "(";\
+for (int i = 0; i < (Number); i++)\
+str += std::format("{:f},", a.data[i]);\
+str.pop_back();\
+return str + ")";\
+}
 
 MakeVectorFunctions(float, 2)
 MakeVectorFunctions(float, 3)
 MakeVectorFunctions(float, 4)
 MakeVectorFunctions_Vector3Extra(float)
-MakeVectorFunction_All(bool, 2)
-MakeVectorFunction_All(bool, 3)
-MakeVectorFunction_All(bool, 4)
+
+MakeVectorFunction_ToString(float, 2)
+MakeVectorFunction_ToString(float, 3)
+MakeVectorFunction_ToString(float, 4)

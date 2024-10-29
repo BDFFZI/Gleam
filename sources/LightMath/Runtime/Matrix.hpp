@@ -46,7 +46,7 @@ struct vector<Type, 3 * 3>
             0, 0, 1,
         };
 
-        return yRotate * xRotate * zRotate;
+        return mul(yRotate, mul(xRotate, zRotate));
     }
     /**
      * 创建一个缩放矩阵
@@ -170,7 +170,7 @@ struct vector<Type, 4 * 4>
     //     0, 0, 1, 0,
     //     0, 0, 0, 1
     // };
-    
+
     constexpr static vector Translate(vector<Type, 3> position)
     {
         return {
@@ -190,7 +190,7 @@ struct vector<Type, 4 * 4>
     }
     constexpr static vector TRS(vector<Type, 3> position, vector<Type, 3> rotation, vector<Type, 3> scale)
     {
-        return translation(position) * (rotation(rotation) * scale(scale));
+        return mul(Translate(position), mul(Rotate(rotation), Scale(scale)));
     }
     /**
      * 创建一个正交投影矩阵，其剪辑空间遵从从右到左、从下到上都为[-1,1]，深度从近到远为[0-1]的约定。
@@ -224,12 +224,12 @@ struct vector<Type, 4 * 4>
         float halfHeight = tan(radians(fieldOfView) * 0.5f) * nearClipPlane;
         float halfWidth = halfHeight * aspectRatio;
 
-        return Ortho(halfWidth, halfHeight, nearClipPlane, farClipPlane) * matrix<Type, 4, 4>{
-            nearClipPlane, 0, 0, 0,
-            0, nearClipPlane, 0, 0,
-            0, 0, nearClipPlane + farClipPlane, -nearClipPlane * farClipPlane,
-            0, 0, 1, 0
-        };
+        return mul(Ortho(halfWidth, halfHeight, nearClipPlane, farClipPlane), vector{
+                       nearClipPlane, 0, 0, 0,
+                       0, nearClipPlane, 0, 0,
+                       0, 0, nearClipPlane + farClipPlane, -nearClipPlane * farClipPlane,
+                       0, 0, 1, 0
+                   });
     }
 
     //为了与图像接口兼容故采用按列存储
@@ -361,7 +361,7 @@ struct vector<Type, 4 * 4>
     {
     }
 
-    MakeVectorMemberFunctions(Type, 3*3)
+    MakeVectorMemberFunctions(Type, 4*4)
 
     Matrix4x4Row<Type>& operator[](const int i)
     {

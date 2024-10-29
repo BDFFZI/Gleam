@@ -1,14 +1,9 @@
 ﻿#pragma once
+#include <vector>
+
 #include "VectorSwizzle.hpp"
 
 //由于头文件依赖的原因，vector模板原型放在了VectorSwizzle.hpp文件中
-
-using float2 = vector<float, 2>;
-using float3 = vector<float, 3>;
-using float4 = vector<float, 4>;
-using bool2 = vector<bool, 2>;
-using bool3 = vector<bool, 3>;
-using bool4 = vector<bool, 4>;
 
 #define xi 0
 #define yi 1
@@ -54,15 +49,6 @@ struct vector<Type, 2>
 template <class Type>
 struct vector<Type, 3>
 {
-    // constexpr static vector zero = {0, 0, 0};
-    // constexpr static vector one = {1, 1, 1};
-    // constexpr static vector left = {-1, 0, 0};
-    // constexpr static vector right = {1, 0, 0};
-    // constexpr static vector up = {0, 1, 0};
-    // constexpr static vector down = {0, -1, 0};
-    // constexpr static vector front = {0, 0, 1};
-    // constexpr static vector back = {0, 0, -1};
-
     union
     {
         Type data[3];
@@ -103,11 +89,11 @@ struct vector<Type, 3>
 template <class Type>
 struct vector<Type, 4>
 {
-    // constexpr static vector white = {1.0, 1.0, 1.0, 1.0};
-    // constexpr static vector black = {0.0, 0.0, 0.0, 1.0};
-    // constexpr static vector red = {1.0, 0.0, 0.0, 1.0};
-    // constexpr static vector green = {0.0, 1.0, 0.0, 1.0};
-    // constexpr static vector blue = {0.0, 0.0, 1.0, 1.0};
+    static vector<Type, 4> white;
+    static vector<Type, 4> black;
+    static vector<Type, 4> red;
+    static vector<Type, 4> green;
+    static vector<Type, 4> blue;
 
     union
     {
@@ -184,3 +170,27 @@ struct std::hash<vector<Type, Number>>
         return seed;
     }
 };
+
+
+using float2 = vector<float, 2>;
+using float3 = vector<float, 3>;
+using float4 = vector<float, 4>;
+using bool2 = vector<bool, 2>;
+using bool3 = vector<bool, 3>;
+using bool4 = vector<bool, 4>;
+
+constexpr float3 zero = {0, 0, 0};
+constexpr float3 one = {1, 1, 1};
+constexpr float3 left = {-1, 0, 0};
+constexpr float3 right = {1, 0, 0};
+constexpr float3 up = {0, 1, 0};
+constexpr float3 down = {0, -1, 0};
+constexpr float3 front = {0, 0, 1};
+constexpr float3 back = {0, 0, -1};
+
+constexpr float4 white = {1.0, 1.0, 1.0, 1.0};
+constexpr float4 black = {0.0, 0.0, 0.0, 1.0};
+constexpr float4 red = {1.0, 0.0, 0.0, 1.0};
+constexpr float4 green = {0.0, 1.0, 0.0, 1.0};
+constexpr float4 blue = {0.0, 0.0, 1.0, 1.0};
+
