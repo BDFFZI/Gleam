@@ -158,19 +158,15 @@ struct vector<Type, 3 * 3>
 template <class Type>
 struct vector<Type, 4 * 4>
 {
-    // constexpr static vector zero = {
-    //     0, 0, 0, 0,
-    //     0, 0, 0, 0,
-    //     0, 0, 0, 0,
-    //     0, 0, 0, 0
-    // };
-    // constexpr static vector identity = {
-    //     1, 0, 0, 0,
-    //     0, 1, 0, 0,
-    //     0, 0, 1, 0,
-    //     0, 0, 0, 1
-    // };
-
+    constexpr static vector Identity()
+    {
+        return {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1,
+        };
+    }
     constexpr static vector Translate(vector<Type, 3> position)
     {
         return {
@@ -186,7 +182,12 @@ struct vector<Type, 4 * 4>
     }
     constexpr static vector Scale(vector<Type, 3> scale)
     {
-        return vector<Type, 3 * 3>::Scale(scale);
+        return {
+            scale.x, 0, 0, 0,
+            0, scale.y, 0, 0,
+            0, 0, scale.z, 0,
+            0, 0, 0, 1,
+        };
     }
     constexpr static vector TRS(vector<Type, 3> position, vector<Type, 3> rotation, vector<Type, 3> scale)
     {

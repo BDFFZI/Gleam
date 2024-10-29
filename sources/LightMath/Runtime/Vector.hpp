@@ -89,12 +89,6 @@ struct vector<Type, 3>
 template <class Type>
 struct vector<Type, 4>
 {
-    static vector<Type, 4> white;
-    static vector<Type, 4> black;
-    static vector<Type, 4> red;
-    static vector<Type, 4> green;
-    static vector<Type, 4> blue;
-
     union
     {
         Type data[4];
@@ -178,19 +172,3 @@ using float4 = vector<float, 4>;
 using bool2 = vector<bool, 2>;
 using bool3 = vector<bool, 3>;
 using bool4 = vector<bool, 4>;
-
-constexpr float3 zero = {0, 0, 0};
-constexpr float3 one = {1, 1, 1};
-constexpr float3 left = {-1, 0, 0};
-constexpr float3 right = {1, 0, 0};
-constexpr float3 up = {0, 1, 0};
-constexpr float3 down = {0, -1, 0};
-constexpr float3 front = {0, 0, 1};
-constexpr float3 back = {0, 0, -1};
-
-constexpr float4 white = {1.0, 1.0, 1.0, 1.0};
-constexpr float4 black = {0.0, 0.0, 0.0, 1.0};
-constexpr float4 red = {1.0, 0.0, 0.0, 1.0};
-constexpr float4 green = {0.0, 1.0, 0.0, 1.0};
-constexpr float4 blue = {0.0, 0.0, 1.0, 1.0};
-

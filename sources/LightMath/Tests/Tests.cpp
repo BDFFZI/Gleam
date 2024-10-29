@@ -4,11 +4,9 @@
 
 /// 验证工具：https://www.math666.com/
 
-
 TEST(Math, Vector)
 {
-    auto a = float4::o;
-    float3 vector3 = zero;
+    float3 vector3 = 0;
     vector3.xy = 1; //{1,1,0}
     vector3.yz += vector3.xy * 2; //{1,3,2}
     ++vector3.zx; //{2,3,3}
@@ -19,7 +17,6 @@ TEST(Math, Vector)
 
     ASSERT_EQ(to_string(vector3.zyx), "(4.000000,4.000000,3.000000)");
 }
-
 
 TEST(Math, VectorMath)
 {
