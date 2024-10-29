@@ -7,6 +7,7 @@
 #include "LightECS/Runtime/Heap.h"
 #include "LightECS/Runtime/World.h"
 #include <source_location>
+#include <stdarg.h>
 #include <unordered_set>
 
 #ifdef BENCHMARK_Heap
@@ -114,14 +115,18 @@ struct Velocity
 };
 
 
-constinit Archetype physicalArchetype = RegisterArchetype<Position, Velocity>();
-constinit Archetype physicalArchetypeWithDrug = RegisterArchetype<int>(physicalArchetype);
+MakeArchetype(physicalArchetype, Position, Velocity)
+MakeArchetypeSub(physicalArchetypeWithDrug, physicalArchetype, bool, int)
 
+// TEST(ECS, Archetype)
 void main()
 {
-    std::cout << to_string(physicalArchetypeWithDrug) << "\n";
-    std::cout << physicalArchetypeWithDrug.Contains<Position>() << "\n";
-    std::cout << physicalArchetypeWithDrug.Contains<Position, int>() << "\n";
-    std::cout << physicalArchetypeWithDrug.Contains<bool>() << "\n";
-    std::cout << physicalArchetypeWithDrug.Contains<bool, int>() << "\n";
+    for (auto archetype : Archetype::allArchetypes)
+    {
+        std::cout << archetype->ToString() << "\n";
+        std::cout << archetype->GetSize() << "\n";
+        std::cout << archetype->ContainsT<Position>() << "\n";
+        std::cout << archetype->ContainsT<Position, int>() << "\n";
+        std::cout << archetype->ContainsT<bool>() << "\n";
+    }
 }

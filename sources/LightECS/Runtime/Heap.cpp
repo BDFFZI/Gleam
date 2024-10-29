@@ -1,6 +1,6 @@
 ﻿#include "Heap.h"
 
-Heap::Heap(const int elementSize, const int chunkElementCount, const int idleChunkCount)
+Heap::Heap(const size_t elementSize, const int chunkElementCount, const int idleChunkCount)
     : elementSize(elementSize), chunkElementCount(chunkElementCount), idleChunkCount(idleChunkCount),
       elementCount(0)
 {
@@ -57,13 +57,13 @@ void Heap::ForeachElements(const int index, int count, const std::function<void(
     while (true)
     {
         //获取遍历地址和最大遍历次数
-        std::byte* headAddress = heaps[heapIndex].data() + static_cast<uint32_t>(heapElementIndex * elementSize);
+        std::byte* headAddress = heaps[heapIndex].get() + heapElementIndex * elementSize;
         int sequentialElementCount = chunkElementCount - heapElementIndex;
         int foreachCount = std::min(count, sequentialElementCount);
         //遍历元素
         for (int i = 0; i < foreachCount; i++)
         {
-            iterator(foreachIndex, headAddress + static_cast<uint32_t>(i * elementSize));
+            iterator(foreachIndex, headAddress + i * elementSize);
             foreachIndex++;
         }
         //完成一次遍历
@@ -78,7 +78,7 @@ void Heap::CopyTo(std::byte* destination, const int index, const int count)
 {
     ForeachElements(index, count, [this,destination](const int itemIndex, std::byte* item)
     {
-        memcpy(destination + static_cast<uint32_t>(itemIndex * elementSize), item, elementSize);
+        memcpy(destination + itemIndex * elementSize, item, elementSize);
     });
 }
 std::byte* Heap::At(const int index)
@@ -86,7 +86,7 @@ std::byte* Heap::At(const int index)
     int heapIndex;
     int heapElementIndex;
     GetHeapIndex(index, &heapIndex, &heapElementIndex);
-    return heaps[heapIndex].data() + static_cast<uint32_t>(heapElementIndex * elementSize);
+    return heaps[heapIndex].get() + heapElementIndex * elementSize;
 }
 
 void Heap::UpdateHeaps()
@@ -101,7 +101,7 @@ void Heap::UpdateHeaps()
     else
     {
         for (int i = expectedChunkCount - static_cast<int>(heaps.size()); i > 0; i--)
-            heaps.emplace_back(elementSize * chunkElementCount);
+            heaps.emplace_back(new std::byte[elementSize * chunkElementCount]);
     }
 }
 void Heap::GetHeapIndex(const int elementIndex, int* heapIndex, int* heapElementIndex) const

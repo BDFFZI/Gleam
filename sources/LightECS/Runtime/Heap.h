@@ -1,11 +1,13 @@
 ﻿#pragma once
 #include <functional>
 #include <vector>
+#include <memory>
 
 class Heap
 {
 public:
-    Heap(int elementSize, int chunkElementCount = 64, int idleChunkCount = 1);
+    Heap() = default;
+    Heap(size_t elementSize, int chunkElementCount = 64, int idleChunkCount = 1);
 
     int GetCount() const;
 
@@ -18,11 +20,11 @@ public:
     std::byte* At(int index);
 
 private:
-    int elementSize;
+    size_t elementSize;
     int chunkElementCount;
     int idleChunkCount;
 
-    std::vector<std::vector<std::byte>> heaps;
+    std::vector<std::unique_ptr<std::byte[]>> heaps;
     int elementCount;
 
     void UpdateHeaps();
