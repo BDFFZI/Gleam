@@ -6,9 +6,10 @@
 
 #include "LightECS/Runtime/Heap.h"
 #include "LightECS/Runtime/World.h"
-#include <source_location>
 #include <stdarg.h>
 #include <unordered_set>
+
+#include "LightWindow/Runtime/Time.h"
 
 #ifdef BENCHMARK_Heap
 struct Data
@@ -102,22 +103,64 @@ TEST(ECS, Heap)
     ASSERT_EQ(vector[2], 5);
 }
 
-struct Position
+struct Transform
 {
-    float x;
-    float y;
-    float z;
-};
-struct Velocity
-{
-    float x;
-    float y;
+    float position;
 };
 
+struct RigidBody
+{
+    float force;
+    float mass = 1;
+    float acceleration;
+    float velocity;
+};
 
-MakeArchetype(physicalArchetype, Position, Velocity)
-MakeArchetypeSub(physicalArchetypeWithDrug, physicalArchetype, bool, int)
+struct Spring
+{
+    float pinPosition = 0;
+    float length = 10;
+    float elasticity = 1000;
+};
 
+class PhysicsSystem : public System
+{
+    float deltaTime = 0.02f;
+
+    Process<Transform, RigidBody> physicsProcess = {
+        [this](Transform& transform, RigidBody& rigidBody)
+        {
+            rigidBody.force += rigidBody.mass * -9.8f;
+
+            float acceleration = rigidBody.force / rigidBody.mass;
+            rigidBody.velocity = acceleration * deltaTime;
+            rigidBody.force = 0;
+
+            transform.position += rigidBody.velocity * deltaTime;
+        }
+    };
+
+    Process<Transform, RigidBody, Spring> springProcess = {
+        [](Transform& transform, RigidBody& rigidBody, Spring& spring)
+        {
+            float vector = spring.pinPosition - transform.position;
+            float direction = vector > 1 ? 1 : -1;
+            float distance = abs(vector) - spring.length;
+            float elasticForce = distance * spring.elasticity * direction;
+            rigidBody.force += elasticForce;
+        }
+    };
+
+    void Update(std::vector<Heap>& archetypeHeaps) const override
+    {
+        physicsProcess.Update(archetypeHeaps);
+        springProcess.Update(archetypeHeaps);
+    }
+};
+
+
+MakeArchetype(physicsArchetype, Transform, RigidBody)
+MakeArchetypeInherited(physicsWithSpringArchetype, physicsArchetype, Spring)
 
 
 // TEST(ECS, Archetype)
@@ -127,8 +170,27 @@ void main()
     {
         std::cout << archetype->ToString() << "\n";
         std::cout << archetype->GetSize() << "\n";
-        std::cout << archetype.Contains<Position>() << "\n";
-        std::cout << archetype.Contains<Position, int>() << "\n";
-        std::cout << archetype.Contains<bool>() << "\n";
+    }
+
+    PhysicsSystem system;
+
+    World world;
+    for (int i = 0; i < 10; i++)
+        world.AddEntity(i % 2 == 0 ? physicsArchetypeID : physicsWithSpringArchetypeID);
+    world.AddSystem(system);
+
+    std::stringstream log;
+    Process<Transform> showProcess = {
+        [&log](Transform& transform)
+        {
+            log << std::to_string(transform.position) << '|';
+        }
+    };
+    while (true)
+    {
+        world.Update();
+        showProcess.Update(world.GetHeaps());
+        std::cout << log.str() << std::endl;
+        log.str("");
     }
 }

@@ -74,23 +74,6 @@ void Heap::ForeachElements(const int index, int count, const std::function<void(
         GetHeapIndex(index + sequentialElementCount, &heapIndex, &heapElementIndex);
     }
 }
-void Heap::ForeachElements(const std::function<void(std::byte* item)>& iterator)
-{
-    int count = elementCount;
-    int heapIndex = 0;
-    while (count > 0)
-    {
-        //获取遍历地址和最大遍历次数
-        std::byte* headAddress = heaps[heapIndex].get();
-        int foreachCount = std::min(count, chunkElementCount);
-        //遍历元素
-        for (int i = 0; i < foreachCount; i++)
-            iterator(headAddress + i * elementSize);
-        //获取下次遍历的信息
-        heapIndex++;
-        count -= foreachCount;
-    }
-}
 void Heap::CopyTo(std::byte* destination, const int index, const int count)
 {
     ForeachElements(index, count, [this,destination](const int itemIndex, std::byte* item)

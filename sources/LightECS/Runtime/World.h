@@ -1,26 +1,45 @@
 ﻿#pragma once
 #include "Archetype.h"
 #include "Heap.h"
+#include "System.h"
 
 class World
 {
 public:
     World()
     {
-        // archetypeHeaps.reserve(Archetype::allArchetypes.size());
-        // for (const auto* archetype : Archetype::allArchetypes)
-        //     archetypeHeaps.emplace_back(archetype->GetSize());
+        for (const auto& archetype : Archetype::allArchetypes)
+            heaps.emplace_back(archetype->GetSize());
     }
 
+    std::vector<Heap>& GetHeaps() { return heaps; }
+
+    void AddEntity(const int archetypeID)
+    {
+        heaps[archetypeID].AddElement([archetypeID](std::byte* item)
+        {
+            Archetype::allArchetypes[archetypeID]->RunConstructor(item);
+        });
+    }
     void AddEntities(const int archetypeID, const int count)
     {
-        archetypeHeaps[archetypeID].AddElements(count);
+        heaps[archetypeID].AddElements(count, [archetypeID](int itemIndex, std::byte* item)
+        {
+            Archetype::allArchetypes[archetypeID]->RunConstructor(item);
+        });
     }
-    void ForeachEntities(const int archetypeID, const std::function<void(std::byte* item)>& iterator)
+    void AddSystem(const System& system)
     {
-        archetypeHeaps[archetypeID].ForeachElements(iterator);
+        systems.push_back(&system);
+    }
+
+    void Update()
+    {
+        for (auto system : systems)
+            system->Update(heaps);
     }
 
 private:
-    std::vector<Heap> archetypeHeaps;
+    std::vector<Heap> heaps;
+    std::vector<const System*> systems;
 };

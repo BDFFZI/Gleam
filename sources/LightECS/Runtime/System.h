@@ -1,38 +1,64 @@
 #pragma once
-#include <functional>
-
-#include "World.h"
+#include <vector>
+#include <optional>
+#include "Archetype.h"
+#include "Heap.h"
 
 template <class... TComponents>
-struct Query
+class Process
 {
-    std::vector<int> archetypeIDs;
-    std::vector<int[sizeof...(TComponents)]> componentOffsets;
-
-    Query()
+public:
+    Process(const std::function<void(TComponents&...)>& function)
+        : function(function)
     {
-        int count = static_cast<int>(Archetype::allArchetypes.size());
-        for (int i = 0; i < count; i++)
+        if (isQueried == false)
         {
-            Archetype& archetype = Archetype::allArchetypes[i];
-            if (archetype.Contains<TComponents...>())
+            int count = static_cast<int>(Archetype::allArchetypes.size());
+            for (int i = 0; i < count; i++)
             {
-                archetypeIDs.push_back(i);
-                
+                Archetype& archetype = Archetype::allArchetypes[i];
+                if (archetype.Contains<TComponents...>())
+                {
+                    archetypeIDs.emplace_back(i);
+                    componentOffsets.emplace_back(archetype.MemoryMap<TComponents...>());
+                }
             }
+            archetypeCount = static_cast<int>(archetypeIDs.size());
+            isQueried = true;
         }
     }
-};
+    void Update(std::vector<Heap>& archetypeHeaps) const
+    {
+        for (int i = 0; i < archetypeCount; i++)
+        {
+            const int archetypeID = archetypeIDs[i];
+            const std::array<int, sizeof...(TComponents)>& componentOffset = componentOffsets[i];
+            Heap& heap = archetypeHeaps[archetypeID];
+            heap.ForeachElements([this,componentOffset](std::byte* item)
+            {
+                int component = -1;
+                function(*reinterpret_cast<TComponents*>(item + componentOffset[++component])...);
+            });
+        }
+    }
 
+private:
+    inline static bool isQueried = false;
+    inline static std::vector<int> archetypeIDs = {};
+    inline static std::vector<std::array<int, sizeof...(TComponents)>> componentOffsets = {};
+    inline static int archetypeCount = {};
+
+    std::function<void(TComponents&...)> function;
+};
 
 class System
 {
 public:
-    template <class... TComponents>
-    void Foreach(const Query<TComponents...>& query, std::function<void(TComponents&...)> iterator)
-    {
-    }
-
-private:
-    const World& world;
+    virtual ~System() = default;
+    virtual void Update(std::vector<Heap>& archetypeHeaps) const = 0;
 };
+
+
+#define MakeProcess(name, ...)\
+Process<auto> name = Process(name##Func);\
+static void name##Func(__VA_ARGS__)
