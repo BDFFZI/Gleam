@@ -14,7 +14,6 @@ public:
     virtual int GetComponentCount() const = 0;
     virtual std::vector<const type_info*> GetComponentTypes() const = 0;
     virtual std::vector<int> GetComponentOffsets() const = 0;
-    virtual bool Contains(const std::vector<const type_info*>& targets) const = 0;
     virtual std::string ToString() const = 0;
 };
 
@@ -45,25 +44,6 @@ public:
     int GetComponentCount() const override { return componentCount; }
     std::vector<const type_info*> GetComponentTypes() const override { return {componentTypes.begin(), componentTypes.end()}; }
     std::vector<int> GetComponentOffsets() const override { return {componentOffsets.begin(), componentOffsets.end()}; }
-    bool Contains(const std::vector<const type_info*>& targets) const override
-    {
-        for (auto target : targets)
-        {
-            bool found = false;
-            for (int j = 0; j < sizeof...(TComponents); ++j)
-            {
-                if (componentTypes[j] == target)
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (found == false)
-                return false;
-        }
-
-        return true;
-    }
     std::string ToString() const override
     {
         std::string result = {name};
@@ -83,7 +63,7 @@ public:
 class Archetype
 {
 public:
-    inline static std::vector<const Archetype*> allArchetypes = {};
+    inline static std::vector<Archetype> allArchetypes = {};
 
     Archetype() = default;
     Archetype(const ArchetypeMeta* archetypeMeta)
@@ -93,27 +73,32 @@ public:
         std::vector<const type_info*> types = archetypeMeta->GetComponentTypes();
         std::vector<int> offsets = archetypeMeta->GetComponentOffsets();
         for (int i = 0; i < count; i++)
-            memoryMaps.insert({types[i], offsets[i]});
-    }
-    
-
-    template <class... TComponents>
-    bool ContainsT() const
-    {
-        return archetypeMeta->Contains({&typeid(TComponents)...});
-    }
-    template <class... TComponents>
-    void MemoryMap(std::byte* address, std::function<void(TComponents&...)> iterator) const
-    {
-        std::byte* componentPointers[sizeof...(TComponents)] = {
-            address + memoryMaps[&typeid(TComponents)]...
-        };
-        iterator()
+            memoryMap.insert({types[i], offsets[i]});
     }
 
-public:
+    const ArchetypeMeta* operator->() const
+    {
+        return archetypeMeta;
+    }
+
+    template <class... TComponents>
+    bool Contains() const
+    {
+        const TComponents* components[] = {&typeid(TComponents)...};
+        for (int i = 0; i < sizeof...(TComponents); ++i)
+            if (memoryMap.empty(components[i]))
+                return false;
+        return true;
+    }
+    template <class... TComponents>
+    std::array<int, sizeof...(TComponents)> MemoryMap() const
+    {
+        return {memoryMap.at(&typeid(TComponents))...};
+    }
+
+private:
     const ArchetypeMeta* archetypeMeta;
-    std::unordered_map<const type_info*, int> memoryMaps;
+    std::unordered_map<const type_info*, int> memoryMap;
 };
 
 template <class... TComponents>
@@ -131,9 +116,9 @@ consteval ArchetypeMetaInstance<TParentComponents..., TComponents...> CreateArch
 #define MakeArchetype(name,...)\
 constexpr ArchetypeMetaInstance name = CreateArchetypeMeta<__VA_ARGS__>(#name);\
 int name##ID = Archetype::allArchetypes.size();\
-int name##Register = [](){Archetype::AddArchetype(&(name));return 0;}();
+int name##Register = [](){Archetype::allArchetypes.emplace_back(&(name));return 0;}();
 
 #define MakeArchetypeSub(name,parent,...)\
 constexpr ArchetypeMetaInstance name = CreateArchetypeMeta<__VA_ARGS__>(#name,parent);\
 int name##ID = Archetype::allArchetypes.size();\
-int name##Register = [](){Archetype::AddArchetype(&(name));return 0;}();
+int name##Register = [](){Archetype::allArchetypes.emplace_back(&(name));return 0;}();

@@ -118,15 +118,17 @@ struct Velocity
 MakeArchetype(physicalArchetype, Position, Velocity)
 MakeArchetypeSub(physicalArchetypeWithDrug, physicalArchetype, bool, int)
 
+
+
 // TEST(ECS, Archetype)
 void main()
 {
-    for (auto archetype : Archetype::allArchetypes)
+    for (auto& archetype : Archetype::allArchetypes)
     {
         std::cout << archetype->ToString() << "\n";
         std::cout << archetype->GetSize() << "\n";
-        std::cout << archetype->ContainsT<Position>() << "\n";
-        std::cout << archetype->ContainsT<Position, int>() << "\n";
-        std::cout << archetype->ContainsT<bool>() << "\n";
+        std::cout << archetype.Contains<Position>() << "\n";
+        std::cout << archetype.Contains<Position, int>() << "\n";
+        std::cout << archetype.Contains<bool>() << "\n";
     }
 }

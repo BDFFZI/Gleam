@@ -16,12 +16,9 @@ public:
     {
         archetypeHeaps[archetypeID].AddElements(count);
     }
-    template <typename... TComponent>
-    void ForeachEntities(const int archetypeID, std::function<void(TComponent&...)> iterator)
+    void ForeachEntities(const int archetypeID, const std::function<void(std::byte* item)>& iterator)
     {
-        archetypeHeaps[archetypeID].ForeachElements([](const int itemIndex, const std::byte* item)
-        {
-        });
+        archetypeHeaps[archetypeID].ForeachElements(iterator);
     }
 
 private:
