@@ -10,72 +10,49 @@
 #include <unordered_set>
 
 #include "LightECS/Runtime/System.h"
+#include "LightUtility/Runtime/Chronograph.h"
 
-#ifdef BENCHMARK_Heap
-struct Data
+
+struct Transform
 {
-    float data[32];
+    float position;
+
+    friend bool operator==(const Transform& lhs, const Transform& rhs)
+    {
+        return lhs.position == rhs.position;
+    }
 };
-void VectorTest(benchmark::State& state)
+
+struct RigidBody
 {
-    for (auto _ : state)
+    float force;
+    float mass = 1;
+    float velocity;
+
+    friend bool operator==(const RigidBody& lhs, const RigidBody& rhs)
     {
-        std::vector<Data> container;
-        container.resize(30);
-        container.resize(60);
-        int size = container.size();
-        for (int i = 0; i < size; i++)
-            container[i].data[0] = i;
-        container.erase(container.begin(), container.begin() + 30);
-
-        container.resize(90);
-        container.resize(120);
-        size = container.size();
-        for (int i = 0; i < size; i++)
-            container[i].data[1] = i;
-        container.erase(container.begin() + 30, container.begin() + 60);
-
-        for (int i = 0; i < container.size(); i++)
-        {
-            if (i % 2 == 0)
-                container.erase(container.begin() + i);
-        }
+        return lhs.force == rhs.force
+            && lhs.mass == rhs.mass
+            && lhs.velocity == rhs.velocity;
     }
-}
-void HeapTest(benchmark::State& state)
+};
+
+struct Spring
 {
-    for (auto _ : state)
+    float pinPosition = 0;
+    float length = 3;
+    float elasticity = 10;
+
+    friend bool operator==(const Spring& lhs, const Spring& rhs)
     {
-        Heap container(sizeof(Data));
-        container.AddElements(30);
-        container.AddElements(30);
-        container.ForeachElements(0, container.GetCount(), [](const int index, std::byte* ptr)
-        {
-            Data* data = reinterpret_cast<Data*>(ptr);
-            data->data[0] = index;
-        });
-        container.RemoveElements(0, 30);
-
-        container.AddElements(30);
-        container.AddElements(30);
-        container.ForeachElements(0, container.GetCount(), [](const int index, std::byte* ptr)
-        {
-            Data* data = reinterpret_cast<Data*>(ptr);
-            data->data[1] = index;
-        });
-        container.RemoveElements(30, 30);
-
-        for (int i = 0; i < container.GetCount(); i++)
-        {
-            if (i % 2 == 0)
-                container.RemoveElement(i);
-        }
+        return lhs.pinPosition == rhs.pinPosition
+            && lhs.length == rhs.length
+            && lhs.elasticity == rhs.elasticity;
     }
-}
-BENCHMARK(VectorTest);
-BENCHMARK(HeapTest);
-BENCHMARK_MAIN();
-#endif
+};
+
+MakeArchetype(physicsArchetype, Transform, RigidBody)
+MakeArchetypeInherited(physicsWithSpringArchetype, physicsArchetype, Spring)
 
 TEST(ECS, Heap)
 {
@@ -103,25 +80,101 @@ TEST(ECS, Heap)
     ASSERT_EQ(vector[2], 5);
 }
 
-struct Transform
+TEST(ECS, HeapBenchmark)
 {
-    float position;
-};
+    struct Data
+    {
+        float data[32];
+    };
 
-struct RigidBody
-{
-    float force;
-    float mass = 1;
-    float acceleration;
-    float velocity;
-};
+    benchmark::RegisterBenchmark("Vector", [](benchmark::State& state)
+    {
+        for (auto _ : state)
+        {
+            std::vector<Data> container;
+            container.resize(30);
+            container.resize(60);
+            int size = container.size();
+            for (int i = 0; i < size; i++)
+                container[i].data[0] = i;
+            container.erase(container.begin(), container.begin() + 30);
 
-struct Spring
+            container.resize(90);
+            container.resize(120);
+            size = container.size();
+            for (int i = 0; i < size; i++)
+                container[i].data[1] = i;
+            container.erase(container.begin() + 30, container.begin() + 60);
+
+            for (int i = 0; i < container.size(); i++)
+            {
+                if (i % 2 == 0)
+                    container.erase(container.begin() + i);
+            }
+        }
+    });
+    benchmark::RegisterBenchmark("Heap", [](benchmark::State& state)
+    {
+        for (auto _ : state)
+        {
+            Heap container(sizeof(Data));
+            container.AddElements(30);
+            container.AddElements(30);
+            container.ForeachElements(0, container.GetCount(), [](const int index, std::byte* ptr)
+            {
+                Data* data = reinterpret_cast<Data*>(ptr);
+                data->data[0] = index;
+            });
+            container.RemoveElements(0, 30);
+
+            container.AddElements(30);
+            container.AddElements(30);
+            container.ForeachElements(0, container.GetCount(), [](const int index, std::byte* ptr)
+            {
+                Data* data = reinterpret_cast<Data*>(ptr);
+                data->data[1] = index;
+            });
+            container.RemoveElements(30, 30);
+
+            for (int i = 0; i < container.GetCount(); i++)
+            {
+                if (i % 2 == 0)
+                    container.RemoveElement(i);
+            }
+        }
+    });
+    benchmark::RunSpecifiedBenchmarks();
+}
+
+TEST(ECS, Archetype)
 {
-    float pinPosition = 0;
-    float length = 10;
-    float elasticity = 1000;
-};
+    for (auto& archetype : Archetype::allArchetypes)
+    {
+        std::cout << archetype->ToString() << "\n";
+        std::cout << archetype->GetSize() << "\n";
+    }
+
+    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype->GetSize()));
+    physicsWithSpringArchetype->RunConstructor(data);
+    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype->GetComponentOffsets()[0]);
+    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype->GetComponentOffsets()[1]);
+    Spring& spring = *reinterpret_cast<Spring*>(data + physicsWithSpringArchetype->GetComponentOffsets()[2]);
+    ASSERT_EQ(transform, Transform());
+    ASSERT_EQ(rigidBody, RigidBody());
+    ASSERT_EQ(spring, Spring());
+    free(data);
+
+    World world;
+    world.AddEntities(physicsWithSpringArchetypeID, 1);
+
+    View<Transform, RigidBody, Spring> view;
+    view.Each(world, [](auto& transform, auto& rigidBody, auto& spring)
+    {
+        ASSERT_EQ(transform, Transform());
+        ASSERT_EQ(rigidBody, RigidBody());
+        ASSERT_EQ(spring, Spring());
+    });
+}
 
 class PhysicsSystem : public System
 {
@@ -133,10 +186,9 @@ public:
         View<Transform, RigidBody> physicalEntities = {};
         physicalEntities.Each(world, [deltaTime = deltaTime](Transform& transform, RigidBody& rigidBody)
         {
-            rigidBody.force += rigidBody.mass * -9.8f;
-
             float acceleration = rigidBody.force / rigidBody.mass;
-            rigidBody.velocity = acceleration * deltaTime;
+            acceleration += rigidBody.mass * -9.8f; //重力
+            rigidBody.velocity += acceleration * deltaTime;
             rigidBody.force = 0;
 
             transform.position += rigidBody.velocity * deltaTime;
@@ -146,71 +198,39 @@ public:
         physicalElasticEntities.Each(world, [](Transform& transform, RigidBody& rigidBody, Spring& spring)
         {
             float vector = spring.pinPosition - transform.position;
-            float direction = vector > 1 ? 1 : -1;
+            float direction = vector >= 0 ? 1 : -1;
             float distance = abs(vector) - spring.length;
-            float elasticForce = distance * spring.elasticity * direction;
+            float elasticForce = spring.elasticity * (distance * direction);
             rigidBody.force += elasticForce;
         });
     }
 };
 
 
-MakeArchetype(physicsArchetype, Transform, RigidBody)
-MakeArchetypeInherited(physicsWithSpringArchetype, physicsArchetype, Spring)
-
-template <typename T>
-concept Int = std::is_same_v<T, int>;
-
-template <typename T>
-concept Con = requires()
-{
-    sd
-};
-
-template <typename T>
-    requires Int<T>
-void Func(T value)
-{
-}
-
 void main()
 {
-    Func(1);
-
-    // for (auto& archetype : Archetype::allArchetypes)
-    // {
-    //     std::cout << archetype->ToString() << "\n";
-    //     std::cout << archetype->GetSize() << "\n";
-    // }
-
     World world;
-    world.AddEntities(physicsWithSpringArchetypeID, 1);
+    for (int i = 0; i < 10; i++)
+        world.AddEntity(i % 2 == 0 ? physicsArchetypeID : physicsWithSpringArchetypeID);
 
-    View<Transform, RigidBody, Spring> view;
-    view.Each(world, [](auto& transform, auto& rigidBody, auto& spring)
+    PhysicsSystem physicsSystem = {};
+    physicsSystem.deltaTime = 0.01f;
+    
+    std::stringstream log;
+    while (true)
     {
-        getchar();
-    });
+        //更新
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        physicsSystem.Update(world);
+        physicsSystem.Update(world);
 
-    // World world;
-    // for (int i = 0; i < 10; i++)
-    //     world.AddEntity(i % 2 == 0 ? physicsArchetypeID : physicsWithSpringArchetypeID);
-    //
-    // PhysicsSystem system = {};
-    // system.deltaTime = 0.01f;
-    //
-    // std::stringstream log;
-    // while (true)
-    // {
-    //     system.Update(world);
-    //
-    //     View<Transform> showProcess = {};
-    //     showProcess.Each(world, [&log](Transform& transform)
-    //     {
-    //         log << std::to_string(transform.position) << '|';
-    //     });
-    //
-    //     std::cout << log.str() << std::endl;
-    //     log.str("");
-    // }
+        //输出
+        View<Transform> transformView = {};
+        transformView.Each(world, [&log](Transform& transform)
+        {
+            log << std::format("{:10.3f}", transform.position) << '|';
+        });
+        std::cout << log.str() << std::endl;
+        log.str("");
+    }
 }

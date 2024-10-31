@@ -7,6 +7,11 @@ namespace LightRuntime
     class Chronograph
     {
     public:
+        Chronograph()
+        {
+            Tick();
+        }
+
         int Tick()
         {
             auto durationTime = Time();
