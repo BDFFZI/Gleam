@@ -9,7 +9,7 @@
 #include <stdarg.h>
 #include <unordered_set>
 
-#include "LightWindow/Runtime/Time.h"
+#include "LightECS/Runtime/System.h"
 
 #ifdef BENCHMARK_Heap
 struct Data
@@ -125,10 +125,13 @@ struct Spring
 
 class PhysicsSystem : public System
 {
+public:
     float deltaTime = 0.02f;
 
-    Process<Transform, RigidBody> physicsProcess = {
-        [this](Transform& transform, RigidBody& rigidBody)
+    void Update(World& world) const override
+    {
+        View<Transform, RigidBody> physicalEntities = {};
+        physicalEntities.Each(world, [deltaTime = deltaTime](Transform& transform, RigidBody& rigidBody)
         {
             rigidBody.force += rigidBody.mass * -9.8f;
 
@@ -137,24 +140,17 @@ class PhysicsSystem : public System
             rigidBody.force = 0;
 
             transform.position += rigidBody.velocity * deltaTime;
-        }
-    };
+        });
 
-    Process<Transform, RigidBody, Spring> springProcess = {
-        [](Transform& transform, RigidBody& rigidBody, Spring& spring)
+        View<Transform, RigidBody, Spring> physicalElasticEntities = {};
+        physicalElasticEntities.Each(world, [](Transform& transform, RigidBody& rigidBody, Spring& spring)
         {
             float vector = spring.pinPosition - transform.position;
             float direction = vector > 1 ? 1 : -1;
             float distance = abs(vector) - spring.length;
             float elasticForce = distance * spring.elasticity * direction;
             rigidBody.force += elasticForce;
-        }
-    };
-
-    void Update(std::vector<Heap>& archetypeHeaps) const override
-    {
-        physicsProcess.Update(archetypeHeaps);
-        springProcess.Update(archetypeHeaps);
+        });
     }
 };
 
@@ -162,35 +158,59 @@ class PhysicsSystem : public System
 MakeArchetype(physicsArchetype, Transform, RigidBody)
 MakeArchetypeInherited(physicsWithSpringArchetype, physicsArchetype, Spring)
 
+template <typename T>
+concept Int = std::is_same_v<T, int>;
 
-// TEST(ECS, Archetype)
+template <typename T>
+concept Con = requires()
+{
+    sd
+};
+
+template <typename T>
+    requires Int<T>
+void Func(T value)
+{
+}
+
 void main()
 {
-    for (auto& archetype : Archetype::allArchetypes)
-    {
-        std::cout << archetype->ToString() << "\n";
-        std::cout << archetype->GetSize() << "\n";
-    }
+    Func(1);
 
-    PhysicsSystem system;
+    // for (auto& archetype : Archetype::allArchetypes)
+    // {
+    //     std::cout << archetype->ToString() << "\n";
+    //     std::cout << archetype->GetSize() << "\n";
+    // }
 
     World world;
-    for (int i = 0; i < 10; i++)
-        world.AddEntity(i % 2 == 0 ? physicsArchetypeID : physicsWithSpringArchetypeID);
-    world.AddSystem(system);
+    world.AddEntities(physicsWithSpringArchetypeID, 1);
 
-    std::stringstream log;
-    Process<Transform> showProcess = {
-        [&log](Transform& transform)
-        {
-            log << std::to_string(transform.position) << '|';
-        }
-    };
-    while (true)
+    View<Transform, RigidBody, Spring> view;
+    view.Each(world, [](auto& transform, auto& rigidBody, auto& spring)
     {
-        world.Update();
-        showProcess.Update(world.GetHeaps());
-        std::cout << log.str() << std::endl;
-        log.str("");
-    }
+        getchar();
+    });
+
+    // World world;
+    // for (int i = 0; i < 10; i++)
+    //     world.AddEntity(i % 2 == 0 ? physicsArchetypeID : physicsWithSpringArchetypeID);
+    //
+    // PhysicsSystem system = {};
+    // system.deltaTime = 0.01f;
+    //
+    // std::stringstream log;
+    // while (true)
+    // {
+    //     system.Update(world);
+    //
+    //     View<Transform> showProcess = {};
+    //     showProcess.Each(world, [&log](Transform& transform)
+    //     {
+    //         log << std::to_string(transform.position) << '|';
+    //     });
+    //
+    //     std::cout << log.str() << std::endl;
+    //     log.str("");
+    // }
 }

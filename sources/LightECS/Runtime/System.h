@@ -1,15 +1,22 @@
 #pragma once
 #include <vector>
 #include <optional>
+#include <concepts>
 #include "Archetype.h"
 #include "Heap.h"
+#include "World.h"
+
 
 template <class... TComponents>
-class Process
+    requires (sizeof...(TComponents) != 0)
+// requires name<TComponents...>
+class View
 {
 public:
-    Process(const std::function<void(TComponents&...)>& function)
-        : function(function)
+    View(ArchetypeMetaInstance<TComponents...>&)
+    {
+    }
+    View()
     {
         if (isQueried == false)
         {
@@ -27,14 +34,15 @@ public:
             isQueried = true;
         }
     }
-    void Update(std::vector<Heap>& archetypeHeaps) const
+
+    void Each(World& world, const std::function<void(TComponents&...)>& function) const
     {
         for (int i = 0; i < archetypeCount; i++)
         {
             const int archetypeID = archetypeIDs[i];
             const std::array<int, sizeof...(TComponents)>& componentOffset = componentOffsets[i];
-            Heap& heap = archetypeHeaps[archetypeID];
-            heap.ForeachElements([this,componentOffset](std::byte* item)
+            Heap& heap = world.GetEntityHeaps()[archetypeID];
+            heap.ForeachElements([function,componentOffset](std::byte* item)
             {
                 int component = -1;
                 function(*reinterpret_cast<TComponents*>(item + componentOffset[++component])...);
@@ -47,18 +55,11 @@ private:
     inline static std::vector<int> archetypeIDs = {};
     inline static std::vector<std::array<int, sizeof...(TComponents)>> componentOffsets = {};
     inline static int archetypeCount = {};
-
-    std::function<void(TComponents&...)> function;
 };
 
 class System
 {
 public:
     virtual ~System() = default;
-    virtual void Update(std::vector<Heap>& archetypeHeaps) const = 0;
+    virtual void Update(World& world) const = 0;
 };
-
-
-#define MakeProcess(name, ...)\
-Process<auto> name = Process(name##Func);\
-static void name##Func(__VA_ARGS__)
