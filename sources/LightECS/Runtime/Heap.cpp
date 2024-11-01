@@ -1,10 +1,9 @@
 ﻿#include "Heap.h"
 
-Heap::Heap(const size_t elementSize, const int chunkElementCount, const int idleChunkCount)
-    : elementSize(elementSize), chunkElementCount(chunkElementCount), idleChunkCount(idleChunkCount),
+Heap::Heap(const size_t elementSize, const int chunkElementCount, const int spareChunkCount)
+    : elementSize(elementSize), chunkElementCount(chunkElementCount), spareChunkCount(spareChunkCount),
       elementCount(0)
 {
-    UpdateHeaps();
 }
 
 int Heap::GetCount() const
@@ -14,7 +13,7 @@ int Heap::GetCount() const
 void Heap::AddElement(const std::function<void(std::byte* item)>& setValue)
 {
     elementCount += 1;
-    UpdateHeaps();
+    ResizeHeaps();
 
     if (setValue != nullptr)
         setValue(At(elementCount - 1));
@@ -23,7 +22,7 @@ void Heap::AddElement(const std::function<void(std::byte* item)>& setValue)
 void Heap::AddElements(const int count, const std::function<void(int itemIndex, std::byte* item)>& setValue)
 {
     elementCount += count;
-    UpdateHeaps();
+    ResizeHeaps();
 
     if (setValue != nullptr)
         ForeachElements(elementCount - count, count, setValue);
@@ -45,7 +44,7 @@ void Heap::RemoveElements(const int index, const int count)
     });
 
     elementCount -= count;
-    UpdateHeaps();
+    ResizeHeaps();
 }
 void Heap::ForeachElements(const int index, int count, const std::function<void(int itemIndex, std::byte* item)>& iterator)
 {
@@ -89,18 +88,19 @@ std::byte* Heap::At(const int index)
     return heaps[heapIndex].get() + heapElementIndex * elementSize;
 }
 
-void Heap::UpdateHeaps()
+void Heap::ResizeHeaps()
 {
-    int occupiedChunkCount = elementCount / chunkElementCount + 1;
-    int expectedChunkCount = occupiedChunkCount + idleChunkCount;
+    size_t occupiedChunkCount = elementCount / chunkElementCount + 1; //必须块数
+    size_t expectedChunkCount = occupiedChunkCount + spareChunkCount; //最佳块数=必须块数+备用块数
 
-    if (static_cast<int>(heaps.size()) >= expectedChunkCount)
+    if (heaps.size() > expectedChunkCount) //容量比最佳块数要多，触发回收
     {
-        heaps.resize(expectedChunkCount);
+        heaps.resize(expectedChunkCount); //回收至期望块数
     }
-    else
+    else if (heaps.size() < occupiedChunkCount) //容量不足必须块数，触发扩容
     {
-        for (int i = expectedChunkCount - static_cast<int>(heaps.size()); i > 0; i--)
+        //扩容块数量到最佳块数
+        for (size_t i = expectedChunkCount - heaps.size(); i > 0; i--)
             heaps.emplace_back(new std::byte[elementSize * chunkElementCount]);
     }
 }

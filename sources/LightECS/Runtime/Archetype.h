@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <format>
-#include <functional>
+#include <array>
 #include <string>
 #include <vector>
 #include <unordered_map>

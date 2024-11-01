@@ -7,7 +7,7 @@ class Heap
 {
 public:
     Heap() = default;
-    Heap(size_t elementSize, int chunkElementCount = 64, int idleChunkCount = 1);
+    Heap(size_t elementSize, int chunkElementCount = 64, int spareChunkCount = 1);
 
     int GetCount() const;
 
@@ -40,11 +40,11 @@ public:
 private:
     size_t elementSize;
     int chunkElementCount;
-    int idleChunkCount;
+    int spareChunkCount;
 
     std::vector<std::unique_ptr<std::byte[]>> heaps;
     int elementCount;
-
-    void UpdateHeaps();
+    
+    void ResizeHeaps();
     void GetHeapIndex(int elementIndex, int* heapIndex, int* heapElementIndex) const;
 };

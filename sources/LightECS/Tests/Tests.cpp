@@ -1,5 +1,4 @@
-﻿#include <array>
-#include <iostream>
+﻿#include <iostream>
 #include <ostream>
 #include <benchmark/benchmark.h>
 #include <gtest/gtest.h>
@@ -40,8 +39,8 @@ struct RigidBody
 struct Spring
 {
     float pinPosition = 0;
-    float length = 3;
-    float elasticity = 10;
+    float length = 5;
+    float elasticity = 200;
 
     friend bool operator==(const Spring& lhs, const Spring& rhs)
     {
@@ -120,7 +119,8 @@ TEST(ECS, HeapBenchmark)
             Heap container(sizeof(Data));
             container.AddElements(30);
             container.AddElements(30);
-            container.ForeachElements(0, container.GetCount(), [](const int index, std::byte* ptr)
+            int index = 0;
+            container.ForeachElements([&index](std::byte* ptr)
             {
                 Data* data = reinterpret_cast<Data*>(ptr);
                 data->data[0] = index;
@@ -129,7 +129,8 @@ TEST(ECS, HeapBenchmark)
 
             container.AddElements(30);
             container.AddElements(30);
-            container.ForeachElements(0, container.GetCount(), [](const int index, std::byte* ptr)
+            index = 0;
+            container.ForeachElements([&index](std::byte* ptr)
             {
                 Data* data = reinterpret_cast<Data*>(ptr);
                 data->data[1] = index;
@@ -143,6 +144,7 @@ TEST(ECS, HeapBenchmark)
             }
         }
     });
+    benchmark::Initialize(nullptr, nullptr);
     benchmark::RunSpecifiedBenchmarks();
 }
 
@@ -163,7 +165,10 @@ TEST(ECS, Archetype)
     ASSERT_EQ(rigidBody, RigidBody());
     ASSERT_EQ(spring, Spring());
     free(data);
+}
 
+TEST(ECS, WorldAndView)
+{
     World world;
     world.AddEntities(physicsWithSpringArchetypeID, 1);
 
@@ -178,20 +183,20 @@ TEST(ECS, Archetype)
 
 class PhysicsSystem : public System
 {
+    //质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
 public:
-    float deltaTime = 0.02f;
+    float deltaTime;
 
     void Update(World& world) const override
     {
         View<Transform, RigidBody> physicalEntities = {};
         physicalEntities.Each(world, [deltaTime = deltaTime](Transform& transform, RigidBody& rigidBody)
         {
-            float acceleration = rigidBody.force / rigidBody.mass;
-            acceleration += rigidBody.mass * -9.8f; //重力
+            float acceleration = rigidBody.force / rigidBody.mass; //牛顿第二定律
+            acceleration += rigidBody.mass * -9.8f; //添加重力加速度
             rigidBody.velocity += acceleration * deltaTime;
-            rigidBody.force = 0;
-
             transform.position += rigidBody.velocity * deltaTime;
+            rigidBody.force = 0;
         });
 
         View<Transform, RigidBody, Spring> physicalElasticEntities = {};
@@ -200,13 +205,14 @@ public:
             float vector = spring.pinPosition - transform.position;
             float direction = vector >= 0 ? 1 : -1;
             float distance = abs(vector) - spring.length;
-            float elasticForce = spring.elasticity * (distance * direction);
-            rigidBody.force += elasticForce;
+            float elasticForce = spring.elasticity * distance * direction; //弹力或推力
+            float resistance = -0.01f * spring.elasticity * (rigidBody.velocity * direction) * direction; //弹簧内部阻力（不添加无法使弹簧稳定）
+            rigidBody.force += elasticForce + resistance;
         });
     }
 };
 
-
+// TEST(ECS, System)
 void main()
 {
     World world;
@@ -214,14 +220,12 @@ void main()
         world.AddEntity(i % 2 == 0 ? physicsArchetypeID : physicsWithSpringArchetypeID);
 
     PhysicsSystem physicsSystem = {};
-    physicsSystem.deltaTime = 0.01f;
-    
+    physicsSystem.deltaTime = 0.02f;
+
     std::stringstream log;
-    while (true)
+    for (int i = 0; i < 200; i++)
     {
         //更新
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        physicsSystem.Update(world);
         physicsSystem.Update(world);
 
         //输出
@@ -230,7 +234,7 @@ void main()
         {
             log << std::format("{:10.3f}", transform.position) << '|';
         });
-        std::cout << log.str() << std::endl;
+        std::cout << log.str() << "\n";
         log.str("");
     }
 }
