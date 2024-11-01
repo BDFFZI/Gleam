@@ -46,4 +46,11 @@ foreach(ModulePath ${ModulePaths})
         add_subdirectory("${ModulePath}/Tests")
         set_target_properties("${ModuleName}Tests" PROPERTIES FOLDER LightTests)
     endif()
+
+    if(EXISTS "${ModulePath}/Assets")
+        file(COPY "${ModulePath}/Assets" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${ModuleName}")
+    endif()
+
+
+
 endforeach()

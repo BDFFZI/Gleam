@@ -9,7 +9,8 @@
 #include "LightImport/Runtime/ImageImporter.h"
 #include "LightImport/Runtime/ModelImporter.h"
 #include "LightImport/Runtime/ShaderImporter.h"
-#include "LightMath/Runtime/Matrix4x4.h"
+#include "LightMath/Runtime/Matrix.hpp"
+#include "LightMath/Runtime/MatrixMath.hpp"
 
 using namespace LightRuntime;
 
@@ -44,9 +45,9 @@ struct PushConstant
 {
     ///vulkan对常量缓冲区内存布局要求必须16字节对齐
     ///如float2（16byte），float4（32byte），float3就不符合（24byte）
-    alignas(16) Matrix4x4 model;
-    alignas(16) Matrix4x4 view;
-    alignas(16) Matrix4x4 proj;
+    alignas(16) float4x4 model;
+    alignas(16) float4x4 view;
+    alignas(16) float4x4 proj;
 };
 
 class GLTester
@@ -135,7 +136,7 @@ public:
         };
         glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout, pushConstantRanges);
         //着色器布局
-        std::string code = ReadFile("assets/shader.hlsl");
+        std::string code = ReadFile("../Assets/shader.hlsl");
         std::vector glShaderLayout{
             GLShader(VK_SHADER_STAGE_VERTEX_BIT,
                      ShaderImporter::ImportHlsl(shaderc_vertex_shader, code, "VertexShader"),
@@ -152,7 +153,7 @@ public:
         );
 
         //创建顶点索引缓冲区
-        RawMesh mesh = ModelImporter::ImportObj("assets/viking_room.obj");
+        RawMesh mesh = ModelImporter::ImportObj("../Assets/viking_room.obj");
         std::vector<Vertex> vertices(mesh.positions.size());
         for (size_t i = 0; i < vertices.size(); ++i)
         {
@@ -175,7 +176,7 @@ public:
         );
 
         //创建纹理及采样器
-        RawImage rawImage = ImageImporter::Import("assets/viking_room.png", STBI_rgb_alpha);
+        RawImage rawImage = ImageImporter::Import("../Assets/viking_room.png", STBI_rgb_alpha);
         texture = std::unique_ptr<GLImage>(GLImage::CreateTexture2D(
             rawImage.width, rawImage.height, VK_FORMAT_R8G8B8A8_SRGB,
             rawImage.pixels.data(), rawImage.pixels.size(), true));
@@ -225,10 +226,10 @@ public:
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float>(currentTime - startTime).count();
         PushConstant ubo;
-        ubo.model = Matrix4x4::TRS(float3::zero, {-90, time * 90, 0}, float3::one);
-        ubo.view = Matrix4x4::TRS({2, 2, 2}, {32, -135, 0}, float3::one).GetInverse();
-        ubo.proj = Matrix4x4::Perspective(45.0f, static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain->imageExtent.height), 0.1f, 10.0f);
-        ubo.proj.m11 *= -1; //Matrix4x4以Direct3D为准，输出的剪辑空间坐标y与vk相反，故需反转。
+        ubo.model = float4x4::TRS(0, {-90, time * 90, 0}, 1);
+        ubo.view = inverse(float4x4::TRS({2, 2, 2}, {32, -135, 0}, 1));
+        ubo.proj = float4x4::Perspective(45.0f, static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain->imageExtent.height), 0.1f, 10.0f);
+        ubo.proj._m11 *= -1; //float4x4以Direct3D为准，输出的剪辑空间坐标y与vk相反，故需反转。
 
         //准备绘图命令
         GLCommandBuffer& glCommandBuffer = *glCommandBuffers[bufferIndex];

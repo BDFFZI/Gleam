@@ -212,8 +212,7 @@ public:
     }
 };
 
-// TEST(ECS, System)
-void main()
+TEST(ECS, System)
 {
     World world;
     for (int i = 0; i < 10; i++)
@@ -237,4 +236,59 @@ void main()
         std::cout << log.str() << "\n";
         log.str("");
     }
+}
+
+void Performance_StdFunction(const std::function<void()>& func)
+{
+    func();
+}
+
+template <typename T>
+void Performance_Lambda(const T& func)
+{
+    func();
+}
+
+void Performance_FunctionPtr(void (*func)())
+{
+    func();
+}
+
+void Performance_Func()
+{
+}
+
+TEST(Function, Performance)
+{
+    benchmark::RegisterBenchmark("std::function", [](benchmark::State& state)
+    {
+        std::function func = []()
+        {
+        };
+        for (auto _ : state)
+        {
+            Performance_StdFunction(func);
+        }
+    });
+
+
+    benchmark::RegisterBenchmark("Lambda", [](benchmark::State& state)
+    {
+        for (auto _ : state)
+        {
+            Performance_FunctionPtr([]
+            {
+            });
+        }
+    });
+
+    benchmark::RegisterBenchmark("Function", [](benchmark::State& state)
+    {
+        for (auto _ : state)
+        {
+            Performance_FunctionPtr(Performance_Func);
+        }
+    });
+
+    benchmark::RunSpecifiedBenchmarks();
 }

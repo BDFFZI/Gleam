@@ -2,16 +2,17 @@
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightImport/Runtime/ModelImporter.h"
 #include "LightImport/Runtime/ShaderImporter.h"
-#include "LightMath/Runtime/Matrix4x4.h"
+#include "LightMath/Runtime/Matrix.hpp"
+#include "LightMath/Runtime/MatrixMath.hpp"
 #include "LightUtility/Runtime/Chronograph.h"
 
 using namespace LightRuntime;
 
 struct PushConstantBuffer
 {
-    alignas(16) Matrix4x4 objectToWorld;
-    alignas(16) Matrix4x4 worldToView;
-    alignas(16) Matrix4x4 viewToClip;
+    alignas(16) float4x4 objectToWorld;
+    alignas(16) float4x4 worldToView;
+    alignas(16) float4x4 viewToClip;
 };
 
 std::unique_ptr<Mesh> CreateMesh()
@@ -124,9 +125,9 @@ float4 FragmentShader(VertexOutput input):SV_Target
 }
 std::unique_ptr<Texture2D> CreateTexture2D()
 {
-    std::vector data(9, color::white);
-    data[4] = color::black;
-    return std::make_unique<Texture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, data.data(), sizeof color * data.size());
+    std::vector data(9, float4(1));
+    data[4] = float4(0);
+    return std::make_unique<Texture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, data.data(), sizeof float4 * data.size());
 }
 std::unique_ptr<Material> CreateMaterial(const std::unique_ptr<Shader>& shader, const std::unique_ptr<Texture2D>& texture)
 {
@@ -163,8 +164,8 @@ void main()
     chronograph.Tick();
 
     PushConstantBuffer pushConstantBuffer;
-    pushConstantBuffer.worldToView = Matrix4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1}).GetInverse();
-    pushConstantBuffer.viewToClip = Matrix4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f);
+    pushConstantBuffer.worldToView = inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1}));
+    pushConstantBuffer.viewToClip = float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -180,7 +181,7 @@ void main()
         commandBuffer.BeginRendering(nullptr, true);
         for (int i = 0; i < 4; ++i)
         {
-            pushConstantBuffer.objectToWorld = Matrix4x4::TRS(
+            pushConstantBuffer.objectToWorld = float4x4::TRS(
                 float3{0, 0, static_cast<float>(i) * 0.1f} + move[i] * fmod(static_cast<float>(chronograph.Time()) / 6000, 1.0f),
                 {-90, 0, 0},
                 static_cast<float>(i + 1) / 4.0f

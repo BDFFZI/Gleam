@@ -3,8 +3,7 @@
 
 #include "LightGL/Runtime/Pipeline/GLMeshLayout.h"
 #include "LightGL/Runtime/Resource/GLBuffer.h"
-#include "LightMath/Runtime/Color.hpp"
-#include "LightMath/Runtime/float4.h"
+#include "LightMath/Runtime/Vector.hpp"
 
 namespace LightRuntime
 {
@@ -26,7 +25,7 @@ namespace LightRuntime
         float3 normal;
         float4 tangent;
         float2 uv;
-        color color;
+        float4 color;
     };
 
     class Mesh : public MeshBase
@@ -48,7 +47,7 @@ namespace LightRuntime
         void GetNormals(std::vector<float3>& buffer) const;
         void GetTangents(std::vector<float4>& buffer) const;
         void GetUVs(std::vector<float2>& buffer) const;
-        void GetColors(std::vector<color>& buffer) const;
+        void GetColors(std::vector<float4>& buffer) const;
         void GetVertices(std::vector<Vertex>& buffer) const;
         void GetTriangles(std::vector<uint32_t>& buffer) const;
 
@@ -56,7 +55,7 @@ namespace LightRuntime
         void SetNormals(const std::vector<float3>& data);
         void SetTangents(const std::vector<float4>& data);
         void SetUVs(const std::vector<float2>& data);
-        void SetColors(const std::vector<color>& data);
+        void SetColors(const std::vector<float4>& data);
         void SetVertices(const std::vector<Vertex>& data);
         void SetTriangles(const std::vector<uint32_t>& data);
 

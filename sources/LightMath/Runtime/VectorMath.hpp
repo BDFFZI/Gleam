@@ -242,7 +242,7 @@ MakeVectorFunction_Cross3(Type)\
 MakeVectorFunction_Rotate3(Type)
 
 #define MakeVectorFunction_ToString(Type,Number)\
-std::string to_string(const vector<Type, Number>& a)\
+inline std::string to_string(const vector<Type, Number>& a)\
 {\
 std::string str = "(";\
 for (int i = 0; i < (Number); i++)\

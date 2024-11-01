@@ -4,6 +4,8 @@
 #include <tiny_obj_loader.h>
 #include <unordered_map>
 
+#include "LightMath/Runtime/VectorMath.hpp"
+
 using namespace LightRuntime;
 
 struct ObjVertex
@@ -13,7 +15,7 @@ struct ObjVertex
 
     bool operator==(const ObjVertex& other) const
     {
-        return pos == other.pos && texCoord == other.texCoord;
+        return all(pos == other.pos) && all(texCoord == other.texCoord);
     }
 };
 

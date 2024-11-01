@@ -29,14 +29,14 @@ constexpr matrix<Type, (Row) - 1, (Column) - 1> cofactor(const matrix<Type, Row,
     return cofactor;\
 }
 #define MakeMatrixFunction_CofactorDeterminant(Type,Row,Column)\
-Type cofactor_determinant(const matrix<Type, Row, Column>& m, const int row, const int column)\
+constexpr Type cofactor_determinant(const matrix<Type, Row, Column>& m, const int row, const int column)\
 {\
     int cofactorSign;\
     matrix<Type, (Row) - 1, (Column) - 1> c = cofactor(m, row, column, &cofactorSign);\
     return determinant(c) * static_cast<float>(cofactorSign);\
 }
 #define MakeMatrixFunction_CofactorMatrix(Type,Row,Column)\
-matrix<Type, Row, Column> cofactor_matrix(const matrix<Type, Row, Column>& m)\
+constexpr matrix<Type, Row, Column> cofactor_matrix(const matrix<Type, Row, Column>& m)\
 {\
     matrix<Type, Row, Column> cofactorMatrix;\
     for (int column = 0; column < (Column); column++)\
@@ -48,7 +48,7 @@ matrix<Type, Row, Column> cofactor_matrix(const matrix<Type, Row, Column>& m)\
     return cofactorMatrix;\
 }
 #define MakeMatrixFunction_Adjoint(Type,Row,Column)\
-matrix<Type, Row, Column> adjoint(const matrix<Type, Row, Column>& m)\
+constexpr matrix<Type, Row, Column> adjoint(const matrix<Type, Row, Column>& m)\
 {\
     return transpose(cofactor_matrix(m));\
 }
@@ -120,7 +120,7 @@ constexpr Type determinant(const matrix<Type, 4, 4>& m)
 }
 
 template <class Type>
-matrix<Type, 4, 4> inverse(const matrix<Type, 4, 4>& m)
+constexpr matrix<Type, 4, 4> inverse(const matrix<Type, 4, 4>& m)
 {
     Type determinant00 = cofactor_determinant(m, 0, 0);
     Type determinant10 = cofactor_determinant(m, 1, 0);
@@ -160,7 +160,7 @@ matrix<Type, 4, 4> inverse(const matrix<Type, 4, 4>& m)
 }
 
 template <class Type>
-matrix<Type, 3, 3> mul(const matrix<Type, 3, 3>& left, const matrix<Type, 3, 3>& right)
+constexpr matrix<Type, 3, 3> mul(const matrix<Type, 3, 3>& left, const matrix<Type, 3, 3>& right)
 {
     matrix<Type, 3, 3> matrix;
 
@@ -206,7 +206,7 @@ matrix<Type, 4, 4> mul(const matrix<Type, 4, 4>& left, const matrix<Type, 4, 4>&
     return matrix;
 }
 template <class Type>
-vector<Type, 4> mul(const matrix<Type, 4, 4>& left, const vector<Type, 4>& right)
+constexpr vector<Type, 4> mul(const matrix<Type, 4, 4>& left, const vector<Type, 4>& right)
 {
     return {
         left._m00 * right.x + left._m01 * right.y + left._m02 * right.z + left._m03 * right.w,

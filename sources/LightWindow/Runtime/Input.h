@@ -81,9 +81,9 @@ namespace LightRuntime
         static bool GetKey(KeyCode keyCode);
         static bool GetKeyUp(KeyCode keyCode);
 
-        static Vector2 GetMouseScrollDelta();
-        static Vector2 GetMousePosition();
-        static Vector2 GetMouseMoveDelta();
+        static float2 GetMouseScrollDelta();
+        static float2 GetMousePosition();
+        static float2 GetMouseMoveDelta();
 
     private:
         inline static std::stack<InputHandler> inputHandlers;
@@ -91,9 +91,9 @@ namespace LightRuntime
         inline static GLFWwindow* glfwWindow;
         inline static bool mouseButtonState[3][3];
         inline static bool keyboardState[349][3];
-        inline static Vector2 mouseScrollDelta[2];
-        inline static Vector2 mousePosition[2];
-        inline static Vector2 mousePositionDelta;
+        inline static float2 mouseScrollDelta[2];
+        inline static float2 mousePosition[2];
+        inline static float2 mousePositionDelta;
 
         friend Window;
         static void Initialize(GLFWwindow* glfwWindow);

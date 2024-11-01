@@ -2,8 +2,7 @@
 #include <string>
 #include <vector>
 
-#include "LightMath/Runtime/float4.h"
-#include "LightMath/Runtime/Color.hpp"
+#include "LightMath/Runtime/Vector.hpp"
 
 namespace LightRuntime
 {
@@ -13,7 +12,7 @@ namespace LightRuntime
         std::vector<float3> normals;
         std::vector<float4> tangents;
         std::vector<float2> uvs;
-        std::vector<color> colors;
+        std::vector<float4> colors;
         std::vector<uint32_t> triangles;
     };
 

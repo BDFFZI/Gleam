@@ -1,3 +1,5 @@
 add_subdirectory(HelloLight)
+add_subdirectory(MassSpring)
 
 set_target_properties(HelloLight PROPERTIES FOLDER LightSamples)
+set_target_properties(MassSpring PROPERTIES FOLDER LightSamples)
