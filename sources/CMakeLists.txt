@@ -4,8 +4,8 @@ macro(addModule)
 
     project(${ModuleName})
     file(GLOB_RECURSE ALL_FILE "README.md"
-        "Editor/**.cpp" "Editor/**.h"
-        "Runtime/**.cpp" "Runtime/**.h")
+        "Editor/**.cpp" "Editor/**.h" "Editor/**.hpp"
+        "Runtime/**.cpp" "Runtime/**.h" "Runtime/**.hpp")
     add_library(${ModuleName} STATIC "${ALL_FILE}")
 
     source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES "${ALL_FILE}")
@@ -46,4 +46,11 @@ foreach(ModulePath ${ModulePaths})
         add_subdirectory("${ModulePath}/Tests")
         set_target_properties("${ModuleName}Tests" PROPERTIES FOLDER LightTests)
     endif()
+
+    if(EXISTS "${ModulePath}/Assets")
+        file(COPY "${ModulePath}/Assets" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${ModuleName}")
+    endif()
+
+
+
 endforeach()

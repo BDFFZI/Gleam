@@ -1,9 +1,1 @@
-#include "Math.h"
-
-void CombineHash(size_t& seed, size_t hash)
-{
-    //复制的glm的
-
-    hash += 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    seed ^= hash;
-}
+﻿// Math模板是一个仅头文件的模块，这里放一个cpp仅是为了方便cmake能将其当作静态库，以便批量处理

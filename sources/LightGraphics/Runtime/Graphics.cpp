@@ -30,7 +30,7 @@ const std::unique_ptr<GLSwapChain>& Graphics::GetGLSwapChain()
 {
     return glSwapChain;
 }
-Vector2 Graphics::GetGLSwapChainExtent()
+float2 Graphics::GetGLSwapChainExtent()
 {
     return glSwapChainExtent;
 }

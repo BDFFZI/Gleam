@@ -2,18 +2,17 @@
 #include <string>
 #include <vector>
 
-#include "LightMath/Runtime/Vector4.h"
-#include "LightMath/Runtime/Color.h"
+#include "LightMath/Runtime/Vector.hpp"
 
 namespace LightRuntime
 {
     struct RawMesh
     {
-        std::vector<Vector3> positions;
-        std::vector<Vector3> normals;
-        std::vector<Vector4> tangents;
-        std::vector<Vector2> uvs;
-        std::vector<Color> colors;
+        std::vector<float3> positions;
+        std::vector<float3> normals;
+        std::vector<float4> tangents;
+        std::vector<float2> uvs;
+        std::vector<float4> colors;
         std::vector<uint32_t> triangles;
     };
 

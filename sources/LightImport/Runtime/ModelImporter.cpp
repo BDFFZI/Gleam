@@ -4,16 +4,18 @@
 #include <tiny_obj_loader.h>
 #include <unordered_map>
 
+#include "LightMath/Runtime/VectorMath.hpp"
+
 using namespace LightRuntime;
 
 struct ObjVertex
 {
-    Vector3 pos;
-    Vector2 texCoord;
+    float3 pos;
+    float2 texCoord;
 
     bool operator==(const ObjVertex& other) const
     {
-        return pos == other.pos && texCoord == other.texCoord;
+        return all(pos == other.pos) && all(texCoord == other.texCoord);
     }
 };
 
@@ -22,7 +24,7 @@ struct std::hash<ObjVertex>
 {
     size_t operator()(ObjVertex const& vertex) const noexcept
     {
-        return hash<Vector3>()(vertex.pos) >> 1 ^ hash<Vector2>()(vertex.texCoord) << 1;
+        return hash<float3>()(vertex.pos) >> 1 ^ hash<float2>()(vertex.texCoord) << 1;
     }
 };
 

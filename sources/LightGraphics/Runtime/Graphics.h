@@ -14,7 +14,7 @@ namespace LightRuntime
         static void UnInitialize();
 
         static const std::unique_ptr<GLSwapChain>& GetGLSwapChain();
-        static Vector2 GetGLSwapChainExtent();
+        static float2 GetGLSwapChainExtent();
         static VkFormat GetPresentColorFormat();
         static VkFormat GetPresentDepthStencilFormat();
         static VkSampleCountFlagBits GetPresentSampleCount();
@@ -45,7 +45,7 @@ namespace LightRuntime
     private:
         inline static std::unique_ptr<GLSwapChain> glSwapChain = {};
         inline static size_t glSwapChainBufferCount = {};
-        inline static Vector2 glSwapChainExtent = {};
+        inline static float2 glSwapChainExtent = {};
 
         inline static VkSurfaceFormatKHR surfaceFormat = {};
         inline static VkPresentModeKHR presentMode = {};
