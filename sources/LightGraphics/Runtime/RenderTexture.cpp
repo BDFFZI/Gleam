@@ -1,6 +1,6 @@
 ﻿#include "RenderTexture.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
 RenderTexture::RenderTexture(const int width, const int height, const VkFormat colorFormat, const VkFormat depthFormat, const VkSampleCountFlagBits sampleCount)
     : width(width), height(height)

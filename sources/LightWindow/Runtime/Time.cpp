@@ -2,7 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
-using namespace LightRuntime;
+using namespace Light;
 
 void Time::Update()
 {

@@ -30,6 +30,19 @@ public:
     void BeginRenderPass(const GLRenderPass& glRenderPass, const GLFramebuffer& glFramebuffer) const;
     void EndRenderPass() const;
 
+    /**
+     * @brief 开始一段动态渲染
+     *
+     * 动态渲染是不需要创建 @c GLRenderPass 的渲染方式，其不支持多Pass功能，但创建 @c GLPipeline 也不再需要@c GLRenderPass 。<br/>
+     * 由于@c GLPipeline 保存了管线状态信息，因此每个着色器（封装后的）都会有单独一个管线实例。如果使用基于Pass的渲染方式，则还都必须额外创建一个 @c GLRenderPass 。
+     * 相比之下采用动态渲染方案则简单的多。
+     * 
+     * @param renderArea 
+     * @param clearColor 
+     * @param colorView 
+     * @param depthStencilView 
+     * @param colorResolveView 
+     */
     void BeginRendering(
         VkRect2D renderArea, bool clearColor,
         const GLImageView& colorView, const GLImageView* depthStencilView, const GLImageView* colorResolveView

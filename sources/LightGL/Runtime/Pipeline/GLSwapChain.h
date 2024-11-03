@@ -15,6 +15,8 @@ public:
     static VkSurfaceFormatKHR PickSwapSurfaceFormat(VkSurfaceFormatKHR desiredSurfaceFormat);
     static VkPresentModeKHR PickSwapPresentMode(VkPresentModeKHR desiredPresentMode);
 
+    uint32_t minImageCount;
+    uint32_t imageCount;
     VkSwapchainKHR swapChain = VK_NULL_HANDLE;
     std::vector<VkImage> images = {};
     VkExtent2D imageExtent = {};

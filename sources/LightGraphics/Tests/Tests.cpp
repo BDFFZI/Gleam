@@ -6,7 +6,7 @@
 #include "LightMath/Runtime/MatrixMath.hpp"
 #include "LightUtility/Runtime/Chronograph.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
 struct PushConstantBuffer
 {
@@ -146,7 +146,8 @@ void main()
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 
-    Graphics::Initialize(window);
+    GL gl = GL::Initialize(window);
+    Graphics::Initialize(gl, window);
 
     auto mesh = CreateMesh();
     auto shader = CreateShader();
@@ -199,5 +200,11 @@ void main()
         Graphics::ReleaseCommandBuffer(commandBuffer);
     }
 
+    material.reset();
+    texture.reset();
+    shader.reset();
+    mesh.reset();
+
     Graphics::UnInitialize();
+    GL::UnInitialize();
 }

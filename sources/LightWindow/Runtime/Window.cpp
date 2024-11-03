@@ -5,7 +5,7 @@
 #include "Input.h"
 #include "Time.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
 void Window::SetWindowCloseEvent(const std::function<bool()>& windowCloseEvent)
 {
@@ -36,12 +36,13 @@ void Window::SetWindowUpdateEvent(const std::function<void()>& windowUpdateEvent
     Window::windowUpdateEvent = windowUpdateEvent;
 }
 
-void Window::Initialize()
+Window Window::Initialize(const char* name, const int clientAPI)
 {
     if (!glfwInit())
         throw std::exception("窗口初始化失败");
 
-    glfwWindow = glfwCreateWindow(648, 480, "Hello Light", nullptr, nullptr);
+    glfwWindowHint(GLFW_CLIENT_API, clientAPI);
+    glfwWindow = glfwCreateWindow(648, 480, name, nullptr, nullptr);
     if (!glfwWindow)
     {
         glfwTerminate();
@@ -49,11 +50,11 @@ void Window::Initialize()
     }
 
     Input::Initialize(glfwWindow);
-}
-void Window::Begin()
-{
-    glfwMakeContextCurrent(glfwWindow);
 
+    return {};
+}
+void Window::Start()
+{
     //启动窗口
     windowBeginEvent();
 
@@ -67,8 +68,6 @@ void Window::Begin()
 
             //更新窗口
             windowUpdateEvent();
-
-            glfwSwapBuffers(glfwWindow);
         }
 
         //确定关闭
@@ -80,10 +79,10 @@ void Window::Begin()
     windowEndEvent();
 
     glfwDestroyWindow(glfwWindow);
-    
+
     glfwTerminate();
 }
-void Window::End()
+void Window::Stop()
 {
     glfwSetWindowShouldClose(glfwWindow,GLFW_TRUE);
 }

@@ -7,6 +7,14 @@
     "glfw3",
     "shaderc",
     "stb",
-    "tinyobjloader"
+    "tinyobjloader",
+    {
+      "name": "imgui",
+      "features": [
+        "docking-experimental",
+        "vulkan-binding",
+        "glfw-binding"
+      ]
+    }
   ]
 }

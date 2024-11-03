@@ -103,7 +103,7 @@ GLSwapChain::GLSwapChain(const VkSurfaceFormatKHR surfaceFormat, const VkPresent
     const VkSurfaceCapabilitiesKHR surfaceCapabilities = QuerySurfaceCapabilitySupport();
 
     const VkExtent2D extent = ChooseSwapExtent(surfaceCapabilities, GL::glSurface->window);
-    uint32_t minImageCount = surfaceCapabilities.minImageCount + 1;
+    minImageCount = surfaceCapabilities.minImageCount + 1;
     if (surfaceCapabilities.maxImageCount > 0 && minImageCount > surfaceCapabilities.maxImageCount)
         minImageCount = surfaceCapabilities.maxImageCount;
 
@@ -143,7 +143,6 @@ GLSwapChain::GLSwapChain(const VkSurfaceFormatKHR surfaceFormat, const VkPresent
         throw std::runtime_error("创建交换链失败！");
 
     //提取出交换链中的图片
-    uint32_t imageCount;
     vkGetSwapchainImagesKHR(vkDevice, swapChain, &imageCount, nullptr);
     images.resize(imageCount);
     vkGetSwapchainImagesKHR(vkDevice, swapChain, &imageCount, images.data());

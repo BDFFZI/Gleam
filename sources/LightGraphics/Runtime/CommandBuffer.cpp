@@ -2,7 +2,7 @@
 
 #include "Graphics.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
 GLCommandBuffer& CommandBuffer::GetGLCommandBuffer()
 {

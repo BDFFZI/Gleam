@@ -5,7 +5,7 @@
 #include <GLFW/glfw3.h>
 #include "LightMath/Runtime/VectorMath.hpp"
 
-namespace LightRuntime
+namespace Light
 {
     enum class KeyCode:uint16_t
     {

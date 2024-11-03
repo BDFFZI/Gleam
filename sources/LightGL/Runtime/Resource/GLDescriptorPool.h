@@ -8,7 +8,7 @@ class GLDescriptorPool
 public:
     VkDescriptorPool descriptorPool;
 
-    GLDescriptorPool(const GLDescriptorSetLayout& descriptorSetLayout, int descriptorSetCount);
+    GLDescriptorPool(const GLDescriptorSetLayout& descriptorSetLayout, int descriptorSetCount, VkDescriptorPoolCreateFlags createFlags = 0);
     GLDescriptorPool(const GLDescriptorPool&) = delete;
     ~GLDescriptorPool();
 };

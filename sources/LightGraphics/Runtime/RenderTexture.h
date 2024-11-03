@@ -3,7 +3,7 @@
 
 #include "LightGL/Runtime/Resource/GLImageView.h"
 
-namespace LightRuntime
+namespace Light
 {
     class RenderTexture
     {

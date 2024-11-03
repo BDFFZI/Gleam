@@ -7,7 +7,7 @@
 
 #include "ObjectPool.h"
 
-namespace LightRuntime
+namespace Light
 {
     class Worker
     {

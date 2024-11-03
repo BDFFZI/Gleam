@@ -8,7 +8,7 @@
 #include "LightUtility/Runtime/ObjectPool.h"
 #include "LightUtility/Runtime/ThreadPool.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
 TEST(Utility, ObjectPool)
 {

@@ -1,6 +1,6 @@
 ﻿#include "Input.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
 
 void Input::PushInputHandler(const InputHandler& inputHandler)

@@ -5,7 +5,7 @@
 #include "LightWindow/Runtime/Time.h"
 #include "LightWindow/Runtime/Window.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
 //TODO：发现问题：长按检测有延迟，鼠标不支持长按
 void main()
@@ -55,5 +55,5 @@ void main()
         }
     });
 
-    Window::Begin();
+    Window::Start();
 }

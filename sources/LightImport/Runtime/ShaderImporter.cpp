@@ -17,7 +17,7 @@ std::vector<std::byte> GetCompilationResult(const shaderc::SpvCompilationResult&
     return bytecode;
 }
 
-using namespace LightRuntime;
+using namespace Light;
 
 std::vector<std::byte> ShaderImporter::ImportHlsl(const shaderc_shader_kind type, const std::string& code, const std::string& entryPoint)
 {

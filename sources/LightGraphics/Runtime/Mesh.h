@@ -5,7 +5,7 @@
 #include "LightGL/Runtime/Resource/GLBuffer.h"
 #include "LightMath/Runtime/Vector.hpp"
 
-namespace LightRuntime
+namespace Light
 {
     class MeshBase
     {

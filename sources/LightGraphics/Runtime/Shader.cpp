@@ -3,7 +3,7 @@
 #include "Graphics.h"
 #include "Mesh.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
 Shader::Shader(
     const std::vector<GLShader>& shaderLayout,

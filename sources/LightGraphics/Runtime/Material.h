@@ -4,7 +4,7 @@
 #include "Texture2D.h"
 #include "LightGL/Runtime/Resource/GLDescriptorSet.h"
 
-namespace LightRuntime
+namespace Light
 {
     class Material
     {

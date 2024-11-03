@@ -12,7 +12,7 @@
 #include "LightMath/Runtime/Matrix.hpp"
 #include "LightMath/Runtime/MatrixMath.hpp"
 
-using namespace LightRuntime;
+using namespace Light;
 
 struct Vertex
 {
@@ -321,15 +321,17 @@ void main()
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 
     GL::Initialize(window);
-    GLTester glTester = {};
-
-    while (!glfwWindowShouldClose(window))
     {
-        glfwPollEvents();
+        GLTester glTester = {};
+        while (!glfwWindowShouldClose(window))
+        {
+            glfwPollEvents();
 
-        //逻辑处理
+            //逻辑处理
 
-        glTester.WaitDrawFrame();
-        glTester.DrawFrame();
+            glTester.WaitDrawFrame();
+            glTester.DrawFrame();
+        }
     }
+    GL::UnInitialize();
 }

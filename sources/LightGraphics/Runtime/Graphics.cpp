@@ -2,12 +2,10 @@
 
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
-void Graphics::Initialize(GLFWwindow* window)
+Graphics Graphics::Initialize(GL&, GLFWwindow* window)
 {
-    GL::Initialize(window);
-
     surfaceFormat = GLSwapChain::PickSwapSurfaceFormat({VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR});
     presentMode = GLSwapChain::PickSwapPresentMode(VK_PRESENT_MODE_MAILBOX_KHR);
 
@@ -20,10 +18,21 @@ void Graphics::Initialize(GLFWwindow* window)
     presentCommandBuffers.resize(glSwapChainBufferCount);
     for (size_t i = 0; i < glSwapChainBufferCount; ++i)
         presentCommandBuffers[i] = std::make_unique<GLCommandBuffer>();
+
+    return {};
 }
 void Graphics::UnInitialize()
 {
     vkDeviceWaitIdle(GL::glDevice->device);
+    commandBufferPool = {};
+    for (auto& element : presentCommandBuffers)
+        element.reset();
+    presentCommandBuffers.clear();
+    presentColorImageView.reset();
+    presentDepthStencilImageView.reset();
+    presentColorImage.reset();
+    presentDepthStencilImage.reset();
+    glSwapChain.reset();
 }
 
 const std::unique_ptr<GLSwapChain>& Graphics::GetGLSwapChain()

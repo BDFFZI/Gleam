@@ -4,7 +4,7 @@
 #include <memory>
 #include <stdexcept>
 
-namespace LightRuntime
+namespace Light
 {
     template <class TObject, auto... Args>
     class ObjectPool

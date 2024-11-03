@@ -6,7 +6,7 @@
 #include "RenderTexture.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 
-namespace LightRuntime
+namespace Light
 {
     class CommandBuffer
     {

@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace LightRuntime
+namespace Light
 {
     struct RawImage
     {

@@ -4,7 +4,7 @@
 
 #include "LightMath/Runtime/Vector.hpp"
 
-namespace LightRuntime
+namespace Light
 {
     struct RawMesh
     {

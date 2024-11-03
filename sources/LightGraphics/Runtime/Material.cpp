@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-using namespace LightRuntime;
+using namespace Light;
 
 Material::Material(Shader& shader): shader(&shader)
 {

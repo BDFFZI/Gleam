@@ -1,7 +1,7 @@
 #pragma once
 #include <chrono>
 
-namespace LightRuntime
+namespace Light
 {
     template <class TUnit = std::chrono::milliseconds>
     class Chronograph

@@ -51,14 +51,14 @@ void GLCommandBuffer::BeginRecording(const VkCommandBufferUsageFlags flags)
     VkCommandBufferInheritanceInfo inheritanceInfo{};
     inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
     beginInfo.pInheritanceInfo = level == VK_COMMAND_BUFFER_LEVEL_SECONDARY ? &inheritanceInfo : nullptr;
-    
+
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
         throw std::runtime_error("开始命令录制失败!");
 }
 void GLCommandBuffer::EndRecording() const
 {
     //真正提交命令，并检查命令是否错误
-    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+    if (const auto result = vkEndCommandBuffer(commandBuffer); result != VK_SUCCESS)
         throw std::runtime_error("命令录制失败!");
 }
 
@@ -311,7 +311,7 @@ void GLCommandBuffer::ExecuteCommandBufferAsync(const std::vector<VkPipelineStag
     //完成后需要发出的信号量
     submitInfo.pSignalSemaphores = signalSemaphores.data();
     submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
-    if (vkQueueSubmit(GL::glDevice->graphicQueue, 1, &submitInfo, fence) != VK_SUCCESS)
+    if (const auto result = vkQueueSubmit(GL::glDevice->graphicQueue, 1, &submitInfo, fence); result != VK_SUCCESS)
         throw std::runtime_error("无法提交命令缓冲区!");
 
     executing = true;

@@ -6,7 +6,7 @@
 
 #include "LightMath/Runtime/VectorMath.hpp"
 
-using namespace LightRuntime;
+using namespace Light;
 
 struct ObjVertex
 {

@@ -1,6 +1,6 @@
 ﻿#include "Mesh.h"
 
-namespace LightRuntime
+namespace Light
 {
     const GLMeshLayout& Mesh::GetMeshLayout()
     {

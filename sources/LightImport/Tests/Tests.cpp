@@ -1,6 +1,6 @@
 #include "LightImport/Runtime/ShaderImporter.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
 void main()
 {

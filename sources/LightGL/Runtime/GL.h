@@ -8,10 +8,14 @@
 class GL
 {
 public:
-    static void Initialize(GLFWwindow* window);
+    static GL Initialize(GLFWwindow* window);
+    static void UnInitialize();
 
     inline static std::unique_ptr<GLInstance> glInstance = {};
     inline static std::unique_ptr<GLSurface> glSurface = {};
     inline static std::unique_ptr<GLDevice> glDevice = {};
     inline static std::unique_ptr<GLCommandPool> glCommandPool = {};
+
+private:
+    GL() = default;
 };

@@ -3,7 +3,7 @@
 #include <vector>
 #include <shaderc/shaderc.hpp>
 
-namespace LightRuntime
+namespace Light
 {
     /**
      * https://www.khronos.org/assets/uploads/developers/library/2016-vulkan-devu-seoul/3-Making-SPIR-V-Modules.pdf

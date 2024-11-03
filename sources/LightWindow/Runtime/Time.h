@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-namespace LightRuntime
+namespace Light
 {
     class Window;
     class Time

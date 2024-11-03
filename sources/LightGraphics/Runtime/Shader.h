@@ -6,7 +6,7 @@
 #include "LightGL/Runtime/Pipeline/GLShader.h"
 #include "LightGL/Runtime/Resource/GLDescriptorPool.h"
 
-namespace LightRuntime
+namespace Light
 {
     class Shader
     {
