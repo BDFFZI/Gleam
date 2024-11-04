@@ -2,15 +2,10 @@
 #include <ostream>
 #include <benchmark/benchmark.h>
 #include <gtest/gtest.h>
-
+#include "LightECS/Runtime/Archetype.hpp"
+#include "LightECS/Runtime/EntitySet.h"
 #include "LightECS/Runtime/Heap.h"
-#include "LightECS/Runtime/World.h"
-#include <stdarg.h>
-#include <unordered_set>
-
-#include "LightECS/Runtime/System.h"
-#include "LightUtility/Runtime/Chronograph.h"
-
+#include "LightECS/Runtime/View.hpp"
 
 struct Transform
 {
@@ -169,11 +164,11 @@ TEST(ECS, Archetype)
 
 TEST(ECS, WorldAndView)
 {
-    World world;
-    world.AddEntities(physicsWithSpringArchetypeID, 1);
+    EntitySet entitySet;
+    entitySet.AddEntities(physicsWithSpringArchetypeID, 1);
 
     View<Transform, RigidBody, Spring> view;
-    view.Each(world, [](auto& transform, auto& rigidBody, auto& spring)
+    view.Each(entitySet, [](auto& transform, auto& rigidBody, auto& spring)
     {
         ASSERT_EQ(transform, Transform());
         ASSERT_EQ(rigidBody, RigidBody());
@@ -181,13 +176,13 @@ TEST(ECS, WorldAndView)
     });
 }
 
-class PhysicsSystem : public System
+class PhysicsSystem
 {
     //质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
 public:
     float deltaTime;
 
-    void Update(World& world) const override
+    void Update(EntitySet& world) const
     {
         View<Transform, RigidBody> physicalEntities = {};
         physicalEntities.Each(world, [deltaTime = deltaTime](Transform& transform, RigidBody& rigidBody)
@@ -214,11 +209,11 @@ public:
 
 TEST(ECS, System)
 {
-    World world;
+    EntitySet world;
     for (int i = 0; i < 10; i++)
         world.AddEntity(i % 2 == 0 ? physicsArchetypeID : physicsWithSpringArchetypeID);
 
-    PhysicsSystem physicsSystem = {};
+    PhysicsSystem physicsSystem;
     physicsSystem.deltaTime = 0.02f;
 
     std::stringstream log;

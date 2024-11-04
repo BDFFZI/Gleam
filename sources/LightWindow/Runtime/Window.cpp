@@ -7,26 +7,26 @@
 
 using namespace Light;
 
-void Window::SetWindowCloseEvent(const std::function<bool()>& windowCloseEvent)
+void Window::SetWindowStopConfirm(const std::function<bool()>& windowStopConfirm)
 {
-    if (windowCloseEvent == nullptr)
+    if (windowStopConfirm == nullptr)
         throw std::exception("事件为空");
 
-    Window::windowCloseEvent = windowCloseEvent;
+    Window::windowStopConfirm = windowStopConfirm;
 }
-void Window::SetWindowBeginEvent(const std::function<void()>& windowBeginEvent)
+void Window::SetWindowStartEvent(const std::function<void()>& windowBeginEvent)
 {
     if (windowBeginEvent == nullptr)
         throw std::exception("事件为空");
 
-    Window::windowBeginEvent = windowBeginEvent;
+    Window::windowStartEvent = windowBeginEvent;
 }
-void Window::SetWindowEndEvent(const std::function<void()>& windowEndEvent)
+void Window::SetWindowStopEvent(const std::function<void()>& windowEndEvent)
 {
     if (windowEndEvent == nullptr)
         throw std::exception("事件为空");
 
-    Window::windowEndEvent = windowEndEvent;
+    Window::windowStopEvent = windowEndEvent;
 }
 void Window::SetWindowUpdateEvent(const std::function<void()>& windowUpdateEvent)
 {
@@ -56,7 +56,7 @@ Window Window::Initialize(const char* name, const int clientAPI)
 void Window::Start()
 {
     //启动窗口
-    windowBeginEvent();
+    windowStartEvent();
 
     do
     {
@@ -71,12 +71,12 @@ void Window::Start()
         }
 
         //确定关闭
-        glfwSetWindowShouldClose(glfwWindow, windowCloseEvent() ? GLFW_TRUE : GLFW_FALSE);
+        glfwSetWindowShouldClose(glfwWindow, windowStopConfirm() ? GLFW_TRUE : GLFW_FALSE);
     }
     while (!glfwWindowShouldClose(glfwWindow));
 
     //关闭窗口
-    windowEndEvent();
+    windowStopEvent();
 
     glfwDestroyWindow(glfwWindow);
 

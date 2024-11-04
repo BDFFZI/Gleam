@@ -14,7 +14,7 @@ namespace Light
         abort();
     }
 
-    UI UI::Initialize(Graphics&, GLFWwindow* window)
+    UI UI::Initialize(Graphics&)
     {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -40,7 +40,7 @@ namespace Light
 
         // Setup Platform/Renderer backends
 
-        ImGui_ImplGlfw_InitForVulkan(window, true);
+        ImGui_ImplGlfw_InitForVulkan(GL::glfwWindow, true);
         ImGui_ImplVulkan_InitInfo initInfo = {};
         initInfo.Instance = GL::glInstance->instance;
         initInfo.PhysicalDevice = GL::glDevice->physicalDevice;

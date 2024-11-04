@@ -5,6 +5,16 @@
 
 namespace Light
 {
+    class RenderTextureBase
+    {
+        virtual ~RenderTextureBase() = default;
+        virtual const std::unique_ptr<GLImageView>& GetGLColorImageView() const = 0;
+        virtual const std::unique_ptr<GLImageView>& GetGLDepthStencilImageView() const = 0;
+        virtual const std::unique_ptr<GLImageView>& GetGLColorResolveImageView() const = 0;
+        virtual const std::unique_ptr<GLImage>& GetGLColorImage() const = 0;
+        virtual const std::unique_ptr<GLImage>& GetGLDepthStencilImage() const = 0;
+    };
+
     class RenderTexture
     {
     public:

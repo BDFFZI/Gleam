@@ -104,3 +104,7 @@ void CommandBuffer::Draw(const MeshBase& mesh, const Material& material)
 
     glCommandBuffer.DrawIndexed(mesh.GetIndexCount());
 }
+void CommandBuffer::ClearRenderTexture(float4 color, float depth)
+{
+    glCommandBuffer.ClearColorImage(Graphics::GetPresentColorImageView())
+}

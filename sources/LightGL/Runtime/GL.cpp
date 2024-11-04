@@ -11,6 +11,7 @@ GL GL::Initialize(GLFWwindow* window)
     validationLayers = {};
 #endif
 
+    glfwWindow = window;
     glInstance = std::make_unique<GLInstance>(validationLayers);
     glSurface = std::make_unique<GLSurface>(*glInstance, window);
     glDevice = std::make_unique<GLDevice>(*glInstance, *glSurface);

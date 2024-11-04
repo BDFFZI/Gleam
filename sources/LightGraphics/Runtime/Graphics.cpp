@@ -4,7 +4,7 @@
 
 using namespace Light;
 
-Graphics Graphics::Initialize(GL&, GLFWwindow* window)
+Graphics Graphics::Initialize(GL&)
 {
     surfaceFormat = GLSwapChain::PickSwapSurfaceFormat({VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR});
     presentMode = GLSwapChain::PickSwapPresentMode(VK_PRESENT_MODE_MAILBOX_KHR);
@@ -18,15 +18,14 @@ Graphics Graphics::Initialize(GL&, GLFWwindow* window)
     presentCommandBuffers.resize(glSwapChainBufferCount);
     for (size_t i = 0; i < glSwapChainBufferCount; ++i)
         presentCommandBuffers[i] = std::make_unique<GLCommandBuffer>();
+    paintCommandBufferPool = std::make_unique<ObjectPool<CommandBuffer>>();
 
     return {};
 }
 void Graphics::UnInitialize()
 {
     vkDeviceWaitIdle(GL::glDevice->device);
-    commandBufferPool = {};
-    for (auto& element : presentCommandBuffers)
-        element.reset();
+    paintCommandBufferPool.reset();
     presentCommandBuffers.clear();
     presentColorImageView.reset();
     presentDepthStencilImageView.reset();
@@ -67,19 +66,18 @@ VkSampleCountFlagBits Graphics::GetPresentSampleCount()
 {
     return presentSampleCount;
 }
-
 CommandBuffer& Graphics::GetCommandBuffer(const std::string& name)
 {
-    return commandBufferPool.Get();
+    return paintCommandBufferPool->Get();
 }
 void Graphics::ReleaseCommandBuffer(CommandBuffer& commandBuffer)
 {
-    commandBufferPool.Release(commandBuffer);
+    paintCommandBufferPool->Release(commandBuffer);
 }
 
 void Graphics::WaitPresentable()
 {
-    presentCommandBuffers[glSwapChain->GetCurrentBufferIndex()]->WaitExecutionFinish();
+    presentCommandBuffers[glSwapChain->GetCurrentBufferIndex()]->WaitSubmissionFinish();
 }
 void Graphics::PresentAsync(CommandBuffer& commandBuffer)
 {
@@ -102,7 +100,7 @@ void Graphics::PresentAsync(CommandBuffer& commandBuffer)
     //添加命令
     GLCommandBuffer& primaryCommandBuffer = *presentCommandBuffers[imageIndex];
     primaryCommandBuffer.BeginRecording();
-    primaryCommandBuffer.ExecuteCommands(commandBuffer.GetGLCommandBuffer());
+    primaryCommandBuffer.ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
     primaryCommandBuffer.TransitionImageLayout(
         glSwapChain->images[imageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
@@ -111,7 +109,7 @@ void Graphics::PresentAsync(CommandBuffer& commandBuffer)
     primaryCommandBuffer.EndRecording();
 
     //提交命令
-    primaryCommandBuffer.ExecuteCommandBufferAsync(
+    primaryCommandBuffer.SubmitCommandsAsync(
         {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT}, //在颜色输出阶段要进行等待
         {imageAvailable}, //等待到交换链的下一张图片可用时继续
         {renderFinishedSemaphores} //完成后发出渲染完成信号量
@@ -121,7 +119,7 @@ void Graphics::PresentAsync(CommandBuffer& commandBuffer)
 }
 void Graphics::WaitPresent()
 {
-    presentCommandBuffers[(glSwapChainBufferCount + glSwapChain->GetCurrentBufferIndex() - 1) % glSwapChainBufferCount]->WaitExecutionFinish();
+    presentCommandBuffers[(glSwapChainBufferCount + glSwapChain->GetCurrentBufferIndex() - 1) % glSwapChainBufferCount]->WaitSubmissionFinish();
 }
 
 

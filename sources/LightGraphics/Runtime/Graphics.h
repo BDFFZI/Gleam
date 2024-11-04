@@ -10,7 +10,7 @@ namespace Light
     class Graphics
     {
     public:
-        static Graphics Initialize(GL&, GLFWwindow* window);
+        static Graphics Initialize(GL&);
         static void UnInitialize();
 
         static const std::unique_ptr<GLSwapChain>& GetGLSwapChain();
@@ -48,7 +48,6 @@ namespace Light
         static void WaitPresent();
 
     private:
-        inline static std::unique_ptr<GLSwapChain> glSwapChain = {};
         inline static size_t glSwapChainBufferCount = {};
         inline static float2 glSwapChainExtent = {};
 
@@ -58,13 +57,14 @@ namespace Light
         inline static VkFormat presentDepthStencilFormat = {};
         inline static VkSampleCountFlagBits presentSampleCount = {};
 
-        inline static std::vector<std::unique_ptr<GLCommandBuffer>> presentCommandBuffers;
+        inline static std::vector<std::unique_ptr<GLCommandBuffer>> presentCommandBuffers; //传输呈现命令用的主缓冲区
+        inline static std::unique_ptr<ObjectPool<CommandBuffer>> paintCommandBufferPool = {}; //供用户记录绘制命令的缓冲区
+        inline static std::unique_ptr<GLSwapChain> glSwapChain = {};
         inline static std::unique_ptr<GLImage> presentColorImage = {};
         inline static std::unique_ptr<GLImage> presentDepthStencilImage = {};
         inline static std::unique_ptr<GLImageView> presentColorImageView = {}; //颜色或颜色解析视图
         inline static std::unique_ptr<GLImageView> presentDepthStencilImageView = {};
 
-        inline static ObjectPool<CommandBuffer> commandBufferPool = {};
 
         static void CreateSwapChain();
 

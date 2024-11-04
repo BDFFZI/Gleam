@@ -25,6 +25,7 @@ namespace Light
         void SetViewport(float x, float y, float width, float height) const;
         void PushConstant(const Shader& shader, int slotIndex, void* data) const;
         void Draw(const MeshBase& mesh, const Material& material);
+        void ClearRenderTexture(float4 color = 0, float depth = 0);
 
     private:
         inline static std::stack<CommandBuffer*> commandBufferPool = {};

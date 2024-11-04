@@ -11,11 +11,11 @@ void GLCommandBuffer::ExecuteSingleTimeCommands(const std::function<void(const G
     glCommandBuffer.BeginRecording(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     setCommands(glCommandBuffer);
     glCommandBuffer.EndRecording();
-    glCommandBuffer.ExecuteCommandBuffer();
+    glCommandBuffer.SubmitCommands();
 }
 
 GLCommandBuffer::GLCommandBuffer(const VkCommandBufferLevel level)
-    : level(level), executing(false)
+    : level(level), isSubmitting(false)
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -28,19 +28,19 @@ GLCommandBuffer::GLCommandBuffer(const VkCommandBufferLevel level)
 
     VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    if (vkCreateFence(GL::glDevice->device, &fenceInfo, nullptr, &fence) != VK_SUCCESS)
+    if (vkCreateFence(GL::glDevice->device, &fenceInfo, nullptr, &submissionFence) != VK_SUCCESS)
         throw std::runtime_error("创建信号围栏失败!");
 }
 GLCommandBuffer::~GLCommandBuffer()
 {
     vkFreeCommandBuffers(GL::glDevice->device, GL::glCommandPool->commandPool, 1, &commandBuffer);
-    vkDestroyFence(GL::glDevice->device, fence, nullptr);
+    vkDestroyFence(GL::glDevice->device, submissionFence, nullptr);
 }
 
 void GLCommandBuffer::BeginRecording(const VkCommandBufferUsageFlags flags)
 {
     //确保处于可用状态
-    WaitExecutionFinish();
+    WaitSubmissionFinish();
     //清除原内容
     vkResetCommandBuffer(commandBuffer, 0);
     //开始命令录制
@@ -286,17 +286,44 @@ void GLCommandBuffer::SetScissor(const VkOffset2D offset, const VkExtent2D exten
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
+void GLCommandBuffer::ClearColorImage(const GLImage& glImage, float color[4]) const
+{
+    VkClearColorValue colorValue;
+    std::memcpy(colorValue.float32, color, sizeof(float) * 4);
+    VkImageSubresourceRange subresourceRange;
+    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = 1;
+    subresourceRange.baseArrayLayer = 0;
+    subresourceRange.layerCount = 1;
+
+    vkCmdClearColorImage(commandBuffer, glImage.image, glImage.layout, &colorValue, 1, &subresourceRange);
+}
+void GLCommandBuffer::ClearDepthStencilImage(const GLImage& glImage, const float depth, const uint32_t stencil) const
+{
+    VkClearDepthStencilValue depthStencilValue;
+    depthStencilValue.depth = depth;
+    depthStencilValue.stencil = stencil;
+    VkImageSubresourceRange subresourceRange;
+    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = 1;
+    subresourceRange.baseArrayLayer = 0;
+    subresourceRange.layerCount = 1;
+
+    vkCmdClearDepthStencilImage(commandBuffer, glImage.image, glImage.layout, &depthStencilValue, 1, &subresourceRange);
+}
 void GLCommandBuffer::DrawIndexed(const int indicesCount) const
 {
     vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
 }
-void GLCommandBuffer::ExecuteCommands(const GLCommandBuffer& subCommandBuffer) const
+void GLCommandBuffer::ExecuteSubCommands(const GLCommandBuffer& subCommandBuffer) const
 {
     vkCmdExecuteCommands(commandBuffer, 1, &subCommandBuffer.commandBuffer);
 }
 
-void GLCommandBuffer::ExecuteCommandBufferAsync(const std::vector<VkPipelineStageFlags>& waitStages, const std::vector<VkSemaphore>& waitSemaphores,
-                                                const std::vector<VkSemaphore>& signalSemaphores)
+void GLCommandBuffer::SubmitCommandsAsync(const std::vector<VkPipelineStageFlags>& waitStages, const std::vector<VkSemaphore>& waitSemaphores,
+                                          const std::vector<VkSemaphore>& signalSemaphores)
 {
     //提交命令
     VkSubmitInfo submitInfo{};
@@ -311,22 +338,22 @@ void GLCommandBuffer::ExecuteCommandBufferAsync(const std::vector<VkPipelineStag
     //完成后需要发出的信号量
     submitInfo.pSignalSemaphores = signalSemaphores.data();
     submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
-    if (const auto result = vkQueueSubmit(GL::glDevice->graphicQueue, 1, &submitInfo, fence); result != VK_SUCCESS)
+    if (const auto result = vkQueueSubmit(GL::glDevice->graphicQueue, 1, &submitInfo, submissionFence); result != VK_SUCCESS)
         throw std::runtime_error("无法提交命令缓冲区!");
 
-    executing = true;
+    isSubmitting = true;
 }
-void GLCommandBuffer::ExecuteCommandBuffer(const std::vector<VkPipelineStageFlags>& waitStages, const std::vector<VkSemaphore>& waitSemaphores)
+void GLCommandBuffer::SubmitCommands(const std::vector<VkPipelineStageFlags>& waitStages, const std::vector<VkSemaphore>& waitSemaphores)
 {
-    ExecuteCommandBufferAsync(waitStages, waitSemaphores, {});
-    WaitExecutionFinish();
+    SubmitCommandsAsync(waitStages, waitSemaphores, {});
+    WaitSubmissionFinish();
 }
-void GLCommandBuffer::WaitExecutionFinish()
+void GLCommandBuffer::WaitSubmissionFinish()
 {
-    if (executing == false)
+    if (isSubmitting == false)
         return;
 
-    vkWaitForFences(GL::glDevice->device, 1, &fence, VK_TRUE, UINT64_MAX);
-    vkResetFences(GL::glDevice->device, 1, &fence);
-    executing = false;
+    vkWaitForFences(GL::glDevice->device, 1, &submissionFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(GL::glDevice->device, 1, &submissionFence);
+    isSubmitting = false;
 }

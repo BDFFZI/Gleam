@@ -3,6 +3,7 @@
 #include <stack>
 #include <memory>
 #include <stdexcept>
+#include <iostream>
 
 namespace Light
 {
@@ -45,11 +46,12 @@ namespace Light
 
             return *object;
         }
-
         void Release(TObject& element)
         {
             usableObjectPool.push(&element);
         }
+
+        ObjectPool& operator=(ObjectPool&&) = delete;
 
     private:
         std::stack<TObject*> usableObjectPool;

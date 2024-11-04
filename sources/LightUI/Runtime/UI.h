@@ -6,7 +6,7 @@ namespace Light
     class UI
     {
     public:
-        static UI Initialize(Graphics&, GLFWwindow* window);
+        static UI Initialize(Graphics&);
         static void UnInitialize();
         static void BeginFrame();
         static void EndFrame(CommandBuffer& commandBuffer);

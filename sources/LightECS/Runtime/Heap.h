@@ -3,6 +3,9 @@
 #include <vector>
 #include <memory>
 
+/**
+ * @brief 一种优化的内存分配容器
+ */
 class Heap
 {
 public:
@@ -44,7 +47,7 @@ private:
 
     std::vector<std::unique_ptr<std::byte[]>> heaps;
     int elementCount;
-    
+
     void ResizeHeaps();
     void GetHeapIndex(int elementIndex, int* heapIndex, int* heapElementIndex) const;
 };

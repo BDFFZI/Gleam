@@ -247,7 +247,7 @@ public:
         glCommandBuffer.EndRecording();
 
         //提交命令
-        glCommandBuffer.ExecuteCommandBufferAsync(
+        glCommandBuffer.SubmitCommandsAsync(
             {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT}, //在颜色输出阶段要进行等待
             {imageAvailable}, //等待到交换链的下一张图片可用时继续
             {renderFinishedSemaphores} //完成后发出渲染完成信号量
@@ -259,7 +259,7 @@ public:
     void WaitDrawFrame() const
     {
         //等待信号量可用
-        glCommandBuffers[glSwapChain->GetCurrentBufferIndex()]->WaitExecutionFinish();
+        glCommandBuffers[glSwapChain->GetCurrentBufferIndex()]->WaitSubmissionFinish();
     }
 
     void RecreateSwapChain()

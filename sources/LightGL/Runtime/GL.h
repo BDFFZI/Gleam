@@ -11,6 +11,7 @@ public:
     static GL Initialize(GLFWwindow* window);
     static void UnInitialize();
 
+    inline static GLFWwindow* glfwWindow = nullptr;
     inline static std::unique_ptr<GLInstance> glInstance = {};
     inline static std::unique_ptr<GLSurface> glSurface = {};
     inline static std::unique_ptr<GLDevice> glDevice = {};

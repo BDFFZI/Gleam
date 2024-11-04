@@ -36,11 +36,11 @@ void main()
         fireInput = Input::GetMouseButton(MouseButton::Left);
     };
     
-    Window::SetWindowBeginEvent([]()
+    Window::SetWindowStartEvent([]()
     {
         Input::PushInputHandler(inputEvent);
     });
-    Window::SetWindowEndEvent([]
+    Window::SetWindowStopEvent([]
     {
         Input::PopInputHandler(inputEvent);
     });

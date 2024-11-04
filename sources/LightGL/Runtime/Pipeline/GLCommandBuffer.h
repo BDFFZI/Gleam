@@ -57,16 +57,30 @@ public:
     void PushConstant(const GLPipelineLayout& glPipelineLayout, const VkPushConstantRange& pushConstantRange, void* data) const;
     void SetViewport(float x, float y, float width, float height) const;
     void SetScissor(VkOffset2D offset, VkExtent2D extent) const;
+    void ClearColorImage(const GLImage& glImage, float color[4]) const;
+    void ClearDepthStencilImage(const GLImage& glImage, float depth, uint32_t stencil) const;
     void DrawIndexed(int indicesCount) const;
-    void ExecuteCommands(const GLCommandBuffer& subCommandBuffer) const;
+    void ExecuteSubCommands(const GLCommandBuffer& subCommandBuffer) const;
 
-    void ExecuteCommandBufferAsync(const std::vector<VkPipelineStageFlags>& waitStages, const std::vector<VkSemaphore>& waitSemaphores,
-                                   const std::vector<VkSemaphore>& signalSemaphores);
-    void ExecuteCommandBuffer(const std::vector<VkPipelineStageFlags>& waitStages = {}, const std::vector<VkSemaphore>& waitSemaphores = {});
-    void WaitExecutionFinish();
+    /**
+     * @brief 将命令缓冲区中记录的命令异步呈送到图形管道执行。
+     * @param waitStages 
+     * @param waitSemaphores 
+     * @param signalSemaphores
+     * @note 由于是异步执行，需要调用@c WaitSubmissionFinish() 来等待完成。
+     */
+    void SubmitCommandsAsync(const std::vector<VkPipelineStageFlags>& waitStages, const std::vector<VkSemaphore>& waitSemaphores,
+                             const std::vector<VkSemaphore>& signalSemaphores);
+    /**
+     * @brief 将命令缓冲区中记录的命令呈送到图形管道并等待执行完毕。
+     * @param waitStages 
+     * @param waitSemaphores 
+     */
+    void SubmitCommands(const std::vector<VkPipelineStageFlags>& waitStages = {}, const std::vector<VkSemaphore>& waitSemaphores = {});
+    void WaitSubmissionFinish();
 
 private:
     VkCommandBufferLevel level;
-    VkFence fence;
-    bool executing;
+    VkFence submissionFence;
+    bool isSubmitting;
 };
