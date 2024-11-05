@@ -69,7 +69,7 @@ void CmdBlitImageMipmap(
                    VK_FILTER_LINEAR);
 }
 
-GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, const VkFormat format, const void* data, const size_t size, const bool mipChain)
+std::unique_ptr<GLImage> GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, const VkFormat format, const void* data, const size_t size, const bool mipChain)
 {
     const uint32_t mipLevels = mipChain ? static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))) + 1) : 1;
     if (mipLevels != 1)
@@ -148,16 +148,23 @@ GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, c
 
 
     glImage->layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    return glImage;
+    return std::unique_ptr<GLImage>(glImage);
 }
-GLImage* GLImage::CreateFrameBufferColor(const uint32_t width, const uint32_t height, const VkFormat colorFormat, const VkSampleCountFlagBits sampleCount)
+std::unique_ptr<GLImage> GLImage::CreateFrameBufferColor(const uint32_t width, const uint32_t height, const VkFormat colorFormat, const VkSampleCountFlagBits sampleCount)
 {
-    return new GLImage(width, height, colorFormat,
-                       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT, 1, sampleCount);
+    return std::make_unique<GLImage>(
+        width, height, colorFormat,
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        1, sampleCount
+    );
 }
-GLImage* GLImage::CreateFrameBufferDepth(const uint32_t width, const uint32_t height, const VkFormat depthFormat, const VkSampleCountFlagBits sampleCount)
+std::unique_ptr<GLImage> GLImage::CreateFrameBufferDepth(const uint32_t width, const uint32_t height, const VkFormat depthFormat, const VkSampleCountFlagBits sampleCount)
 {
-    return new GLImage(width, height, depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 1, sampleCount);
+    return std::make_unique<GLImage>(
+        width, height, depthFormat,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        1, sampleCount
+    );
 }
 
 GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat format, const VkImageUsageFlags usageFlags,

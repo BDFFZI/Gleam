@@ -34,38 +34,6 @@ void Graphics::UnInitialize()
     glSwapChain.reset();
 }
 
-const std::unique_ptr<GLSwapChain>& Graphics::GetGLSwapChain()
-{
-    return glSwapChain;
-}
-float2 Graphics::GetGLSwapChainExtent()
-{
-    return glSwapChainExtent;
-}
-const std::unique_ptr<GLImageView>& Graphics::GetPresentColorImageView()
-{
-    return presentSampleCount == VK_SAMPLE_COUNT_1_BIT ? glSwapChain->GetCurrentImageView() : presentColorImageView;
-}
-const std::unique_ptr<GLImageView>& Graphics::GetPresentDepthStencilImageView()
-{
-    return presentDepthStencilImageView;
-}
-const std::unique_ptr<GLImageView>& Graphics::GetPresentColorResolveImageView()
-{
-    return presentSampleCount != VK_SAMPLE_COUNT_1_BIT ? glSwapChain->GetCurrentImageView() : presentColorImageView;
-}
-VkFormat Graphics::GetPresentColorFormat()
-{
-    return presentColorFormat;
-}
-VkFormat Graphics::GetPresentDepthStencilFormat()
-{
-    return presentDepthStencilFormat;
-}
-VkSampleCountFlagBits Graphics::GetPresentSampleCount()
-{
-    return presentSampleCount;
-}
 CommandBuffer& Graphics::GetCommandBuffer(const std::string& name)
 {
     return paintCommandBufferPool->Get();
@@ -97,6 +65,18 @@ void Graphics::PresentAsync(CommandBuffer& commandBuffer)
         return;
     }
 
+    //更新渲染目标信息(交换链中有多张颜色缓冲区，每次都会切换)
+    if (presentSampleCount == VK_SAMPLE_COUNT_1_BIT)
+    {
+        presentRenderTexture.glColorImage = &glSwapChain->images[glSwapChain->GetCurrentImageIndex()];
+        presentRenderTexture.glColorImageView = glSwapChain->GetCurrentImageView().get();
+    }
+    else
+    {
+        presentRenderTexture.glColorResolveImage = &glSwapChain->images[glSwapChain->GetCurrentImageIndex()];
+        presentRenderTexture.glColorResolveImageView = glSwapChain->GetCurrentImageView().get();
+    }
+
     //添加命令
     GLCommandBuffer& primaryCommandBuffer = *presentCommandBuffers[imageIndex];
     primaryCommandBuffer.BeginRecording();
@@ -119,7 +99,8 @@ void Graphics::PresentAsync(CommandBuffer& commandBuffer)
 }
 void Graphics::WaitPresent()
 {
-    presentCommandBuffers[(glSwapChainBufferCount + glSwapChain->GetCurrentBufferIndex() - 1) % glSwapChainBufferCount]->WaitSubmissionFinish();
+    size_t bufferIndex = (glSwapChainBufferCount + glSwapChain->GetCurrentBufferIndex() - 1) % glSwapChainBufferCount;
+    presentCommandBuffers[bufferIndex]->WaitSubmissionFinish();
 }
 
 
@@ -135,17 +116,33 @@ void Graphics::CreateSwapChain()
 
     glSwapChain = std::make_unique<GLSwapChain>(surfaceFormat, presentMode);
     glSwapChainBufferCount = glSwapChain->images.size();
-    glSwapChainExtent = {
-        static_cast<float>(glSwapChain->imageExtent.width),
-        static_cast<float>(glSwapChain->imageExtent.height)
-    };
 
     if (presentSampleCount != VK_SAMPLE_COUNT_1_BIT)
     {
-        presentColorImage = std::unique_ptr<GLImage>(GLImage::CreateFrameBufferColor(width, height, presentColorFormat, presentSampleCount));
+        presentColorImage = GLImage::CreateFrameBufferColor(width, height, presentColorFormat, presentSampleCount);
         presentColorImageView = std::make_unique<GLImageView>(*presentColorImage, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
-    presentDepthStencilImage = std::unique_ptr<GLImage>(GLImage::CreateFrameBufferDepth(width, height, presentDepthStencilFormat, presentSampleCount));
+    presentDepthStencilImage = GLImage::CreateFrameBufferDepth(width, height, presentDepthStencilFormat, presentSampleCount);
     presentDepthStencilImageView = std::make_unique<GLImageView>(*presentDepthStencilImage, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+    //重建PresentRenderTexture
+    presentRenderTexture.width = glSwapChain->imageExtent.width;
+    presentRenderTexture.height = glSwapChain->imageExtent.height;
+    presentRenderTexture.glDepthStencilImage = &presentDepthStencilImage->image;
+    presentRenderTexture.glDepthStencilImageView = presentDepthStencilImageView.get();
+    if (presentSampleCount == VK_SAMPLE_COUNT_1_BIT)
+    {
+        presentRenderTexture.glColorImage = &glSwapChain->images[glSwapChain->GetCurrentImageIndex()];
+        presentRenderTexture.glColorImageView = glSwapChain->GetCurrentImageView().get();
+        presentRenderTexture.glColorResolveImage = nullptr;
+        presentRenderTexture.glColorResolveImageView = nullptr;
+    }
+    else
+    {
+        presentRenderTexture.glColorImage = &presentColorImage->image;
+        presentRenderTexture.glColorImageView = presentColorImageView.get();
+        presentRenderTexture.glColorResolveImage = &glSwapChain->images[glSwapChain->GetCurrentImageIndex()];
+        presentRenderTexture.glColorResolveImageView = glSwapChain->GetCurrentImageView().get();
+    }
 }

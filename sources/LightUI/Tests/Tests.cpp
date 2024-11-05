@@ -25,7 +25,7 @@ void main()
 
         CommandBuffer& commandBuffer = Graphics::GetCommandBuffer();
         commandBuffer.BeginRecording();
-        commandBuffer.BeginRendering(nullptr);
+        commandBuffer.BeginRendering(Graphics::GetPresentRenderTexture());
 
         UI::BeginFrame();
         ImGui::ShowDemoWindow();

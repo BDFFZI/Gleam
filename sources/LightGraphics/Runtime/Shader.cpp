@@ -1,7 +1,6 @@
 ﻿#include "Shader.h"
-
 #include "Graphics.h"
-#include "Mesh.h"
+#include "Mesh/TriangleMesh.h"
 
 using namespace Light;
 
@@ -28,7 +27,7 @@ Shader::Shader(
     : Shader(shaderLayout,
              descriptorSetLayout, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,
              pushConstantRanges,
-             Mesh::GetMeshLayout(),
+             TriangleMesh::GetMeshLayout(),
              Graphics::GetPresentColorFormat(), Graphics::GetPresentDepthStencilFormat(),
              MultisampleState{Graphics::GetPresentSampleCount()}
     )

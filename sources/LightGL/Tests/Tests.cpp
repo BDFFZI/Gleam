@@ -177,9 +177,9 @@ public:
 
         //创建纹理及采样器
         RawImage rawImage = ImageImporter::Import("../Assets/viking_room.png", STBI_rgb_alpha);
-        texture = std::unique_ptr<GLImage>(GLImage::CreateTexture2D(
+        texture = GLImage::CreateTexture2D(
             rawImage.width, rawImage.height, VK_FORMAT_R8G8B8A8_SRGB,
-            rawImage.pixels.data(), rawImage.pixels.size(), true));
+            rawImage.pixels.data(), rawImage.pixels.size(), true);
         textureView = std::make_unique<GLImageView>(*texture, VK_IMAGE_ASPECT_COLOR_BIT);
         textureSampler = std::make_unique<GLImageSampler>();
 
@@ -275,9 +275,9 @@ public:
         glSwapChain = std::make_unique<GLSwapChain>();
         maxFramesInFlight = glSwapChain->images.size();
 
-        colorImage = std::unique_ptr<GLImage>(GLImage::CreateFrameBufferColor(
+        colorImage = GLImage::CreateFrameBufferColor(
             glSwapChain->imageExtent.width, glSwapChain->imageExtent.height,
-            glSwapChain->imageFormat, GL::glDevice->maxUsableSampleCount));
+            glSwapChain->imageFormat, GL::glDevice->maxUsableSampleCount);
         colorImageView = std::make_unique<GLImageView>(*colorImage, VK_IMAGE_ASPECT_COLOR_BIT);
 
         VkFormat depthFormat = GL::glDevice->FindImageFormat(
@@ -286,9 +286,9 @@ public:
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
         );
 
-        depthImage = std::unique_ptr<GLImage>(GLImage::CreateFrameBufferDepth(
+        depthImage = GLImage::CreateFrameBufferDepth(
             glSwapChain->imageExtent.width, glSwapChain->imageExtent.height,
-            depthFormat, GL::glDevice->maxUsableSampleCount));
+            depthFormat, GL::glDevice->maxUsableSampleCount);
         depthImageView = std::make_unique<GLImageView>(*depthImage, VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 

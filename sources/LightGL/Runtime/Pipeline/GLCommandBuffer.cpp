@@ -125,6 +125,37 @@ void GLCommandBuffer::BlitImage(const VkImage source, const VkRect2D sourceRect,
                    1, &blit,
                    VK_FILTER_LINEAR);
 }
+void GLCommandBuffer::ClearColorImage(const VkImage& image, const VkImageLayout imageLayout, float color[4]) const
+{
+    VkClearColorValue colorValue;
+    std::memcpy(colorValue.float32, color, sizeof(float) * 4);
+    VkImageSubresourceRange subresourceRange;
+    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = 1;
+    subresourceRange.baseArrayLayer = 0;
+    subresourceRange.layerCount = 1;
+
+    vkCmdClearColorImage(commandBuffer, image, imageLayout, &colorValue, 1, &subresourceRange);
+}
+void GLCommandBuffer::ClearColorImage(const GLImage& glImage, float color[4]) const
+{
+    ClearColorImage(glImage.image, glImage.layout, color);
+}
+void GLCommandBuffer::ClearDepthStencilImage(const GLImage& glImage, const float depth, const uint32_t stencil) const
+{
+    VkClearDepthStencilValue depthStencilValue;
+    depthStencilValue.depth = depth;
+    depthStencilValue.stencil = stencil;
+    VkImageSubresourceRange subresourceRange;
+    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = 1;
+    subresourceRange.baseArrayLayer = 0;
+    subresourceRange.layerCount = 1;
+
+    vkCmdClearDepthStencilImage(commandBuffer, glImage.image, glImage.layout, &depthStencilValue, 1, &subresourceRange);
+}
 void GLCommandBuffer::TransitionImageLayout(
     const VkImage& image, const VkImageLayout oldLayout, const VkImageLayout newLayout,
     const VkAccessFlags srcAccessMask, const VkAccessFlags dstAccessMask,
@@ -286,36 +317,30 @@ void GLCommandBuffer::SetScissor(const VkOffset2D offset, const VkExtent2D exten
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
-void GLCommandBuffer::ClearColorImage(const GLImage& glImage, float color[4]) const
-{
-    VkClearColorValue colorValue;
-    std::memcpy(colorValue.float32, color, sizeof(float) * 4);
-    VkImageSubresourceRange subresourceRange;
-    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    subresourceRange.baseMipLevel = 0;
-    subresourceRange.levelCount = 1;
-    subresourceRange.baseArrayLayer = 0;
-    subresourceRange.layerCount = 1;
-
-    vkCmdClearColorImage(commandBuffer, glImage.image, glImage.layout, &colorValue, 1, &subresourceRange);
-}
-void GLCommandBuffer::ClearDepthStencilImage(const GLImage& glImage, const float depth, const uint32_t stencil) const
-{
-    VkClearDepthStencilValue depthStencilValue;
-    depthStencilValue.depth = depth;
-    depthStencilValue.stencil = stencil;
-    VkImageSubresourceRange subresourceRange;
-    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    subresourceRange.baseMipLevel = 0;
-    subresourceRange.levelCount = 1;
-    subresourceRange.baseArrayLayer = 0;
-    subresourceRange.layerCount = 1;
-
-    vkCmdClearDepthStencilImage(commandBuffer, glImage.image, glImage.layout, &depthStencilValue, 1, &subresourceRange);
-}
 void GLCommandBuffer::DrawIndexed(const int indicesCount) const
 {
     vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
+}
+void GLCommandBuffer::ClearAttachments(const VkRect2D rect, float color[4], const float depth, const uint32_t stencil) const
+{
+    VkClearColorValue colorValue;
+    std::memcpy(colorValue.float32, color, sizeof(float) * 4);
+    VkClearDepthStencilValue depthStencilValue;
+    depthStencilValue.depth = depth;
+    depthStencilValue.stencil = stencil;
+
+    VkClearAttachment clearAttachments[2] = {{}, {}};
+    clearAttachments[0].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    clearAttachments[0].clearValue.color = colorValue;
+    clearAttachments[1].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    clearAttachments[1].clearValue.depthStencil = depthStencilValue;
+
+    VkClearRect clearRect;
+    clearRect.rect = rect;
+    clearRect.baseArrayLayer = 0;
+    clearRect.layerCount = 1;
+
+    vkCmdClearAttachments(commandBuffer, std::size(clearAttachments), clearAttachments, 1, &clearRect);
 }
 void GLCommandBuffer::ExecuteSubCommands(const GLCommandBuffer& subCommandBuffer) const
 {

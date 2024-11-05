@@ -117,7 +117,7 @@ GLSwapChain::GLSwapChain(const VkSurfaceFormatKHR surfaceFormat, const VkPresent
     swapChainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
     swapChainCreateInfo.imageExtent = extent;
     swapChainCreateInfo.imageArrayLayers = 1; //每个图像的图层数量，非纹理数组始终为1
-    swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT; //图像的目的，做颜色附件或接受其他图片的传输
+    swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; //交换链中的图像作用是颜色附件
     if (queueFamilyIndices[0] != queueFamilyIndices[1])
     {
         swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT; //交换链中的图片支持多个队列族并发访问
@@ -177,19 +177,6 @@ GLSwapChain::~GLSwapChain()
     imageViews.clear();
     images.clear();
     vkDestroySwapchainKHR(GL::glDevice->device, swapChain, nullptr);
-}
-
-uint32_t GLSwapChain::GetCurrentBufferIndex() const
-{
-    return currentBufferIndex;
-}
-uint32_t GLSwapChain::GetCurrentImageIndex() const
-{
-    return currentImageIndex;
-}
-const std::unique_ptr<GLImageView>& GLSwapChain::GetCurrentImageView() const
-{
-    return imageViews[currentImageIndex];
 }
 
 bool GLSwapChain::SwitchImageAsync(uint32_t* outImageIndex, uint32_t* outBufferIndex,

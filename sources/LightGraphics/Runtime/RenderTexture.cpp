@@ -2,46 +2,47 @@
 
 using namespace Light;
 
-RenderTexture::RenderTexture(const int width, const int height, const VkFormat colorFormat, const VkFormat depthFormat, const VkSampleCountFlagBits sampleCount)
+
+RenderTexture::RenderTexture(const uint32_t width, const uint32_t height, const VkFormat colorFormat, const VkFormat depthFormat, const VkSampleCountFlagBits sampleCount)
     : width(width), height(height)
 {
-    glColorImage = std::unique_ptr<GLImage>(GLImage::CreateFrameBufferColor(width, height, colorFormat, sampleCount));
+    glColorImage = GLImage::CreateFrameBufferColor(width, height, colorFormat, sampleCount);
     glColorImageView = std::make_unique<GLImageView>(*glColorImage, VK_IMAGE_ASPECT_COLOR_BIT);
 
     if (depthFormat != VK_FORMAT_UNDEFINED)
     {
-        glDepthStencilImage = std::unique_ptr<GLImage>(GLImage::CreateFrameBufferDepth(width, height, depthFormat, sampleCount));
+        glDepthStencilImage = GLImage::CreateFrameBufferDepth(width, height, depthFormat, sampleCount);
         glDepthStencilImageView = std::make_unique<GLImageView>(*glColorImage, VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 
     if (sampleCount != VK_SAMPLE_COUNT_1_BIT)
     {
-        glColorResolveImage = std::unique_ptr<GLImage>(GLImage::CreateFrameBufferColor(width, height, colorFormat, VK_SAMPLE_COUNT_1_BIT));
+        glColorResolveImage = GLImage::CreateFrameBufferColor(width, height, colorFormat, VK_SAMPLE_COUNT_1_BIT);
         glColorResolveImageView = std::make_unique<GLImageView>(*glColorImage, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 }
 
-const std::unique_ptr<GLImageView>& RenderTexture::GetGLColorImageView() const
+const VkImage& RenderTexture::GetVKColorImage() const
 {
-    return glColorImageView;
+    return glColorImage->image;
 }
-const std::unique_ptr<GLImageView>& RenderTexture::GetGLDepthStencilImageView() const
+const VkImage* RenderTexture::GetVkDepthStencilImage() const
 {
-    return glDepthStencilImageView;
+    return glDepthStencilImage == nullptr ? nullptr : &glDepthStencilImage->image;
 }
-const std::unique_ptr<GLImageView>& RenderTexture::GetGLColorResolveImageView() const
+const VkImage* RenderTexture::GetVkColorResolveImage() const
 {
-    return glColorResolveImageView;
+    return glColorResolveImage == nullptr ? nullptr : &glColorResolveImage->image;
 }
-const std::unique_ptr<GLImage>& RenderTexture::GetGLPresentImage() const
+const GLImageView& RenderTexture::GetGLColorImageView() const
 {
-    return glColorResolveImage != nullptr ? glColorResolveImage : glColorImage;
+    return *glColorImageView;
 }
-int RenderTexture::GetWidth() const
+const GLImageView* RenderTexture::GetGLDepthStencilImageView() const
 {
-    return width;
+    return glDepthStencilImageView.get();
 }
-int RenderTexture::GetHeight() const
+const GLImageView* RenderTexture::GetGLColorResolveImageView() const
 {
-    return height;
+    return glColorResolveImageView.get();
 }

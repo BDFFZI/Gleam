@@ -2,7 +2,7 @@
 #include <stack>
 
 #include "Material.h"
-#include "Mesh.h"
+#include "Mesh/Mesh.h"
 #include "RenderTexture.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 
@@ -19,20 +19,26 @@ namespace Light
         void BeginRecording();
         void EndRecording();
 
-        void BeginRendering(const RenderTexture* renderTarget, bool clearColor = false) const;
+        /**
+         * @brief 开始一段绘制操作
+         * @param renderTarget 绘制到的目标帧缓冲区
+         * @param clearColor 绘制前是否清除颜色（这比单独的清除操作性能更好）
+         */
+        void BeginRendering(const RenderTextureBase& renderTarget, bool clearColor = false);
         void EndRendering() const;
 
-        void SetViewport(float x, float y, float width, float height) const;
+        void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) const;
         void PushConstant(const Shader& shader, int slotIndex, void* data) const;
-        void Draw(const MeshBase& mesh, const Material& material);
-        void ClearRenderTexture(float4 color = 0, float depth = 0);
+        void Draw(const Mesh& mesh, const Material& material);
+        void ClearRenderTexture(float4 color = 0, float depth = 0) const;
 
     private:
         inline static std::stack<CommandBuffer*> commandBufferPool = {};
 
         GLCommandBuffer glCommandBuffer = GLCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY);
-        const MeshBase* lastMesh = nullptr;
+        const Mesh* lastMesh = nullptr;
         const Material* lastMaterial = nullptr;
         const Shader* lastShader = nullptr;
+        const RenderTextureBase* lastRenderTexture = nullptr;
     };
 }

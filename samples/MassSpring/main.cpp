@@ -9,9 +9,13 @@
 
 using namespace Light;
 
+std::unique_ptr<Shader> shader;
+
 void Start()
 {
+    shader = std::make_unique<Shader>()
 }
+
 
 void LogicUpdate()
 {
@@ -22,9 +26,16 @@ void LogicUpdate()
     }
 }
 
+
+
 void RenderUpdate(CommandBuffer& commandBuffer)
 {
-    commandBuffer.
+    commandBuffer.ClearRenderTexture(float4(0, 0, 1, 1));
+
+    GLCommandBuffer& glCommandBuffer = commandBuffer.GetGLCommandBuffer();
+
+    
+    glCommandBuffer.BindPipeline()
 }
 
 void UIUpdate()
@@ -36,9 +47,9 @@ void ImageUpdate()
 {
     CommandBuffer& commandBuffer = Graphics::GetCommandBuffer();
     commandBuffer.BeginRecording();
-    commandBuffer.BeginRendering(nullptr);
+    commandBuffer.BeginRendering(Graphics::GetPresentRenderTexture());
 
-    RenderUpdate();
+    RenderUpdate(commandBuffer);
 
     UI::BeginFrame();
     UIUpdate();

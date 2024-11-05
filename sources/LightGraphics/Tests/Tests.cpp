@@ -1,5 +1,6 @@
 ﻿#include "LightGraphics/Runtime/CommandBuffer.h"
 #include "LightGraphics/Runtime/Graphics.h"
+#include "LightGraphics/Runtime/Mesh/TriangleMesh.h"
 #include "LightImport/Runtime/ModelImporter.h"
 #include "LightImport/Runtime/ShaderImporter.h"
 #include "LightMath/Runtime/Matrix.hpp"
@@ -17,7 +18,7 @@ struct PushConstantBuffer
 
 std::unique_ptr<Mesh> CreateMesh()
 {
-    std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
+    TriangleMesh* mesh = new TriangleMesh();
 
     mesh->SetPositions({
         float3(-0.5f, -0.5f, -0.5f),
@@ -39,7 +40,7 @@ std::unique_ptr<Mesh> CreateMesh()
         float2(1, 1),
         float2(1, 0),
     });
-    mesh->SetTriangles({
+    mesh->SetIndices({
         0, 1, 2, 2, 3, 0,
         3, 2, 6, 6, 7, 3,
         7, 6, 5, 5, 4, 7,
@@ -54,7 +55,7 @@ std::unique_ptr<Mesh> CreateMesh()
     // mesh->SetTriangles(rawMesh.triangles);
     // mesh->UpdateGLBuffer();
 
-    return mesh;
+    return std::unique_ptr<Mesh>(mesh);
 }
 std::unique_ptr<Shader> CreateShader()
 {
@@ -147,7 +148,7 @@ void main()
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 
     GL gl = GL::Initialize(window);
-    Graphics::Initialize(gl, window);
+    Graphics::Initialize(gl);
 
     auto mesh = CreateMesh();
     auto shader = CreateShader();
@@ -178,8 +179,8 @@ void main()
         //逻辑处理完成，开始绘制
         CommandBuffer& commandBuffer = Graphics::GetCommandBuffer();
         commandBuffer.BeginRecording();
-        commandBuffer.SetViewport(0, 0, Graphics::GetGLSwapChainExtent().x, Graphics::GetGLSwapChainExtent().y);
-        commandBuffer.BeginRendering(nullptr, true);
+        commandBuffer.SetViewport(0, 0, Graphics::GetPresentRenderTexture().GetWidth(), Graphics::GetPresentRenderTexture().GetHeight());
+        commandBuffer.BeginRendering(Graphics::GetPresentRenderTexture(), true);
         for (int i = 0; i < 4; ++i)
         {
             pushConstantBuffer.objectToWorld = float4x4::TRS(

@@ -7,20 +7,39 @@
 
 namespace Light
 {
+    struct PresentRenderTexture : RenderTextureBase
+    {
+        uint32_t width, height;
+        const VkImage* glColorImage;
+        const VkImage* glDepthStencilImage;
+        const VkImage* glColorResolveImage;
+        const GLImageView* glColorImageView;
+        const GLImageView* glDepthStencilImageView;
+        const GLImageView* glColorResolveImageView;
+
+        PresentRenderTexture() = default;
+
+        uint32_t GetWidth() const override { return width; }
+        uint32_t GetHeight() const override { return height; }
+        const VkImage& GetVKColorImage() const override { return *glColorImage; }
+        const VkImage* GetVkDepthStencilImage() const override { return glDepthStencilImage; }
+        const VkImage* GetVkColorResolveImage() const override { return glColorResolveImage; }
+        const GLImageView& GetGLColorImageView() const override { return *glColorImageView; }
+        const GLImageView* GetGLDepthStencilImageView() const override { return glDepthStencilImageView; }
+        const GLImageView* GetGLColorResolveImageView() const override { return glColorResolveImageView; }
+    };
+
     class Graphics
     {
     public:
         static Graphics Initialize(GL&);
         static void UnInitialize();
 
-        static const std::unique_ptr<GLSwapChain>& GetGLSwapChain();
-        static float2 GetGLSwapChainExtent();
-        static VkFormat GetPresentColorFormat();
-        static VkFormat GetPresentDepthStencilFormat();
-        static VkSampleCountFlagBits GetPresentSampleCount();
-        static const std::unique_ptr<GLImageView>& GetPresentColorImageView();
-        static const std::unique_ptr<GLImageView>& GetPresentDepthStencilImageView();
-        static const std::unique_ptr<GLImageView>& GetPresentColorResolveImageView();
+        static const std::unique_ptr<GLSwapChain>& GetGLSwapChain() { return glSwapChain; }
+        static VkFormat GetPresentColorFormat() { return presentColorFormat; }
+        static VkFormat GetPresentDepthStencilFormat() { return presentDepthStencilFormat; }
+        static VkSampleCountFlagBits GetPresentSampleCount() { return presentSampleCount; }
+        static PresentRenderTexture& GetPresentRenderTexture() { return presentRenderTexture; }
 
         static CommandBuffer& GetCommandBuffer(const std::string& name = "");
         static void ReleaseCommandBuffer(CommandBuffer& commandBuffer);
@@ -49,7 +68,6 @@ namespace Light
 
     private:
         inline static size_t glSwapChainBufferCount = {};
-        inline static float2 glSwapChainExtent = {};
 
         inline static VkSurfaceFormatKHR surfaceFormat = {};
         inline static VkPresentModeKHR presentMode = {};
@@ -64,7 +82,7 @@ namespace Light
         inline static std::unique_ptr<GLImage> presentDepthStencilImage = {};
         inline static std::unique_ptr<GLImageView> presentColorImageView = {}; //颜色或颜色解析视图
         inline static std::unique_ptr<GLImageView> presentDepthStencilImageView = {};
-
+        inline static PresentRenderTexture presentRenderTexture;
 
         static void CreateSwapChain();
 

@@ -30,9 +30,9 @@ public:
     GLSwapChain(const GLSwapChain&) = delete;
     ~GLSwapChain();
 
-    uint32_t GetCurrentBufferIndex() const;
-    uint32_t GetCurrentImageIndex() const;
-    const std::unique_ptr<GLImageView>& GetCurrentImageView() const;
+    uint32_t GetCurrentBufferIndex() const { return currentBufferIndex; }
+    uint32_t GetCurrentImageIndex() const { return currentImageIndex; }
+    const std::unique_ptr<GLImageView>& GetCurrentImageView() const { return imageViews[currentImageIndex]; }
 
     /**
      * 

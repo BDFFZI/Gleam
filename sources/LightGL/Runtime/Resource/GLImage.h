@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vulkan/vulkan_core.h>
 
 class GLImage
@@ -14,9 +15,9 @@ public:
      * @param mipChain
      * @return 
      */
-    static GLImage* CreateTexture2D(uint32_t width, uint32_t height, VkFormat format, const void* data, size_t size, bool mipChain = false);
-    static GLImage* CreateFrameBufferColor(uint32_t width, uint32_t height, VkFormat colorFormat, VkSampleCountFlagBits sampleCount);
-    static GLImage* CreateFrameBufferDepth(uint32_t width, uint32_t height, VkFormat depthFormat, VkSampleCountFlagBits sampleCount);
+    static std::unique_ptr<GLImage> CreateTexture2D(uint32_t width, uint32_t height, VkFormat format, const void* data, size_t size, bool mipChain = false);
+    static std::unique_ptr<GLImage> CreateFrameBufferColor(uint32_t width, uint32_t height, VkFormat colorFormat, VkSampleCountFlagBits sampleCount);
+    static std::unique_ptr<GLImage> CreateFrameBufferDepth(uint32_t width, uint32_t height, VkFormat depthFormat, VkSampleCountFlagBits sampleCount);
 
     VkImage image;
     VkDeviceMemory memory;
