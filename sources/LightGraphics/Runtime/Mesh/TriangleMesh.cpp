@@ -1,7 +1,22 @@
 ﻿#include "TriangleMesh.h"
 
+#include "LightImport/Runtime/ModelImporter.h"
+
 namespace Light
 {
+    std::unique_ptr<TriangleMesh> TriangleMesh::CreateFromRawMesh(const RawMesh& rawMesh)
+    {
+        TriangleMesh* mesh = new TriangleMesh();
+        mesh->SetPositions(rawMesh.positions);
+        mesh->SetNormals(rawMesh.normals);
+        mesh->SetTangents(rawMesh.tangents);
+        mesh->SetUVs(rawMesh.uvs);
+        mesh->SetColors(rawMesh.colors);
+        mesh->SetIndices(rawMesh.triangles);
+        mesh->UpdateGLBuffer();
+        return std::unique_ptr<TriangleMesh>(mesh);
+    }
+
 #define GetProperty(functionName,propertyType,propertyName) \
     void TriangleMesh::Get##functionName(std::vector<propertyType>& buffer) const \
     { \

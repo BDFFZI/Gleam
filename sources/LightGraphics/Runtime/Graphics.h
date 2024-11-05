@@ -2,7 +2,7 @@
 #include "CommandBuffer.h"
 #include "LightGL/Runtime/GL.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
-#include "LightUtility/Runtime/ObjectPool.h"
+#include "LightUtility/Runtime/ObjectPool.hpp"
 #include "LightUtility/Runtime/ThreadPool.h"
 
 namespace Light

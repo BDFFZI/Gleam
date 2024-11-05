@@ -1,7 +1,5 @@
 ﻿#include <chrono>
 
-#include <fstream>
-
 #include "LightGL/Runtime/GL.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
 #include "LightGL/Runtime/Resource/GLImageView.h"
@@ -11,6 +9,7 @@
 #include "LightImport/Runtime/ShaderImporter.h"
 #include "LightMath/Runtime/Matrix.hpp"
 #include "LightMath/Runtime/MatrixMath.hpp"
+#include "LightUtility/Runtime/Utility.hpp"
 
 using namespace Light;
 
@@ -20,26 +19,6 @@ struct Vertex
     float3 color;
     float2 texCoord;
 };
-
-std::string ReadFile(const std::string& filename)
-{
-    //通过ate标志初始就将指针放在流末尾
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
-    if (!file.is_open())
-        throw std::runtime_error("文件打开失败！");
-
-    //由于指针在流末尾，故其位置即文件长度
-    const std::streamsize fileSize = file.tellg();
-    std::string content(fileSize, '0');
-
-    //读取内容
-    file.seekg(0);
-    file.read(content.data(), fileSize);
-
-    file.close();
-
-    return content;
-}
 
 struct PushConstant
 {
@@ -136,7 +115,7 @@ public:
         };
         glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout, pushConstantRanges);
         //着色器布局
-        std::string code = ReadFile("../Assets/shader.hlsl");
+        std::string code = Utility::ReadFile("../Assets/shader.hlsl");
         std::vector glShaderLayout{
             GLShader(VK_SHADER_STAGE_VERTEX_BIT,
                      ShaderImporter::ImportHlsl(shaderc_vertex_shader, code, "VertexShader"),

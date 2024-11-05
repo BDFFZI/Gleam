@@ -31,6 +31,10 @@ macro(addTests)
     
     find_package(benchmark CONFIG REQUIRED)
     target_link_libraries(${ModuleName} PRIVATE benchmark::benchmark)
+    
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Assets")
+        file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/Assets" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+    endif()
 endmacro()
 
 file(GLOB ModulePaths "*")

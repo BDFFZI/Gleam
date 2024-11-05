@@ -1,20 +1,12 @@
 ﻿#include "LightGraphics/Runtime/CommandBuffer.h"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightGraphics/Runtime/Mesh/TriangleMesh.h"
-#include "LightImport/Runtime/ModelImporter.h"
 #include "LightImport/Runtime/ShaderImporter.h"
 #include "LightMath/Runtime/Matrix.hpp"
 #include "LightMath/Runtime/MatrixMath.hpp"
-#include "LightUtility/Runtime/Chronograph.h"
+#include "LightUtility/Runtime/Chronograph.hpp"
 
 using namespace Light;
-
-struct PushConstantBuffer
-{
-    alignas(16) float4x4 objectToWorld;
-    alignas(16) float4x4 worldToView;
-    alignas(16) float4x4 viewToClip;
-};
 
 std::unique_ptr<Mesh> CreateMesh()
 {
@@ -50,79 +42,17 @@ std::unique_ptr<Mesh> CreateMesh()
     });
     mesh->UpdateGLBuffer();
 
-    // RawMesh rawMesh = ModelImporter::ImportObj(R"(C:\Users\MediVision\Desktop\LightBuild\sources\LightGL\Tests\assets\viking_room.obj)");
-    // mesh->SetPositions(rawMesh.positions);
-    // mesh->SetTriangles(rawMesh.triangles);
-    // mesh->UpdateGLBuffer();
-
     return std::unique_ptr<Mesh>(mesh);
 }
 std::unique_ptr<Shader> CreateShader()
 {
-    std::string shaderCode = R"(
-[[vk::push_constant]]
-cbuffer PushConstantBuffer
-{
-    float4x4 objectToWorld;
-    float4x4 worldToView;
-    float4x4 viewToClip;
-}
-
-Texture2D tex : register(t0);
-SamplerState texSampler : register(s0);
-
-struct VertexInput
-{
-    [[vk::location(0)]]
-    float3 positionOS:POSITION;
-    [[vk::location(3)]]
-    float2 uv:TEXCOORD;
-    [[vk::location(4)]]
-    float4 color:COLOR;
-};
-
-struct VertexOutput
-{
-    float4 positionCS:SV_Position;
-    float2 uv:TEXCOORD;
-    float4 color:COLOR;
-};
-
-VertexOutput VertexShader(VertexInput input)
-{
-    float4 positionOS = float4(input.positionOS,1);
-    float4 positionWS = mul(objectToWorld,positionOS);
-    float4 positionVS = mul(worldToView,positionWS);
-    float4 positionCS = mul(viewToClip,positionVS);
-
-    VertexOutput output;
-    output.positionCS = positionCS;
-    output.uv = input.uv;
-    output.color = positionOS;
-    return output;
-}
-
-float4 FragmentShader(VertexOutput input):SV_Target
-{
-    return input.color * tex.Sample(texSampler,input.uv);
-}
-
-)";
-    std::vector<std::byte> vertexShader = ShaderImporter::ImportHlsl(shaderc_vertex_shader, shaderCode, "VertexShader");
-    std::vector<std::byte> fragmentShader = ShaderImporter::ImportHlsl(shaderc_fragment_shader, shaderCode, "FragmentShader");
-
-    std::unique_ptr<Shader> shader = std::make_unique<Shader>(
-        std::vector{
-            GLShader(VK_SHADER_STAGE_VERTEX_BIT, vertexShader, "VertexShader"),
-            GLShader(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader, "FragmentShader"),
-        },
+    StateLayout stateLayout = {};
+    stateLayout.multisample.rasterizationSamples = Graphics::GetPresentSampleCount();
+    return Shader::CreateFromFile(
+        "Assets/Test.hlsl",
         std::vector{
             GLDescriptorBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-        },
-        std::vector{
-            VkPushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof PushConstantBuffer),
-        });
-    return shader;
+        }, stateLayout);
 }
 std::unique_ptr<Texture2D> CreateTexture2D()
 {
@@ -137,7 +67,6 @@ std::unique_ptr<Material> CreateMaterial(const std::unique_ptr<Shader>& shader, 
     return material;
 }
 
-// TEST(GraphicsTests, ALL)
 void main()
 {
     constexpr uint32_t WIDTH = 1920 / 3;
@@ -165,10 +94,6 @@ void main()
     Chronograph chronograph;
     chronograph.Tick();
 
-    PushConstantBuffer pushConstantBuffer;
-    pushConstantBuffer.worldToView = inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1}));
-    pushConstantBuffer.viewToClip = float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f);
-
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -180,19 +105,24 @@ void main()
         CommandBuffer& commandBuffer = Graphics::GetCommandBuffer();
         commandBuffer.BeginRecording();
         commandBuffer.SetViewport(0, 0, Graphics::GetPresentRenderTexture().GetWidth(), Graphics::GetPresentRenderTexture().GetHeight());
+        commandBuffer.SetViewProjectionMatrices(
+            inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1})),
+            float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f)
+        );
+
         commandBuffer.BeginRendering(Graphics::GetPresentRenderTexture(), true);
         for (int i = 0; i < 4; ++i)
         {
-            pushConstantBuffer.objectToWorld = float4x4::TRS(
+            float4x4 objectToWorld = float4x4::TRS(
                 float3{0, 0, static_cast<float>(i) * 0.1f} + move[i] * fmod(static_cast<float>(chronograph.Time()) / 6000, 1.0f),
                 {-90, 0, 0},
                 static_cast<float>(i + 1) / 4.0f
             );
 
-            commandBuffer.PushConstant(material->GetShader(), 0, &pushConstantBuffer);
-            commandBuffer.Draw(*mesh, *material);
+            commandBuffer.Draw(*mesh, objectToWorld, *material);
         }
         commandBuffer.EndRendering();
+
         commandBuffer.EndRecording();
         Graphics::PresentAsync(commandBuffer);
 

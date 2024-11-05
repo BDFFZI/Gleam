@@ -28,6 +28,15 @@ struct std::hash<ObjVertex>
     }
 };
 
+void RawMesh::Normalize()
+{
+    size_t size = positions.size();
+    normals.resize(size);
+    tangents.resize(size);
+    uvs.resize(size);
+    colors.resize(size);
+    triangles.resize(size);
+}
 RawMesh ModelImporter::ImportObj(const std::string& filePath)
 {
     RawMesh mesh = {};
@@ -69,5 +78,6 @@ RawMesh ModelImporter::ImportObj(const std::string& filePath)
         }
     }
 
+    mesh.Normalize();
     return mesh;
 }

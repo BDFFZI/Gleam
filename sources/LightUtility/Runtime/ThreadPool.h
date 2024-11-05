@@ -5,7 +5,7 @@
 #include <thread>
 #include <semaphore>
 
-#include "ObjectPool.h"
+#include "ObjectPool.hpp"
 
 namespace Light
 {

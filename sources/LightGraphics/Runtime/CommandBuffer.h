@@ -28,8 +28,8 @@ namespace Light
         void EndRendering() const;
 
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) const;
-        void PushConstant(const Shader& shader, int slotIndex, void* data) const;
-        void Draw(const Mesh& mesh, const Material& material);
+        void SetViewProjectionMatrices(const float4x4& view, const float4x4& proj);
+        void Draw(const Mesh& mesh, const float4x4& matrix, const Material& material);
         void ClearRenderTexture(float4 color = 0, float depth = 0) const;
 
     private:
@@ -40,5 +40,6 @@ namespace Light
         const Material* lastMaterial = nullptr;
         const Shader* lastShader = nullptr;
         const RenderTextureBase* lastRenderTexture = nullptr;
+        PushConstant pushConstant = {};
     };
 }

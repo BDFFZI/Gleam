@@ -9,8 +9,7 @@ VkPipeline CreatePipeline(
     const std::vector<GLShader>& glShaderLayout,
     const GLMeshLayout& glMeshLayout,
     const GLPipelineLayout& glPipelineLayout,
-    const MultisampleState& multisampleState,
-    const RasterizationState& rasterizationState,
+    const StateLayout& stateLayout,
     const std::function<void(VkGraphicsPipelineCreateInfo& pipelineCreateInfo)>& modifyPipelineCreateInfo)
 {
     //着色器状态
@@ -56,8 +55,8 @@ VkPipeline CreatePipeline(
     rasterizer.depthClampEnable = VK_FALSE; //是否将深度钳制在0-1而不是剔除超出部分。
     rasterizer.rasterizerDiscardEnable = VK_FALSE; //是否在栅格化阶段之前丢弃基元
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL; //多边形需要填充
-    rasterizer.cullMode = rasterizationState.cullMode; //不需要背面剔除
-    rasterizer.frontFace = rasterizationState.frontFace; //多边形正反面判断按顺时针顶点方向
+    rasterizer.cullMode = stateLayout.rasterization.cullMode; //不需要背面剔除
+    rasterizer.frontFace = stateLayout.rasterization.frontFace; //多边形正反面判断按顺时针顶点方向
     rasterizer.depthBiasEnable = VK_FALSE; //关闭深度偏移
     rasterizer.depthBiasConstantFactor = 0.0f; //以常值进行深度偏移
     rasterizer.depthBiasSlopeFactor = 0.0f; //以多边形相对相机z轴斜率进行深度偏移
@@ -67,7 +66,7 @@ VkPipeline CreatePipeline(
     //多重采样阶段状态（MSAA，常用于实现抗锯齿）
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisampling.rasterizationSamples = multisampleState.rasterizationSamples;
+    multisampling.rasterizationSamples = stateLayout.multisample.rasterizationSamples;
     multisampling.sampleShadingEnable = VK_TRUE;
     multisampling.minSampleShading = 0.2f;
     multisampling.pSampleMask = nullptr; // Optional
@@ -162,11 +161,10 @@ VkPipeline CreatePipeline(
 GLPipeline::GLPipeline(
     const GLRenderPass& glRenderPass, const int subpassIndex,
     const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
-    const MultisampleState& multisampleState, const RasterizationState& rasterizationState)
+    const StateLayout& stateLayout)
 {
     pipeline = CreatePipeline(
-        glShaderLayout, glMeshLayout, glPipelineLayout,
-        multisampleState, rasterizationState,
+        glShaderLayout, glMeshLayout, glPipelineLayout, stateLayout,
         [&](VkGraphicsPipelineCreateInfo& pipelineCreateInfo)
         {
             pipelineCreateInfo.renderPass = glRenderPass.renderPass;
@@ -176,7 +174,7 @@ GLPipeline::GLPipeline(
 GLPipeline::GLPipeline(
     const std::vector<VkFormat>& colorAttachments, const VkFormat depthStencilAttachment,
     const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
-    const MultisampleState& multisampleState, const RasterizationState& rasterizationState)
+    const StateLayout& stateLayout)
 {
     VkPipelineRenderingCreateInfo pipelineRenderingCreate = {};
     pipelineRenderingCreate.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
@@ -187,8 +185,7 @@ GLPipeline::GLPipeline(
     pipelineRenderingCreate.stencilAttachmentFormat = depthStencilAttachment;
 
     pipeline = CreatePipeline(
-        glShaderLayout, glMeshLayout, glPipelineLayout,
-        multisampleState, rasterizationState,
+        glShaderLayout, glMeshLayout, glPipelineLayout, stateLayout,
         [&](VkGraphicsPipelineCreateInfo& pipelineCreateInfo)
         {
             pipelineCreateInfo.renderPass = VK_NULL_HANDLE;

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Mesh.h"
+#include "LightImport/Runtime/ModelImporter.h"
 #include "LightMath/Runtime/Vector.hpp"
 
 namespace Light
@@ -32,6 +33,8 @@ namespace Light
     class TriangleMesh : public MeshTemplate<TriangleVertex>
     {
     public:
+        static std::unique_ptr<TriangleMesh> CreateFromRawMesh(const RawMesh& rawMesh);
+        
         TriangleMesh() = default;
         TriangleMesh(const TriangleMesh&) = delete;
 

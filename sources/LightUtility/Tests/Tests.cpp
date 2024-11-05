@@ -4,8 +4,8 @@
 #include <condition_variable>
 #include <mutex>
 
-#include "LightUtility/Runtime/Chronograph.h"
-#include "LightUtility/Runtime/ObjectPool.h"
+#include "LightUtility/Runtime/Chronograph.hpp"
+#include "LightUtility/Runtime/ObjectPool.hpp"
 #include "LightUtility/Runtime/ThreadPool.h"
 
 using namespace Light;

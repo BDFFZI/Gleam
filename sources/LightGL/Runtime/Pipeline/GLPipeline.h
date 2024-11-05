@@ -18,6 +18,12 @@ struct RasterizationState
     VkFrontFace frontFace = VK_FRONT_FACE_CLOCKWISE;
 };
 
+struct StateLayout
+{
+    MultisampleState multisample;
+    RasterizationState rasterization;
+};
+
 class GLPipeline
 {
 public:
@@ -28,16 +34,14 @@ public:
         const std::vector<GLShader>& glShaderLayout,
         const GLMeshLayout& glMeshLayout,
         const GLPipelineLayout& glPipelineLayout,
-        const MultisampleState& multisampleState = {},
-        const RasterizationState& rasterizationState = {});
+        const StateLayout& stateLayout = {});
     GLPipeline(
         const std::vector<VkFormat>& colorAttachments,
         VkFormat depthStencilAttachment,
         const std::vector<GLShader>& glShaderLayout,
         const GLMeshLayout& glMeshLayout,
         const GLPipelineLayout& glPipelineLayout,
-        const MultisampleState& multisampleState = {},
-        const RasterizationState& rasterizationState = {});
+        const StateLayout& stateLayout = {});
     GLPipeline(const GLPipeline&) = delete;
     ~GLPipeline();
 };

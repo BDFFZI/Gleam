@@ -1,16 +1,32 @@
 ﻿#include "Shader.h"
 #include "Graphics.h"
+#include "LightImport/Runtime/ShaderImporter.h"
 #include "Mesh/TriangleMesh.h"
 
 using namespace Light;
 
+std::unique_ptr<Shader> Shader::CreateFromFile(
+    const std::string& shaderFile,
+    const std::vector<GLDescriptorBinding>& descriptorSetLayout,
+    const StateLayout& stateLayout)
+{
+    std::vector<std::byte> vertexShader = ShaderImporter::ImportHlslFromFile(shaderFile, shaderc_vertex_shader, "VertexShader");
+    std::vector<std::byte> fragmentShader = ShaderImporter::ImportHlslFromFile(shaderFile, shaderc_fragment_shader, "FragmentShader");
+
+    return std::make_unique<Shader>(
+        std::vector{
+            GLShader(VK_SHADER_STAGE_VERTEX_BIT, vertexShader, "VertexShader"),
+            GLShader(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader, "FragmentShader"),
+        },
+        descriptorSetLayout, stateLayout);
+}
 Shader::Shader(
     const std::vector<GLShader>& shaderLayout,
     const std::vector<GLDescriptorBinding>& descriptorBindings, VkDescriptorSetLayoutCreateFlags descriptorFlags,
     const std::vector<VkPushConstantRange>& pushConstantRanges,
     const GLMeshLayout& meshLayout,
     const VkFormat colorFormat, const VkFormat depthStencilFormat,
-    const MultisampleState& multisampleState
+    const StateLayout& stateLayout
 ): pushConstantRanges(pushConstantRanges)
 {
     glDescriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(descriptorBindings, descriptorFlags);
@@ -18,18 +34,18 @@ Shader::Shader(
     glPipeline = std::make_unique<GLPipeline>(
         std::vector{colorFormat}, depthStencilFormat,
         shaderLayout, meshLayout, *this->glPipelineLayout,
-        multisampleState);
+        stateLayout);
 }
 Shader::Shader(
     const std::vector<GLShader>& shaderLayout,
     const std::vector<GLDescriptorBinding>& descriptorSetLayout,
-    const std::vector<VkPushConstantRange>& pushConstantRanges)
+    const StateLayout& stateLayout)
     : Shader(shaderLayout,
              descriptorSetLayout, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,
-             pushConstantRanges,
+             {VkPushConstantRange{VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant)}},
              TriangleMesh::GetMeshLayout(),
              Graphics::GetPresentColorFormat(), Graphics::GetPresentDepthStencilFormat(),
-             MultisampleState{Graphics::GetPresentSampleCount()}
+             stateLayout
     )
 {
 }

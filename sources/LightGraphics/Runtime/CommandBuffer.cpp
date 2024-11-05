@@ -17,6 +17,7 @@ void CommandBuffer::EndRecording()
     lastMaterial = nullptr;
     lastShader = nullptr;
     lastRenderTexture = nullptr;
+    pushConstant = {};
 }
 
 void CommandBuffer::BeginRendering(const RenderTextureBase& renderTarget, const bool clearColor)
@@ -51,14 +52,13 @@ void CommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t
         {width, height}
     );
 }
-void CommandBuffer::PushConstant(const Shader& shader, const int slotIndex, void* data) const
+void CommandBuffer::SetViewProjectionMatrices(const float4x4& view, const float4x4& proj)
 {
-    glCommandBuffer.PushConstant(
-        shader.GetGLPipelineLayout(),
-        shader.GetPushConstantBinding()[slotIndex],
-        data);
+    pushConstant.worldToView = view;
+    pushConstant.viewToClip = proj;
 }
-void CommandBuffer::Draw(const Mesh& mesh, const Material& material)
+
+void CommandBuffer::Draw(const Mesh& mesh, const float4x4& matrix, const Material& material)
 {
     //绑定网格
     if (&mesh != lastMesh)
@@ -83,7 +83,14 @@ void CommandBuffer::Draw(const Mesh& mesh, const Material& material)
         }
     }
 
-    glCommandBuffer.DrawIndexed(mesh.GetIndexCount());
+    //推送常量
+    pushConstant.objectToWorld = matrix;
+    glCommandBuffer.PushConstant(
+        material.GetShader().GetGLPipelineLayout(),
+        material.GetShader().GetPushConstantBinding()[0],
+        &pushConstant);
+
+    glCommandBuffer.DrawIndexed(static_cast<uint32_t>(mesh.GetIndexCount()));
 }
 void CommandBuffer::ClearRenderTexture(float4 color, const float depth) const
 {

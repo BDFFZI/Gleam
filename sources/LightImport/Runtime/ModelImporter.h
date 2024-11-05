@@ -14,6 +14,8 @@ namespace Light
         std::vector<float2> uvs;
         std::vector<float4> colors;
         std::vector<uint32_t> triangles;
+
+        void Normalize();
     };
 
     class ModelImporter

@@ -317,7 +317,7 @@ void GLCommandBuffer::SetScissor(const VkOffset2D offset, const VkExtent2D exten
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
-void GLCommandBuffer::DrawIndexed(const int indicesCount) const
+void GLCommandBuffer::DrawIndexed(const uint32_t indicesCount) const
 {
     vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
 }
