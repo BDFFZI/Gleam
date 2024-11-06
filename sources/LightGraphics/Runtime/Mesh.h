@@ -3,14 +3,15 @@
 
 #include "LightGL/Runtime/Pipeline/GLMeshLayout.h"
 #include "LightGL/Runtime/Resource/GLBuffer.h"
+#include "LightImport/Runtime/ModelImporter.h"
 #include "LightMath/Runtime/Vector.hpp"
 
 namespace Light
 {
-    class Mesh
+    class MeshBase
     {
     public:
-        virtual ~Mesh() = default;
+        virtual ~MeshBase() = default;
 
         virtual const GLBuffer& GetGLVertexBuffer() const = 0;
         virtual const GLBuffer& GetGLIndexBuffer() const = 0;
@@ -20,11 +21,9 @@ namespace Light
     };
 
     template <class TVertex>
-    class MeshTemplate : public Mesh
+    class MeshTemplate : public MeshBase
     {
     public:
-        static const GLMeshLayout& GetMeshLayout();
-
         void GetVertices(std::vector<TVertex>& buffer) const
         {
             buffer = vertices;
@@ -79,5 +78,36 @@ namespace Light
     private:
         std::unique_ptr<GLBuffer> glVertexBuffer;
         std::unique_ptr<GLBuffer> glIndexBuffer;
+    };
+
+    struct Vertex
+    {
+        float3 position;
+        float3 normal;
+        float4 tangent;
+        float2 uv;
+        float4 color;
+    };
+
+    class Mesh : public MeshTemplate<Vertex>
+    {
+    public:
+        static std::unique_ptr<Mesh> CreateFromRawMesh(const RawMesh& rawMesh);
+        static const GLMeshLayout& GetMeshLayout();
+
+        Mesh() = default;
+        Mesh(const Mesh&) = delete;
+
+        void GetPositions(std::vector<float3>& buffer) const;
+        void GetNormals(std::vector<float3>& buffer) const;
+        void GetTangents(std::vector<float4>& buffer) const;
+        void GetUVs(std::vector<float2>& buffer) const;
+        void GetColors(std::vector<float4>& buffer) const;
+
+        void SetPositions(const std::vector<float3>& data);
+        void SetNormals(const std::vector<float3>& data);
+        void SetTangents(const std::vector<float4>& data);
+        void SetUVs(const std::vector<float2>& data);
+        void SetColors(const std::vector<float4>& data);
     };
 }

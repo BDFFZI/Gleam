@@ -2,7 +2,6 @@
 #include <stack>
 
 #include "Material.h"
-#include "Mesh/Mesh.h"
 #include "RenderTexture.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 
@@ -29,14 +28,14 @@ namespace Light
 
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) const;
         void SetViewProjectionMatrices(const float4x4& view, const float4x4& proj);
-        void Draw(const Mesh& mesh, const float4x4& matrix, const Material& material);
+        void Draw(const MeshBase& mesh, const float4x4& matrix, const Material& material);
         void ClearRenderTexture(float4 color = 0, float depth = 0) const;
 
     private:
         inline static std::stack<CommandBuffer*> commandBufferPool = {};
 
         GLCommandBuffer glCommandBuffer = GLCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY);
-        const Mesh* lastMesh = nullptr;
+        const MeshBase* lastMesh = nullptr;
         const Material* lastMaterial = nullptr;
         const Shader* lastShader = nullptr;
         const RenderTextureBase* lastRenderTexture = nullptr;

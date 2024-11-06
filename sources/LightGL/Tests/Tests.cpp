@@ -100,11 +100,12 @@ public:
         RecreateFrameBuffers();
 
         //网格布局
-        GLMeshLayout glMeshLayout(sizeof(Vertex), {
-                                      GLVertexAttribute{offsetof(Vertex, pos), VK_FORMAT_R32G32B32_SFLOAT},
-                                      GLVertexAttribute{offsetof(Vertex, color), VK_FORMAT_R32G32B32_SFLOAT},
-                                      GLVertexAttribute{offsetof(Vertex, texCoord), VK_FORMAT_R32G32_SFLOAT},
-                                  }, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        GLMeshLayout glMeshLayout(
+            sizeof(Vertex), std::vector<GLVertexAttribute>{
+                {0,offsetof(Vertex, pos), VK_FORMAT_R32G32B32_SFLOAT},
+                {1,offsetof(Vertex, color), VK_FORMAT_R32G32B32_SFLOAT},
+                {2,offsetof(Vertex, texCoord), VK_FORMAT_R32G32_SFLOAT},
+            }, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
         //管线布局
         std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(
             std::vector{
@@ -115,24 +116,26 @@ public:
         };
         glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout, pushConstantRanges);
         //着色器布局
-        std::string code = Utility::ReadFile("../Assets/shader.hlsl");
+        std::string code = Utility::ReadFile("Assets/shader.hlsl");
         std::vector glShaderLayout{
             GLShader(VK_SHADER_STAGE_VERTEX_BIT,
-                     ShaderImporter::ImportHlsl(shaderc_vertex_shader, code, "VertexShader"),
+                     ShaderImporter::ImportHlsl(code, shaderc_vertex_shader, "VertexShader"),
                      "VertexShader"),
             GLShader(VK_SHADER_STAGE_FRAGMENT_BIT,
-                     ShaderImporter::ImportHlsl(shaderc_fragment_shader, code, "FragmentShader"),
+                     ShaderImporter::ImportHlsl(code, shaderc_fragment_shader, "FragmentShader"),
                      "FragmentShader"),
         };
         //创建渲染管线
+        StateLayout stateLayout;
+        stateLayout.multisample.rasterizationSamples = VK_SAMPLE_COUNT_8_BIT;
         glPipeline = std::make_unique<GLPipeline>(
             *glRenderPass, 0,
             glShaderLayout, glMeshLayout, *glPipelineLayout,
-            MultisampleState{VK_SAMPLE_COUNT_8_BIT}
+            stateLayout
         );
 
         //创建顶点索引缓冲区
-        RawMesh mesh = ModelImporter::ImportObj("../Assets/viking_room.obj");
+        RawMesh mesh = ModelImporter::ImportObj("Assets/viking_room.obj");
         std::vector<Vertex> vertices(mesh.positions.size());
         for (size_t i = 0; i < vertices.size(); ++i)
         {
@@ -155,7 +158,7 @@ public:
         );
 
         //创建纹理及采样器
-        RawImage rawImage = ImageImporter::Import("../Assets/viking_room.png", STBI_rgb_alpha);
+        RawImage rawImage = ImageImporter::Import("Assets/viking_room.png", STBI_rgb_alpha);
         texture = GLImage::CreateTexture2D(
             rawImage.width, rawImage.height, VK_FORMAT_R8G8B8A8_SRGB,
             rawImage.pixels.data(), rawImage.pixels.size(), true);

@@ -58,7 +58,7 @@ void CommandBuffer::SetViewProjectionMatrices(const float4x4& view, const float4
     pushConstant.viewToClip = proj;
 }
 
-void CommandBuffer::Draw(const Mesh& mesh, const float4x4& matrix, const Material& material)
+void CommandBuffer::Draw(const MeshBase& mesh, const float4x4& matrix, const Material& material)
 {
     //绑定网格
     if (&mesh != lastMesh)

@@ -1,7 +1,7 @@
 ﻿#include "GLMeshLayout.h"
 
-GLVertexAttribute::GLVertexAttribute(const uint32_t offset, const VkFormat format)
-    : offset(offset), format(format)
+GLVertexAttribute::GLVertexAttribute(const uint32_t location, const uint32_t offset, const VkFormat format)
+    : location(location), offset(offset), format(format)
 {
 }
 
@@ -21,7 +21,7 @@ GLMeshLayout::GLMeshLayout(const uint32_t vertexSize, const std::vector<GLVertex
         attributeDescription.offset = vertexAttributes[i].offset;
         attributeDescriptions[i] = attributeDescription;
     }
-    
+
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputInfo.vertexBindingDescriptionCount = 1;
     vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;

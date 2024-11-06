@@ -4,10 +4,11 @@
 
 struct GLVertexAttribute
 {
+    uint32_t location;
     uint32_t offset;
     VkFormat format;
 
-    GLVertexAttribute(uint32_t offset, VkFormat format);
+    GLVertexAttribute(uint32_t location, uint32_t offset, VkFormat format);
 };
 
 struct GLMeshLayout

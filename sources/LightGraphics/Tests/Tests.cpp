@@ -1,6 +1,8 @@
-﻿#include "LightGraphics/Runtime/CommandBuffer.h"
+﻿#include <gtest/gtest.h>
+
+#include "LightGraphics/Runtime/CommandBuffer.h"
 #include "LightGraphics/Runtime/Graphics.h"
-#include "LightGraphics/Runtime/Mesh/TriangleMesh.h"
+#include "LightGraphics/Runtime/Mesh.h"
 #include "LightImport/Runtime/ShaderImporter.h"
 #include "LightMath/Runtime/Matrix.hpp"
 #include "LightMath/Runtime/MatrixMath.hpp"
@@ -8,9 +10,13 @@
 
 using namespace Light;
 
-std::unique_ptr<Mesh> CreateMesh()
+TEST(Graphics, PointLineMesh)
 {
-    TriangleMesh* mesh = new TriangleMesh();
+}
+
+std::unique_ptr<MeshBase> CreateMesh()
+{
+    Mesh* mesh = new Mesh();
 
     mesh->SetPositions({
         float3(-0.5f, -0.5f, -0.5f),
@@ -42,14 +48,14 @@ std::unique_ptr<Mesh> CreateMesh()
     });
     mesh->UpdateGLBuffer();
 
-    return std::unique_ptr<Mesh>(mesh);
+    return std::unique_ptr<MeshBase>(mesh);
 }
 std::unique_ptr<Shader> CreateShader()
 {
     StateLayout stateLayout = {};
     stateLayout.multisample.rasterizationSamples = Graphics::GetPresentSampleCount();
     return Shader::CreateFromFile(
-        "Assets/Test.hlsl",
+        "Assets/Render.hlsl",
         std::vector{
             GLDescriptorBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
         }, stateLayout);
@@ -67,7 +73,7 @@ std::unique_ptr<Material> CreateMaterial(const std::unique_ptr<Shader>& shader, 
     return material;
 }
 
-void main()
+TEST(Graphics, Render)
 {
     constexpr uint32_t WIDTH = 1920 / 3;
     constexpr uint32_t HEIGHT = 1080 / 3;

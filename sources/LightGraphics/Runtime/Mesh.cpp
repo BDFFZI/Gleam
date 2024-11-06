@@ -1,12 +1,12 @@
-﻿#include "TriangleMesh.h"
+﻿#include "Mesh.h"
 
 #include "LightImport/Runtime/ModelImporter.h"
 
 namespace Light
 {
-    std::unique_ptr<TriangleMesh> TriangleMesh::CreateFromRawMesh(const RawMesh& rawMesh)
+    std::unique_ptr<Mesh> Mesh::CreateFromRawMesh(const RawMesh& rawMesh)
     {
-        TriangleMesh* mesh = new TriangleMesh();
+        Mesh* mesh = new Mesh();
         mesh->SetPositions(rawMesh.positions);
         mesh->SetNormals(rawMesh.normals);
         mesh->SetTangents(rawMesh.tangents);
@@ -14,11 +14,27 @@ namespace Light
         mesh->SetColors(rawMesh.colors);
         mesh->SetIndices(rawMesh.triangles);
         mesh->UpdateGLBuffer();
-        return std::unique_ptr<TriangleMesh>(mesh);
+        return std::unique_ptr<Mesh>(mesh);
+    }
+
+    const GLMeshLayout MeshLayout = {
+        sizeof(Vertex), {
+            GLVertexAttribute{0,offsetof(Vertex, position), VK_FORMAT_R32G32B32_SFLOAT},
+            GLVertexAttribute{1,offsetof(Vertex, normal), VK_FORMAT_R32G32B32_SFLOAT},
+            GLVertexAttribute{2,offsetof(Vertex, tangent), VK_FORMAT_R32G32B32_SFLOAT},
+            GLVertexAttribute{3,offsetof(Vertex, uv), VK_FORMAT_R32G32_SFLOAT},
+            GLVertexAttribute{4,offsetof(Vertex, color), VK_FORMAT_R32G32B32A32_SFLOAT},
+        },
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+    };
+
+    const GLMeshLayout& Mesh::GetMeshLayout()
+    {
+        return MeshLayout;
     }
 
 #define GetProperty(functionName,propertyType,propertyName) \
-    void TriangleMesh::Get##functionName(std::vector<propertyType>& buffer) const \
+    void Mesh::Get##functionName(std::vector<propertyType>& buffer) const \
     { \
         size_t size = vertices.size(); \
         buffer.resize(size); \
@@ -33,7 +49,7 @@ namespace Light
     GetProperty(Colors, float4, color)
 
 #define SetProperty(functionName,propertyType,propertyName) \
-    void TriangleMesh::Set##functionName(const std::vector<propertyType>& data) \
+    void Mesh::Set##functionName(const std::vector<propertyType>& data) \
     { \
         const size_t size = data.size(); \
         if (vertices.size() != size) \
