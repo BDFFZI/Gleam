@@ -6,24 +6,17 @@ cbuffer PushConstant
     float4x4 viewToClip;
 }
 
-struct PointVertex
+struct Vertex_Full
 {
+    [[vk::location(0)]]
     float3 position:POSITION;
-    float4 color:COLOR;
-};
-
-struct LineVertex
-{
-    float3 position:POSITION;
-    float4 color:COLOR;
-};
-
-struct TriangleVertex
-{
-    float3 position:POSITION;
+    [[vk::location(1)]]
     float3 normal:NORMAL;
+    [[vk::location(2)]]
     float4 tangent:TANGENT;
+    [[vk::location(3)]]
     float2 uv:TEXCOORD;
+    [[vk::location(4)]]
     float4 color:COLOR;
 };
 

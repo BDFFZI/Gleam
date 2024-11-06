@@ -16,7 +16,7 @@ GLMeshLayout::GLMeshLayout(const uint32_t vertexSize, const std::vector<GLVertex
     {
         VkVertexInputAttributeDescription attributeDescription;
         attributeDescription.binding = 0; //管道的顶点缓冲区允许绑定多个，我们只绑定一个，对应索引为0
-        attributeDescription.location = i; //对应在shader中的顶点属性槽位
+        attributeDescription.location = vertexAttributes[i].location; //对应在shader中的顶点属性槽位
         attributeDescription.format = vertexAttributes[i].format;
         attributeDescription.offset = vertexAttributes[i].offset;
         attributeDescriptions[i] = attributeDescription;

@@ -12,6 +12,7 @@ struct ObjVertex
 {
     float3 pos;
     float2 texCoord;
+    float4 color;
 
     bool operator==(const ObjVertex& other) const
     {
@@ -28,15 +29,6 @@ struct std::hash<ObjVertex>
     }
 };
 
-void RawMesh::Normalize()
-{
-    size_t size = positions.size();
-    normals.resize(size);
-    tangents.resize(size);
-    uvs.resize(size);
-    colors.resize(size);
-    triangles.resize(size);
-}
 RawMesh ModelImporter::ImportObj(const std::string& filePath)
 {
     RawMesh mesh = {};
@@ -67,17 +59,24 @@ RawMesh ModelImporter::ImportObj(const std::string& filePath)
                 attrib.texcoords[2 * index.texcoord_index + 1]
             };
 
+            vertex.color = {
+                attrib.colors[3 * index.vertex_index + 0],
+                attrib.colors[3 * index.vertex_index + 1],
+                attrib.colors[3 * index.vertex_index + 2],
+                1,
+            };
+
             if (!uniqueVertices.contains(vertex))
             {
                 uniqueVertices[vertex] = static_cast<uint32_t>(mesh.positions.size());
                 mesh.positions.push_back(vertex.pos);
                 mesh.uvs.push_back(vertex.texCoord);
+                mesh.colors.push_back(vertex.color);
             }
 
             mesh.triangles.push_back(uniqueVertices[vertex]);
         }
     }
 
-    mesh.Normalize();
     return mesh;
 }

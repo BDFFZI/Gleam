@@ -126,8 +126,8 @@ public:
                      "FragmentShader"),
         };
         //创建渲染管线
-        StateLayout stateLayout;
-        stateLayout.multisample.rasterizationSamples = VK_SAMPLE_COUNT_8_BIT;
+        StateLayout stateLayout = {};
+        stateLayout.multisample.rasterizationSamples = GL::glDevice->maxUsableSampleCount;
         glPipeline = std::make_unique<GLPipeline>(
             *glRenderPass, 0,
             glShaderLayout, glMeshLayout, *glPipelineLayout,

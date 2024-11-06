@@ -10,10 +10,6 @@ std::unique_ptr<Shader> Shader::CreateFromFile(
     const std::vector<GLDescriptorBinding>& descriptorSetLayout,
     const StateLayout& stateLayout, const GLMeshLayout& meshLayout)
 {
-    std::string shaderCode = Utility::ReadFile(shaderFile);
-    size_t vertexShaderOffset = shaderCode.find(" VertexShader(");
-    std::string vertexType = shaderCode.substr(vertexShaderOffset, 3);
-
     std::vector<std::byte> vertexShader = ShaderImporter::ImportHlslFromFile(shaderFile, shaderc_vertex_shader, "VertexShader");
     std::vector<std::byte> fragmentShader = ShaderImporter::ImportHlslFromFile(shaderFile, shaderc_fragment_shader, "FragmentShader");
 

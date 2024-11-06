@@ -10,52 +10,22 @@
 
 using namespace Light;
 
-TEST(Graphics, PointLineMesh)
+struct Point
 {
-}
+    float3 position;
+    float4 color;
+};
 
-std::unique_ptr<MeshBase> CreateMesh()
+std::unique_ptr<Mesh> CreateMesh()
 {
-    Mesh* mesh = new Mesh();
-
-    mesh->SetPositions({
-        float3(-0.5f, -0.5f, -0.5f),
-        float3(-0.5f, 0.5, -0.5f),
-        float3(0.5f, 0.5f, -0.5f),
-        float3(0.5f, -0.5f, -0.5f),
-        float3(-0.5f, -0.5f, 0.5f),
-        float3(-0.5f, 0.5, 0.5f),
-        float3(0.5f, 0.5f, 0.5f),
-        float3(0.5f, -0.5f, 0.5f),
-    });
-    mesh->SetUVs({
-        float2(0, 0),
-        float2(0, 1),
-        float2(1, 1),
-        float2(1, 0),
-        float2(0, 0),
-        float2(0, 1),
-        float2(1, 1),
-        float2(1, 0),
-    });
-    mesh->SetIndices({
-        0, 1, 2, 2, 3, 0,
-        3, 2, 6, 6, 7, 3,
-        7, 6, 5, 5, 4, 7,
-        4, 5, 1, 1, 0, 4,
-        1, 5, 6, 6, 2, 1,
-        4, 0, 3, 3, 7, 4,
-    });
-    mesh->UpdateGLBuffer();
-
-    return std::unique_ptr<MeshBase>(mesh);
+    return Mesh::CreateFromRawMesh(ModelImporter::ImportObj("Assets/Cube.obj"));
 }
 std::unique_ptr<Shader> CreateShader()
 {
     StateLayout stateLayout = {};
     stateLayout.multisample.rasterizationSamples = Graphics::GetPresentSampleCount();
     return Shader::CreateFromFile(
-        "Assets/Render.hlsl",
+        "Assets/PositionUV.hlsl",
         std::vector{
             GLDescriptorBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
         }, stateLayout);
@@ -73,7 +43,7 @@ std::unique_ptr<Material> CreateMaterial(const std::unique_ptr<Shader>& shader, 
     return material;
 }
 
-TEST(Graphics, Render)
+void main()
 {
     constexpr uint32_t WIDTH = 1920 / 3;
     constexpr uint32_t HEIGHT = 1080 / 3;
@@ -89,6 +59,29 @@ TEST(Graphics, Render)
     auto shader = CreateShader();
     auto texture = CreateTexture2D();
     auto material = CreateMaterial(shader, texture);
+
+    std::vector<Vertex> vertices = mesh->GetVertices();
+    std::unique_ptr<MeshTemplate<Point>> lineMesh = std::make_unique<MeshTemplate<Point>>();
+    std::vector<Point> lineVertices(vertices.size());
+    for (uint32_t i = 0; i < vertices.size(); i++)
+    {
+        lineVertices[i].position = vertices[i].position;
+        lineVertices[i].color = vertices[i].color;
+    }
+    lineMesh->SetVertices(lineVertices);
+    lineMesh->SetIndices(mesh->GetIndices());
+    lineMesh->UpdateGLBuffer();
+
+    GLMeshLayout lineMeshLayout = GLMeshLayout{
+        sizeof(Point), std::vector{
+            GLVertexAttribute{0,offsetof(Point, position), VK_FORMAT_R32G32B32_SFLOAT},
+            GLVertexAttribute{4,offsetof(Point, color), VK_FORMAT_R32G32B32A32_SFLOAT},
+        },
+        VK_PRIMITIVE_TOPOLOGY_LINE_STRIP
+    };
+
+    std::unique_ptr<Shader> lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, {}, lineMeshLayout);
+    std::unique_ptr<Material> lineMaterial = std::make_unique<Material>(*lineShader);
 
     float3 move[4] = {
         float3(-1, 1, 1),
@@ -115,7 +108,6 @@ TEST(Graphics, Render)
             inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1})),
             float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f)
         );
-
         commandBuffer.BeginRendering(Graphics::GetPresentRenderTexture(), true);
         for (int i = 0; i < 4; ++i)
         {
@@ -127,6 +119,7 @@ TEST(Graphics, Render)
 
             commandBuffer.Draw(*mesh, objectToWorld, *material);
         }
+        commandBuffer.Draw(*lineMesh, float4x4::TRS(0, 0, 2), *lineMaterial);
         commandBuffer.EndRendering();
 
         commandBuffer.EndRecording();
@@ -141,6 +134,10 @@ TEST(Graphics, Render)
     texture.reset();
     shader.reset();
     mesh.reset();
+
+    lineMaterial.reset();
+    lineShader.reset();
+    lineMesh.reset();
 
     Graphics::UnInitialize();
     GL::UnInitialize();

@@ -6,7 +6,7 @@ struct Vertex
     float3 position:POSITION;
     [[vk::location(4)]]
     float4 color:COLOR;
-}
+};
 
 struct Fragment
 {

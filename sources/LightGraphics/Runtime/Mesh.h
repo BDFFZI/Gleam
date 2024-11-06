@@ -24,13 +24,13 @@ namespace Light
     class MeshTemplate : public MeshBase
     {
     public:
-        void GetVertices(std::vector<TVertex>& buffer) const
+        const std::vector<TVertex>& GetVertices() const
         {
-            buffer = vertices;
+            return vertices;
         }
-        void GetIndices(std::vector<uint32_t>& buffer) const
+        const std::vector<uint32_t>& GetIndices() const
         {
-            buffer = indices;
+            return indices;
         }
         void SetVertices(const std::vector<TVertex>& data)
         {

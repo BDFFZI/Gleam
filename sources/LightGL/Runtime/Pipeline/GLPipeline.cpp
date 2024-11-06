@@ -152,6 +152,8 @@ VkPipeline CreatePipeline(
     for (auto& shaderStage : shaderStages)
         vkDestroyShaderModule(GL::glDevice->device, shaderStage.module, nullptr);
 
+    /// VK_ERROR_UNKNOWN的原因
+    /// 1. 描述符集布局与着色器所使用的不一致
     if (result != VK_SUCCESS)
         throw std::runtime_error("创建图形管线失败!");
 

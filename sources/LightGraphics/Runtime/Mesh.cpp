@@ -8,10 +8,10 @@ namespace Light
     {
         Mesh* mesh = new Mesh();
         mesh->SetPositions(rawMesh.positions);
-        mesh->SetNormals(rawMesh.normals);
-        mesh->SetTangents(rawMesh.tangents);
-        mesh->SetUVs(rawMesh.uvs);
-        mesh->SetColors(rawMesh.colors);
+        if (!rawMesh.normals.empty())mesh->SetNormals(rawMesh.normals);
+        if (!rawMesh.tangents.empty()) mesh->SetTangents(rawMesh.tangents);
+        if (!rawMesh.uvs.empty()) mesh->SetUVs(rawMesh.uvs);
+        if (!rawMesh.colors.empty()) mesh->SetColors(rawMesh.colors);
         mesh->SetIndices(rawMesh.triangles);
         mesh->UpdateGLBuffer();
         return std::unique_ptr<Mesh>(mesh);
@@ -21,7 +21,7 @@ namespace Light
         sizeof(Vertex), {
             GLVertexAttribute{0,offsetof(Vertex, position), VK_FORMAT_R32G32B32_SFLOAT},
             GLVertexAttribute{1,offsetof(Vertex, normal), VK_FORMAT_R32G32B32_SFLOAT},
-            GLVertexAttribute{2,offsetof(Vertex, tangent), VK_FORMAT_R32G32B32_SFLOAT},
+            GLVertexAttribute{2,offsetof(Vertex, tangent), VK_FORMAT_R32G32B32A32_SFLOAT},
             GLVertexAttribute{3,offsetof(Vertex, uv), VK_FORMAT_R32G32_SFLOAT},
             GLVertexAttribute{4,offsetof(Vertex, color), VK_FORMAT_R32G32B32A32_SFLOAT},
         },
