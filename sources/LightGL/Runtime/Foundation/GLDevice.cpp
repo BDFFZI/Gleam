@@ -110,13 +110,27 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
     VkPhysicalDeviceFeatures necessaryFeatures = {};
     necessaryFeatures.samplerAnisotropy = VK_TRUE; //需支持各向异性
     necessaryFeatures.sampleRateShading = VK_TRUE; //需支持着色多重采样（改善来自纹理中的锯齿）
-    VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures = {};
-    dynamicRenderingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
-    dynamicRenderingFeatures.dynamicRendering = VK_TRUE; //需支持动态渲染
+    //需支持的设备扩展
     std::vector necessaryExtensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME, //需支持交换链
-        VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME, //需支持推送描述符
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME, //为了支持交换链
+        VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME, //为了支持推送描述符，简化描述符集创建
+        VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME, //为了支持实时调整多重采样，简化管线创建
     };
+    //需打开的扩展特征
+    void* necessaryFeaturesEXT;
+    {
+        //启用动态渲染特征
+        VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures = {};
+        dynamicRenderingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+        dynamicRenderingFeatures.dynamicRendering = VK_TRUE;
+        necessaryFeaturesEXT = &dynamicRenderingFeatures;
+        //启用动态多重采样状态
+        VkPhysicalDeviceExtendedDynamicState3FeaturesEXT dynamicState3Features = {};
+        dynamicState3Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT;
+        dynamicState3Features.extendedDynamicState3RasterizationSamples = VK_TRUE;
+        dynamicRenderingFeatures.pNext = &dynamicState3Features;
+    }
+
 
     //挑选首个满足需求的显卡
     std::vector<uint32_t> queueFamilyIndices;
@@ -162,7 +176,7 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     //显卡需要启用的功能特征
     createInfo.pEnabledFeatures = &necessaryFeatures;
-    createInfo.pNext = &dynamicRenderingFeatures;
+    createInfo.pNext = necessaryFeaturesEXT;
     //显卡需要启用的功能扩展
     createInfo.enabledExtensionCount = static_cast<uint32_t>(necessaryExtensions.size());
     createInfo.ppEnabledExtensionNames = necessaryExtensions.data();

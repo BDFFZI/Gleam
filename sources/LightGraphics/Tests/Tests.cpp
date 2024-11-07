@@ -10,25 +10,17 @@
 
 using namespace Light;
 
-struct Point
-{
-    float3 position;
-    float4 color;
-};
-
 std::unique_ptr<Mesh> CreateMesh()
 {
     return Mesh::CreateFromRawMesh(ModelImporter::ImportObj("Assets/Cube.obj"));
 }
 std::unique_ptr<Shader> CreateShader()
 {
-    StateLayout stateLayout = {};
-    stateLayout.multisample.rasterizationSamples = Graphics::GetPresentSampleCount();
     return Shader::CreateFromFile(
         "Assets/PositionUV.hlsl",
         std::vector{
             GLDescriptorBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-        }, stateLayout);
+        });
 }
 std::unique_ptr<Texture2D> CreateTexture2D()
 {
@@ -60,27 +52,20 @@ void main()
     auto texture = CreateTexture2D();
     auto material = CreateMaterial(shader, texture);
 
+    //创建线框网格
+    std::unique_ptr<MeshTemplate<Vertex_Base>> lineMesh = std::make_unique<MeshTemplate<Vertex_Base>>(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
     std::vector<Vertex> vertices = mesh->GetVertices();
-    std::unique_ptr<MeshTemplate<Point>> lineMesh = std::make_unique<MeshTemplate<Point>>();
-    std::vector<Point> lineVertices(vertices.size());
+    std::vector<Vertex_Base> lineVertices(vertices.size());
     for (uint32_t i = 0; i < vertices.size(); i++)
     {
         lineVertices[i].position = vertices[i].position;
         lineVertices[i].color = vertices[i].color;
     }
-    lineMesh->SetVertices(lineVertices);
+    lineMesh->SetVertices(std::move(lineVertices));
     lineMesh->SetIndices(mesh->GetIndices());
     lineMesh->UpdateGLBuffer();
 
-    GLMeshLayout lineMeshLayout = GLMeshLayout{
-        sizeof(Point), std::vector{
-            GLVertexAttribute{0,offsetof(Point, position), VK_FORMAT_R32G32B32_SFLOAT},
-            GLVertexAttribute{4,offsetof(Point, color), VK_FORMAT_R32G32B32A32_SFLOAT},
-        },
-        VK_PRIMITIVE_TOPOLOGY_LINE_STRIP
-    };
-
-    std::unique_ptr<Shader> lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, {}, lineMeshLayout);
+    std::unique_ptr<Shader> lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultStateLayout, DefaultVertexLayout_Base);
     std::unique_ptr<Material> lineMaterial = std::make_unique<Material>(*lineShader);
 
     float3 move[4] = {

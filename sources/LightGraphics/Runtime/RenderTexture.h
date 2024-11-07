@@ -11,6 +11,7 @@ namespace Light
         virtual ~RenderTextureBase() = default;
         virtual uint32_t GetWidth() const = 0;
         virtual uint32_t GetHeight() const = 0;
+        virtual VkSampleCountFlagBits GetSampleCount() const = 0;
         virtual const VkImage& GetVKColorImage() const = 0;
         virtual const VkImage* GetVkDepthStencilImage() const = 0;
         virtual const VkImage* GetVkColorResolveImage() const = 0;
@@ -31,6 +32,7 @@ namespace Light
 
         uint32_t GetWidth() const override { return width; }
         uint32_t GetHeight() const override { return height; }
+        VkSampleCountFlagBits GetSampleCount() const override { return sampleCount; }
         const VkImage& GetVKColorImage() const override;
         const VkImage* GetVkDepthStencilImage() const override;
         const VkImage* GetVkColorResolveImage() const override;
@@ -40,6 +42,7 @@ namespace Light
 
     private:
         uint32_t width, height;
+        VkSampleCountFlagBits sampleCount;
         std::unique_ptr<GLImage> glColorImage;
         std::unique_ptr<GLImage> glDepthStencilImage;
         std::unique_ptr<GLImage> glColorResolveImage;

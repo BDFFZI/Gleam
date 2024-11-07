@@ -10,13 +10,6 @@
 
 namespace Light
 {
-    struct PushConstant
-    {
-        alignas(16) float4x4 objectToWorld;
-        alignas(16) float4x4 worldToView;
-        alignas(16) float4x4 viewToClip;
-    };
-
     class Shader
     {
     public:
@@ -33,21 +26,21 @@ namespace Light
          * @param shaderFile 
          * @param descriptorSetLayout 
          * @param stateLayout
-         * @param meshLayout 
+         * @param vertexLayout 
          * @return 
          */
         static std::unique_ptr<Shader> CreateFromFile(
             const std::string& shaderFile,
             const std::vector<GLDescriptorBinding>& descriptorSetLayout = {},
-            const StateLayout& stateLayout = {},
-            const GLMeshLayout& meshLayout = Mesh::GetMeshLayout()
+            const StateLayout& stateLayout = DefaultStateLayout,
+            const GLMeshVertexLayout& vertexLayout = DefaultVertexLayout
         );
 
         Shader(
             const std::vector<GLShader>& shaderLayout,
             const std::vector<GLDescriptorBinding>& descriptorBindings, VkDescriptorSetLayoutCreateFlags descriptorFlags,
             const std::vector<VkPushConstantRange>& pushConstantRanges,
-            const GLMeshLayout& meshLayout, const StateLayout& stateLayout,
+            const GLMeshVertexLayout& vertexLayout, const StateLayout& stateLayout,
             VkFormat colorFormat, VkFormat depthStencilFormat);
         Shader(const Shader&) = delete;
 

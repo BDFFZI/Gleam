@@ -33,6 +33,7 @@ void CommandBuffer::BeginRendering(const RenderTextureBase& renderTarget, const 
         renderTarget.GetGLDepthStencilImageView(),
         renderTarget.GetGLColorResolveImageView()
     );
+    glCommandBuffer.SetRasterizationSamples(renderTarget.GetSampleCount());
 
     lastRenderTexture = &renderTarget;
 }
@@ -65,6 +66,7 @@ void CommandBuffer::Draw(const MeshBase& mesh, const float4x4& matrix, const Mat
     {
         glCommandBuffer.BindVertexBuffers(mesh.GetGLVertexBuffer());
         glCommandBuffer.BindIndexBuffer(mesh.GetGLIndexBuffer());
+        glCommandBuffer.SetPrimitiveTopology(mesh.GetPrimitiveTopology());
         lastMesh = &mesh;
     }
 
@@ -72,7 +74,8 @@ void CommandBuffer::Draw(const MeshBase& mesh, const float4x4& matrix, const Mat
     if (&material != lastMaterial)
     {
         const Shader& shader = material.GetShader();
-        glCommandBuffer.PushDescriptorSet(shader.GetGLPipelineLayout(), material.GetDescriptorSet());
+        if (!material.GetDescriptorSet().empty())
+            glCommandBuffer.PushDescriptorSet(shader.GetGLPipelineLayout(), material.GetDescriptorSet());
         lastMaterial = &material;
 
         //绑定着色器

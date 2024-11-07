@@ -1,29 +1,21 @@
 ﻿#pragma once
 #include <memory>
 
-#include "LightGL/Runtime/Pipeline/GLMeshLayout.h"
+#include "Preset.hpp"
 #include "LightGL/Runtime/Resource/GLBuffer.h"
 #include "LightImport/Runtime/ModelImporter.h"
 #include "LightMath/Runtime/Vector.hpp"
 
 namespace Light
 {
-    class MeshBase
-    {
-    public:
-        virtual ~MeshBase() = default;
-
-        virtual const GLBuffer& GetGLVertexBuffer() const = 0;
-        virtual const GLBuffer& GetGLIndexBuffer() const = 0;
-        virtual size_t GetIndexCount() const = 0;
-
-        virtual void UpdateGLBuffer() = 0;
-    };
-
     template <class TVertex>
     class MeshTemplate : public MeshBase
     {
     public:
+        MeshTemplate(const VkPrimitiveTopology primitiveTopology): primitiveTopology(primitiveTopology)
+        {
+        }
+
         const std::vector<TVertex>& GetVertices() const
         {
             return vertices;
@@ -32,14 +24,20 @@ namespace Light
         {
             return indices;
         }
-        void SetVertices(const std::vector<TVertex>& data)
+        void SetVertices(std::vector<TVertex> data)
         {
-            vertices = data;
+            vertices = std::move(data);
         }
-        void SetIndices(const std::vector<uint32_t>& data)
+        void SetIndices(std::vector<uint32_t> data)
         {
-            indices = data;
+            indices = std::move(data);
         }
+
+        const GLBuffer& GetGLVertexBuffer() const override { return *glVertexBuffer; }
+        const GLBuffer& GetGLIndexBuffer() const override { return *glIndexBuffer; }
+        size_t GetVertexCount() const { return vertices.size(); }
+        size_t GetIndexCount() const override { return indices.size(); }
+        VkPrimitiveTopology GetPrimitiveTopology() const override { return primitiveTopology; }
 
         void UpdateGLBuffer() override
         {
@@ -54,22 +52,6 @@ namespace Light
                 indices.data()
             );
         }
-        const GLBuffer& GetGLVertexBuffer() const override
-        {
-            return *glVertexBuffer;
-        }
-        const GLBuffer& GetGLIndexBuffer() const override
-        {
-            return *glIndexBuffer;
-        }
-        size_t GetVertexCount() const
-        {
-            return vertices.size();
-        }
-        size_t GetIndexCount() const override
-        {
-            return indices.size();
-        }
 
     protected:
         std::vector<TVertex> vertices;
@@ -78,24 +60,17 @@ namespace Light
     private:
         std::unique_ptr<GLBuffer> glVertexBuffer;
         std::unique_ptr<GLBuffer> glIndexBuffer;
-    };
-
-    struct Vertex
-    {
-        float3 position;
-        float3 normal;
-        float4 tangent;
-        float2 uv;
-        float4 color;
+        VkPrimitiveTopology primitiveTopology;
     };
 
     class Mesh : public MeshTemplate<Vertex>
     {
     public:
         static std::unique_ptr<Mesh> CreateFromRawMesh(const RawMesh& rawMesh);
-        static const GLMeshLayout& GetMeshLayout();
 
-        Mesh() = default;
+        Mesh(const VkPrimitiveTopology primitiveTopology = DefaultMeshLayout.inputAssembly.topology): MeshTemplate(primitiveTopology)
+        {
+        }
         Mesh(const Mesh&) = delete;
 
         void GetPositions(std::vector<float3>& buffer) const;

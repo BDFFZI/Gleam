@@ -7,8 +7,14 @@ struct GLVertexAttribute
     uint32_t location;
     uint32_t offset;
     VkFormat format;
+};
 
-    GLVertexAttribute(uint32_t location, uint32_t offset, VkFormat format);
+struct GLMeshVertexLayout
+{
+    std::vector<VkVertexInputBindingDescription2EXT> vertexInputBindings;
+    std::vector<VkVertexInputAttributeDescription2EXT> vertexInputAttributes;
+
+    GLMeshVertexLayout(uint32_t vertexSize, std::vector<GLVertexAttribute> vertexAttributes);
 };
 
 struct GLMeshLayout
@@ -18,5 +24,6 @@ struct GLMeshLayout
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
     VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
 
-    GLMeshLayout(uint32_t vertexSize, const std::vector<GLVertexAttribute>& vertexAttributes, VkPrimitiveTopology primitiveTopology);
+
+    GLMeshLayout(const GLMeshVertexLayout& vertexLayout, VkPrimitiveTopology indexLayout);
 };

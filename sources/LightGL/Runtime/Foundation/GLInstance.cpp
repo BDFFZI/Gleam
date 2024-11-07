@@ -46,12 +46,10 @@ GLInstance::GLInstance(const std::vector<const char*>& validationLayers)
     appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_3; //VK_KHR_dynamic_rendering需要
 
-    //要启用的Vulkan扩展（）
-    std::vector<const char*> extensions = {};
-    //Vulkan完全与系统无关，所以窗口系统集成是扩展功能
+    //要启用的Vulkan扩展
     uint32_t glfwExtensionCount;
-    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    extensions.resize(glfwExtensionCount);
+    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount); //Vulkan完全与系统无关，所以窗口系统集成是扩展功能
+    std::vector<const char*> extensions(glfwExtensionCount);
     memcpy(reinterpret_cast<void*>(extensions.data()), reinterpret_cast<const void*>(glfwExtensions),
            sizeof(const char*) * glfwExtensionCount);
 
@@ -78,7 +76,7 @@ GLInstance::GLInstance(const std::vector<const char*>& validationLayers)
         createInfo.ppEnabledLayerNames = nullptr;
     }
 
-    if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+    if (VkResult result = vkCreateInstance(&createInfo, nullptr, &instance); result != VK_SUCCESS)
         throw std::runtime_error("创建Vulkan实例失败！");
 }
 

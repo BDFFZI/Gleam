@@ -316,6 +316,30 @@ void GLCommandBuffer::SetScissor(const VkOffset2D offset, const VkExtent2D exten
     scissor.extent = extent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
+void GLCommandBuffer::SetRasterizationSamples(const VkSampleCountFlagBits rasterizationSamples) const
+{
+    PFN_vkVoidFunction functionAddr = vkGetDeviceProcAddr(GL::glDevice->device, "vkCmdSetRasterizationSamplesEXT");
+    PFN_vkCmdSetRasterizationSamplesEXT vkCmdSetRasterizationSamplesEXT = reinterpret_cast<PFN_vkCmdSetRasterizationSamplesEXT>(functionAddr); // NOLINT(clang-diagnostic-cast-function-type-strict)
+
+    vkCmdSetRasterizationSamplesEXT(commandBuffer, rasterizationSamples);
+}
+void GLCommandBuffer::SetVertexInput() const
+{
+    VkVertexInputBindingDescription2EXT bindingDescription = {};
+    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    bindingDescription.stride = 
+
+    vkCmdSetVertexInputEXT(commandBuffer,
+                           0,
+                           &bindingDescription,
+                           vertexAttributeCount,
+                           pVertexAttribute
+    );
+}
+void GLCommandBuffer::SetPrimitiveTopology(const VkPrimitiveTopology primitiveTopology) const
+{
+    vkCmdSetPrimitiveTopology(commandBuffer, primitiveTopology);
+}
 
 void GLCommandBuffer::DrawIndexed(const uint32_t indicesCount) const
 {

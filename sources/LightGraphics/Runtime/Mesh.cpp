@@ -17,22 +17,6 @@ namespace Light
         return std::unique_ptr<Mesh>(mesh);
     }
 
-    const GLMeshLayout MeshLayout = {
-        sizeof(Vertex), {
-            GLVertexAttribute{0,offsetof(Vertex, position), VK_FORMAT_R32G32B32_SFLOAT},
-            GLVertexAttribute{1,offsetof(Vertex, normal), VK_FORMAT_R32G32B32_SFLOAT},
-            GLVertexAttribute{2,offsetof(Vertex, tangent), VK_FORMAT_R32G32B32A32_SFLOAT},
-            GLVertexAttribute{3,offsetof(Vertex, uv), VK_FORMAT_R32G32_SFLOAT},
-            GLVertexAttribute{4,offsetof(Vertex, color), VK_FORMAT_R32G32B32A32_SFLOAT},
-        },
-        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
-    };
-
-    const GLMeshLayout& Mesh::GetMeshLayout()
-    {
-        return MeshLayout;
-    }
-
 #define GetProperty(functionName,propertyType,propertyName) \
     void Mesh::Get##functionName(std::vector<propertyType>& buffer) const \
     { \

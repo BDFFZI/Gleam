@@ -101,10 +101,12 @@ public:
 
         //网格布局
         GLMeshLayout glMeshLayout(
-            sizeof(Vertex), std::vector<GLVertexAttribute>{
-                {0,offsetof(Vertex, pos), VK_FORMAT_R32G32B32_SFLOAT},
-                {1,offsetof(Vertex, color), VK_FORMAT_R32G32B32_SFLOAT},
-                {2,offsetof(Vertex, texCoord), VK_FORMAT_R32G32_SFLOAT},
+            {
+                sizeof(Vertex), std::vector<GLVertexAttribute>{
+                    {0,offsetof(Vertex, pos), VK_FORMAT_R32G32B32_SFLOAT},
+                    {1,offsetof(Vertex, color), VK_FORMAT_R32G32B32_SFLOAT},
+                    {2,offsetof(Vertex, texCoord), VK_FORMAT_R32G32_SFLOAT},
+                }
             }, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
         //管线布局
         std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(
@@ -127,7 +129,7 @@ public:
         };
         //创建渲染管线
         StateLayout stateLayout = {};
-        stateLayout.multisample.rasterizationSamples = GL::glDevice->maxUsableSampleCount;
+        stateLayout.SetRasterizationSamples(GL::glDevice->maxUsableSampleCount);
         glPipeline = std::make_unique<GLPipeline>(
             *glRenderPass, 0,
             glShaderLayout, glMeshLayout, *glPipelineLayout,

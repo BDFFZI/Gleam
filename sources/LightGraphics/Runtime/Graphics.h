@@ -3,13 +3,13 @@
 #include "LightGL/Runtime/GL.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
 #include "LightUtility/Runtime/ObjectPool.hpp"
-#include "LightUtility/Runtime/ThreadPool.h"
 
 namespace Light
 {
     struct PresentRenderTexture : RenderTextureBase
     {
         uint32_t width, height;
+        VkSampleCountFlagBits sampleCount;
         const VkImage* glColorImage;
         const VkImage* glDepthStencilImage;
         const VkImage* glColorResolveImage;
@@ -21,6 +21,7 @@ namespace Light
 
         uint32_t GetWidth() const override { return width; }
         uint32_t GetHeight() const override { return height; }
+        VkSampleCountFlagBits GetSampleCount() const override { return sampleCount; }
         const VkImage& GetVKColorImage() const override { return *glColorImage; }
         const VkImage* GetVkDepthStencilImage() const override { return glDepthStencilImage; }
         const VkImage* GetVkColorResolveImage() const override { return glColorResolveImage; }
@@ -38,7 +39,6 @@ namespace Light
         static const std::unique_ptr<GLSwapChain>& GetGLSwapChain() { return glSwapChain; }
         static VkFormat GetPresentColorFormat() { return presentColorFormat; }
         static VkFormat GetPresentDepthStencilFormat() { return presentDepthStencilFormat; }
-        static VkSampleCountFlagBits GetPresentSampleCount() { return presentSampleCount; }
         static PresentRenderTexture& GetPresentRenderTexture() { return presentRenderTexture; }
 
         static CommandBuffer& GetCommandBuffer(const std::string& name = "");

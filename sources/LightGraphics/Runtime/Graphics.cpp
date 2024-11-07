@@ -129,6 +129,7 @@ void Graphics::CreateSwapChain()
     //重建PresentRenderTexture
     presentRenderTexture.width = glSwapChain->imageExtent.width;
     presentRenderTexture.height = glSwapChain->imageExtent.height;
+    presentRenderTexture.sampleCount = presentSampleCount;
     presentRenderTexture.glDepthStencilImage = &presentDepthStencilImage->image;
     presentRenderTexture.glDepthStencilImageView = presentDepthStencilImageView.get();
     if (presentSampleCount == VK_SAMPLE_COUNT_1_BIT)

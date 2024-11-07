@@ -4,7 +4,7 @@ using namespace Light;
 
 
 RenderTexture::RenderTexture(const uint32_t width, const uint32_t height, const VkFormat colorFormat, const VkFormat depthFormat, const VkSampleCountFlagBits sampleCount)
-    : width(width), height(height)
+    : width(width), height(height), sampleCount(sampleCount)
 {
     glColorImage = GLImage::CreateFrameBufferColor(width, height, colorFormat, sampleCount);
     glColorImageView = std::make_unique<GLImageView>(*glColorImage, VK_IMAGE_ASPECT_COLOR_BIT);
