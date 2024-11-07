@@ -8,7 +8,7 @@ GL GL::Initialize(GLFWwindow* window)
 #ifdef _DEBUG
     validationLayers = {"VK_LAYER_KHRONOS_validation"};
     if (glInstance->CheckValidationLayerSupport(validationLayers) == false)
-        throw std::runtime_error("不支持的验证层");
+        throw std::runtime_error("不支持的验证层"); //启用验证层需要安装VulkanSDK
 #else
     validationLayers = {};
 #endif

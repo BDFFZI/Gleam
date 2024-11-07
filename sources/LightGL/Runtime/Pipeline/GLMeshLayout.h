@@ -9,29 +9,26 @@ struct GLVertexAttribute
     VkFormat format;
 };
 
-struct GLMeshVertexLayout
+struct GLVertexInput
 {
-    std::vector<VkVertexInputBindingDescription2EXT> vertexInputBindings2EXT;
-    std::vector<VkVertexInputAttributeDescription2EXT> vertexInputAttributes2EXT;
-    std::vector<VkVertexInputBindingDescription> vertexInputBindings = {};
-    std::vector<VkVertexInputAttributeDescription> vertexInputAttributes = {};
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+    std::vector<VkVertexInputBindingDescription2EXT> bindingDescription2EXTs;
+    std::vector<VkVertexInputAttributeDescription2EXT> attributeDescription2EXTs;
+    std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+    std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+    VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 
-    GLMeshVertexLayout(uint32_t vertexSize, const std::vector<GLVertexAttribute>& vertexAttributes);
+    GLVertexInput(uint32_t vertexSize, const std::vector<GLVertexAttribute>& vertexAttributes);
 };
 
-struct GLMeshIndexLayout
+struct GLInputAssembly
 {
-    VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
 
-    GLMeshIndexLayout(VkPrimitiveTopology primitiveTopology, bool primitiveRestartEnable);
+    GLInputAssembly(VkPrimitiveTopology primitiveTopology, bool primitiveRestartEnable);
 };
 
 struct GLMeshLayout
 {
-    GLMeshVertexLayout vertexLayout;
-    GLMeshIndexLayout indexLayout;
-
-
-    GLMeshLayout(const GLMeshVertexLayout& vertexLayout, VkPrimitiveTopology indexLayout);
+    GLVertexInput vertexInput;
+    GLInputAssembly inputAssembly;
 };

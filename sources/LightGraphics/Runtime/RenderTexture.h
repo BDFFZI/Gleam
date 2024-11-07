@@ -1,25 +1,11 @@
 ﻿#pragma once
 #include <memory>
 
+#include "GraphicsConfig.hpp"
 #include "LightGL/Runtime/Resource/GLImageView.h"
 
 namespace Light
 {
-    class RenderTextureBase
-    {
-    public:
-        virtual ~RenderTextureBase() = default;
-        virtual uint32_t GetWidth() const = 0;
-        virtual uint32_t GetHeight() const = 0;
-        virtual VkSampleCountFlagBits GetSampleCount() const = 0;
-        virtual const VkImage& GetVKColorImage() const = 0;
-        virtual const VkImage* GetVkDepthStencilImage() const = 0;
-        virtual const VkImage* GetVkColorResolveImage() const = 0;
-        virtual const GLImageView& GetGLColorImageView() const = 0;
-        virtual const GLImageView* GetGLDepthStencilImageView() const = 0;
-        virtual const GLImageView* GetGLColorResolveImageView() const = 0;
-    };
-
     class RenderTexture : public RenderTextureBase
     {
     public:

@@ -37,8 +37,6 @@ namespace Light
         static void UnInitialize();
 
         static const std::unique_ptr<GLSwapChain>& GetGLSwapChain() { return glSwapChain; }
-        static VkFormat GetPresentColorFormat() { return presentColorFormat; }
-        static VkFormat GetPresentDepthStencilFormat() { return presentDepthStencilFormat; }
         static PresentRenderTexture& GetPresentRenderTexture() { return presentRenderTexture; }
 
         static CommandBuffer& GetCommandBuffer(const std::string& name = "");
@@ -71,8 +69,6 @@ namespace Light
 
         inline static VkSurfaceFormatKHR surfaceFormat = {};
         inline static VkPresentModeKHR presentMode = {};
-        inline static VkFormat presentColorFormat = {};
-        inline static VkFormat presentDepthStencilFormat = {};
         inline static VkSampleCountFlagBits presentSampleCount = {};
 
         inline static std::vector<std::unique_ptr<GLCommandBuffer>> presentCommandBuffers; //传输呈现命令用的主缓冲区

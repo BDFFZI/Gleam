@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <stack>
 
-#include "Material.h"
+#include "GraphicsConfig.hpp"
 #include "RenderTexture.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 
@@ -10,7 +10,9 @@ namespace Light
     class CommandBuffer
     {
     public:
-        CommandBuffer() = default;
+        CommandBuffer(VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_SECONDARY) : glCommandBuffer(level)
+        {
+        }
         CommandBuffer(const CommandBuffer&) = delete;
 
         GLCommandBuffer& GetGLCommandBuffer();
@@ -27,18 +29,17 @@ namespace Light
         void EndRendering() const;
 
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) const;
-        void SetViewProjectionMatrices(const float4x4& view, const float4x4& proj);
-        void Draw(const MeshBase& mesh, const float4x4& matrix, const Material& material);
+        void SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix);
+        void Draw(MeshBase* mesh, const float4x4& modelMatrix, MaterialBase* material);
         void ClearRenderTexture(float4 color = 0, float depth = 0) const;
 
     private:
         inline static std::stack<CommandBuffer*> commandBufferPool = {};
 
-        GLCommandBuffer glCommandBuffer = GLCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY);
+        GLCommandBuffer glCommandBuffer;
         const MeshBase* lastMesh = nullptr;
-        const Material* lastMaterial = nullptr;
-        const Shader* lastShader = nullptr;
+        const MaterialBase* lastMaterial = nullptr;
         const RenderTextureBase* lastRenderTexture = nullptr;
-        PushConstant pushConstant = {};
+        float4x4 matrixVP;
     };
 }

@@ -2,25 +2,24 @@
 #include "Buffer.h"
 #include "Shader.h"
 #include "Texture2D.h"
-#include "LightGL/Runtime/Resource/GLDescriptorSet.h"
 
 namespace Light
 {
-    class Material
+    class Material : public MaterialBase
     {
     public:
-        Material(Shader& shader);
+        Material(ShaderBase* shader);
         Material(const Material&) = delete;
-        ~Material();
+        ~Material() override;
 
-        const Shader& GetShader() const;
-        const std::vector<VkWriteDescriptorSet>& GetDescriptorSet() const;
-
+        const ShaderBase* GetShader() const override { return shader; }
         void SetBuffer(int slotIndex, const Buffer& buffer) const;
         void SetTexture2D(int slotIndex, const Texture2D& texture2D) const;
 
+        void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialBase* lastMaterial) override;
+
     private:
-        Shader* shader;
-        std::vector<VkWriteDescriptorSet> descriptorSet;
+        ShaderBase* shader;
+        std::vector<VkWriteDescriptorSet> writeDescriptorSets;
     };
 }

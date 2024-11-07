@@ -10,7 +10,7 @@
 
 namespace Light
 {
-    class Shader
+    class Shader : public ShaderBase
     {
     public:
         /**
@@ -26,29 +26,27 @@ namespace Light
          * @param shaderFile 
          * @param descriptorSetLayout 
          * @param stateLayout
-         * @param vertexLayout 
          * @return 
          */
         static std::unique_ptr<Shader> CreateFromFile(
             const std::string& shaderFile,
             const std::vector<GLDescriptorBinding>& descriptorSetLayout = {},
-            const StateLayout& stateLayout = DefaultStateLayout,
-            const GLMeshVertexLayout& vertexLayout = DefaultVertexLayout
+            const GLStateLayout& stateLayout = BuiltInGLStateLayout
         );
 
         Shader(
             const std::vector<GLShader>& shaderLayout,
             const std::vector<GLDescriptorBinding>& descriptorBindings, VkDescriptorSetLayoutCreateFlags descriptorFlags,
             const std::vector<VkPushConstantRange>& pushConstantRanges,
-            const GLMeshVertexLayout& vertexLayout, const StateLayout& stateLayout,
+            const GLStateLayout& stateLayout,
             VkFormat colorFormat, VkFormat depthStencilFormat);
         Shader(const Shader&) = delete;
 
-        const GLPipelineLayout& GetGLPipelineLayout() const;
-        const GLPipeline& GetGLPipeline() const;
+        const GLPipelineLayout& GetGLPipelineLayout() const override { return *glPipelineLayout; }
+        const std::vector<GLDescriptorBinding>& GetDescriptorBinding() const override { return glDescriptorSetLayout->descriptorBindings; }
+        const std::vector<VkPushConstantRange>& GetPushConstantBinding() const override { return pushConstantRanges; }
 
-        const std::vector<GLDescriptorBinding>& GetDescriptorBinding() const;
-        const std::vector<VkPushConstantRange>& GetPushConstantBinding() const;
+        void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const ShaderBase* lastShader) override;
 
     private:
         std::unique_ptr<GLDescriptorSetLayout> glDescriptorSetLayout;

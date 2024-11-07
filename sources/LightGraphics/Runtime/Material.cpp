@@ -4,10 +4,10 @@
 
 using namespace Light;
 
-Material::Material(Shader& shader): shader(&shader)
+Material::Material(ShaderBase* shader): shader(shader)
 {
-    const std::vector<GLDescriptorBinding>& descriptorBindings = shader.GetDescriptorBinding();
-    descriptorSet.resize(descriptorBindings.size());
+    const std::vector<GLDescriptorBinding>& descriptorBindings = shader->GetDescriptorBinding();
+    writeDescriptorSets.resize(descriptorBindings.size());
     for (size_t i = 0; i < descriptorBindings.size(); i++)
     {
         VkDescriptorType descriptorType = descriptorBindings[i].descriptorType;
@@ -27,12 +27,12 @@ Material::Material(Shader& shader): shader(&shader)
         else
             throw std::runtime_error("不支持的描述符类型");
 
-        descriptorSet[i] = writeDescriptorSet;
+        writeDescriptorSets[i] = writeDescriptorSet;
     }
 }
 Material::~Material()
 {
-    for (auto& descriptor : descriptorSet)
+    for (auto& descriptor : writeDescriptorSets)
     {
         if (descriptor.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
             delete descriptor.pBufferInfo;
@@ -41,26 +41,26 @@ Material::~Material()
     }
 }
 
-const Shader& Material::GetShader() const
-{
-    return *shader;
-}
-const std::vector<VkWriteDescriptorSet>& Material::GetDescriptorSet() const
-{
-    return descriptorSet;
-}
-
 void Material::SetBuffer(const int slotIndex, const Buffer& buffer) const
 {
-    VkDescriptorBufferInfo* bufferInfo = const_cast<VkDescriptorBufferInfo*>(descriptorSet[slotIndex].pBufferInfo);
+    VkDescriptorBufferInfo* bufferInfo = const_cast<VkDescriptorBufferInfo*>(writeDescriptorSets[slotIndex].pBufferInfo);
     bufferInfo->buffer = buffer.GetGLBuffer().buffer;
     bufferInfo->offset = 0;
     bufferInfo->range = buffer.GetGLBuffer().size;
 }
 void Material::SetTexture2D(const int slotIndex, const Texture2D& texture2D) const
 {
-    VkDescriptorImageInfo* imageInfo = const_cast<VkDescriptorImageInfo*>(descriptorSet[slotIndex].pImageInfo);
+    VkDescriptorImageInfo* imageInfo = const_cast<VkDescriptorImageInfo*>(writeDescriptorSets[slotIndex].pImageInfo);
     imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     imageInfo->imageView = texture2D.GetGLImageView().imageView;
     imageInfo->sampler = texture2D.GetGLImageSampler().imageSampler;
+}
+
+void Material::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialBase* lastMaterial)
+{
+    if (lastMaterial == nullptr || lastMaterial->GetShader() != shader)
+        shader->BindToPipeline(glCommandBuffer, lastMaterial->GetShader());
+
+    if (writeDescriptorSets.empty() == false)
+        glCommandBuffer.PushDescriptorSet(shader->GetGLPipelineLayout(), writeDescriptorSets);
 }

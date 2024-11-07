@@ -13,7 +13,6 @@ namespace Light
         if (!rawMesh.uvs.empty()) mesh->SetUVs(rawMesh.uvs);
         if (!rawMesh.colors.empty()) mesh->SetColors(rawMesh.colors);
         mesh->SetIndices(rawMesh.triangles);
-        mesh->UpdateGLBuffer();
         return std::unique_ptr<Mesh>(mesh);
     }
 
@@ -40,6 +39,7 @@ namespace Light
             vertices.resize(size); \
         for (size_t index = 0; index < size; index++) \
             vertices[index].propertyName = data[index]; \
+        isDirty = true;\
     }
 
     SetProperty(Positions, float3, position)

@@ -20,10 +20,10 @@ struct Vertex
     float2 texCoord;
 };
 
-struct PushConstant
+struct ConstantBuffer
 {
     ///vulkan对常量缓冲区内存布局要求必须16字节对齐
-    ///如float2（16byte），float4（32byte），float3就不符合（24byte）
+    ///可用直接用float2（16byte），float4（32byte）等，但float3就不符合（24byte）
     alignas(16) float4x4 model;
     alignas(16) float4x4 view;
     alignas(16) float4x4 proj;
@@ -46,6 +46,7 @@ class GLTester
 
     std::unique_ptr<GLBuffer> vertexBuffer;
     std::unique_ptr<GLBuffer> indexBuffer;
+    std::unique_ptr<GLBuffer> uniformBuffer;
     std::unique_ptr<GLImage> texture;
     std::unique_ptr<GLImageView> textureView;
     std::unique_ptr<GLImageSampler> textureSampler;
@@ -100,23 +101,23 @@ public:
         RecreateFrameBuffers();
 
         //网格布局
-        GLMeshLayout glMeshLayout(
-            {
+        GLMeshLayout glMeshLayout{
+            GLVertexInput(
                 sizeof(Vertex), std::vector<GLVertexAttribute>{
                     {0,offsetof(Vertex, pos), VK_FORMAT_R32G32B32_SFLOAT},
                     {1,offsetof(Vertex, color), VK_FORMAT_R32G32B32_SFLOAT},
                     {2,offsetof(Vertex, texCoord), VK_FORMAT_R32G32_SFLOAT},
                 }
-            }, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+            ),
+            GLInputAssembly(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false)
+        };
         //管线布局
         std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(
             std::vector{
+                GLDescriptorBinding{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
                 GLDescriptorBinding{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
             });
-        std::vector<VkPushConstantRange> pushConstantRanges = {
-            {VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant)}
-        };
-        glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout, pushConstantRanges);
+        glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout, std::vector<VkPushConstantRange>{});
         //着色器布局
         std::string code = Utility::ReadFile("Assets/shader.hlsl");
         std::vector glShaderLayout{
@@ -128,7 +129,7 @@ public:
                      "FragmentShader"),
         };
         //创建渲染管线
-        StateLayout stateLayout = {};
+        GLStateLayout stateLayout = {};
         stateLayout.SetRasterizationSamples(GL::glDevice->maxUsableSampleCount);
         glPipeline = std::make_unique<GLPipeline>(
             *glRenderPass, 0,
@@ -159,6 +160,9 @@ public:
             mesh.triangles.data()
         );
 
+        //创建常量缓冲区（不用推送常量是因为：推送常量有大小限制，在有些显卡上只有128字节，但统一缓冲区（192字节）已经超过）
+        uniformBuffer = GLBuffer::CreateUniformBuffer(sizeof(ConstantBuffer));
+
         //创建纹理及采样器
         RawImage rawImage = ImageImporter::Import("Assets/viking_room.png", STBI_rgb_alpha);
         texture = GLImage::CreateTexture2D(
@@ -174,7 +178,8 @@ public:
         for (size_t i = 0; i < maxFramesInFlight; ++i)
         {
             glDescriptorSets[i] = std::make_unique<GLDescriptorSet>(*glDescriptorPool, *descriptorSetLayout);
-            glDescriptorSets[i]->BindImage(0, *textureView, *textureSampler);
+            glDescriptorSets[i]->BindBuffer(0, *uniformBuffer);
+            glDescriptorSets[i]->BindImage(1, *textureView, *textureSampler);
         }
 
         //创建命令缓冲区
@@ -205,15 +210,18 @@ public:
             return;
         }
 
-        //计算推送常量
+        //计算统一缓冲区
         static auto startTime = std::chrono::high_resolution_clock::now();
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float>(currentTime - startTime).count();
-        PushConstant ubo;
+        ConstantBuffer ubo;
         ubo.model = float4x4::TRS(0, {-90, time * 90, 0}, 1);
         ubo.view = inverse(float4x4::TRS({2, 2, 2}, {32, -135, 0}, 1));
         ubo.proj = float4x4::Perspective(45.0f, static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain->imageExtent.height), 0.1f, 10.0f);
         ubo.proj._m11 *= -1; //float4x4以Direct3D为准，输出的剪辑空间坐标y与vk相反，故需反转。
+        void* bufferMemory = uniformBuffer->MapMemory();
+        memcpy(bufferMemory, &ubo, sizeof(ConstantBuffer));
+        uniformBuffer->UnmapMemory();
 
         //准备绘图命令
         GLCommandBuffer& glCommandBuffer = *glCommandBuffers[bufferIndex];
@@ -225,7 +233,6 @@ public:
         glCommandBuffer.BindVertexBuffers(*vertexBuffer);
         glCommandBuffer.BindIndexBuffer(*indexBuffer);
         glCommandBuffer.BindDescriptorSets(*glPipelineLayout, *glDescriptorSets[bufferIndex]);
-        glCommandBuffer.PushConstant(*glPipelineLayout, {VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant)}, &ubo);
         glCommandBuffer.DrawIndexed(static_cast<int>(indexBuffer->size / sizeof(uint32_t)));
         glCommandBuffer.EndRenderPass();
         glCommandBuffer.EndRecording();

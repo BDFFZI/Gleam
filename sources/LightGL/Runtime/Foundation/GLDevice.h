@@ -8,7 +8,7 @@
 class GLDevice
 {
 public:
-    VkPhysicalDevice physicalDevice;
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice device;
     uint32_t graphicQueueFamily;
     VkQueue graphicQueue;

@@ -316,27 +316,31 @@ void GLCommandBuffer::SetScissor(const VkOffset2D offset, const VkExtent2D exten
     scissor.extent = extent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
-void GLCommandBuffer::SetRasterizationSamples(const VkSampleCountFlagBits rasterizationSamples) const
-{
-    PFN_vkVoidFunction functionAddr = vkGetDeviceProcAddr(GL::glDevice->device, "vkCmdSetRasterizationSamplesEXT");
-    PFN_vkCmdSetRasterizationSamplesEXT vkCmdSetRasterizationSamplesEXT = reinterpret_cast<PFN_vkCmdSetRasterizationSamplesEXT>(functionAddr); // NOLINT(clang-diagnostic-cast-function-type-strict)
-
-    vkCmdSetRasterizationSamplesEXT(commandBuffer, rasterizationSamples);
-}
-void GLCommandBuffer::SetVertexInput(const GLMeshVertexLayout& vertexLayout) const
-{
-    vkCmdSetVertexInputEXT(
-        commandBuffer,
-        static_cast<uint32_t>(vertexLayout.vertexInputBindings2EXT.size()),
-        vertexLayout.vertexInputBindings2EXT.data(),
-        static_cast<uint32_t>(vertexLayout.vertexInputAttributes2EXT.size()),
-        vertexLayout.vertexInputAttributes2EXT.data()
-    );
-}
-void GLCommandBuffer::SetPrimitiveTopology(const VkPrimitiveTopology primitiveTopology) const
-{
-    vkCmdSetPrimitiveTopology(commandBuffer, primitiveTopology);
-}
+// void GLCommandBuffer::SetRasterizationSamples(const VkSampleCountFlagBits rasterizationSamples) const
+// {
+//     PFN_vkVoidFunction functionAddr = vkGetDeviceProcAddr(GL::glDevice->device, "vkCmdSetRasterizationSamplesEXT");
+//     PFN_vkCmdSetRasterizationSamplesEXT vkCmdSetRasterizationSamplesEXT = reinterpret_cast<PFN_vkCmdSetRasterizationSamplesEXT>(functionAddr); // NOLINT(clang-diagnostic-cast-function-type-strict)
+//
+//     vkCmdSetRasterizationSamplesEXT(commandBuffer, rasterizationSamples);
+// }
+// void GLCommandBuffer::SetVertexInput(const GLVertexInput& vertexInput) const
+// {
+//     PFN_vkVoidFunction functionAddr = vkGetDeviceProcAddr(GL::glDevice->device, "vkCmdSetVertexInputEXT");
+//     PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT = reinterpret_cast<PFN_vkCmdSetVertexInputEXT>(functionAddr); // NOLINT(clang-diagnostic-cast-function-type-strict)
+//     
+//     vkCmdSetVertexInputEXT(
+//         commandBuffer,
+//         static_cast<uint32_t>(vertexInput.bindingDescription2EXTs.size()),
+//         vertexInput.bindingDescription2EXTs.data(),
+//         static_cast<uint32_t>(vertexInput.attributeDescription2EXTs.size()),
+//         vertexInput.attributeDescription2EXTs.data()
+//     );
+// }
+// void GLCommandBuffer::SetInputAssembly(const GLInputAssembly& inputAssembly) const
+// {
+//     vkCmdSetPrimitiveTopology(commandBuffer, inputAssembly.inputAssemblyState.topology);
+//     vkCmdSetPrimitiveRestartEnable(commandBuffer, inputAssembly.inputAssemblyState.primitiveRestartEnable);
+// }
 
 void GLCommandBuffer::DrawIndexed(const uint32_t indicesCount) const
 {

@@ -2,13 +2,22 @@
 
 #include "LightGraphics/Runtime/CommandBuffer.h"
 #include "LightGraphics/Runtime/Graphics.h"
-#include "LightGraphics/Runtime/Mesh.h"
 #include "LightImport/Runtime/ShaderImporter.h"
 #include "LightMath/Runtime/Matrix.hpp"
 #include "LightMath/Runtime/MatrixMath.hpp"
 #include "LightUtility/Runtime/Chronograph.hpp"
+#include "LightGraphics/Runtime/Mesh.h"
+#include "LightGraphics/Runtime/Shader.h"
+#include "LightGraphics/Runtime/Texture2D.h"
+#include "LightGraphics/Runtime/Material.h"
 
 using namespace Light;
+
+struct Point
+{
+    float3 position;
+    float4 color;
+};
 
 std::unique_ptr<Mesh> CreateMesh()
 {
@@ -28,9 +37,9 @@ std::unique_ptr<Texture2D> CreateTexture2D()
     data[4] = float4(0);
     return std::make_unique<Texture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, data.data(), sizeof float4 * data.size());
 }
-std::unique_ptr<Material> CreateMaterial(const std::unique_ptr<Shader>& shader, const std::unique_ptr<Texture2D>& texture)
+std::unique_ptr<Material> CreateMaterial(Shader* shader, const std::unique_ptr<Texture2D>& texture)
 {
-    std::unique_ptr<Material> material = std::make_unique<Material>(*shader);
+    std::unique_ptr<Material> material = std::make_unique<Material>(shader);
     material->SetTexture2D(0, *texture);
     return material;
 }
@@ -50,12 +59,21 @@ void main()
     auto mesh = CreateMesh();
     auto shader = CreateShader();
     auto texture = CreateTexture2D();
-    auto material = CreateMaterial(shader, texture);
+    auto material = CreateMaterial(shader.get(), texture);
 
     //创建线框网格
-    std::unique_ptr<MeshTemplate<Vertex_Base>> lineMesh = std::make_unique<MeshTemplate<Vertex_Base>>(VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
-    std::vector<Vertex> vertices = mesh->GetVertices();
-    std::vector<Vertex_Base> lineVertices(vertices.size());
+    GLMeshLayout glMeshLayout = {
+        GLVertexInput{
+            sizeof(Point), {
+                GLVertexAttribute{0,offsetof(Point, position), VK_FORMAT_R32G32B32_SFLOAT},
+                GLVertexAttribute{4,offsetof(Point, color), VK_FORMAT_R32G32B32A32_SFLOAT},
+            }
+        },
+        GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, false}
+    };
+    std::unique_ptr<MeshT<Point>> lineMesh = std::make_unique<MeshT<Point>>(&glMeshLayout);
+    std::vector<BuiltInVertex> vertices = mesh->GetVertices();
+    std::vector<Point> lineVertices(vertices.size());
     for (uint32_t i = 0; i < vertices.size(); i++)
     {
         lineVertices[i].position = vertices[i].position;
@@ -63,10 +81,9 @@ void main()
     }
     lineMesh->SetVertices(std::move(lineVertices));
     lineMesh->SetIndices(mesh->GetIndices());
-    lineMesh->UpdateGLBuffer();
 
-    std::unique_ptr<Shader> lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultStateLayout, DefaultVertexLayout_Base);
-    std::unique_ptr<Material> lineMaterial = std::make_unique<Material>(*lineShader);
+    std::unique_ptr<Shader> lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, BuiltInGLStateLayout);
+    std::unique_ptr<Material> lineMaterial = std::make_unique<Material>(lineShader.get());
 
     float3 move[4] = {
         float3(-1, 1, 1),
@@ -102,9 +119,9 @@ void main()
                 static_cast<float>(i + 1) / 4.0f
             );
 
-            commandBuffer.Draw(*mesh, objectToWorld, *material);
+            commandBuffer.Draw(mesh.get(), objectToWorld, material.get());
         }
-        commandBuffer.Draw(*lineMesh, float4x4::TRS(0, 0, 2), *lineMaterial);
+        commandBuffer.Draw(lineMesh.get(), float4x4::TRS(0, 0, 2), lineMaterial.get());
         commandBuffer.EndRendering();
 
         commandBuffer.EndRecording();

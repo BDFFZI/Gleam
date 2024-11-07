@@ -15,6 +15,15 @@ GLBuffer* GLBuffer::CreateTransmitter(const void* data, const size_t size)
 
     return glBuffer;
 }
+std::unique_ptr<GLBuffer> GLBuffer::CreateUniformBuffer(size_t size)
+{
+    return std::make_unique<GLBuffer>(
+        size,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | //声明缓冲区内容支持映射到主机内存
+        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT //声明无需主机显式调用缓存管理命令，由系统在映射前后自动同步缓冲区与主机内存，
+    );
+}
 
 GLBuffer::GLBuffer(const size_t size, const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties)
     : size(size)

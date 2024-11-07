@@ -7,7 +7,7 @@
 #include "GLShader.h"
 #include "GLPipelineLayout.h"
 
-struct StateLayout
+struct GLStateLayout
 {
     std::vector<VkDynamicState> dynamicStates;
     VkPipelineMultisampleStateCreateInfo multisample;
@@ -15,7 +15,7 @@ struct StateLayout
     VkPipelineDepthStencilStateCreateInfo depthStencil;
     VkPipelineColorBlendAttachmentState colorBlendAttachment;
 
-    StateLayout()
+    GLStateLayout()
     {
         dynamicStates = {
             VK_DYNAMIC_STATE_VIEWPORT, //便于调整窗口大小
@@ -125,14 +125,14 @@ public:
         const std::vector<GLShader>& glShaderLayout,
         const GLMeshLayout& glMeshLayout,
         const GLPipelineLayout& glPipelineLayout,
-        const StateLayout& stateLayout = {});
+        const GLStateLayout& glStateLayout = {});
     GLPipeline(
         const std::vector<VkFormat>& colorAttachments,
         VkFormat depthStencilAttachment,
         const std::vector<GLShader>& glShaderLayout,
         const GLMeshLayout& glMeshLayout,
         const GLPipelineLayout& glPipelineLayout,
-        const StateLayout& stateLayout = {});
+        const GLStateLayout& glStateLayout = {});
     GLPipeline(const GLPipeline&) = delete;
     ~GLPipeline();
 };

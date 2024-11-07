@@ -186,7 +186,7 @@ GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat for
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //图形队列独占
     imageInfo.samples = sampleCount; //多重采样
     imageInfo.flags = 0; // Optional
-    if (vkCreateImage(GL::glDevice->device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+    if (VkResult result = vkCreateImage(GL::glDevice->device, &imageInfo, nullptr, &image); result != VK_SUCCESS)
         throw std::runtime_error("创建图片失败！");
 
     VkMemoryRequirements memRequirements;
@@ -198,7 +198,7 @@ GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat for
     //VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT是GPU访问最高效的内存属性，但通常也无法被CPU直接访问
     allocInfo.memoryTypeIndex = GL::glDevice->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    if (vkAllocateMemory(GL::glDevice->device, &allocInfo, nullptr, &memory) != VK_SUCCESS)
+    if (VkResult result = vkAllocateMemory(GL::glDevice->device, &allocInfo, nullptr, &memory); result != VK_SUCCESS)
         throw std::runtime_error("分配图片内存失败！");
 
     vkBindImageMemory(GL::glDevice->device, image, memory, 0);

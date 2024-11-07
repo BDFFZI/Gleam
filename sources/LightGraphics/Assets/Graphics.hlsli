@@ -1,9 +1,7 @@
 [[vk::push_constant]]
 cbuffer PushConstant
 {
-    float4x4 objectToWorld;
-    float4x4 worldToView;
-    float4x4 viewToClip;
+    float4x4 MatrixMVP;
 }
 
 struct Vertex_Full
@@ -22,8 +20,5 @@ struct Vertex_Full
 
 float4 TransformObjectToClip(float3 positionOS)
 {
-    float4 positionWS = mul(objectToWorld,float4(positionOS,1));
-    float4 positionVS = mul(worldToView,positionWS);
-    float4 positionCS = mul(viewToClip,positionVS);
-    return positionCS;
+    return mul(MatrixMVP,float4(positionOS,1));
 }

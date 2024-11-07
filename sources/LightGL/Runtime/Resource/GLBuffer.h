@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Foundation/GLDevice.h"
+#include <memory>
 
 class GLBuffer
 {
@@ -14,6 +15,7 @@ public:
      * @return 支持CPU内存写入且可做GPU传输源的临时缓冲区
      */
     static GLBuffer* CreateTransmitter(const void* data, size_t size);
+    static std::unique_ptr<GLBuffer> CreateUniformBuffer(size_t size);
 
     VkBuffer buffer;
     VkDeviceMemory bufferMemory;

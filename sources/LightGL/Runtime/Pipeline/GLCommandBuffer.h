@@ -69,9 +69,9 @@ public:
     void PushConstant(const GLPipelineLayout& glPipelineLayout, const VkPushConstantRange& pushConstantRange, void* data) const;
     void SetViewport(float x, float y, float width, float height) const;
     void SetScissor(VkOffset2D offset, VkExtent2D extent) const;
-    void SetRasterizationSamples(VkSampleCountFlagBits rasterizationSamples) const;
-    void SetVertexInput(const GLMeshVertexLayout& vertexLayout) const;
-    void SetPrimitiveTopology(VkPrimitiveTopology primitiveTopology) const;
+    // void SetRasterizationSamples(VkSampleCountFlagBits rasterizationSamples) const;
+    // void SetVertexInput(const GLVertexInput& vertexInput) const;
+    // void SetInputAssembly(const GLInputAssembly& inputAssembly) const;
     void DrawIndexed(uint32_t indicesCount) const;
     /**
      * 对当前绑定的帧缓冲区内容进行清除

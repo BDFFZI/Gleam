@@ -114,7 +114,7 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
     std::vector necessaryExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME, //为了支持交换链
         VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME, //为了支持推送描述符，简化描述符集创建
-        VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME, //为了支持实时调整多重采样，简化管线创建
+        // VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME, //为了支持实时调整多重采样，简化管线创建
     };
     //需打开的扩展特征
     void* necessaryFeaturesEXT;
@@ -124,11 +124,11 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
         dynamicRenderingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
         dynamicRenderingFeatures.dynamicRendering = VK_TRUE;
         necessaryFeaturesEXT = &dynamicRenderingFeatures;
-        //启用动态多重采样状态
-        VkPhysicalDeviceExtendedDynamicState3FeaturesEXT dynamicState3Features = {};
-        dynamicState3Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT;
-        dynamicState3Features.extendedDynamicState3RasterizationSamples = VK_TRUE;
-        dynamicRenderingFeatures.pNext = &dynamicState3Features;
+        // //启用动态多重采样状态
+        // VkPhysicalDeviceExtendedDynamicState3FeaturesEXT dynamicState3Features = {};
+        // dynamicState3Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT;
+        // dynamicState3Features.extendedDynamicState3RasterizationSamples = VK_TRUE;
+        // dynamicRenderingFeatures.pNext = &dynamicState3Features;
     }
 
 
@@ -153,7 +153,7 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
         break;
     }
     if (physicalDevice == VK_NULL_HANDLE)
-        throw std::runtime_error("没有找到任何一个有效GPU!");
+        throw std::runtime_error("没有找到任何一个满足要求的GPU！");
 
     //准备队列创建信息
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -181,7 +181,7 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
     createInfo.enabledExtensionCount = static_cast<uint32_t>(necessaryExtensions.size());
     createInfo.ppEnabledExtensionNames = necessaryExtensions.data();
 
-    if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
+    if (VkResult result = vkCreateDevice(physicalDevice, &createInfo, nullptr, &device); result != VK_SUCCESS)
         throw std::runtime_error("逻辑设备创建失败!");
 
     //获取创建的队列

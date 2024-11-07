@@ -1,5 +1,7 @@
 ﻿#include "CommandBuffer.h"
 
+#include "LightMath/Runtime/MatrixMath.hpp"
+
 using namespace Light;
 
 GLCommandBuffer& CommandBuffer::GetGLCommandBuffer()
@@ -15,9 +17,8 @@ void CommandBuffer::EndRecording()
     glCommandBuffer.EndRecording();
     lastMesh = nullptr;
     lastMaterial = nullptr;
-    lastShader = nullptr;
     lastRenderTexture = nullptr;
-    pushConstant = {};
+    matrixVP = {};
 }
 
 void CommandBuffer::BeginRendering(const RenderTextureBase& renderTarget, const bool clearColor)
@@ -33,7 +34,7 @@ void CommandBuffer::BeginRendering(const RenderTextureBase& renderTarget, const 
         renderTarget.GetGLDepthStencilImageView(),
         renderTarget.GetGLColorResolveImageView()
     );
-    glCommandBuffer.SetRasterizationSamples(renderTarget.GetSampleCount());
+    // glCommandBuffer.SetRasterizationSamples(renderTarget.GetSampleCount());
 
     lastRenderTexture = &renderTarget;
 }
@@ -53,47 +54,35 @@ void CommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t
         {width, height}
     );
 }
-void CommandBuffer::SetViewProjectionMatrices(const float4x4& view, const float4x4& proj)
+void CommandBuffer::SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix)
 {
-    pushConstant.worldToView = view;
-    pushConstant.viewToClip = proj;
+    matrixVP = mul(projMatrix, viewMatrix);
 }
 
-void CommandBuffer::Draw(const MeshBase& mesh, const float4x4& matrix, const Material& material)
+void CommandBuffer::Draw(MeshBase* mesh, const float4x4& modelMatrix, MaterialBase* material)
 {
     //绑定网格
-    if (&mesh != lastMesh)
+    if (mesh != lastMesh)
     {
-        glCommandBuffer.BindVertexBuffers(mesh.GetGLVertexBuffer());
-        glCommandBuffer.BindIndexBuffer(mesh.GetGLIndexBuffer());
-        glCommandBuffer.SetPrimitiveTopology(mesh.GetPrimitiveTopology());
-        lastMesh = &mesh;
+        mesh->BindToPipeline(glCommandBuffer, lastMesh);
+        lastMesh = mesh;
     }
 
     //绑定材质球
-    if (&material != lastMaterial)
+    if (material != lastMaterial)
     {
-        const Shader& shader = material.GetShader();
-        if (!material.GetDescriptorSet().empty())
-            glCommandBuffer.PushDescriptorSet(shader.GetGLPipelineLayout(), material.GetDescriptorSet());
-        lastMaterial = &material;
-
-        //绑定着色器
-        if (&shader != lastShader)
-        {
-            glCommandBuffer.BindPipeline(shader.GetGLPipeline());
-            lastShader = &shader;
-        }
+        material->BindToPipeline(glCommandBuffer, lastMaterial);
+        lastMaterial = material;
     }
 
     //推送常量
-    pushConstant.objectToWorld = matrix;
+    BuiltInPushConstant pushConstant = {mul(matrixVP, modelMatrix)};
     glCommandBuffer.PushConstant(
-        material.GetShader().GetGLPipelineLayout(),
-        material.GetShader().GetPushConstantBinding()[0],
+        material->GetShader()->GetGLPipelineLayout(),
+        material->GetShader()->GetPushConstantBinding()[0],
         &pushConstant);
 
-    glCommandBuffer.DrawIndexed(static_cast<uint32_t>(mesh.GetIndexCount()));
+    glCommandBuffer.DrawIndexed(mesh->GetIndexCount());
 }
 void CommandBuffer::ClearRenderTexture(float4 color, const float depth) const
 {

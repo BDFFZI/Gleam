@@ -1,13 +1,12 @@
-[[vk::push_constant]]
-cbuffer ubo
+cbuffer ubo:register(b0)
 {
     float4x4 model;
     float4x4 view;
     float4x4 proj;
-}
+};
 
-Texture2D tex : register(t0);
-SamplerState texSampler : register(s0);
+Texture2D tex : register(t1);
+SamplerState texSampler : register(s1);
 
 struct VSInput
 {
