@@ -323,17 +323,14 @@ void GLCommandBuffer::SetRasterizationSamples(const VkSampleCountFlagBits raster
 
     vkCmdSetRasterizationSamplesEXT(commandBuffer, rasterizationSamples);
 }
-void GLCommandBuffer::SetVertexInput() const
+void GLCommandBuffer::SetVertexInput(const GLMeshVertexLayout& vertexLayout) const
 {
-    VkVertexInputBindingDescription2EXT bindingDescription = {};
-    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-    bindingDescription.stride = 
-
-    vkCmdSetVertexInputEXT(commandBuffer,
-                           0,
-                           &bindingDescription,
-                           vertexAttributeCount,
-                           pVertexAttribute
+    vkCmdSetVertexInputEXT(
+        commandBuffer,
+        static_cast<uint32_t>(vertexLayout.vertexInputBindings2EXT.size()),
+        vertexLayout.vertexInputBindings2EXT.data(),
+        static_cast<uint32_t>(vertexLayout.vertexInputAttributes2EXT.size()),
+        vertexLayout.vertexInputAttributes2EXT.data()
     );
 }
 void GLCommandBuffer::SetPrimitiveTopology(const VkPrimitiveTopology primitiveTopology) const

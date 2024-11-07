@@ -70,7 +70,7 @@ public:
     void SetViewport(float x, float y, float width, float height) const;
     void SetScissor(VkOffset2D offset, VkExtent2D extent) const;
     void SetRasterizationSamples(VkSampleCountFlagBits rasterizationSamples) const;
-    void SetVertexInput() const;
+    void SetVertexInput(const GLMeshVertexLayout& vertexLayout) const;
     void SetPrimitiveTopology(VkPrimitiveTopology primitiveTopology) const;
     void DrawIndexed(uint32_t indicesCount) const;
     /**
