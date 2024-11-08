@@ -4,13 +4,17 @@
 
 using namespace Light;
 
+void Graphics::InitGLDemand(std::vector<const char*>& extensions)
+{
+    extensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME); //为了支持推送描述符，简化描述符集创建
+}
 Graphics Graphics::Initialize(GL&)
 {
     surfaceFormat = GLSwapChain::PickSwapSurfaceFormat({BuiltInColorFormat, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR});
     if (surfaceFormat.format != BuiltInColorFormat)
         throw std::runtime_error("不支持的颜色格式！");
     presentMode = GLSwapChain::PickSwapPresentMode(VK_PRESENT_MODE_MAILBOX_KHR);
-    presentSampleCount = GL::glDevice->maxUsableSampleCount;
+    presentSampleCount = BuiltInGLStateLayout.multisample.rasterizationSamples;
 
     CreateSwapChain();
 

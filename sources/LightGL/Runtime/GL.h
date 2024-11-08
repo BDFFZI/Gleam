@@ -8,7 +8,7 @@
 class GL
 {
 public:
-    static GL Initialize(GLFWwindow* window);
+    static GL Initialize(GLFWwindow* window,const std::vector<const char*>& extensions = {}, void* extensionFeatures = VK_NULL_HANDLE);
     static void UnInitialize();
 
     inline static GLFWwindow* glfwWindow = nullptr;

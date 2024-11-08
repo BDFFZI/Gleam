@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-GL GL::Initialize(GLFWwindow* window)
+GL GL::Initialize(GLFWwindow* window, const std::vector<const char*>& extensions, void* extensionFeatures)
 {
     std::vector<const char*> validationLayers;
 #ifdef _DEBUG
@@ -16,7 +16,7 @@ GL GL::Initialize(GLFWwindow* window)
     glfwWindow = window;
     glInstance = std::make_unique<GLInstance>(validationLayers);
     glSurface = std::make_unique<GLSurface>(*glInstance, window);
-    glDevice = std::make_unique<GLDevice>(*glInstance, *glSurface);
+    glDevice = std::make_unique<GLDevice>(*glInstance, *glSurface, extensions, extensionFeatures);
     glCommandPool = std::make_unique<GLCommandPool>(*glDevice);
 
     return {};

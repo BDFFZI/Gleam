@@ -53,7 +53,9 @@ void main()
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 
-    GL gl = GL::Initialize(window);
+    std::vector<const char*> extensions = {};
+    Graphics::InitGLDemand(extensions);
+    GL gl = GL::Initialize(window, extensions);
     Graphics::Initialize(gl);
 
     auto mesh = CreateMesh();
@@ -62,7 +64,7 @@ void main()
     auto material = CreateMaterial(shader.get(), texture);
 
     //创建线框网格
-    GLMeshLayout glMeshLayout = {
+    GLMeshLayout lineMeshLayout = {
         GLVertexInput{
             sizeof(Point), {
                 GLVertexAttribute{0,offsetof(Point, position), VK_FORMAT_R32G32B32_SFLOAT},
@@ -71,7 +73,7 @@ void main()
         },
         GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, false}
     };
-    std::unique_ptr<MeshT<Point>> lineMesh = std::make_unique<MeshT<Point>>(&glMeshLayout);
+    std::unique_ptr<MeshT<Point>> lineMesh = std::make_unique<MeshT<Point>>(&lineMeshLayout);
     std::vector<BuiltInVertex> vertices = mesh->GetVertices();
     std::vector<Point> lineVertices(vertices.size());
     for (uint32_t i = 0; i < vertices.size(); i++)
@@ -82,7 +84,7 @@ void main()
     lineMesh->SetVertices(std::move(lineVertices));
     lineMesh->SetIndices(mesh->GetIndices());
 
-    std::unique_ptr<Shader> lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, BuiltInGLStateLayout);
+    std::unique_ptr<Shader> lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, BuiltInGLStateLayout, lineMeshLayout);
     std::unique_ptr<Material> lineMaterial = std::make_unique<Material>(lineShader.get());
 
     float3 move[4] = {

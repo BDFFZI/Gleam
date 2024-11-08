@@ -131,6 +131,12 @@ public:
         //创建渲染管线
         GLStateLayout stateLayout = {};
         stateLayout.SetRasterizationSamples(GL::glDevice->maxUsableSampleCount);
+        stateLayout.SetViewportCount(1, 1);
+        stateLayout.dynamicStates.insert(
+            stateLayout.dynamicStates.end(), {
+                VK_DYNAMIC_STATE_VIEWPORT,
+                VK_DYNAMIC_STATE_SCISSOR,
+            });
         glPipeline = std::make_unique<GLPipeline>(
             *glRenderPass, 0,
             glShaderLayout, glMeshLayout, *glPipelineLayout,
@@ -232,7 +238,7 @@ public:
         glCommandBuffer.BindPipeline(*glPipeline);
         glCommandBuffer.BindVertexBuffers(*vertexBuffer);
         glCommandBuffer.BindIndexBuffer(*indexBuffer);
-        glCommandBuffer.BindDescriptorSets(*glPipelineLayout, *glDescriptorSets[bufferIndex]);
+        glCommandBuffer.BindDescriptorSet(*glPipelineLayout, *glDescriptorSets[bufferIndex]);
         glCommandBuffer.DrawIndexed(static_cast<int>(indexBuffer->size / sizeof(uint32_t)));
         glCommandBuffer.EndRenderPass();
         glCommandBuffer.EndRecording();

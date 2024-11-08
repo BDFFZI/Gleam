@@ -10,6 +10,7 @@
 struct GLStateLayout
 {
     std::vector<VkDynamicState> dynamicStates;
+    VkPipelineViewportStateCreateInfo viewport;
     VkPipelineMultisampleStateCreateInfo multisample;
     VkPipelineRasterizationStateCreateInfo rasterization;
     VkPipelineDepthStencilStateCreateInfo depthStencil;
@@ -17,10 +18,14 @@ struct GLStateLayout
 
     GLStateLayout()
     {
-        dynamicStates = {
-            VK_DYNAMIC_STATE_VIEWPORT, //便于调整窗口大小
-            VK_DYNAMIC_STATE_SCISSOR, //便于调整窗口大小
-        };
+        //视口和裁剪阶段状态（为了支持窗口大小实时调整，已设置这些状态为动态状态，故在渲染时设置）
+        viewport.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        viewport.pNext = VK_NULL_HANDLE;
+        viewport.flags = 0;
+        viewport.viewportCount = 0;
+        viewport.scissorCount = 0;
+        viewport.pViewports = VK_NULL_HANDLE; //视口信息（将着色器输出到图像的映射范围）
+        viewport.pScissors = VK_NULL_HANDLE; //裁剪信息（裁剪掉图像在裁剪范围外的像素）
         //多重采样阶段状态（MSAA，常用于实现抗锯齿）
         multisample.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         multisample.pNext = VK_NULL_HANDLE;
@@ -69,6 +74,18 @@ struct GLStateLayout
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     }
 
+    void SetViewportCount(const uint32_t viewportCount, const uint32_t scissorCount)
+    {
+        viewport.viewportCount = viewportCount;
+        viewport.scissorCount = scissorCount;
+    }
+    void SetViewport(const std::vector<VkViewport>* viewports, const std::vector<VkRect2D>* scissors)
+    {
+        viewport.viewportCount = static_cast<uint32_t>(viewports->size());
+        viewport.pViewports = viewports->data();
+        viewport.scissorCount = static_cast<uint32_t>(scissors->size());
+        viewport.pScissors = scissors->data();
+    }
     void SetRasterizationSamples(const VkSampleCountFlagBits rasterizationSamples)
     {
         multisample.rasterizationSamples = rasterizationSamples;
@@ -113,6 +130,8 @@ struct GLStateLayout
     {
         colorBlendAttachment.colorWriteMask = colorMask;
     }
+
+private:
 };
 
 class GLPipeline
@@ -126,6 +145,15 @@ public:
         const GLMeshLayout& glMeshLayout,
         const GLPipelineLayout& glPipelineLayout,
         const GLStateLayout& glStateLayout = {});
+    /**
+     * @brief 创建适用于动态渲染的管线
+     * @param colorAttachments 
+     * @param depthStencilAttachment 
+     * @param glShaderLayout 
+     * @param glMeshLayout 
+     * @param glPipelineLayout 
+     * @param glStateLayout 
+     */
     GLPipeline(
         const std::vector<VkFormat>& colorAttachments,
         VkFormat depthStencilAttachment,

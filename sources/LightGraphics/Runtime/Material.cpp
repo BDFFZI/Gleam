@@ -59,8 +59,8 @@ void Material::SetTexture2D(const int slotIndex, const Texture2D& texture2D) con
 void Material::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialBase* lastMaterial)
 {
     if (lastMaterial == nullptr || lastMaterial->GetShader() != shader)
-        shader->BindToPipeline(glCommandBuffer, lastMaterial->GetShader());
+        shader->BindToPipeline(glCommandBuffer, lastMaterial == nullptr ? nullptr : lastMaterial->GetShader());
 
     if (writeDescriptorSets.empty() == false)
-        glCommandBuffer.PushDescriptorSet(shader->GetGLPipelineLayout(), writeDescriptorSets);
+        glCommandBuffer.PushDescriptorSetKHR(shader->GetGLPipelineLayout(), writeDescriptorSets);
 }

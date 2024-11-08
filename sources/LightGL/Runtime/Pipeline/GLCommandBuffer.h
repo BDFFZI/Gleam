@@ -5,6 +5,10 @@
 #include "../Resource/GLBuffer.h"
 #include  "../Resource/GLDescriptorSet.h"
 
+/**
+ * 带有KHR和EXT后缀的是扩展命令，目前不是vulkan的核心命令，需要一定前置要求来开启。
+ * 其中KHR是官方扩展，支持性比较好；EXT是第三方提议的扩展，支持性较差。（来自AI的回答）
+ */
 class GLCommandBuffer
 {
 public:
@@ -64,14 +68,30 @@ public:
     void BindPipeline(const GLPipeline& glPipeline) const;
     void BindVertexBuffers(const GLBuffer& glBuffer) const;
     void BindIndexBuffer(const GLBuffer& glBuffer) const;
-    void BindDescriptorSets(const GLPipelineLayout& glPipelineLayout, const GLDescriptorSet& glDescriptorSet) const;
-    void PushDescriptorSet(const GLPipelineLayout& glPipelineLayout, const std::vector<VkWriteDescriptorSet>& writeDescriptorSets) const;
+    void BindDescriptorSet(const GLPipelineLayout& glPipelineLayout, const GLDescriptorSet& glDescriptorSet) const;
+    /**
+     * @brief 不需要创建描述符集池和描述符集，而是利用命令缓冲区自身内存，动态绑定描述符
+     * @param glPipelineLayout 
+     * @param writeDescriptorSets
+     * @note 需要启用 @c VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME 设备扩展以及相关功能特征
+     */
+    void PushDescriptorSetKHR(const GLPipelineLayout& glPipelineLayout, const std::vector<VkWriteDescriptorSet>& writeDescriptorSets) const;
     void PushConstant(const GLPipelineLayout& glPipelineLayout, const VkPushConstantRange& pushConstantRange, void* data) const;
     void SetViewport(float x, float y, float width, float height) const;
     void SetScissor(VkOffset2D offset, VkExtent2D extent) const;
-    // void SetRasterizationSamples(VkSampleCountFlagBits rasterizationSamples) const;
-    // void SetVertexInput(const GLVertexInput& vertexInput) const;
-    // void SetInputAssembly(const GLInputAssembly& inputAssembly) const;
+    /**
+     * @brief 动态设置多重采样次数
+     * @param rasterizationSamples
+     * @note 需要启用 @c VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME 设备扩展以及相关功能特征
+     */
+    void SetRasterizationSamplesEXT(VkSampleCountFlagBits rasterizationSamples) const;
+    /**
+    * @brief 动态设置顶点输入布局
+    * @param vertexInput
+    * @note 需要启用 @c VK_EXT_vertex_input_dynamic_state 设备扩展以及相关功能特征
+    */
+    void SetVertexInputEXT(const GLVertexInput& vertexInput) const;
+    void SetInputAssembly(const GLInputAssembly& inputAssembly) const;
     void DrawIndexed(uint32_t indicesCount) const;
     /**
      * 对当前绑定的帧缓冲区内容进行清除

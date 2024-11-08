@@ -34,16 +34,6 @@ VkPipeline CreatePipeline(
             shaderStages[i] = vertShaderStageInfo;
         }
     }
-    
-    //视口和裁剪阶段状态（为了支持窗口大小实时调整，已设置这些状态为动态状态，故在渲染时设置）
-    VkViewport viewport{}; //视口信息（将着色器输出到图像的映射范围）
-    VkRect2D scissor{}; //裁剪信息（裁剪掉图像在裁剪范围外的像素）
-    VkPipelineViewportStateCreateInfo viewportState{}; //创建视口裁剪状态信息
-    viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    viewportState.viewportCount = 1;
-    viewportState.scissorCount = 1;
-    viewportState.pViewports = &viewport;
-    viewportState.pScissors = &scissor;
 
     //颜色混合操作状态信息？？？啥玩意
     VkPipelineColorBlendStateCreateInfo colorBlending{};
@@ -74,7 +64,7 @@ VkPipeline CreatePipeline(
     //描述符集与推送常量布局信息
     pipelineCreateInfo.layout = glPipelineLayout.pipelineLayout;
     //管线状态设置
-    pipelineCreateInfo.pViewportState = &viewportState; //视口裁剪信息
+    pipelineCreateInfo.pViewportState = &glStateLayout.viewport; //视口裁剪信息
     pipelineCreateInfo.pMultisampleState = &glStateLayout.multisample; //多重采样信息
     pipelineCreateInfo.pRasterizationState = &glStateLayout.rasterization; //光栅化信息
     pipelineCreateInfo.pDepthStencilState = &glStateLayout.depthStencil; //深度模板信息

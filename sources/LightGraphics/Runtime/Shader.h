@@ -26,19 +26,21 @@ namespace Light
          * @param shaderFile 
          * @param descriptorSetLayout 
          * @param stateLayout
+         * @param meshLayout
          * @return 
          */
         static std::unique_ptr<Shader> CreateFromFile(
             const std::string& shaderFile,
             const std::vector<GLDescriptorBinding>& descriptorSetLayout = {},
-            const GLStateLayout& stateLayout = BuiltInGLStateLayout
+            const GLStateLayout& stateLayout = BuiltInGLStateLayout,
+            const GLMeshLayout& meshLayout = BuiltInGLMeshLayout
         );
 
         Shader(
             const std::vector<GLShader>& shaderLayout,
             const std::vector<GLDescriptorBinding>& descriptorBindings, VkDescriptorSetLayoutCreateFlags descriptorFlags,
             const std::vector<VkPushConstantRange>& pushConstantRanges,
-            const GLStateLayout& stateLayout,
+            const GLStateLayout& stateLayout, const GLMeshLayout& meshLayout,
             VkFormat colorFormat, VkFormat depthStencilFormat);
         Shader(const Shader&) = delete;
 

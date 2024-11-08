@@ -33,6 +33,7 @@ namespace Light
     class Graphics
     {
     public:
+        static void InitGLDemand(std::vector<const char*>& extensions);
         static Graphics Initialize(GL&);
         static void UnInitialize();
 

@@ -42,19 +42,6 @@ VkAttachmentDescription CreateAttachmentDescription(const GLAttachmentInfo& atta
     return attachmentDescription;
 }
 
-GLAttachmentInfo::GLAttachmentInfo(const GLAttachmentType type, const VkFormat format, const VkSampleCountFlagBits samples): type(type),
-                                                                                                                             format(format),
-                                                                                                                             samples(samples)
-{
-}
-
-GLSubpass::GLSubpass(const std::vector<VkAttachmentReference>& colorAttachments, const std::optional<VkAttachmentReference>& depthStencilAttachment,
-    const std::optional<VkAttachmentReference>& colorResolveAttachment): colorAttachments(colorAttachments),
-                                                                         depthStencilAttachment(depthStencilAttachment),
-                                                                         colorResolveAttachment(colorResolveAttachment)
-{
-}
-
 GLRenderPass::GLRenderPass(const std::vector<GLAttachmentInfo>& glAttachmentInfos,
                            const std::vector<GLSubpass>& glSubpasses,
                            const std::vector<VkSubpassDependency>& glSubpassDependencies)
@@ -77,7 +64,7 @@ GLRenderPass::GLRenderPass(const std::vector<GLAttachmentInfo>& glAttachmentInfo
 
         VkSubpassDescription subpass = {};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS; //该pass图像管道上执行
-        subpass.colorAttachmentCount = static_cast<uint32_t>(colorAttachments.size()); //不使用“多渲染目标”功能，故只输出一个颜色附件
+        subpass.colorAttachmentCount = static_cast<uint32_t>(colorAttachments.size());
         subpass.pColorAttachments = colorAttachments.data(); //输出的颜色附件引用
         subpass.pDepthStencilAttachment = depthStencilAttachment.has_value() ? &depthStencilAttachment.value() : nullptr; //输出的深度模板附件引用
         subpass.pResolveAttachments = colorResolveAttachment.has_value() ? &colorResolveAttachment.value() : nullptr; //启用多重采样功能时的颜色解析附件

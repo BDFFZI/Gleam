@@ -11,24 +11,19 @@ namespace Light
 {
     constexpr VkFormat BuiltInColorFormat = VK_FORMAT_B8G8R8A8_SRGB;
     constexpr VkFormat BuiltInDepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;
+    const GLStateLayout BuiltInGLStateLayout = []
+    {
+        GLStateLayout layout;
+        layout.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+        layout.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
+        layout.SetViewportCount(1, 1);
+        return layout;
+    }();
 
     struct BuiltInPushConstant
     {
         alignas(16) float4x4 MatrixMVP;
     };
-
-    const GLStateLayout BuiltInGLStateLayout = []
-    {
-        GLStateLayout stateLayout = {};
-        //解耦着色器与多重采样的关系，根据渲染目标属性实时调整
-        // stateLayout.dynamicStates.push_back(VK_DYNAMIC_STATE_RASTERIZATION_SAMPLES_EXT);
-        //解耦着色器与网格的关系，实现不同网格共用着色器
-        // stateLayout.dynamicStates.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
-        // stateLayout.dynamicStates.push_back(VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY);
-        // stateLayout.dynamicStates.push_back(VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE);
-
-        return stateLayout;
-    }();
 
     struct BuiltInVertex
     {
