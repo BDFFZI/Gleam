@@ -3,17 +3,17 @@
 #include "LightGL/Runtime/GL.h"
 #include "LightGraphics/Runtime/CommandBuffer.h"
 #include "LightGraphics/Runtime/Graphics.h"
+#include "LightGraphics/Runtime/Shader.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Window.h"
 
 using namespace Light;
 
-std::unique_ptr<Shader> shader;
 
 void Start()
 {
-    shader = std::make_unique<Shader>()
+
 }
 
 
@@ -27,15 +27,9 @@ void LogicUpdate()
 }
 
 
-
 void RenderUpdate(CommandBuffer& commandBuffer)
 {
     commandBuffer.ClearRenderTexture(float4(0, 0, 1, 1));
-
-    GLCommandBuffer& glCommandBuffer = commandBuffer.GetGLCommandBuffer();
-
-    
-    glCommandBuffer.BindPipeline()
 }
 
 void UIUpdate()
@@ -65,7 +59,9 @@ void ImageUpdate()
 int main()
 {
     Window::Initialize("MassSpring");
-    GL gl = GL::Initialize(Window::GetGlfwWindow());
+    std::vector<const char*> extensions;
+    Graphics::InitializeGLDemand(extensions);
+    GL gl = GL::Initialize(Window::GetGlfwWindow(), extensions);
     Graphics graphics = Graphics::Initialize(gl);
     UI::Initialize(graphics);
 

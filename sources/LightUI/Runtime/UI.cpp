@@ -32,11 +32,11 @@ namespace Light
         VkPipelineRenderingCreateInfo renderingInfo = {};
         renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
         renderingInfo.pNext = VK_NULL_HANDLE;
-        VkFormat colorFormat[] = {Graphics::GetPresentColorFormat()};
+        VkFormat colorFormat[] = {BuiltInColorFormat};
         renderingInfo.colorAttachmentCount = std::size(colorFormat);
         renderingInfo.pColorAttachmentFormats = colorFormat;
-        renderingInfo.depthAttachmentFormat = Graphics::GetPresentDepthStencilFormat();
-        renderingInfo.stencilAttachmentFormat = Graphics::GetPresentDepthStencilFormat();
+        renderingInfo.depthAttachmentFormat = BuiltInDepthStencilFormat;
+        renderingInfo.stencilAttachmentFormat = BuiltInDepthStencilFormat;
 
         // Setup Platform/Renderer backends
 
@@ -50,7 +50,7 @@ namespace Light
         initInfo.DescriptorPool = descriptorPool->descriptorPool; // See requirements in note above
         initInfo.MinImageCount = Graphics::GetGLSwapChain()->minImageCount; // >= 2
         initInfo.ImageCount = Graphics::GetGLSwapChain()->imageCount; // >= MinImageCount
-        initInfo.MSAASamples = Graphics::GetPresentSampleCount(); // 0 defaults to VK_SAMPLE_COUNT_1_BIT
+        initInfo.MSAASamples = BuiltInGLStateLayout.multisample.rasterizationSamples; // 0 defaults to VK_SAMPLE_COUNT_1_BIT
         initInfo.UseDynamicRendering = true;
         initInfo.PipelineRenderingCreateInfo = renderingInfo;
         initInfo.CheckVkResultFn = CheckVKResult;

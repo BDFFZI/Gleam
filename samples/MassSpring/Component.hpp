@@ -1,9 +1,26 @@
 ﻿#pragma once
+#include "LightECS/Runtime/Entity.hpp"
 #include "LightMath/Runtime/Vector.hpp"
 
 struct Transform
 {
     float2 position;
+};
+
+struct PointRender
+{
+     
+};
+
+struct Line
+{
+    Entity pointA;
+    Entity pointB;
+};
+
+struct LineRender
+{
+    
 };
 
 struct RigidBody

@@ -4,7 +4,7 @@
 
 using namespace Light;
 
-void Graphics::InitGLDemand(std::vector<const char*>& extensions)
+void Graphics::InitializeGLDemand(std::vector<const char*>& extensions)
 {
     extensions.push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME); //为了支持推送描述符，简化描述符集创建
 }

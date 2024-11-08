@@ -54,7 +54,7 @@ void main()
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 
     std::vector<const char*> extensions = {};
-    Graphics::InitGLDemand(extensions);
+    Graphics::InitializeGLDemand(extensions);
     GL gl = GL::Initialize(window, extensions);
     Graphics::Initialize(gl);
 
