@@ -16,7 +16,12 @@ public:
 
     void AddElement(const std::function<void(std::byte* item)>& setValue);
     void AddElements(int count, const std::function<void(int itemIndex, std::byte* item)>& setValue = nullptr);
-    void RemoveElement(int index);
+    /**
+     * 删除目标位置的元素并移动末尾的元素来填补空缺
+     * @param index 
+     * @return 目标位置指针，即被移动的末尾元素的新地址
+     */
+    std::byte* RemoveElement(int index);
     void RemoveElements(int index, int count);
     void ForeachElements(int index, int count, const std::function<void(int itemIndex, std::byte* item)>& iterator);
     template <typename TIterator> requires requires(TIterator iterator, std::byte* ptr) { iterator(ptr); }
@@ -39,6 +44,8 @@ public:
     }
     void CopyTo(std::byte* destination, int index, int count);
     std::byte* At(int index);
+
+    std::byte* operator[](const int index) { return At(index); }
 
 private:
     size_t elementSize;

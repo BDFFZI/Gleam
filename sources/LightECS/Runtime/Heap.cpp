@@ -18,7 +18,6 @@ void Heap::AddElement(const std::function<void(std::byte* item)>& setValue)
     if (setValue != nullptr)
         setValue(At(elementCount - 1));
 }
-
 void Heap::AddElements(const int count, const std::function<void(int itemIndex, std::byte* item)>& setValue)
 {
     elementCount += count;
@@ -27,10 +26,12 @@ void Heap::AddElements(const int count, const std::function<void(int itemIndex, 
     if (setValue != nullptr)
         ForeachElements(elementCount - count, count, setValue);
 }
-void Heap::RemoveElement(const int index)
+std::byte* Heap::RemoveElement(const int index)
 {
-    memcpy(At(index), At(elementCount - 1), elementSize);
+    std::byte* item = At(index);
+    memcpy(item, At(elementCount - 1), elementSize);
     elementCount--;
+    return item;
 }
 void Heap::RemoveElements(const int index, const int count)
 {

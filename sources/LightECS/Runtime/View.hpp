@@ -14,6 +14,8 @@ template <class... TComponents>
     requires (sizeof...(TComponents) != 0)
 class View
 {
+    using TFunction = void(*)(TComponents&...);
+
 public:
     View(ArchetypeMeta<TComponents...>&)
     {
@@ -37,8 +39,7 @@ public:
         }
     }
 
-
-    void Each(EntitySet& entitySet, const std::function<void(TComponents&...)>& function) const
+    void Each(EntitySet& entitySet, TFunction function) const
     {
         Each_Inner(entitySet, function, std::make_index_sequence<sizeof...(TComponents)>());
     }
@@ -50,7 +51,7 @@ private:
     inline static int archetypeCount = {};
 
     template <size_t... Indices>
-    static void Each_Inner(EntitySet& entitySet, const std::function<void(TComponents&...)>& function, std::index_sequence<Indices...>)
+    static void Each_Inner(EntitySet& entitySet, TFunction function, std::index_sequence<Indices...>)
     {
         for (int i = 0; i < archetypeCount; i++)
         {

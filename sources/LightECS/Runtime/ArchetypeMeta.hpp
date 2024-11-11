@@ -1,8 +1,12 @@
 ﻿#pragma once
-#include "Archetype.hpp"
 #include "ComponentMeta.hpp"
+#include "Entity.hpp"
+
+template <class TComponent, class... TComponents>
+concept FirstIsEntity = std::is_same_v<TComponent, Entity>;
 
 template <class... TComponents>
+    requires FirstIsEntity<TComponents...>
 class ArchetypeMeta : public Archetype
 {
 public:

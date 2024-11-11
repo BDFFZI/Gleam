@@ -42,13 +42,13 @@ public:
 #include "ArchetypeMeta.hpp"
 
 #define MakeArchetype(name,...)\
-constexpr ArchetypeMeta name##Meta = CreateArchetypeMeta<__VA_ARGS__>(#name);\
+constexpr ArchetypeMeta name##Meta = CreateArchetypeMeta<Entity,__VA_ARGS__>(#name);\
 constexpr const Archetype* name = &name##Meta;\
 int name##ID = Archetype::allArchetypes.size();\
 int name##Register = [](){Archetype::allArchetypes.emplace_back(name);return 0;}();
 
 #define MakeArchetypeInherited(name,parent,...)\
-constexpr ArchetypeMeta name##Meta = CreateArchetypeMeta<__VA_ARGS__>(#name,parent##Meta);\
+constexpr ArchetypeMeta name##Meta = CreateArchetypeMeta<Entity,__VA_ARGS__>(#name,parent##Meta);\
 constexpr const Archetype* name = &name##Meta;\
 int name##ID = Archetype::allArchetypes.size();\
 int name##Register = [](){Archetype::allArchetypes.emplace_back(name);return 0;}();
