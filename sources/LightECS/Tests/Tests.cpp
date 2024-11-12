@@ -46,7 +46,7 @@ struct Spring
 };
 
 MakeArchetype(physicsArchetype, Transform, RigidBody)
-MakeArchetypeInherited(physicsWithSpringArchetype, physicsArchetype, Spring)
+MakeArchetype(physicsWithSpringArchetype, Transform, RigidBody, Spring)
 
 TEST(ECS, Heap)
 {
@@ -148,28 +148,32 @@ TEST(ECS, Archetype)
     for (auto& archetype : Archetype::allArchetypes)
     {
         std::cout << archetype->ToString() << "\n";
-        std::cout << archetype->GetSize() << "\n";
+        std::cout << archetype->size << "\n";
     }
 
-    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype->GetSize()));
-    physicsWithSpringArchetype->RunConstructor(data);
-    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype->GetComponentOffsets()[0]);
-    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype->GetComponentOffsets()[1]);
-    Spring& spring = *reinterpret_cast<Spring*>(data + physicsWithSpringArchetype->GetComponentOffsets()[2]);
+    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype.size));
+    physicsWithSpringArchetype.RunConstructor(data);
+    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype.componentOffsets[1]);
+    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype.componentOffsets[2]);
+    Spring& spring = *reinterpret_cast<Spring*>(data + physicsWithSpringArchetype.componentOffsets[3]);
     ASSERT_EQ(transform, Transform());
     ASSERT_EQ(rigidBody, RigidBody());
     ASSERT_EQ(spring, Spring());
     free(data);
 }
 
-TEST(ECS, WorldAndView)
+TEST(ECS, EntitySet)
 {
     EntitySet entitySet;
-    entitySet.AddEntities(physicsWithSpringArchetypeID, 1);
-
+    Entity entities[2];
+    entitySet.AddEntities(physicsArchetype, 2, entities);
+    entitySet.RemoveEntity(entities[0]);
+    entitySet.MoveEntity(entities[1], physicsWithSpringArchetype);
+    
     View<Transform, RigidBody, Spring> view;
-    view.Each(entitySet, [](auto& transform, auto& rigidBody, auto& spring)
+    view.Each(entitySet, [entities](Entity& entity, auto& transform, auto& rigidBody, auto& spring)
     {
+        ASSERT_EQ(entity, entities[1]);
         ASSERT_EQ(transform, Transform());
         ASSERT_EQ(rigidBody, RigidBody());
         ASSERT_EQ(spring, Spring());
@@ -211,7 +215,7 @@ TEST(ECS, System)
 {
     EntitySet world;
     for (int i = 0; i < 10; i++)
-        world.AddEntity(i % 2 == 0 ? physicsArchetypeID : physicsWithSpringArchetypeID);
+        world.AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
 
     PhysicsSystem physicsSystem;
     physicsSystem.deltaTime = 0.02f;
@@ -231,59 +235,4 @@ TEST(ECS, System)
         std::cout << log.str() << "\n";
         log.str("");
     }
-}
-
-void Performance_StdFunction(const std::function<void()>& func)
-{
-    func();
-}
-
-template <typename T>
-void Performance_Lambda(const T& func)
-{
-    func();
-}
-
-void Performance_FunctionPtr(void (*func)())
-{
-    func();
-}
-
-void Performance_Func()
-{
-}
-
-TEST(Function, Performance)
-{
-    benchmark::RegisterBenchmark("std::function", [](benchmark::State& state)
-    {
-        std::function func = []()
-        {
-        };
-        for (auto _ : state)
-        {
-            Performance_StdFunction(func);
-        }
-    });
-
-
-    benchmark::RegisterBenchmark("Lambda", [](benchmark::State& state)
-    {
-        for (auto _ : state)
-        {
-            Performance_FunctionPtr([]
-            {
-            });
-        }
-    });
-
-    benchmark::RegisterBenchmark("Function", [](benchmark::State& state)
-    {
-        for (auto _ : state)
-        {
-            Performance_FunctionPtr(Performance_Func);
-        }
-    });
-
-    benchmark::RunSpecifiedBenchmarks();
 }

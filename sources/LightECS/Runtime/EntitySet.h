@@ -1,31 +1,35 @@
 ﻿#pragma once
-#include "Entity.hpp"
 #include "Heap.h"
 #include "LightECS/Runtime/Archetype.hpp"
 
 struct EntityInfo
 {
-    int archetypeID;
-    int indexAtHeap;
+    const Archetype* archetype;
     std::byte* components;
+    int indexAtHeap;
 };
 
 class EntitySet
 {
 public:
-    EntitySet();
+    Heap* GetEntityHeap(const Archetype& archetype)
+    {
+        auto iterator = entityHeaps.find(&archetype);
+        if (iterator == entityHeaps.end())
+            return nullptr;
+        return &iterator->second;
+    }
 
-    std::vector<Heap>& GetEntityHeaps() { return entityHeaps; }
-
-    void AddEntity(int archetypeID, Entity* outEntity);
-    void AddEntities(int archetypeID, int count, Entity* outEntities);
-    void MoveEntity(Entity entity, int newArchetypeID);
+    void AddEntity(const Archetype& archetype, Entity* outEntity = nullptr);
+    void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
+    void MoveEntity(Entity entity, const Archetype& newArchetype);
     void RemoveEntity(Entity entity);
 
 private:
-    std::vector<Heap> entityHeaps;
+    std::unordered_map<const Archetype*, Heap> entityHeaps;
     std::unordered_map<Entity, EntityInfo> entityInfos;
-    uint32_t nextEntity = 0;
+    uint32_t nextEntity = 1;
 
-    void RemoveHeapItem(int archetypeID,int index);
+    Heap& GetOrNewEntityHeap(const Archetype& archetype);
+    void RemoveHeapItem(const Archetype& archetype, int index);
 };

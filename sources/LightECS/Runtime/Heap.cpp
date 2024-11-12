@@ -10,7 +10,7 @@ int Heap::GetCount() const
 {
     return elementCount;
 }
-void Heap::AddElement(const std::function<void(std::byte* item)>& setValue)
+void Heap::AddElement(const std::function<void(std::byte* address)>& setValue)
 {
     elementCount += 1;
     ResizeHeaps();
@@ -18,7 +18,7 @@ void Heap::AddElement(const std::function<void(std::byte* item)>& setValue)
     if (setValue != nullptr)
         setValue(At(elementCount - 1));
 }
-void Heap::AddElements(const int count, const std::function<void(int itemIndex, std::byte* item)>& setValue)
+void Heap::AddElements(const int count, const std::function<void(int number, std::byte* address)>& setValue)
 {
     elementCount += count;
     ResizeHeaps();

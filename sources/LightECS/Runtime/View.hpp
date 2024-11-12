@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "LightECS/Runtime/EntitySet.h"
 
-
 /**
  * @brief 针对实体堆的检视工具
  * 
@@ -14,31 +13,33 @@ template <class... TComponents>
     requires (sizeof...(TComponents) != 0)
 class View
 {
-    using TFunction = void(*)(TComponents&...);
-
 public:
-    View(ArchetypeMeta<TComponents...>&)
-    {
-    }
     View()
     {
         if (isQueried == false)
         {
-            int count = static_cast<int>(Archetype::allArchetypes.size());
-            for (int i = 0; i < count; i++)
+            for (const Archetype* archetype : Archetype::allArchetypes)
             {
-                const Archetype* archetype = Archetype::allArchetypes[i];
                 if (archetype->Contains<TComponents...>())
                 {
-                    archetypeIDs.emplace_back(i);
-                    componentOffsets.emplace_back(archetype->MemoryMap<TComponents...>());
+                    targetArchetypes.emplace_back(archetype);
+                    targetComponentOffsets.emplace_back(archetype->MemoryMap<TComponents...>());
                 }
             }
-            archetypeCount = static_cast<int>(archetypeIDs.size());
+
+            targetArchetypeCount = static_cast<int>(targetArchetypes.size());
             isQueried = true;
         }
     }
 
+    template <class TFunction>
+        requires requires(TFunction function, TComponents&... components) { function(components...); }
+    void Each(EntitySet& entitySet, TFunction function) const
+    {
+        Each_Inner(entitySet, function, std::make_index_sequence<sizeof...(TComponents)>());
+    }
+    template <class TFunction>
+        requires requires(TFunction function, Entity& entity, TComponents&... components) { function(entity, components...); }
     void Each(EntitySet& entitySet, TFunction function) const
     {
         Each_Inner(entitySet, function, std::make_index_sequence<sizeof...(TComponents)>());
@@ -46,23 +47,42 @@ public:
 
 private:
     inline static bool isQueried = false;
-    inline static std::vector<int> archetypeIDs = {};
-    inline static std::vector<std::array<int, sizeof...(TComponents)>> componentOffsets = {};
-    inline static int archetypeCount = {};
+    inline static std::vector<const Archetype*> targetArchetypes = {};
+    inline static std::vector<std::array<int, sizeof...(TComponents)>> targetComponentOffsets = {};
+    inline static int targetArchetypeCount = {};
 
-    template <size_t... Indices>
+    template <class TFunction, size_t... Indices>
+        requires requires(TFunction function, TComponents&... components) { function(components...); }
     static void Each_Inner(EntitySet& entitySet, TFunction function, std::index_sequence<Indices...>)
     {
-        for (int i = 0; i < archetypeCount; i++)
+        for (int i = 0; i < targetArchetypeCount; i++)
         {
-            const int archetypeID = archetypeIDs[i];
-            const std::array<int, sizeof...(TComponents)>& componentOffset = componentOffsets[i];
+            const Archetype& archetype = *targetArchetypes[i];
+            const std::array<int, sizeof...(TComponents)>& componentOffset = targetComponentOffsets[i];
 
-            Heap& entityHeap = entitySet.GetEntityHeaps()[archetypeID];
-            entityHeap.ForeachElements([function,componentOffset](std::byte* item)
-            {
-                function(*reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
-            });
+            Heap* entityHeap = entitySet.GetEntityHeap(archetype);
+            if (entityHeap != nullptr)
+                entityHeap->ForeachElements([function,componentOffset](std::byte* item)
+                {
+                    function(*reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
+                });
+        }
+    }
+    template <class TFunction, size_t... Indices>
+        requires requires(TFunction function, Entity& entity, TComponents&... components) { function(entity, components...); }
+    static void Each_Inner(EntitySet& entitySet, TFunction function, std::index_sequence<Indices...>)
+    {
+        for (int i = 0; i < targetArchetypeCount; i++)
+        {
+            const Archetype& archetype = *targetArchetypes[i];
+            const std::array<int, sizeof...(TComponents)>& componentOffset = targetComponentOffsets[i];
+
+            Heap* entityHeap = entitySet.GetEntityHeap(archetype);
+            if (entityHeap != nullptr)
+                entityHeap->ForeachElements([function,componentOffset](std::byte* item)
+                {
+                    function(*reinterpret_cast<Entity*>(item), *reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
+                });
         }
     }
 };

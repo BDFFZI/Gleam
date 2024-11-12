@@ -1,3 +1,4 @@
+#include <array>
 #include <imgui.h>
 
 #include "LightGL/Runtime/GL.h"
@@ -13,7 +14,6 @@ using namespace Light;
 
 void Start()
 {
-
 }
 
 
@@ -55,6 +55,7 @@ void ImageUpdate()
     Graphics::WaitPresent();
     Graphics::ReleaseCommandBuffer(commandBuffer);
 }
+
 
 int main()
 {
