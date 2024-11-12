@@ -169,15 +169,18 @@ TEST(ECS, EntitySet)
     entitySet.AddEntities(physicsArchetype, 2, entities);
     entitySet.RemoveEntity(entities[0]);
     entitySet.MoveEntity(entities[1], physicsWithSpringArchetype);
-    
-    View<Transform, RigidBody, Spring> view;
-    view.Each(entitySet, [entities](Entity& entity, auto& transform, auto& rigidBody, auto& spring)
+
+    View<Transform, RigidBody, Spring> view = {entitySet};
+    view.Each([entities](Entity& entity, auto& transform, auto& rigidBody, auto& spring)
     {
         ASSERT_EQ(entity, entities[1]);
         ASSERT_EQ(transform, Transform());
         ASSERT_EQ(rigidBody, RigidBody());
         ASSERT_EQ(spring, Spring());
+        transform.position = 3;
     });
+    auto& transform = view.Fetch<Transform>(entities[1]);
+    ASSERT_EQ(transform.position, 3);
 }
 
 class PhysicsSystem
@@ -188,8 +191,8 @@ public:
 
     void Update(EntitySet& world) const
     {
-        View<Transform, RigidBody> physicalEntities = {};
-        physicalEntities.Each(world, [deltaTime = deltaTime](Transform& transform, RigidBody& rigidBody)
+        View<Transform, RigidBody> physicalEntities = {world};
+        physicalEntities.Each([deltaTime = deltaTime](Transform& transform, RigidBody& rigidBody)
         {
             float acceleration = rigidBody.force / rigidBody.mass; //牛顿第二定律
             acceleration += rigidBody.mass * -9.8f; //添加重力加速度
@@ -198,8 +201,8 @@ public:
             rigidBody.force = 0;
         });
 
-        View<Transform, RigidBody, Spring> physicalElasticEntities = {};
-        physicalElasticEntities.Each(world, [](Transform& transform, RigidBody& rigidBody, Spring& spring)
+        View<Transform, RigidBody, Spring> physicalElasticEntities = {world};
+        physicalElasticEntities.Each([](Transform& transform, RigidBody& rigidBody, Spring& spring)
         {
             float vector = spring.pinPosition - transform.position;
             float direction = vector >= 0 ? 1 : -1;
@@ -227,8 +230,8 @@ TEST(ECS, System)
         physicsSystem.Update(world);
 
         //输出
-        View<Transform> transformView = {};
-        transformView.Each(world, [&log](Transform& transform)
+        View<Transform> transformView = {world};
+        transformView.Each([&log](Transform& transform)
         {
             log << std::format("{:10.3f}", transform.position) << '|';
         });

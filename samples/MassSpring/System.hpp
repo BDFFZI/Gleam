@@ -20,26 +20,50 @@ public:
 
 class RenderingSystem : public System<SystemMinOrder, SystemMaxOrder>
 {
-    Light::Mesh lineMesh;
-    Light::Mesh pointMesh;
+    struct Vertex
+    {
+        float2 position;
+        float4 color;
+    };
+    GLVertexInput vertexInput = {
+        sizeof(Vertex), {
+            GLVertexAttribute{0,offsetof(Vertex, position), VK_FORMAT_R32G32B32_SFLOAT},
+            GLVertexAttribute{4,offsetof(Vertex, color), VK_FORMAT_R32G32B32A32_SFLOAT},
+        }
+    };
     GLMeshLayout lineMeshLayout = {
-        Light::BuiltInGLVertexInput,
+        vertexInput,
         GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_LINE_LIST, false}
     };
     GLMeshLayout pointMeshLayout = {
-        Light::BuiltInGLVertexInput,
+        vertexInput,
         GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_POINT_LIST, false}
     };
 
+    Light::MeshT<Vertex> lineMesh = {&lineMeshLayout, true};
+    Light::MeshT<Vertex> pointMesh = {&pointMeshLayout, true};
+
     void Update(EntitySet& entitySet) override
     {
-        View<Line> lineView;
-        lineView.Each(entitySet, [](Line& line)
+        View<Line> lineView = {entitySet};
+        View<Point, Transform> pointView = {entitySet};
+
+        lineView.Each([](Line& line)
         {
-            
         });
 
-        View<Point> pointView;
+        std::vector<Vertex>& vector = pointMesh.GetVertices();
+        std::vector<uint32_t>& indices = pointMesh.GetIndices();
+        vector.clear();
+        indices.clear();
+        int index = 0;
+        pointView.Each([&index,&vector,&indices](Point& point, Transform& transform)
+        {
+            vector.emplace_back(transform.position, point.color);
+            indices.emplace_back(index++);
+        });
+
+        
     }
 };
 

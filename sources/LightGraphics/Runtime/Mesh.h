@@ -12,16 +12,16 @@ namespace Light
     class MeshT : public MeshBase
     {
     public:
-        MeshT(const GLMeshLayout* glMeshLayout)
-            : isDirty(true), glMeshLayout(glMeshLayout)
+        MeshT(const GLMeshLayout* glMeshLayout, const bool readwrite = false)
+            : isDirty(true), glMeshLayout(glMeshLayout), readwrite(readwrite)
         {
         }
 
-        const std::vector<TVertex>& GetVertices() const
+        std::vector<TVertex>& GetVertices()
         {
             return vertices;
         }
-        const std::vector<uint32_t>& GetIndices() const
+        std::vector<uint32_t>& GetIndices()
         {
             return indices;
         }
@@ -43,23 +43,53 @@ namespace Light
         {
             if (isDirty)
             {
-                glVertexBuffer = std::make_unique<GLBuffer>(
-                    static_cast<int>(sizeof(TVertex) * vertices.size()),
-                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                    vertices.data()
-                );
-                glIndexBuffer = std::make_unique<GLBuffer>(
-                    static_cast<int>(sizeof(uint32_t) * indices.size()),
-                    VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                    indices.data()
-                );
+                if (readwrite == false)
+                {
+                    glVertexBuffer = std::make_unique<GLBuffer>(
+                        sizeof(TVertex) * vertices.size(),
+                        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        vertices.data()
+                    );
+                    glIndexBuffer = std::make_unique<GLBuffer>(
+                        sizeof(uint32_t) * indices.size(),
+                        VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                        indices.data()
+                    );
+                    vertices = {};
+                    indices = {};
+                }
+                else
+                {
+                    size_t verticesSize = sizeof(TVertex) * vertices.size();
+                    if (glVertexBuffer == nullptr || glVertexBuffer->size < verticesSize)
+                        glVertexBuffer = std::make_unique<GLBuffer>(
+                            verticesSize,
+                            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                            vertices.data()
+                        );
+                    else
+                    {
+                        void* address = glVertexBuffer->MapMemory();
+                        memcpy(address, vertices.data(), verticesSize);
+                        glVertexBuffer->UnmapMemory();
+                    }
+
+                    size_t indicesSize = sizeof(uint32_t) * indices.size();
+                    if (glIndexBuffer == nullptr || glIndexBuffer->size < indicesSize)
+                        glIndexBuffer = std::make_unique<GLBuffer>(
+                            indicesSize,
+                            VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                            indices.data()
+                        );
+                    else
+                    {
+                        void* address = glIndexBuffer->MapMemory();
+                        memcpy(address, indices.data(), indicesSize);
+                        glIndexBuffer->UnmapMemory();
+                    }
+                }
             }
 
-            // if (lastMesh == nullptr || lastMesh->GetGLMeshLayout() != glMeshLayout)
-            // {
-            //     commandBuffer.SetVertexInput(glMeshLayout->vertexInput);
-            //     commandBuffer.SetInputAssembly(glMeshLayout->inputAssembly);
-            // }
             commandBuffer.BindVertexBuffers(*glVertexBuffer);
             commandBuffer.BindIndexBuffer(*glIndexBuffer);
         }
@@ -73,6 +103,7 @@ namespace Light
         std::unique_ptr<GLBuffer> glVertexBuffer;
         std::unique_ptr<GLBuffer> glIndexBuffer;
         const GLMeshLayout* glMeshLayout;
+        bool readwrite;
     };
 
     class Mesh : public MeshT<BuiltInVertex>
@@ -80,8 +111,8 @@ namespace Light
     public:
         static std::unique_ptr<Mesh> CreateFromRawMesh(const RawMesh& rawMesh);
 
-        Mesh(const GLMeshLayout* glMeshLayout = &BuiltInGLMeshLayout)
-            : MeshT(glMeshLayout)
+        Mesh(const GLMeshLayout* glMeshLayout = &BuiltInGLMeshLayout, const bool readwrite = false)
+            : MeshT(glMeshLayout, readwrite)
         {
         }
         Mesh(const Mesh&) = delete;

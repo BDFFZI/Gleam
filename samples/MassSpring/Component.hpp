@@ -7,20 +7,16 @@ struct Transform
     float2 position;
 };
 
-struct PointRender
+struct Point
 {
-     
+    float4 color;
 };
 
 struct Line
 {
     Entity pointA;
     Entity pointB;
-};
-
-struct LineRender
-{
-    
+    float4 color;
 };
 
 struct RigidBody

@@ -19,6 +19,13 @@ public:
             return nullptr;
         return &iterator->second;
     }
+    EntityInfo* GetEntityInfo(const Entity entity)
+    {
+        auto iterator = entityInfos.find(entity);
+        if (iterator == entityInfos.end())
+            return nullptr;
+        return &iterator->second;
+    }
 
     void AddEntity(const Archetype& archetype, Entity* outEntity = nullptr);
     void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
