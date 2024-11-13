@@ -3,19 +3,68 @@
 
 #include "Component.hpp"
 #include "LightECS/Runtime/View.hpp"
+#include "LightGraphics/Runtime/Graphics.h"
 #include "LightGraphics/Runtime/Mesh.h"
 
-struct Point;
+using namespace Light;
+
 constexpr float SystemMinOrder = std::numeric_limits<float>::min();
 constexpr float SystemMaxOrder = std::numeric_limits<float>::max();
 
-template <float MinOrder, float MaxOrder>
 class System
 {
 public:
-    static constexpr float Order = (MinOrder + MaxOrder) / 2;
+    EntitySet* entitySet;
+    
     virtual ~System() = default;
-    virtual void Update(EntitySet& entitySet) = 0;
+
+    virtual void Start()
+    {
+    }
+    virtual void Stop()
+    {
+    }
+    virtual void Update()
+    {
+    }
+};
+
+template <float MinOrder, float MaxOrder>
+class SystemT : System
+{
+public:
+    static constexpr float Order = (MinOrder + MaxOrder) / 2;
+};
+
+class BeginPresentSystem : public SystemT<SystemMinOrder, SystemMaxOrder>
+{
+    BeginPresentSystem(): System(SystemMinOrder, SystemMaxOrder)
+    {
+    }
+
+    void Update() override
+    {
+        CommandBuffer& commandBuffer = Graphics::GetCommandBuffer();
+        commandBuffer.BeginRecording();
+        commandBuffer.BeginRendering(Graphics::GetPresentRenderTexture());
+    }
+};
+
+class EndPresentSystem: public SystemT<BeginPresentSystem::Order, SystemMaxOrder>
+{
+public:
+    EndPresentSystem(BeginPresentSystem& beginPresentSystem):
+        System(BeginPresentSystem::Order, SystemMaxOrder),
+        beginPresentSystem(&beginPresentSystem)
+    {
+    }
+
+    void Update(EntitySet& entitySet) override
+    {
+    }
+
+private:
+    BeginPresentSystem* beginPresentSystem;
 };
 
 class RenderingSystem : public System<SystemMinOrder, SystemMaxOrder>
@@ -62,8 +111,6 @@ class RenderingSystem : public System<SystemMinOrder, SystemMaxOrder>
             vector.emplace_back(transform.position, point.color);
             indices.emplace_back(index++);
         });
-
-        
     }
 };
 

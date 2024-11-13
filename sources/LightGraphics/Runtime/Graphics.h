@@ -65,6 +65,9 @@ namespace Light
          */
         static void WaitPresent();
 
+        static GLCommandBuffer& BeginPresent();
+        static void EndPresent(GLCommandBuffer& presentCommandBuffer);
+
     private:
         inline static size_t glSwapChainBufferCount = {};
 
@@ -80,6 +83,11 @@ namespace Light
         inline static std::unique_ptr<GLImageView> presentColorImageView = {}; //颜色或颜色解析视图
         inline static std::unique_ptr<GLImageView> presentDepthStencilImageView = {};
         inline static PresentRenderTexture presentRenderTexture;
+
+        inline static uint32_t currentImageIndex;
+        inline static uint32_t currentBufferIndex;
+        inline static VkSemaphore currentImageAvailable;
+        inline static VkSemaphore currentRenderFinishedSemaphores;
 
         static void CreateSwapChain();
 

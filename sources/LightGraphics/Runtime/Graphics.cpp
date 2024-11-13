@@ -52,20 +52,27 @@ void Graphics::WaitPresentable()
 }
 void Graphics::PresentAsync(CommandBuffer& commandBuffer)
 {
+    GLCommandBuffer& primaryCommandBuffer = BeginPresent();
+    primaryCommandBuffer.ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
+    EndPresent(primaryCommandBuffer);
+}
+void Graphics::WaitPresent()
+{
+    size_t bufferIndex = (glSwapChainBufferCount + glSwapChain->GetCurrentBufferIndex() - 1) % glSwapChainBufferCount;
+    presentCommandBuffers[bufferIndex]->WaitSubmissionFinish();
+}
+GLCommandBuffer& Graphics::BeginPresent()
+{
     //获取交换链下次呈现使用的相关信息
-    uint32_t imageIndex;
-    uint32_t bufferIndex;
-    VkSemaphore imageAvailable;
-    VkSemaphore renderFinishedSemaphores;
     if (glSwapChain->SwitchImageAsync(
-        &imageIndex, &bufferIndex,
-        &imageAvailable, &renderFinishedSemaphores
+        &currentImageIndex, &currentBufferIndex,
+        &currentImageAvailable, &currentRenderFinishedSemaphores
     ) == false) //交换链过时，需重建
     {
         vkDeviceWaitIdle(GL::glDevice->device);
         glSwapChain.reset();
         CreateSwapChain();
-        return;
+        return BeginPresent();
     }
 
     //更新渲染目标信息(交换链中有多张颜色缓冲区，每次都会切换)
@@ -81,29 +88,27 @@ void Graphics::PresentAsync(CommandBuffer& commandBuffer)
     }
 
     //添加命令
-    GLCommandBuffer& primaryCommandBuffer = *presentCommandBuffers[imageIndex];
+    GLCommandBuffer& primaryCommandBuffer = *presentCommandBuffers[currentImageIndex];
     primaryCommandBuffer.BeginRecording();
-    primaryCommandBuffer.ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
-    primaryCommandBuffer.TransitionImageLayout(
-        glSwapChain->images[imageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+    return primaryCommandBuffer;
+}
+void Graphics::EndPresent(GLCommandBuffer& presentCommandBuffer)
+{
+    presentCommandBuffer.TransitionImageLayout(
+        glSwapChain->images[currentImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
     );
-    primaryCommandBuffer.EndRecording();
+    presentCommandBuffer.EndRecording();
 
     //提交命令
-    primaryCommandBuffer.SubmitCommandsAsync(
+    presentCommandBuffer.SubmitCommandsAsync(
         {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT}, //在颜色输出阶段要进行等待
-        {imageAvailable}, //等待到交换链的下一张图片可用时继续
-        {renderFinishedSemaphores} //完成后发出渲染完成信号量
+        {currentImageAvailable}, //等待到交换链的下一张图片可用时继续
+        {currentRenderFinishedSemaphores} //完成后发出渲染完成信号量
     );
 
     glSwapChain->PresentImageAsync();
-}
-void Graphics::WaitPresent()
-{
-    size_t bufferIndex = (glSwapChainBufferCount + glSwapChain->GetCurrentBufferIndex() - 1) % glSwapChainBufferCount;
-    presentCommandBuffers[bufferIndex]->WaitSubmissionFinish();
 }
 
 
