@@ -3,8 +3,9 @@
 #include <benchmark/benchmark.h>
 #include <gtest/gtest.h>
 #include "LightECS/Runtime/Archetype.hpp"
-#include "LightECS/Runtime/EntitySet.h"
+#include "LightECS/Runtime/World.h"
 #include "LightECS/Runtime/Heap.h"
+#include "LightECS/Runtime/System.hpp"
 #include "LightECS/Runtime/View.hpp"
 
 struct Transform
@@ -78,7 +79,7 @@ TEST(ECS, HeapBenchmark)
 {
     struct Data
     {
-        float data[32];
+        size_t data[32];
     };
 
     benchmark::RegisterBenchmark("Vector", [](benchmark::State& state)
@@ -88,19 +89,19 @@ TEST(ECS, HeapBenchmark)
             std::vector<Data> container;
             container.resize(30);
             container.resize(60);
-            int size = container.size();
-            for (int i = 0; i < size; i++)
+            size_t size = container.size();
+            for (size_t i = 0; i < size; i++)
                 container[i].data[0] = i;
             container.erase(container.begin(), container.begin() + 30);
 
             container.resize(90);
             container.resize(120);
             size = container.size();
-            for (int i = 0; i < size; i++)
+            for (size_t i = 0; i < size; i++)
                 container[i].data[1] = i;
             container.erase(container.begin() + 30, container.begin() + 60);
 
-            for (int i = 0; i < container.size(); i++)
+            for (size_t i = 0; i < container.size(); i++)
             {
                 if (i % 2 == 0)
                     container.erase(container.begin() + i);
@@ -164,14 +165,12 @@ TEST(ECS, Archetype)
 
 TEST(ECS, EntitySet)
 {
-    EntitySet entitySet;
     Entity entities[2];
-    entitySet.AddEntities(physicsArchetype, 2, entities);
-    entitySet.RemoveEntity(entities[0]);
-    entitySet.MoveEntity(entities[1], physicsWithSpringArchetype);
+    World::AddEntities(physicsArchetype, 2, entities);
+    World::RemoveEntity(entities[0]);
+    World::MoveEntity(entities[1], physicsWithSpringArchetype);
 
-    View<Transform, RigidBody, Spring> view = {entitySet};
-    view.Each([entities](Entity& entity, auto& transform, auto& rigidBody, auto& spring)
+    View<Transform, RigidBody, Spring>::Each([entities](auto& entity, auto& transform, auto& rigidBody, auto& spring)
     {
         ASSERT_EQ(entity, entities[1]);
         ASSERT_EQ(transform, Transform());
@@ -179,30 +178,27 @@ TEST(ECS, EntitySet)
         ASSERT_EQ(spring, Spring());
         transform.position = 3;
     });
-    auto& transform = view.Fetch<Transform>(entities[1]);
+    auto& transform = World::GetComponent<Transform>(entities[1]);
     ASSERT_EQ(transform.position, 3);
 }
 
-class PhysicsSystem
+struct PhysicsSystem : System<MinSystemOrder, MaxSystemOrder>
 {
     //质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
-public:
-    float deltaTime;
+    inline static float DeltaTime = 0.02f;
 
-    void Update(EntitySet& world) const
+    static void Update()
     {
-        View<Transform, RigidBody> physicalEntities = {world};
-        physicalEntities.Each([deltaTime = deltaTime](Transform& transform, RigidBody& rigidBody)
+        View<Transform, RigidBody>::Each([](Transform& transform, RigidBody& rigidBody)
         {
             float acceleration = rigidBody.force / rigidBody.mass; //牛顿第二定律
             acceleration += rigidBody.mass * -9.8f; //添加重力加速度
-            rigidBody.velocity += acceleration * deltaTime;
-            transform.position += rigidBody.velocity * deltaTime;
+            rigidBody.velocity += acceleration * DeltaTime;
+            transform.position += rigidBody.velocity * DeltaTime;
             rigidBody.force = 0;
         });
 
-        View<Transform, RigidBody, Spring> physicalElasticEntities = {world};
-        physicalElasticEntities.Each([](Transform& transform, RigidBody& rigidBody, Spring& spring)
+        View<Transform, RigidBody, Spring>::Each([](Transform& transform, RigidBody& rigidBody, Spring& spring)
         {
             float vector = spring.pinPosition - transform.position;
             float direction = vector >= 0 ? 1 : -1;
@@ -216,26 +212,30 @@ public:
 
 TEST(ECS, System)
 {
-    EntitySet world;
     for (int i = 0; i < 10; i++)
-        world.AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
+        World::AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
 
-    PhysicsSystem physicsSystem;
-    physicsSystem.deltaTime = 0.02f;
+    World::AddSystem<PhysicsSystem>();
 
     std::stringstream log;
     for (int i = 0; i < 200; i++)
     {
         //更新
-        physicsSystem.Update(world);
+        World::Update();
 
         //输出
-        View<Transform> transformView = {world};
-        transformView.Each([&log](Transform& transform)
+        View<Transform>::Each([&log](Transform& transform)
         {
             log << std::format("{:10.3f}", transform.position) << '|';
         });
         std::cout << log.str() << "\n";
         log.str("");
     }
+}
+
+void main()
+{
+    World::EachEntities<Transform>([](auto& transform)
+    {
+    });
 }

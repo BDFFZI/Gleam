@@ -20,8 +20,8 @@ struct ComponentMeta
     }
 };
 
-using Constructor = void(*)(std::byte*);
-using Destructor = void(*)(std::byte*);
+using ComponentConstructor = void(*)(std::byte*);
+using ComponentDestructor = void(*)(std::byte*);
 
 template <class TComponent, class... TComponents>
 concept FirstIsEntity = std::is_same_v<TComponent, Entity>;
@@ -57,8 +57,8 @@ struct Archetype
     std::vector<const type_info*> componentTypes;
     std::vector<int> componentSizes;
     std::vector<int> componentOffsets;
-    std::vector<Constructor> constructors;
-    std::vector<Destructor> destructors;
+    std::vector<ComponentConstructor> constructors;
+    std::vector<ComponentDestructor> destructors;
     size_t size;
     std::unordered_map<const type_info*, int> componentOffsetsMap;
 
