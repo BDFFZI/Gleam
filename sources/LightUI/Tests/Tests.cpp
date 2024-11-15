@@ -23,7 +23,7 @@ void main()
             return;
         }
 
-        CommandBuffer& commandBuffer = Graphics::GetCommandBuffer();
+        CommandBuffer& commandBuffer = Graphics::ApplyCommandBuffer();
         commandBuffer.BeginRecording();
         commandBuffer.BeginRendering(Graphics::GetPresentRenderTexture(), true);
 

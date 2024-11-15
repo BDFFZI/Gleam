@@ -37,7 +37,7 @@ void Graphics::UnInitialize()
     glSwapChain.reset();
 }
 
-CommandBuffer& Graphics::GetCommandBuffer(const std::string& name)
+CommandBuffer& Graphics::ApplyCommandBuffer(const std::string& name)
 {
     return paintCommandBufferPool->Get();
 }

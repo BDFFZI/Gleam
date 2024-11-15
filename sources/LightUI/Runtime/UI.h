@@ -9,7 +9,7 @@ namespace Light
         static UI Initialize(Graphics&);
         static void UnInitialize();
         static void BeginFrame();
-        static void EndFrame(CommandBuffer& commandBuffer);
+        static void EndFrame(GLCommandBuffer& commandBuffer);
 
     private:
         inline static std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = {};

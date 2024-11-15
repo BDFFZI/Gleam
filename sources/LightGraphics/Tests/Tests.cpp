@@ -105,7 +105,7 @@ void main()
         //...
 
         //逻辑处理完成，开始绘制
-        CommandBuffer& commandBuffer = Graphics::GetCommandBuffer();
+        CommandBuffer& commandBuffer = Graphics::ApplyCommandBuffer();
         commandBuffer.BeginRecording();
         commandBuffer.SetViewport(0, 0, Graphics::GetPresentRenderTexture().GetWidth(), Graphics::GetPresentRenderTexture().GetHeight());
         commandBuffer.SetViewProjectionMatrices(

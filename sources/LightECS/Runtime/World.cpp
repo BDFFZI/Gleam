@@ -38,7 +38,7 @@ void World::MoveEntity(const Entity entity, const Archetype& newArchetype)
         for (int i = 0; i < newArchetype.componentCount; ++i)
         {
             //遍历每个新原形的组件
-            const type_info* type = newArchetype.componentTypes[i];
+            std::type_index type = newArchetype.componentTypes[i];
             const size_t size = newArchetype.componentSizes[i];
             if (oldArchetype.HasComponent(type)) //若旧元组包含该组件则复制
                 memcpy(

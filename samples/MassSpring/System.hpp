@@ -1,57 +1,64 @@
 ﻿#pragma once
-#include <limits>
 
-#include "Component.hpp"
-#include "LightECS/Runtime/View.hpp"
+#include <imgui.h>
+
+#include "LightECS/Runtime/System.hpp"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightGraphics/Runtime/Mesh.h"
+#include "LightUI/Runtime/UI.h"
+#include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/Window.h"
 
 namespace Light
 {
-
-
-    class BeginPresentSystem : public SystemT<SystemMinOrder, SystemMaxOrder>
+    struct BeginPaintSystem : System<MinSystemOrder, MaxSystemOrder>
     {
-    public:
         inline static GLCommandBuffer* presentCommandBuffer = nullptr;
 
         static void Update()
         {
             presentCommandBuffer = &Graphics::BeginPresent();
+            UI::BeginFrame();
         }
     };
 
-    class EndPresentSystem : public SystemT<BeginPresentSystem::Order, SystemMaxOrder>
+    struct EndPaintSystem : System<BeginPaintSystem, MaxSystemOrder>
     {
-    public:
         static void Update()
         {
-            Graphics::EndPresent(*BeginPresentSystem::presentCommandBuffer);
+            UI::EndFrame(*BeginPaintSystem::presentCommandBuffer);
+            Graphics::EndPresent(*BeginPaintSystem::presentCommandBuffer);
+            Graphics::WaitPresent();
         }
     };
 
-    class RenderingSystem : public SystemT<SystemMinOrder, SystemMaxOrder>
+    struct RenderingSystem : System<BeginPaintSystem, EndPaintSystem>
     {
-    public:
         static void Update()
         {
-            View<Line> lineView = {*World};
-            View<Point, Transform> pointView = {*World};
+            CommandBuffer& commandBuffer = Graphics::ApplyCommandBuffer();
 
-            lineView.Each([](Line& line)
-            {
-            });
+            commandBuffer.BeginRecording();
+            commandBuffer.ClearRenderTexture(float4(0, 0, 1, 1));
+            commandBuffer.EndRecording();
+            BeginPaintSystem::presentCommandBuffer->ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
 
-            std::vector<Vertex>& vector = pointMesh.GetVertices();
-            std::vector<uint32_t>& indices = pointMesh.GetIndices();
-            vector.clear();
-            indices.clear();
-            int index = 0;
-            pointView.Each([&index,&vector,&indices](Point& point, Transform& transform)
-            {
-                vector.emplace_back(transform.position, point.color);
-                indices.emplace_back(index++);
-            });
+            Graphics::ReleaseCommandBuffer(commandBuffer);
+
+            // View<Line>::Each([](Line& line)
+            // {
+            // });
+            //
+            // std::vector<Vertex>& vector = pointMesh.GetVertices();
+            // std::vector<uint32_t>& indices = pointMesh.GetIndices();
+            // vector.clear();
+            // indices.clear();
+            // int index = 0;
+            // View<Point, Transform>::Each([&index,&vector,&indices](Point& point, Transform& transform)
+            // {
+            //     vector.emplace_back(transform.position, point.color);
+            //     indices.emplace_back(index++);
+            // });
         }
 
     private:
@@ -77,5 +84,24 @@ namespace Light
 
         inline static MeshT<Vertex> lineMesh = {&lineMeshLayout, true};
         inline static MeshT<Vertex> pointMesh = {&pointMeshLayout, true};
+    };
+
+    struct UISystem : System<BeginPaintSystem, EndPaintSystem>
+    {
+        static void Update()
+        {
+            ImGui::ShowDemoWindow();
+        }
+    };
+
+    struct UserInputSystem : System<MinSystemOrder, BeginPaintSystem>
+    {
+        static void Update()
+        {
+            if (Input::GetKeyDown(KeyCode::Esc))
+            {
+                Window::Stop();
+            }
+        }
     };
 }

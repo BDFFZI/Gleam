@@ -74,11 +74,11 @@ namespace Light
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
     }
-    void UI::EndFrame(CommandBuffer& commandBuffer)
+    void UI::EndFrame(GLCommandBuffer& commandBuffer)
     {
         //生成绘制数据
         ImGui::Render();
         //提交绘制命令
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer.GetGLCommandBuffer().commandBuffer);
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer.commandBuffer);
     }
 }

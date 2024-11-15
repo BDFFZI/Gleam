@@ -1,7 +1,5 @@
 ﻿#pragma once
-#include <iostream>
 #include <set>
-
 #include "Heap.h"
 #include "LightECS/Runtime/Archetype.hpp"
 
@@ -16,7 +14,7 @@ struct SystemInfo
 {
     using Function = void(*)();
 
-    const type_info* type;
+    std::type_index type = typeid(void);
     int order;
     Function start;
     Function update;
@@ -27,13 +25,6 @@ struct SystemInfo
         return order < other.order;
     }
 };
-
-template <class TFunction, class... TComponents>
-concept ViewIterator = requires(TFunction function, TComponents&... components) { function(components...); };
-
-template <class TFunction, class... TComponents>
-concept ViewIteratorWithEntity = requires(TFunction function, Entity& entity, TComponents&... components) { function(entity, components...); };
-
 
 class World
 {
@@ -50,33 +41,25 @@ public:
     static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
     static void MoveEntity(Entity entity, const Archetype& newArchetype);
     static void RemoveEntity(Entity entity);
-    template <class... TComponents, class TFunction>
-        requires ViewIterator<TFunction, TComponents...>
-    static void EachEntities(TFunction function)
-    {
-        std::cout << std: typeid(TFunction).name() << std::endl;
-    }
 
     template <class TSystem>
     static void AddSystem()
     {
         SystemInfo systemInfo;
-        systemInfo.type = &typeid(TSystem);
+        systemInfo.type = typeid(TSystem);
         systemInfo.order = TSystem::Order;
         systemInfo.start = TSystem::Start;
         systemInfo.update = TSystem::Update;
         systemInfo.stop = TSystem::Stop;
-        systemInfos.insert(systemInfo);
-        TSystem::Start();
+        systemStartQueue.insert(systemInfo);
     }
     template <class TSystem>
     static void RemoveSystem()
     {
-        SystemInfo systemInfo;
-        systemInfo.type = &typeid(TSystem);
-        systemInfo.order = TSystem::Order;
-        systemInfos.erase(systemInfo);
-        TSystem::Stop();
+        SystemInfo key;
+        key.type = typeid(TSystem);
+        SystemInfo systemInfo = systemInfos.extract(key).value();
+        systemStopQueue.insert(systemInfo);
     }
 
     static Heap& GetEntities(const Archetype& archetype)
@@ -92,12 +75,27 @@ public:
     static TComponent& GetComponent(const Entity entity)
     {
         EntityInfo& entityInfo = entityInfos.at(entity);
-        int offset = entityInfo.archetype->GetOffset(&typeid(TComponent));
+        int offset = entityInfo.archetype->GetOffset(typeid(TComponent));
         return *reinterpret_cast<TComponent*>(entityInfo.components + offset);
     }
 
     static void Update()
     {
+        if (systemStopQueue.empty() == false)
+        {
+            for (const SystemInfo& systemInfo : systemStopQueue)
+                systemInfo.stop();
+            systemStopQueue.clear();
+        }
+
+        if (systemStartQueue.empty() == false)
+        {
+            for (const SystemInfo& systemInfo : systemStartQueue)
+                systemInfo.start();
+            systemInfos.insert(systemStartQueue.begin(), systemStartQueue.end());
+            systemStartQueue.clear();
+        }
+
         for (const SystemInfo& systemInfo : systemInfos)
         {
             systemInfo.update();
@@ -108,7 +106,9 @@ private:
     inline static uint32_t nextEntity = 1;
     inline static std::unordered_map<const Archetype*, Heap> entities = {};
     inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
-    inline static std::multiset<SystemInfo> systemInfos = {};
+    inline static std::set<SystemInfo> systemInfos = {};
+    inline static std::set<SystemInfo> systemStartQueue = {};
+    inline static std::set<SystemInfo> systemStopQueue = {};
 
     static void RemoveHeapItem(const Archetype& archetype, int index);
 };

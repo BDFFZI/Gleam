@@ -40,7 +40,7 @@ namespace Light
         static const std::unique_ptr<GLSwapChain>& GetGLSwapChain() { return glSwapChain; }
         static PresentRenderTexture& GetPresentRenderTexture() { return presentRenderTexture; }
 
-        static CommandBuffer& GetCommandBuffer(const std::string& name = "");
+        static CommandBuffer& ApplyCommandBuffer(const std::string& name = "");
         static void ReleaseCommandBuffer(CommandBuffer& commandBuffer);
 
         /**

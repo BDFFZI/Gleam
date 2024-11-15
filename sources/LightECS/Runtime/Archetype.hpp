@@ -2,6 +2,7 @@
 #include <format>
 #include <array>
 #include <string>
+#include <typeindex>
 #include <vector>
 #include <unordered_map>
 
@@ -37,7 +38,7 @@ struct Archetype
         Archetype archetype;
         archetype.name = name;
         archetype.componentCount = {sizeof...(TComponents)};
-        archetype.componentTypes = {&typeid(TComponents)...};
+        archetype.componentTypes = {typeid(TComponents)...};
         archetype.componentSizes = {sizeof(TComponents)...};
         archetype.componentOffsets.resize(sizeof...(TComponents));
         for (int i = 1; i < sizeof...(TComponents); ++i)
@@ -54,19 +55,19 @@ struct Archetype
 
     const char* name;
     int componentCount;
-    std::vector<const type_info*> componentTypes;
+    std::vector<std::type_index> componentTypes;
     std::vector<int> componentSizes;
     std::vector<int> componentOffsets;
     std::vector<ComponentConstructor> constructors;
     std::vector<ComponentDestructor> destructors;
     size_t size;
-    std::unordered_map<const type_info*, int> componentOffsetsMap;
+    std::unordered_map<std::type_index, int> componentOffsetsMap;
 
-    int GetOffset(const type_info* component) const
+    int GetOffset(const std::type_index component) const
     {
         return componentOffsetsMap.at(component);
     }
-    bool HasComponent(const type_info* component) const
+    bool HasComponent(const std::type_index component) const
     {
         return componentOffsetsMap.contains(component);
     }
@@ -87,7 +88,7 @@ struct Archetype
         {
             result += std::format(
                 "\n{:20} {:5} {:5}",
-                componentTypes[i]->name(),
+                componentTypes[i].name(),
                 componentOffsets[i],
                 componentSizes[i]
             );
@@ -97,7 +98,7 @@ struct Archetype
     template <class... TComponents>
     bool Contains() const
     {
-        const type_info* components[] = {&typeid(TComponents)...};
+        std::type_index components[] = {typeid(TComponents)...};
         for (int i = 0; i < sizeof...(TComponents); ++i)
             if (componentOffsetsMap.contains(components[i]) == false)
                 return false;
@@ -106,7 +107,7 @@ struct Archetype
     template <class... TComponents>
     std::array<int, sizeof...(TComponents)> MemoryMap() const
     {
-        return {componentOffsetsMap.at(&typeid(TComponents))...};
+        return {componentOffsetsMap.at(typeid(TComponents))...};
     }
 };
 

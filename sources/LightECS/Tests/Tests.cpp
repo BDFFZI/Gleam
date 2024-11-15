@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include <ostream>
+#include <typeindex>
 #include <benchmark/benchmark.h>
 #include <gtest/gtest.h>
 #include "LightECS/Runtime/Archetype.hpp"
@@ -231,11 +232,4 @@ TEST(ECS, System)
         std::cout << log.str() << "\n";
         log.str("");
     }
-}
-
-void main()
-{
-    World::EachEntities<Transform>([](auto& transform)
-    {
-    });
 }
