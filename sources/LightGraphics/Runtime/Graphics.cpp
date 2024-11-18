@@ -10,11 +10,11 @@ void Graphics::InitializeGLDemand(std::vector<const char*>& extensions)
 }
 Graphics Graphics::Initialize(GL&)
 {
-    surfaceFormat = GLSwapChain::PickSwapSurfaceFormat({BuiltInColorFormat, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR});
-    if (surfaceFormat.format != BuiltInColorFormat)
+    surfaceFormat = GLSwapChain::PickSwapSurfaceFormat({DefaultColorFormat, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR});
+    if (surfaceFormat.format != DefaultColorFormat)
         throw std::runtime_error("不支持的颜色格式！");
     presentMode = GLSwapChain::PickSwapPresentMode(VK_PRESENT_MODE_MAILBOX_KHR);
-    presentSampleCount = BuiltInGLStateLayout.multisample.rasterizationSamples;
+    presentSampleCount = DefaultGLStateLayout.multisample.rasterizationSamples;
 
     CreateSwapChain();
 
@@ -127,11 +127,11 @@ void Graphics::CreateSwapChain()
 
     if (presentSampleCount != VK_SAMPLE_COUNT_1_BIT)
     {
-        presentColorImage = GLImage::CreateFrameBufferColor(width, height, BuiltInColorFormat, presentSampleCount);
+        presentColorImage = GLImage::CreateFrameBufferColor(width, height, DefaultColorFormat, presentSampleCount);
         presentColorImageView = std::make_unique<GLImageView>(*presentColorImage, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
-    presentDepthStencilImage = GLImage::CreateFrameBufferDepth(width, height, BuiltInDepthStencilFormat, presentSampleCount);
+    presentDepthStencilImage = GLImage::CreateFrameBufferDepth(width, height, DefaultDepthStencilFormat, presentSampleCount);
     presentDepthStencilImageView = std::make_unique<GLImageView>(*presentDepthStencilImage, VK_IMAGE_ASPECT_DEPTH_BIT);
 
     //重建PresentRenderTexture

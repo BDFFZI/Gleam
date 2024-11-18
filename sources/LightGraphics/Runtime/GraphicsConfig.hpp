@@ -9,9 +9,9 @@
 
 namespace Light
 {
-    constexpr VkFormat BuiltInColorFormat = VK_FORMAT_B8G8R8A8_SRGB;
-    constexpr VkFormat BuiltInDepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;
-    const GLStateLayout BuiltInGLStateLayout = []
+    constexpr VkFormat DefaultColorFormat = VK_FORMAT_B8G8R8A8_SRGB;
+    constexpr VkFormat DefaultDepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;
+    const GLStateLayout DefaultGLStateLayout = []
     {
         GLStateLayout layout;
         layout.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
@@ -20,12 +20,12 @@ namespace Light
         return layout;
     }();
 
-    struct BuiltInPushConstant
+    struct DefaultPushConstant
     {
         alignas(16) float4x4 MatrixMVP;
     };
 
-    struct BuiltInVertex
+    struct DefaultVertex
     {
         float3 position;
         float3 normal;
@@ -34,22 +34,22 @@ namespace Light
         float4 color;
     };
 
-    const GLVertexInput BuiltInGLVertexInput = {
-        sizeof(BuiltInVertex), {
-            GLVertexAttribute{0,offsetof(BuiltInVertex, position), VK_FORMAT_R32G32B32_SFLOAT},
-            GLVertexAttribute{1,offsetof(BuiltInVertex, normal), VK_FORMAT_R32G32B32_SFLOAT},
-            GLVertexAttribute{2,offsetof(BuiltInVertex, tangent), VK_FORMAT_R32G32B32A32_SFLOAT},
-            GLVertexAttribute{3,offsetof(BuiltInVertex, uv), VK_FORMAT_R32G32_SFLOAT},
-            GLVertexAttribute{4,offsetof(BuiltInVertex, color), VK_FORMAT_R32G32B32A32_SFLOAT},
+    const GLVertexInput DefaultGLVertexInput = {
+        sizeof(DefaultVertex), {
+            GLVertexAttribute{0,offsetof(DefaultVertex, position), VK_FORMAT_R32G32B32_SFLOAT},
+            GLVertexAttribute{1,offsetof(DefaultVertex, normal), VK_FORMAT_R32G32B32_SFLOAT},
+            GLVertexAttribute{2,offsetof(DefaultVertex, tangent), VK_FORMAT_R32G32B32A32_SFLOAT},
+            GLVertexAttribute{3,offsetof(DefaultVertex, uv), VK_FORMAT_R32G32_SFLOAT},
+            GLVertexAttribute{4,offsetof(DefaultVertex, color), VK_FORMAT_R32G32B32A32_SFLOAT},
         }
     };
-    const GLInputAssembly BuiltInGLInputAssembly = {
+    const GLInputAssembly DefaultGLInputAssembly = {
         VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
         false
     };
 
-    const GLMeshLayout BuiltInGLMeshLayout = {
-        BuiltInGLVertexInput, BuiltInGLInputAssembly
+    const GLMeshLayout DefaultGLMeshLayout = {
+        DefaultGLVertexInput, DefaultGLInputAssembly
     };
 
     class MeshBase

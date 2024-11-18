@@ -24,6 +24,6 @@ inline int main()
     using namespace Light;
     Engine::Initialize();
     Engine::Begin();
-
+    
     return 0;
 }

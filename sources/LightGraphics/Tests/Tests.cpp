@@ -74,7 +74,7 @@ void main()
         GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, false}
     };
     std::unique_ptr<MeshT<Point>> lineMesh = std::make_unique<MeshT<Point>>(&lineMeshLayout);
-    std::vector<BuiltInVertex> vertices = mesh->GetVertices();
+    std::vector<DefaultVertex> vertices = mesh->GetVertices();
     std::vector<Point> lineVertices(vertices.size());
     for (uint32_t i = 0; i < vertices.size(); i++)
     {
@@ -84,7 +84,7 @@ void main()
     lineMesh->SetVertices(std::move(lineVertices));
     lineMesh->SetIndices(mesh->GetIndices());
 
-    std::unique_ptr<Shader> lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, BuiltInGLStateLayout, lineMeshLayout);
+    std::unique_ptr<Shader> lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, lineMeshLayout);
     std::unique_ptr<Material> lineMaterial = std::make_unique<Material>(lineShader.get());
 
     float3 move[4] = {

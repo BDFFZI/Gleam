@@ -18,7 +18,7 @@ void CommandBuffer::EndRecording()
     lastMesh = nullptr;
     lastMaterial = nullptr;
     lastRenderTexture = nullptr;
-    matrixVP = {};
+    matrixVP = float4x4::Identity();
 }
 
 void CommandBuffer::BeginRendering(const RenderTextureBase& renderTarget, const bool clearColor)
@@ -37,6 +37,8 @@ void CommandBuffer::BeginRendering(const RenderTextureBase& renderTarget, const 
     // glCommandBuffer.SetRasterizationSamples(renderTarget.GetSampleCount());
 
     lastRenderTexture = &renderTarget;
+
+    SetViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
 }
 void CommandBuffer::EndRendering() const
 {
@@ -59,7 +61,7 @@ void CommandBuffer::SetViewProjectionMatrices(const float4x4& viewMatrix, const 
     matrixVP = mul(projMatrix, viewMatrix);
 }
 
-void CommandBuffer::Draw(MeshBase* mesh, const float4x4& modelMatrix, MaterialBase* material)
+void CommandBuffer::Draw(MeshBase* mesh, MaterialBase* material, const float4x4& modelMatrix)
 {
     //绑定网格
     if (mesh != lastMesh)
@@ -76,7 +78,7 @@ void CommandBuffer::Draw(MeshBase* mesh, const float4x4& modelMatrix, MaterialBa
     }
 
     //推送常量
-    BuiltInPushConstant pushConstant = {mul(matrixVP, modelMatrix)};
+    DefaultPushConstant pushConstant = {mul(matrixVP, modelMatrix)};
     glCommandBuffer.PushConstant(
         material->GetShader()->GetGLPipelineLayout(),
         material->GetShader()->GetPushConstantBinding()[0],

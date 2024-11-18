@@ -18,9 +18,9 @@ std::unique_ptr<Shader> Shader::CreateFromFile(
             GLShader(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader, "FragmentShader"),
         },
         descriptorSetLayout, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,
-        std::vector<VkPushConstantRange>{{VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(BuiltInPushConstant)}},
+        std::vector<VkPushConstantRange>{{VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(DefaultPushConstant)}},
         stateLayout, meshLayout,
-        BuiltInColorFormat, BuiltInDepthStencilFormat
+        DefaultColorFormat, DefaultDepthStencilFormat
     );
 }
 Shader::Shader(

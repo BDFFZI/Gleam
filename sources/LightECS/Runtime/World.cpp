@@ -1,17 +1,18 @@
 ﻿#include "World.h"
 
-void World::AddEntity(const Archetype& archetype, Entity* outEntity)
+Entity World::AddEntity(const Archetype& archetype)
 {
     Heap& heap = GetEntities(archetype);
     int startIndex = heap.GetCount();
-    heap.AddElement([&archetype,outEntity,startIndex](std::byte* item)
+    Entity entity = static_cast<Entity>(nextEntity++);
+    heap.AddElement([&archetype,startIndex,entity](std::byte* item)
     {
-        Entity entity = static_cast<Entity>(nextEntity++);
         archetype.RunConstructor(item);
         *reinterpret_cast<Entity*>(item) = entity;
         entityInfos.insert({entity, {&archetype, item, startIndex}});
-        if (outEntity != nullptr)outEntity[0] = entity;
     });
+
+    return entity;
 }
 void World::AddEntities(const Archetype& archetype, const int count, Entity* outEntities)
 {
@@ -69,6 +70,39 @@ void World::RemoveEntity(const Entity entity)
     archetype.RunDestructor(entityInfo.components);
     //从内存中移除
     RemoveHeapItem(archetype, entityInfo.indexAtHeap);
+}
+void World::Update()
+{
+    if (systemStopQueue.empty() == false)
+    {
+        for (const SystemInfo& systemInfo : systemStopQueue)
+            systemInfo.stop();
+        systemStopQueue.clear();
+    }
+
+    if (systemStartQueue.empty() == false)
+    {
+        for (const SystemInfo& systemInfo : systemStartQueue)
+            systemInfo.start();
+        systemUpdateQueue.insert(systemStartQueue.begin(), systemStartQueue.end());
+        systemStartQueue.clear();
+    }
+
+    for (const SystemInfo& systemInfo : systemUpdateQueue)
+    {
+        systemInfo.update();
+    }
+}
+void World::Clear()
+{
+    for (const SystemInfo& systemInfo : systemStopQueue)
+        systemInfo.stop();
+    for (const SystemInfo& systemInfo : systemUpdateQueue)
+        systemInfo.stop();
+
+    systemStartQueue.clear();
+    systemStopQueue.clear();
+    systemUpdateQueue.clear();
 }
 void World::RemoveHeapItem(const Archetype& archetype, const int index)
 {

@@ -106,12 +106,12 @@ namespace Light
         bool readwrite;
     };
 
-    class Mesh : public MeshT<BuiltInVertex>
+    class Mesh : public MeshT<DefaultVertex>
     {
     public:
         static std::unique_ptr<Mesh> CreateFromRawMesh(const RawMesh& rawMesh);
 
-        Mesh(const GLMeshLayout* glMeshLayout = &BuiltInGLMeshLayout, const bool readwrite = false)
+        Mesh(const GLMeshLayout* glMeshLayout = &DefaultGLMeshLayout, const bool readwrite = false)
             : MeshT(glMeshLayout, readwrite)
         {
         }

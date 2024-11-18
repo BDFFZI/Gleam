@@ -46,7 +46,7 @@ GLBuffer::GLBuffer(const size_t size, const VkBufferUsageFlags usage, const VkMe
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = GL::glDevice->FindMemoryType(memRequirements.memoryTypeBits, properties);
-    if (vkAllocateMemory(GL::glDevice->device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+    if (VkResult result = vkAllocateMemory(GL::glDevice->device, &allocInfo, nullptr, &bufferMemory); result != VK_SUCCESS)
         throw std::runtime_error("分配缓冲区内存失败!");
 
     //绑定内存与缓冲区

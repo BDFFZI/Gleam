@@ -32,8 +32,8 @@ namespace Light
         static std::unique_ptr<Shader> CreateFromFile(
             const std::string& shaderFile,
             const std::vector<GLDescriptorBinding>& descriptorSetLayout = {},
-            const GLStateLayout& stateLayout = BuiltInGLStateLayout,
-            const GLMeshLayout& meshLayout = BuiltInGLMeshLayout
+            const GLStateLayout& stateLayout = DefaultGLStateLayout,
+            const GLMeshLayout& meshLayout = DefaultGLMeshLayout
         );
 
         Shader(

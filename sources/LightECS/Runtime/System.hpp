@@ -1,19 +1,20 @@
 ﻿#pragma once
+#include <cstdint>
 #include <limits>
 
 struct MinSystemOrder
 {
-    static constexpr float Order = std::numeric_limits<float>::min();
+    static constexpr int32_t Order = std::numeric_limits<int32_t>::lowest();
 };
 struct MaxSystemOrder
 {
-    static constexpr float Order = std::numeric_limits<float>::max();
+    static constexpr int32_t Order = std::numeric_limits<int32_t>::max();
 };
 
 template <class MinOrder, class MaxOrder>
 struct System
 {
-    static constexpr float Order = (MinOrder::Order + MaxOrder::Order) / 2;
+    static constexpr int32_t Order = static_cast<int32_t>((static_cast<int64_t>(MinOrder::Order) + static_cast<int64_t>(MaxOrder::Order)) / 2);
 
     static void Start()
     {
@@ -25,4 +26,3 @@ struct System
     {
     }
 };
-

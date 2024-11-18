@@ -164,7 +164,7 @@ TEST(ECS, Archetype)
     free(data);
 }
 
-TEST(ECS, EntitySet)
+TEST(ECS, World)
 {
     Entity entities[2];
     World::AddEntities(physicsArchetype, 2, entities);
@@ -179,8 +179,15 @@ TEST(ECS, EntitySet)
         ASSERT_EQ(spring, Spring());
         transform.position = 3;
     });
+    
     auto& transform = World::GetComponent<Transform>(entities[1]);
     ASSERT_EQ(transform.position, 3);
+    
+    RigidBody rigidBody;
+    Spring spring;
+    World::GetComponents(entities[1], &rigidBody, &spring);
+    ASSERT_EQ(rigidBody, RigidBody());
+    ASSERT_EQ(spring, Spring());
 }
 
 struct PhysicsSystem : System<MinSystemOrder, MaxSystemOrder>

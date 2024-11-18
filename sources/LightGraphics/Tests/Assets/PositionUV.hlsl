@@ -10,7 +10,7 @@ struct Fragment
     float4 color:COLOR;
 };
 
-Fragment VertexShader(BuiltInVertex vertex)
+Fragment VertexShader(DefaultVertex vertex)
 {
     Fragment output;
     output.positionCS = TransformObjectToClip(vertex.position);

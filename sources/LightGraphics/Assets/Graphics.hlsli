@@ -1,10 +1,10 @@
 [[vk::push_constant]]
-cbuffer BuiltInPushConstant
+cbuffer DefaultPushConstant
 {
     float4x4 MatrixMVP;
 }
 
-struct BuiltInVertex
+struct DefaultVertex
 {
     [[vk::location(0)]]
     float3 position:POSITION;

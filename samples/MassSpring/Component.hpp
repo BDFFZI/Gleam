@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "LightECS/Runtime/Archetype.hpp"
 #include "LightECS/Runtime/Entity.hpp"
 #include "LightMath/Runtime/Vector.hpp"
 
@@ -9,14 +10,14 @@ struct Transform
 
 struct Point
 {
-    float4 color;
+    float4 color = 1;
 };
 
 struct Line
 {
-    Entity pointA;
-    Entity pointB;
-    float4 color;
+    Entity pointA = Entity::Null;
+    Entity pointB = Entity::Null;
+    float4 color = 1;
 };
 
 struct RigidBody
@@ -32,3 +33,6 @@ struct Spring
     float length = 5;
     float elasticity = 200;
 };
+
+MakeArchetype(pointArchetype, Transform, Point)
+MakeArchetype(lineArchetype, Line)

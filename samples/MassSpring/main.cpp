@@ -1,11 +1,7 @@
-#include <imgui.h>
-
 #include "System.hpp"
 #include "LightECS/Runtime/World.h"
 #include "LightGL/Runtime/GL.h"
-#include "LightGraphics/Runtime/CommandBuffer.h"
 #include "LightGraphics/Runtime/Graphics.h"
-#include "LightGraphics/Runtime/Shader.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Window.h"
@@ -25,10 +21,24 @@ int main()
     {
         World::AddSystem<BeginPaintSystem>();
         World::AddSystem<EndPaintSystem>();
+        World::AddSystem<RenderingSystem>();
+        World::AddSystem<UISystem>();
+        World::AddSystem<UserInputSystem>();
+
+        Entity point1 = World::AddEntity(pointArchetype);
+        World::GetComponent<Transform>(point1).position = {-0.5f, 0};
+        Entity point2 = World::AddEntity(pointArchetype);
+        World::GetComponent<Transform>(point2).position = {0.5f, 0};
+        Entity line2 =  World::AddEntity(lineArchetype);
+        
     });
     Window::SetWindowUpdateEvent([]()
     {
         World::Update();
+    });
+    Window::SetWindowStopEvent([]
+    {
+        World::Clear();
     });
     Window::Start();
 
