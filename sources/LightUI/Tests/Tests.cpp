@@ -9,10 +9,10 @@ void main()
 {
     using namespace Light;
 
-    Window::Initialize("Tests");
+    Window window = Window::Initialize("Tests", 800, 600);
     GL gl = GL::Initialize(Window::GetGlfwWindow());
     Graphics graphics = Graphics::Initialize(gl);
-    UI::Initialize(graphics);
+    UI::Initialize(window, graphics);
 
     Window::SetWindowUpdateEvent([]()
     {
@@ -29,11 +29,11 @@ void main()
 
         UI::BeginFrame();
         ImGui::ShowDemoWindow();
-        UI::EndFrame(commandBuffer);
+        UI::EndFrame(commandBuffer.GetGLCommandBuffer());
 
         commandBuffer.EndRendering();
         commandBuffer.EndRecording();
-        Graphics::PresentAsync(commandBuffer);
+        Graphics::Present(commandBuffer);
         Graphics::WaitPresent();
         Graphics::ReleaseCommandBuffer(commandBuffer);
     });

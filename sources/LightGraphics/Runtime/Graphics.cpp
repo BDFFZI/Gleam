@@ -50,17 +50,6 @@ void Graphics::WaitPresentable()
 {
     presentCommandBuffers[glSwapChain->GetCurrentBufferIndex()]->WaitSubmissionFinish();
 }
-void Graphics::PresentAsync(CommandBuffer& commandBuffer)
-{
-    GLCommandBuffer& primaryCommandBuffer = BeginPresent();
-    primaryCommandBuffer.ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
-    EndPresent(primaryCommandBuffer);
-}
-void Graphics::WaitPresent()
-{
-    size_t bufferIndex = (glSwapChainBufferCount + glSwapChain->GetCurrentBufferIndex() - 1) % glSwapChainBufferCount;
-    presentCommandBuffers[bufferIndex]->WaitSubmissionFinish();
-}
 GLCommandBuffer& Graphics::BeginPresent()
 {
     //获取交换链下次呈现使用的相关信息
@@ -110,7 +99,17 @@ void Graphics::EndPresent(GLCommandBuffer& presentCommandBuffer)
 
     glSwapChain->PresentImageAsync();
 }
-
+void Graphics::Present(CommandBuffer& commandBuffer)
+{
+    GLCommandBuffer& primaryCommandBuffer = BeginPresent();
+    primaryCommandBuffer.ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
+    EndPresent(primaryCommandBuffer);
+}
+void Graphics::WaitPresent()
+{
+    size_t bufferIndex = (glSwapChainBufferCount + glSwapChain->GetCurrentBufferIndex() - 1) % glSwapChainBufferCount;
+    presentCommandBuffers[bufferIndex]->WaitSubmissionFinish();
+}
 
 void Graphics::CreateSwapChain()
 {

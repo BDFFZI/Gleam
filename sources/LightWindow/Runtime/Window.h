@@ -12,15 +12,14 @@ namespace Light
          * @param name
          * @param width
          * @param height
-         * @param clientAPI 默认关闭内置的opengl功能，由用户自行控制图形API（以便接入GL模块的vulkan）
          */
-        static Window Initialize(const char* name, int width, int height, int clientAPI = GLFW_NO_API);
+        static Window Initialize(const char* name, int width, int height);
 
         static GLFWwindow* GetGlfwWindow() { return glfwWindow; }
 
-        static void SetWindowStartEvent(const std::function<void()>& windowBeginEvent);
+        static void SetWindowStartEvent(const std::function<void()>& windowStartEvent);
         static void SetWindowUpdateEvent(const std::function<void()>& windowUpdateEvent);
-        static void SetWindowStopEvent(const std::function<void()>& windowEndEvent);
+        static void SetWindowStopEvent(const std::function<void()>& windowStopEvent);
         static void SetWindowStopConfirm(const std::function<bool()>& windowStopConfirm);
         static void SetResolution(int width, int height);
 

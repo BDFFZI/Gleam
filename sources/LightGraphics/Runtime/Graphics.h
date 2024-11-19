@@ -53,20 +53,31 @@ namespace Light
          */
         static void WaitPresentable();
         /**
+         * 开始一次呈现操作。
+         * @return 本次呈现操作将使用的命令缓冲区，该缓冲区的录制启用和关闭由系统自动控制。
+         * @note 必须在之后调用 @c EndPresent() 来完成呈现。
+         */
+        static GLCommandBuffer& BeginPresent();
+        /**
+         * 结束 @c BeginPresent 引发的呈现操作。
+         * @param presentCommandBuffer
+         * @note 该函数使用异步呈现，必须调用@c WaitPresent() 来确保呈现完成。
+         */
+        static void EndPresent(GLCommandBuffer& presentCommandBuffer);
+        /**
          * @brief 异步绘制并呈现画面
+         * 
+         * 本质是对 @c BeginPresent() 和 @c EndPresent() 的快速调用。 
          * @param commandBuffer 
          */
-        static void PresentAsync(CommandBuffer& commandBuffer);
+        static void Present(CommandBuffer& commandBuffer);
         /**
-         * @brief 等待上一次调用的 @c PresentAsync() 完成。
+         * @brief 所有呈现都是异步执行的，每次使用玩呈现命令后必须调用该函数以确保完成。
          * 
          * 更准确的说，是等待绘制用的命令缓冲区执行完毕，可以安全的释放绘制资源的时候，但此时真正的呈现命令可能还未开始。<br/>
          * 如果每帧结束时都调用了@c WaitPresent()，那将退化为同步渲染，因此不存在缓冲区冲突的问题，这样就不用在每帧开始前调用@c WaitPresentable()
          */
         static void WaitPresent();
-
-        static GLCommandBuffer& BeginPresent();
-        static void EndPresent(GLCommandBuffer& presentCommandBuffer);
 
     private:
         inline static size_t glSwapChainBufferCount = {};

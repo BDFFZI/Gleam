@@ -74,8 +74,18 @@ namespace Light
 
     struct InputHandler
     {
+        using InputCallback = void(*)();
+
         std::string name;
-        std::function<void()> event;
+        InputCallback inputCallback = nullptr;
+        GLFWwindowfocusfun glfwWindowFocusCallback = nullptr;
+        GLFWcursorenterfun glfwCursorEnterCallback = nullptr;
+        GLFWcursorposfun glfwCursorPosCallback = nullptr;
+        GLFWmousebuttonfun glfwMouseButtonCallback = nullptr;
+        GLFWscrollfun glfwScrollCallback = nullptr;
+        GLFWkeyfun glfwKeyCallback = nullptr;
+        GLFWcharfun glfwCharCallback = nullptr;
+        GLFWmonitorfun glfwMonitorCallback = nullptr;
     };
 
     class Window;
@@ -106,8 +116,17 @@ namespace Light
         inline static float2 mousePosition[2];
         inline static float2 mousePositionDelta;
 
+        static void GlfwWindowFocusCallback(GLFWwindow* window, int focused);
+        static void GlfwCursorEnterCallback(GLFWwindow* window, int entered);
+        static void GlfwCursorPosCallback(GLFWwindow* window, double xPos, double yPos);
+        static void GlfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+        static void GlfwScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
+        static void GlfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        static void GlfwCharCallback(GLFWwindow* window, unsigned int codepoint);
+        static void GlfwMonitorCallback(GLFWmonitor* monitor, int event);
+
         friend Window;
-        static void Start(GLFWwindow* glfwWindow);
+        static void Initialize(GLFWwindow* glfwWindow);
         /**
          * 每帧将GLFW传入的用户输入解析成Light所用的输入格式
          */

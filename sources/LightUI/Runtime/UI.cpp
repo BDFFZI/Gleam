@@ -5,6 +5,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
+#include "LightWindow/Runtime/Input.h"
+
 namespace Light
 {
     void CheckVKResult(const VkResult err)
@@ -14,7 +16,7 @@ namespace Light
         abort();
     }
 
-    UI UI::Initialize(Graphics&)
+    UI UI::Initialize(Window&, Graphics&)
     {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -40,7 +42,7 @@ namespace Light
 
         // Setup Platform/Renderer backends
 
-        ImGui_ImplGlfw_InitForVulkan(GL::glfwWindow, true);
+        ImGui_ImplGlfw_InitForVulkan(Window::GetGlfwWindow(), false);
         ImGui_ImplVulkan_InitInfo initInfo = {};
         initInfo.Instance = GL::glInstance->instance;
         initInfo.PhysicalDevice = GL::glDevice->physicalDevice;
@@ -57,10 +59,15 @@ namespace Light
         ImGui_ImplVulkan_Init(&initInfo);
         ImGui_ImplVulkan_CreateFontsTexture();
 
+        //注册用户输入回调
+        Input::PushInputHandler(inputHandler);
+
         return {};
     }
     void UI::UnInitialize()
     {
+        Input::PopInputHandler(inputHandler);
+
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();

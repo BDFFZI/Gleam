@@ -127,7 +127,7 @@ void main()
         commandBuffer.EndRendering();
 
         commandBuffer.EndRecording();
-        Graphics::PresentAsync(commandBuffer);
+        Graphics::Present(commandBuffer);
 
         //等待绘制完成
         Graphics::WaitPresent();

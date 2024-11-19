@@ -18,7 +18,7 @@ void main()
 
     static InputHandler inputEvent;
     inputEvent.name = "Test";
-    inputEvent.event = []
+    inputEvent.inputCallback = []
     {
         moveInput = 0;
         if (Input::GetKey(KeyCode::W))

@@ -1,25 +1,27 @@
 ﻿#include "Window.h"
 
 #include <exception>
-#include <iostream>
 
 #include "Input.h"
 #include "Time.h"
 
 using namespace Light;
 
-Window Window::Initialize(const char* name, const int width, const int height, const int clientAPI)
+Window Window::Initialize(const char* name, const int width, const int height)
 {
     if (!glfwInit())
         throw std::exception("窗口初始化失败");
 
-    glfwWindowHint(GLFW_CLIENT_API, clientAPI);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindow = glfwCreateWindow(width, height, name, nullptr, nullptr);
     if (!glfwWindow)
     {
         glfwTerminate();
         throw std::exception("窗口创建失败");
     }
+
+    Input::Initialize(glfwWindow);
 
     return {};
 }
@@ -31,19 +33,19 @@ void Window::SetWindowStopConfirm(const std::function<bool()>& windowStopConfirm
 
     Window::windowStopConfirm = windowStopConfirm;
 }
-void Window::SetWindowStartEvent(const std::function<void()>& windowBeginEvent)
+void Window::SetWindowStartEvent(const std::function<void()>& windowStartEvent)
 {
-    if (windowBeginEvent == nullptr)
+    if (windowStartEvent == nullptr)
         throw std::exception("事件为空");
 
-    windowStartEvent = windowBeginEvent;
+    Window::windowStartEvent = windowStartEvent;
 }
-void Window::SetWindowStopEvent(const std::function<void()>& windowEndEvent)
+void Window::SetWindowStopEvent(const std::function<void()>& windowStopEvent)
 {
-    if (windowEndEvent == nullptr)
+    if (windowStopEvent == nullptr)
         throw std::exception("事件为空");
 
-    windowStopEvent = windowEndEvent;
+    Window::windowStopEvent = windowStopEvent;
 }
 void Window::SetWindowUpdateEvent(const std::function<void()>& windowUpdateEvent)
 {
@@ -59,12 +61,11 @@ void Window::SetResolution(const int width, const int height)
 
 void Window::Start()
 {
-    Input::Start(glfwWindow);
     Time::Start();
-    
+
     //启动窗口
     windowStartEvent();
-    
+
     do
     {
         while (!glfwWindowShouldClose(glfwWindow))

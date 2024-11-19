@@ -73,13 +73,6 @@ void World::RemoveEntity(const Entity entity)
 }
 void World::Update()
 {
-    if (systemStopQueue.empty() == false)
-    {
-        for (const SystemInfo& systemInfo : systemStopQueue)
-            systemInfo.stop();
-        systemStopQueue.clear();
-    }
-
     if (systemStartQueue.empty() == false)
     {
         for (const SystemInfo& systemInfo : systemStartQueue)
@@ -91,6 +84,13 @@ void World::Update()
     for (const SystemInfo& systemInfo : systemUpdateQueue)
     {
         systemInfo.update();
+    }
+
+    if (systemStopQueue.empty() == false)
+    {
+        for (const SystemInfo& systemInfo : systemStopQueue)
+            systemInfo.stop();
+        systemStopQueue.clear();
     }
 }
 void World::Clear()
