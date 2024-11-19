@@ -7,10 +7,11 @@
 
 using namespace Light;
 
-//TODO：发现问题：长按检测有延迟，鼠标不支持长按
 void main()
 {
-    Window::Initialize();
+    int width = 800;
+    int height = 600;
+    Window::Initialize("Window", width, height);
 
     static float2 moveInput;
     static bool fireInput;
@@ -19,23 +20,19 @@ void main()
     inputEvent.name = "Test";
     inputEvent.event = []
     {
+        moveInput = 0;
         if (Input::GetKey(KeyCode::W))
             moveInput.y = 1;
         else if (Input::GetKey(KeyCode::S))
             moveInput.y = -1;
-        else
-            moveInput.y = 0;
-
         if (Input::GetKey(KeyCode::A))
             moveInput.x = -1;
         else if (Input::GetKey(KeyCode::D))
             moveInput.x = 1;
-        else
-            moveInput.x = 0;
 
         fireInput = Input::GetMouseButton(MouseButton::Left);
     };
-    
+
     Window::SetWindowStartEvent([]()
     {
         Input::PushInputHandler(inputEvent);
@@ -44,14 +41,25 @@ void main()
     {
         Input::PopInputHandler(inputEvent);
     });
-    Window::SetWindowUpdateEvent([]
+    Window::SetWindowUpdateEvent([&width,&height]
     {
+        if (any(moveInput))
+            std::cout << "Move:" << to_string(moveInput) << '\n';
         if (fireInput)
+            std::cout << "Fire" << '\n';
+        if (Input::GetKey(KeyCode::T))
+            std::cout << std::format("Time:{:f}\tDeltaTime:{:f}\n", Time::GetTime(), Time::GetDeltaTime());
+        if (Input::GetKeyDown(KeyCode::Minus))
         {
-            std::cout
-                << Time::GetTime() << "\t"
-                << to_string(moveInput)
-                << '\n';
+            width -= 50;
+            height -= 50;
+            Window::SetResolution(width, height);
+        }
+        else if (Input::GetKeyDown(KeyCode::Equals))
+        {
+            width += 50;
+            height += 50;
+            Window::SetResolution(width, height);
         }
     });
 

@@ -3,36 +3,36 @@
 #include "LightECS/Runtime/Entity.hpp"
 #include "LightMath/Runtime/Vector.hpp"
 
-struct Transform
+struct Point
 {
     float2 position;
 };
 
-struct Point
+struct Line
+{
+    float2 positionA;
+    float2 positionB;
+};
+
+struct Renderer
 {
     float4 color = 1;
 };
 
-struct Line
+struct MassPointPhysics
+{
+    float2 force;
+    float2 velocity;
+    float mass = 1;
+};
+
+struct SpringPhysics
 {
     Entity pointA = Entity::Null;
     Entity pointB = Entity::Null;
-    float4 color = 1;
-};
-
-struct RigidBody
-{
-    float mass = 1;
-    float2 force;
-    float2 velocity;
-};
-
-struct Spring
-{
-    float2 pinPosition = 0;
     float length = 5;
     float elasticity = 200;
 };
 
-MakeArchetype(pointArchetype, Transform, Point)
-MakeArchetype(lineArchetype, Line)
+MakeArchetype(massPointArchetype, Point, Renderer, MassPointPhysics)
+MakeArchetype(springArchetype, Line, Renderer, SpringPhysics)

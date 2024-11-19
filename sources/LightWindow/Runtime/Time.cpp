@@ -4,6 +4,11 @@
 
 using namespace Light;
 
+void Time::Start()
+{
+    //去除窗口启动时间的干扰，确保从代码可执行时开始计时
+    lastTimeReal = GetTimeReal();
+}
 void Time::Update()
 {
     const float timeReal = GetTimeReal();

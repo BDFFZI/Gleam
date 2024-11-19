@@ -93,6 +93,14 @@ constexpr bool all(const vector<Type, Number>& a)\
             return false;\
     return true;\
 }
+#define MakeVectorFunction_Any(Type,Number)\
+constexpr bool any(const vector<Type, Number>& a)\
+{\
+    for (int i = 0; i < (Number); i++)\
+        if (a.data[i] != 0)\
+            return true;\
+    return false;\
+}
 
 #define MakeVectorFunction_Dot(Type,Number)\
 constexpr Type dot(const vector<Type, Number>& a, const vector<Type, Number>& b)\
@@ -198,6 +206,8 @@ MakeVectorFunction_FunctionVVV2V(clamp, Type, Number);\
 MakeVectorFunction_Equal(Type, Number);\
 MakeVectorFunction_All(Type, Number);\
 MakeVectorFunction_All(bool, Number)\
+MakeVectorFunction_Any(Type, Number);\
+MakeVectorFunction_Any(bool, Number)\
 MakeVectorFunction_Dot(Type, Number);\
 MakeVectorFunction_Length(Type, Number);\
 MakeVectorFunction_Normalize(Type, Number);\

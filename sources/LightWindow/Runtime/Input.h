@@ -52,6 +52,17 @@ namespace Light
         X = GLFW_KEY_X,
         Y = GLFW_KEY_Y,
         Z = GLFW_KEY_Z,
+        BackQuote = GLFW_KEY_GRAVE_ACCENT, //反引号 `
+        Minus = GLFW_KEY_MINUS, //减号 -
+        Equals = GLFW_KEY_EQUAL, //等于号 =
+        LeftBracket = GLFW_KEY_LEFT_BRACKET, //左方括号 [
+        RightBracket = GLFW_KEY_RIGHT_BRACKET, //右方括号 ]
+        Semicolon = GLFW_KEY_SEMICOLON, //分号 ;
+        Quote = GLFW_KEY_APOSTROPHE, //引号 '
+        Backslash = GLFW_KEY_BACKSLASH, /* 反斜杠 \ */
+        Comma = GLFW_KEY_COMMA, //逗号 ,
+        Period = GLFW_KEY_PERIOD, //句号 .
+        Slash = GLFW_KEY_SLASH, //斜杠 /
     };
 
     enum class MouseButton:std::uint8_t
@@ -96,7 +107,7 @@ namespace Light
         inline static float2 mousePositionDelta;
 
         friend Window;
-        static void Initialize(GLFWwindow* glfwWindow);
+        static void Start(GLFWwindow* glfwWindow);
         /**
          * 每帧将GLFW传入的用户输入解析成Light所用的输入格式
          */

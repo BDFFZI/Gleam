@@ -33,13 +33,13 @@ struct RigidBody
     }
 };
 
-struct Spring
+struct SpringPhysics
 {
     float pinPosition = 0;
     float length = 5;
     float elasticity = 200;
 
-    friend bool operator==(const Spring& lhs, const Spring& rhs)
+    friend bool operator==(const SpringPhysics& lhs, const SpringPhysics& rhs)
     {
         return lhs.pinPosition == rhs.pinPosition
             && lhs.length == rhs.length
@@ -48,7 +48,7 @@ struct Spring
 };
 
 MakeArchetype(physicsArchetype, Transform, RigidBody)
-MakeArchetype(physicsWithSpringArchetype, Transform, RigidBody, Spring)
+MakeArchetype(physicsWithSpringArchetype, Transform, RigidBody, SpringPhysics)
 
 TEST(ECS, Heap)
 {
@@ -157,10 +157,10 @@ TEST(ECS, Archetype)
     physicsWithSpringArchetype.RunConstructor(data);
     Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype.componentOffsets[1]);
     RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype.componentOffsets[2]);
-    Spring& spring = *reinterpret_cast<Spring*>(data + physicsWithSpringArchetype.componentOffsets[3]);
+    SpringPhysics& spring = *reinterpret_cast<SpringPhysics*>(data + physicsWithSpringArchetype.componentOffsets[3]);
     ASSERT_EQ(transform, Transform());
     ASSERT_EQ(rigidBody, RigidBody());
-    ASSERT_EQ(spring, Spring());
+    ASSERT_EQ(spring, SpringPhysics());
     free(data);
 }
 
@@ -171,23 +171,25 @@ TEST(ECS, World)
     World::RemoveEntity(entities[0]);
     World::MoveEntity(entities[1], physicsWithSpringArchetype);
 
-    View<Transform, RigidBody, Spring>::Each([entities](auto& entity, auto& transform, auto& rigidBody, auto& spring)
+    View<Transform, RigidBody, SpringPhysics>::Each([entities](auto& entity, auto& transform, auto& rigidBody, auto& spring)
     {
         ASSERT_EQ(entity, entities[1]);
         ASSERT_EQ(transform, Transform());
         ASSERT_EQ(rigidBody, RigidBody());
-        ASSERT_EQ(spring, Spring());
-        transform.position = 3;
+        ASSERT_EQ(spring, SpringPhysics());
     });
-    
-    auto& transform = World::GetComponent<Transform>(entities[1]);
-    ASSERT_EQ(transform.position, 3);
-    
-    RigidBody rigidBody;
-    Spring spring;
-    World::GetComponents(entities[1], &rigidBody, &spring);
-    ASSERT_EQ(rigidBody, RigidBody());
-    ASSERT_EQ(spring, Spring());
+
+    RigidBody inRigidBody = {100, 1, 2};
+    SpringPhysics inSpring = {1, 2, 3};
+    World::SetComponents(entities[1], inRigidBody, inSpring);
+    RigidBody outRigidBody;
+    SpringPhysics outSpring;
+    World::GetComponents(entities[1], &outRigidBody, &outSpring);
+    ASSERT_EQ(outRigidBody, inRigidBody);
+    ASSERT_EQ(outSpring, inSpring);
+
+    entities[0] = World::AddEntity(physicsArchetype, Transform{3});
+    ASSERT_EQ(World::GetComponent<Transform>(entities[0]), Transform{3});
 }
 
 struct PhysicsSystem : System<MinSystemOrder, MaxSystemOrder>
@@ -206,7 +208,7 @@ struct PhysicsSystem : System<MinSystemOrder, MaxSystemOrder>
             rigidBody.force = 0;
         });
 
-        View<Transform, RigidBody, Spring>::Each([](Transform& transform, RigidBody& rigidBody, Spring& spring)
+        View<Transform, RigidBody, SpringPhysics>::Each([](Transform& transform, RigidBody& rigidBody, SpringPhysics& spring)
         {
             float vector = spring.pinPosition - transform.position;
             float direction = vector >= 0 ? 1 : -1;

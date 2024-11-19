@@ -1,11 +1,28 @@
 ﻿#include "Window.h"
 
 #include <exception>
+#include <iostream>
 
 #include "Input.h"
 #include "Time.h"
 
 using namespace Light;
+
+Window Window::Initialize(const char* name, const int width, const int height, const int clientAPI)
+{
+    if (!glfwInit())
+        throw std::exception("窗口初始化失败");
+
+    glfwWindowHint(GLFW_CLIENT_API, clientAPI);
+    glfwWindow = glfwCreateWindow(width, height, name, nullptr, nullptr);
+    if (!glfwWindow)
+    {
+        glfwTerminate();
+        throw std::exception("窗口创建失败");
+    }
+
+    return {};
+}
 
 void Window::SetWindowStopConfirm(const std::function<bool()>& windowStopConfirm)
 {
@@ -19,14 +36,14 @@ void Window::SetWindowStartEvent(const std::function<void()>& windowBeginEvent)
     if (windowBeginEvent == nullptr)
         throw std::exception("事件为空");
 
-    Window::windowStartEvent = windowBeginEvent;
+    windowStartEvent = windowBeginEvent;
 }
 void Window::SetWindowStopEvent(const std::function<void()>& windowEndEvent)
 {
     if (windowEndEvent == nullptr)
         throw std::exception("事件为空");
 
-    Window::windowStopEvent = windowEndEvent;
+    windowStopEvent = windowEndEvent;
 }
 void Window::SetWindowUpdateEvent(const std::function<void()>& windowUpdateEvent)
 {
@@ -35,29 +52,19 @@ void Window::SetWindowUpdateEvent(const std::function<void()>& windowUpdateEvent
 
     Window::windowUpdateEvent = windowUpdateEvent;
 }
-
-Window Window::Initialize(const char* name, const int clientAPI)
+void Window::SetResolution(const int width, const int height)
 {
-    if (!glfwInit())
-        throw std::exception("窗口初始化失败");
-
-    glfwWindowHint(GLFW_CLIENT_API, clientAPI);
-    glfwWindow = glfwCreateWindow(648, 480, name, nullptr, nullptr);
-    if (!glfwWindow)
-    {
-        glfwTerminate();
-        throw std::exception("窗口创建失败");
-    }
-
-    Input::Initialize(glfwWindow);
-
-    return {};
+    glfwSetWindowSize(glfwWindow, width, height);
 }
+
 void Window::Start()
 {
+    Input::Start(glfwWindow);
+    Time::Start();
+    
     //启动窗口
     windowStartEvent();
-
+    
     do
     {
         while (!glfwWindowShouldClose(glfwWindow))

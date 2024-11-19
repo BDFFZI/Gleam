@@ -21,16 +21,13 @@ int main()
     {
         World::AddSystem<BeginPaintSystem>();
         World::AddSystem<EndPaintSystem>();
-        World::AddSystem<RenderingSystem>();
-        World::AddSystem<UISystem>();
-        World::AddSystem<UserInputSystem>();
+        World::AddSystem<PaintSystem>();
+        World::AddSystem<LogicSystem>();
+        World::AddSystem<PhysicsSystem>();
 
-        Entity point1 = World::AddEntity(pointArchetype);
-        World::GetComponent<Transform>(point1).position = {-0.5f, 0};
-        Entity point2 = World::AddEntity(pointArchetype);
-        World::GetComponent<Transform>(point2).position = {0.5f, 0};
-        Entity line2 =  World::AddEntity(lineArchetype);
-        
+        Entity point1 = World::AddEntity(massPointArchetype, Point({-0.5f, 0}));
+        Entity point2 = World::AddEntity(massPointArchetype, Point({0.5f, 0}));
+        Entity line2 = World::AddEntity(springArchetype, SpringPhysics(point1, point2));
     });
     Window::SetWindowUpdateEvent([]()
     {

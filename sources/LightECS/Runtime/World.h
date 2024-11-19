@@ -42,16 +42,13 @@ public:
     }
 
     static Entity AddEntity(const Archetype& archetype);
-    // template <class... TComponents>
-    // static Entity AddEntity(const Archetype& archetype, const TComponents&... components)
-    // {
-    //     Entity entity = AddEntity(archetype);
-    //     EntityInfo& entityInfo = entityInfos.at(entity);
-    //     const Archetype& archetype = *entityInfo.archetype;
-    //
-    //     int offsets[] = {archetype.GetOffset(typeid(TComponents))...};
-    //     *reinterpret_cast<TComponent*>(entityInfo.components + offset);
-    // }
+    template <class... TComponents>
+    static Entity AddEntity(const Archetype& archetype, const TComponents&... components)
+    {
+        Entity entity = AddEntity(archetype);
+        SetComponents(entity, components...);
+        return entity;
+    }
     static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
     static void MoveEntity(Entity entity, const Archetype& newArchetype);
     static void RemoveEntity(Entity entity);
@@ -99,7 +96,14 @@ public:
     {
         EntityInfo& entityInfo = entityInfos.at(entity);
         const Archetype& archetype = *entityInfo.archetype;
-        std::initializer_list<char>{(*outComponents = *reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetOffset(typeid(TComponents))), 0)...};
+        ((*outComponents = *reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetOffset(typeid(TComponents)))), ...);
+    }
+    template <class... TComponents>
+    static void SetComponents(const Entity entity, const TComponents&... outComponents)
+    {
+        EntityInfo& entityInfo = entityInfos.at(entity);
+        const Archetype& archetype = *entityInfo.archetype;
+        ((*reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetOffset(typeid(TComponents))) = outComponents), ...);
     }
 
     static void Update();

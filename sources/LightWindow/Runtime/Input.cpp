@@ -10,7 +10,7 @@ void Input::PushInputHandler(const InputHandler& inputHandler)
 void Input::PopInputHandler(const InputHandler& inputHandler)
 {
     if (inputHandlers.top().name != inputHandler.name)
-        throw std::exception("输入回调出栈顺序异常");
+        throw std::runtime_error("输入回调出栈顺序异常！");
 
     inputHandlers.pop();
 }
@@ -64,7 +64,7 @@ float2 Input::GetMouseMoveDelta()
     return mousePositionDelta;
 }
 
-void Input::Initialize(GLFWwindow* glfwWindow)
+void Input::Start(GLFWwindow* glfwWindow)
 {
     Input::glfwWindow = glfwWindow;
     glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -86,7 +86,7 @@ void Input::Initialize(GLFWwindow* glfwWindow)
 
 
     //添加一个默认输入回调，这样后续不需要总是判断是否存在
-    inputHandlers.push(
+    PushInputHandler(
         {
             "default",
             []

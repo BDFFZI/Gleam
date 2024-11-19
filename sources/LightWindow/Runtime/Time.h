@@ -19,6 +19,7 @@ namespace Light
         inline static float time;
 
         friend Window;
+        static void Start();
         static void Update();
     };
 }
