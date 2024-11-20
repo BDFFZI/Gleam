@@ -7,14 +7,14 @@
 
 using namespace Light;
 
-Window Window::Initialize(const char* name, const int width, const int height)
+Window Window::Initialize(const char* name, const int width, const int height, const bool fullscreen)
 {
     if (!glfwInit())
         throw std::exception("窗口初始化失败");
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    glfwWindow = glfwCreateWindow(width, height, name, nullptr, nullptr);
+    glfwWindow = glfwCreateWindow(width, height, name, fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
     if (!glfwWindow)
     {
         glfwTerminate();
@@ -25,14 +25,17 @@ Window Window::Initialize(const char* name, const int width, const int height)
 
     return {};
 }
-
-void Window::SetWindowStopConfirm(const std::function<bool()>& windowStopConfirm)
+int2 Window::GetResolution()
 {
-    if (windowStopConfirm == nullptr)
-        throw std::exception("事件为空");
-
-    Window::windowStopConfirm = windowStopConfirm;
+    int2 resolution;
+    glfwGetWindowSize(glfwWindow, &resolution.x, &resolution.y);
+    return resolution;
 }
+bool Window::GetFullScreen()
+{
+    return glfwGetWindowMonitor(glfwWindow) != nullptr;
+}
+
 void Window::SetWindowStartEvent(const std::function<void()>& windowStartEvent)
 {
     if (windowStartEvent == nullptr)
@@ -54,9 +57,27 @@ void Window::SetWindowUpdateEvent(const std::function<void()>& windowUpdateEvent
 
     Window::windowUpdateEvent = windowUpdateEvent;
 }
+void Window::SetWindowStopConfirm(const std::function<bool()>& windowStopConfirm)
+{
+    if (windowStopConfirm == nullptr)
+        throw std::exception("事件为空");
+
+    Window::windowStopConfirm = windowStopConfirm;
+}
+void Window::SetFullScreen(const bool fullscreen)
+{
+    int2 resolution = GetResolution();
+    if (fullscreen)
+        glfwSetWindowMonitor(glfwWindow, glfwGetPrimaryMonitor(), 0, 0, resolution.x, resolution.y,GLFW_DONT_CARE);
+    else
+        glfwSetWindowMonitor(glfwWindow, nullptr, 50, 50, resolution.x, resolution.y,GLFW_DONT_CARE);
+}
 void Window::SetResolution(const int width, const int height)
 {
-    glfwSetWindowSize(glfwWindow, width, height);
+    if (GetFullScreen())
+        glfwSetWindowMonitor(glfwWindow, glfwGetPrimaryMonitor(), 0, 0, width, height,GLFW_DONT_CARE);
+    else
+        glfwSetWindowSize(glfwWindow, width, height);
 }
 
 void Window::Start()

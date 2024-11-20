@@ -22,7 +22,7 @@ Fragment VertexShader(Vertex vertex)
     return fragment;
 }
 
-float4 FragmentShader(Fragment fragment)
+float4 FragmentShader(Fragment fragment):SV_Target
 {
     return fragment.color;
 }

@@ -8,7 +8,7 @@ namespace Light
     class Material : public MaterialBase
     {
     public:
-        Material(ShaderBase* shader);
+        Material(ShaderBase& shader);
         Material(const Material&) = delete;
         ~Material() override;
 

@@ -7,6 +7,15 @@
 
 namespace Light
 {
+    class Rendering
+    {
+    public:
+        consteval static float GetOrthoHalfSize() { return 50.0f; }
+        consteval static float GetOrthoSize() { return 100.0f; }
+
+        static float2 ScreenToWorldPoint(const float2& positionSS);
+    };
+
     struct RenderingSystem : System<PresentationSystemGroup>
     {
         static void Start();
@@ -40,7 +49,7 @@ namespace Light
         inline static std::unique_ptr<Shader> lineShader = nullptr;
         inline static std::unique_ptr<Material> pointMaterial = nullptr;
         inline static std::unique_ptr<Material> lineMaterial = nullptr;
-        
+
         static void DrawObject();
         static void DrawUI();
     };

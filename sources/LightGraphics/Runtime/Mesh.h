@@ -88,6 +88,8 @@ namespace Light
                         glIndexBuffer->UnmapMemory();
                     }
                 }
+
+                isDirty = false;
             }
 
             commandBuffer.BindVertexBuffers(*glVertexBuffer);

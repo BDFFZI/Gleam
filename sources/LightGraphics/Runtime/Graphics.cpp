@@ -16,7 +16,7 @@ Graphics Graphics::Initialize(GL&)
     presentMode = GLSwapChain::PickSwapPresentMode(VK_PRESENT_MODE_MAILBOX_KHR);
     presentSampleCount = DefaultGLStateLayout.multisample.rasterizationSamples;
 
-    CreateSwapChain();
+    TryCreateSwapChain();
 
     presentCommandBuffers.resize(glSwapChainBufferCount);
     for (size_t i = 0; i < glSwapChainBufferCount; ++i)
@@ -50,7 +50,7 @@ void Graphics::WaitPresentable()
 {
     presentCommandBuffers[glSwapChain->GetCurrentBufferIndex()]->WaitSubmissionFinish();
 }
-GLCommandBuffer& Graphics::BeginPresent()
+GLCommandBuffer* Graphics::BeginPresent()
 {
     //获取交换链下次呈现使用的相关信息
     if (glSwapChain->SwitchImageAsync(
@@ -60,26 +60,26 @@ GLCommandBuffer& Graphics::BeginPresent()
     {
         vkDeviceWaitIdle(GL::glDevice->device);
         glSwapChain.reset();
-        CreateSwapChain();
-        return BeginPresent();
+        TryCreateSwapChain();
+        return nullptr;
     }
 
     //更新渲染目标信息(交换链中有多张颜色缓冲区，每次都会切换)
     if (presentSampleCount == VK_SAMPLE_COUNT_1_BIT)
     {
-        presentRenderTexture.glColorImage = &glSwapChain->images[glSwapChain->GetCurrentImageIndex()];
-        presentRenderTexture.glColorImageView = glSwapChain->GetCurrentImageView().get();
+        presentRenderTexture.glColorImage = &glSwapChain->images[currentImageIndex];
+        presentRenderTexture.glColorImageView = glSwapChain->imageViews[currentImageIndex].get();
     }
     else
     {
-        presentRenderTexture.glColorResolveImage = &glSwapChain->images[glSwapChain->GetCurrentImageIndex()];
-        presentRenderTexture.glColorResolveImageView = glSwapChain->GetCurrentImageView().get();
+        presentRenderTexture.glColorResolveImage = &glSwapChain->images[currentImageIndex];
+        presentRenderTexture.glColorResolveImageView = glSwapChain->imageViews[currentImageIndex].get();
     }
 
     //添加命令
     GLCommandBuffer& primaryCommandBuffer = *presentCommandBuffers[currentImageIndex];
     primaryCommandBuffer.BeginRecording();
-    return primaryCommandBuffer;
+    return &primaryCommandBuffer;
 }
 void Graphics::EndPresent(GLCommandBuffer& presentCommandBuffer)
 {
@@ -99,11 +99,16 @@ void Graphics::EndPresent(GLCommandBuffer& presentCommandBuffer)
 
     glSwapChain->PresentImageAsync();
 }
-void Graphics::Present(CommandBuffer& commandBuffer)
+bool Graphics::Present(CommandBuffer& commandBuffer)
 {
-    GLCommandBuffer& primaryCommandBuffer = BeginPresent();
-    primaryCommandBuffer.ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
-    EndPresent(primaryCommandBuffer);
+    GLCommandBuffer* primaryCommandBuffer = BeginPresent();
+    if (primaryCommandBuffer != nullptr)
+    {
+        primaryCommandBuffer->ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
+        EndPresent(*primaryCommandBuffer);
+        return true;
+    }
+    return false;
 }
 void Graphics::WaitPresent()
 {
@@ -111,15 +116,12 @@ void Graphics::WaitPresent()
     presentCommandBuffers[bufferIndex]->WaitSubmissionFinish();
 }
 
-void Graphics::CreateSwapChain()
+bool Graphics::TryCreateSwapChain()
 {
     int width = 0, height = 0;
     glfwGetFramebufferSize(GL::glSurface->window, &width, &height);
-    while (width == 0 || height == 0)
-    {
-        glfwGetFramebufferSize(GL::glSurface->window, &width, &height);
-        glfwWaitEvents();
-    }
+    if (width == 0 || height == 0)
+        return false;
 
     glSwapChain = std::make_unique<GLSwapChain>(surfaceFormat, presentMode);
     glSwapChainBufferCount = glSwapChain->images.size();
@@ -142,7 +144,7 @@ void Graphics::CreateSwapChain()
     if (presentSampleCount == VK_SAMPLE_COUNT_1_BIT)
     {
         presentRenderTexture.glColorImage = &glSwapChain->images[glSwapChain->GetCurrentImageIndex()];
-        presentRenderTexture.glColorImageView = glSwapChain->GetCurrentImageView().get();
+        presentRenderTexture.glColorImageView = glSwapChain->imageViews[glSwapChain->GetCurrentImageIndex()].get();
         presentRenderTexture.glColorResolveImage = nullptr;
         presentRenderTexture.glColorResolveImageView = nullptr;
     }
@@ -151,6 +153,8 @@ void Graphics::CreateSwapChain()
         presentRenderTexture.glColorImage = &presentColorImage->image;
         presentRenderTexture.glColorImageView = presentColorImageView.get();
         presentRenderTexture.glColorResolveImage = &glSwapChain->images[glSwapChain->GetCurrentImageIndex()];
-        presentRenderTexture.glColorResolveImageView = glSwapChain->GetCurrentImageView().get();
+        presentRenderTexture.glColorResolveImageView = glSwapChain->imageViews[glSwapChain->GetCurrentImageIndex()].get();
     }
+
+    return true;
 }

@@ -9,7 +9,7 @@ void main()
 {
     using namespace Light;
 
-    Window window = Window::Initialize("Tests", 800, 600);
+    Window window = Window::Initialize("Tests", 800, 600, false);
     GL gl = GL::Initialize(Window::GetGlfwWindow());
     Graphics graphics = Graphics::Initialize(gl);
     UI::Initialize(window, graphics);

@@ -3,6 +3,13 @@
 
 #include "VectorSwizzle.hpp"
 
+using int2 = vector<int, 2>;
+using int3 = vector<int, 3>;
+using int4 = vector<int, 4>;
+using float2 = vector<float, 2>;
+using float3 = vector<float, 3>;
+using float4 = vector<float, 4>;
+
 //由于头文件依赖的原因，vector模板原型放在了VectorSwizzle.hpp文件中
 
 #define xi 0
@@ -164,11 +171,3 @@ struct std::hash<vector<Type, Number>>
         return seed;
     }
 };
-
-
-using float2 = vector<float, 2>;
-using float3 = vector<float, 3>;
-using float4 = vector<float, 4>;
-using bool2 = vector<bool, 2>;
-using bool3 = vector<bool, 3>;
-using bool4 = vector<bool, 4>;

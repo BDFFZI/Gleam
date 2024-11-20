@@ -45,8 +45,10 @@ void CommandBuffer::EndRendering() const
     glCommandBuffer.EndRendering();
 }
 
-void CommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t width, const uint32_t height) const
+void CommandBuffer::SetViewport(const int32_t x, int32_t y, const uint32_t width, const uint32_t height) const
 {
+    // y = static_cast<int32_t>(lastRenderTexture->GetHeight() - (y + height)); //转换到右手坐标系
+
     glCommandBuffer.SetViewport(
         static_cast<float>(x), static_cast<float>(y + height),
         static_cast<float>(width), -static_cast<float>(height)
@@ -61,30 +63,30 @@ void CommandBuffer::SetViewProjectionMatrices(const float4x4& viewMatrix, const 
     matrixVP = mul(projMatrix, viewMatrix);
 }
 
-void CommandBuffer::Draw(MeshBase* mesh, MaterialBase* material, const float4x4& modelMatrix)
+void CommandBuffer::Draw(MeshBase& mesh, MaterialBase& material, const float4x4& modelMatrix)
 {
     //绑定网格
-    if (mesh != lastMesh)
+    if (&mesh != lastMesh)
     {
-        mesh->BindToPipeline(glCommandBuffer, lastMesh);
-        lastMesh = mesh;
+        mesh.BindToPipeline(glCommandBuffer, lastMesh);
+        lastMesh = &mesh;
     }
 
     //绑定材质球
-    if (material != lastMaterial)
+    if (&material != lastMaterial)
     {
-        material->BindToPipeline(glCommandBuffer, lastMaterial);
-        lastMaterial = material;
+        material.BindToPipeline(glCommandBuffer, lastMaterial);
+        lastMaterial = &material;
     }
 
     //推送常量
     DefaultPushConstant pushConstant = {mul(matrixVP, modelMatrix)};
     glCommandBuffer.PushConstant(
-        material->GetShader()->GetGLPipelineLayout(),
-        material->GetShader()->GetPushConstantBinding()[0],
+        material.GetShader()->GetGLPipelineLayout(),
+        material.GetShader()->GetPushConstantBinding()[0],
         &pushConstant);
 
-    glCommandBuffer.DrawIndexed(mesh->GetIndexCount());
+    glCommandBuffer.DrawIndexed(mesh.GetIndexCount());
 }
 void CommandBuffer::ClearRenderTexture(float4 color, const float depth) const
 {

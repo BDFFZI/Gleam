@@ -27,10 +27,16 @@ namespace Light
          */
         void BeginRendering(const RenderTextureBase& renderTarget, bool clearColor = false);
         void EndRendering() const;
-
+        /**
+         * 采用左手坐标系，左下为0，右上为渲染目标最大分辨率
+         * @param x 
+         * @param y 
+         * @param width 
+         * @param height 
+         */
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) const;
         void SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix);
-        void Draw(MeshBase* mesh, MaterialBase* material, const float4x4& modelMatrix = float4x4::Identity());
+        void Draw(MeshBase& mesh, MaterialBase& material, const float4x4& modelMatrix = float4x4::Identity());
         void ClearRenderTexture(float4 color = 0, float depth = 0) const;
 
     private:

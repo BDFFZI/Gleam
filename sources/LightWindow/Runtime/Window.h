@@ -2,6 +2,8 @@
 #include <functional>
 #include <GLFW/glfw3.h>
 
+#include "LightMath/Runtime/Vector.hpp"
+
 namespace Light
 {
     class Window
@@ -12,16 +14,19 @@ namespace Light
          * @param name
          * @param width
          * @param height
+         * @param fullscreen
          */
-        static Window Initialize(const char* name, int width, int height);
+        static Window Initialize(const char* name, int width, int height, bool fullscreen);
 
+        static int2 GetResolution();
+        static bool GetFullScreen();
         static GLFWwindow* GetGlfwWindow() { return glfwWindow; }
-
         static void SetWindowStartEvent(const std::function<void()>& windowStartEvent);
-        static void SetWindowUpdateEvent(const std::function<void()>& windowUpdateEvent);
         static void SetWindowStopEvent(const std::function<void()>& windowStopEvent);
+        static void SetWindowUpdateEvent(const std::function<void()>& windowUpdateEvent);
         static void SetWindowStopConfirm(const std::function<bool()>& windowStopConfirm);
         static void SetResolution(int width, int height);
+        static void SetFullScreen(bool fullscreen);
 
         /**
          * 执行窗口更新逻辑

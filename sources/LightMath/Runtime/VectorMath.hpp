@@ -127,6 +127,12 @@ constexpr vector<Type, Number> normalize(const vector<Type, Number>& a)\
 return a / length(a);\
 }
 
+#define MakeVectorFunction_Distance(Type,Number)\
+inline Type distance(const vector<Type, Number>& a,const vector<Type, Number>& b)\
+{\
+return length(a - b);\
+}
+
 /**
  * 线性插值
  * @tparam Type 
@@ -211,6 +217,7 @@ MakeVectorFunction_Any(bool, Number)\
 MakeVectorFunction_Dot(Type, Number);\
 MakeVectorFunction_Length(Type, Number);\
 MakeVectorFunction_Normalize(Type, Number);\
+MakeVectorFunction_Distance(Type, Number);\
 MakeVectorFunction_Lerp(Type, Number);\
 MakeVectorFunction_Angle(Type, Number);\
 MakeVectorFunction_Project(Type, Number);

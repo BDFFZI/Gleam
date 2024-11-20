@@ -9,9 +9,9 @@ using namespace Light;
 
 void main()
 {
-    int width = 800;
-    int height = 600;
-    Window::Initialize("Window", width, height);
+    int width = 1920 / 2;
+    int height = 1080 / 2;
+    Window::Initialize("Window", width, height, false);
 
     static float2 moveInput;
     static bool fireInput;
@@ -46,21 +46,25 @@ void main()
         if (any(moveInput))
             std::cout << "Move:" << to_string(moveInput) << '\n';
         if (fireInput)
-            std::cout << "Fire" << '\n';
+            std::cout << "Fire:" << to_string(Input::GetMousePosition()) << '\n';
         if (Input::GetKey(KeyCode::T))
             std::cout << std::format("Time:{:f}\tDeltaTime:{:f}\n", Time::GetTime(), Time::GetDeltaTime());
+
+
         if (Input::GetKeyDown(KeyCode::Minus))
         {
-            width -= 50;
-            height -= 50;
+            width /= 2;
+            height /= 2;
             Window::SetResolution(width, height);
         }
         else if (Input::GetKeyDown(KeyCode::Equals))
         {
-            width += 50;
-            height += 50;
+            width *= 2;
+            height *= 2;
             Window::SetResolution(width, height);
         }
+        if (Input::GetKeyDown(KeyCode::F11))
+            Window::SetFullScreen(!Window::GetFullScreen());
     });
 
     Window::Start();

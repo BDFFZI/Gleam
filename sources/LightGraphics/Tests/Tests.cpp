@@ -1,17 +1,16 @@
-﻿#include <gtest/gtest.h>
-
-#include "LightGraphics/Runtime/CommandBuffer.h"
+﻿#include "LightGraphics/Runtime/CommandBuffer.h"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightImport/Runtime/ShaderImporter.h"
 #include "LightMath/Runtime/Matrix.hpp"
-#include "LightMath/Runtime/MatrixMath.hpp"
 #include "LightUtility/Runtime/Chronograph.hpp"
 #include "LightGraphics/Runtime/Mesh.h"
 #include "LightGraphics/Runtime/Shader.h"
 #include "LightGraphics/Runtime/Texture2D.h"
 #include "LightGraphics/Runtime/Material.h"
+#include "LightMath/Runtime/MatrixMath.hpp"
 
 using namespace Light;
+
 
 struct Point
 {
@@ -39,10 +38,35 @@ std::unique_ptr<Texture2D> CreateTexture2D()
 }
 std::unique_ptr<Material> CreateMaterial(Shader* shader, const std::unique_ptr<Texture2D>& texture)
 {
-    std::unique_ptr<Material> material = std::make_unique<Material>(shader);
+    std::unique_ptr<Material> material = std::make_unique<Material>(*shader);
     material->SetTexture2D(0, *texture);
     return material;
 }
+
+struct Rect
+{
+    Rect()
+    {
+        mesh = std::make_unique<Mesh>();
+        mesh->SetPositions({
+            float3(-1, -1, 0.5f), float3(-1, 1, 0.5f),
+            float3(1, 1, 0.5f), float3(1, -1, 0.5f)
+        });
+        float4 red = float4(1.0f, 0.0f, 0.0f, 1.0f);
+        mesh->SetColors({red, red, red, red});
+        mesh->SetTangents({
+            0, 1, 2,
+            0, 2, 3
+        });
+
+        shader = Shader::CreateFromFile("Assets/VertexColor.hlsl");
+        material = std::make_unique<Material>(*shader);
+    }
+
+    std::unique_ptr<Mesh> mesh;
+    std::unique_ptr<Shader> shader;
+    std::unique_ptr<Material> material;
+};
 
 void main()
 {
@@ -85,7 +109,7 @@ void main()
     lineMesh->SetIndices(mesh->GetIndices());
 
     std::unique_ptr<Shader> lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, lineMeshLayout);
-    std::unique_ptr<Material> lineMaterial = std::make_unique<Material>(lineShader.get());
+    std::unique_ptr<Material> lineMaterial = std::make_unique<Material>(*lineShader);
 
     float3 move[4] = {
         float3(-1, 1, 1),
@@ -97,42 +121,47 @@ void main()
     Chronograph chronograph;
     chronograph.Tick();
 
+    CommandBuffer& commandBuffer = Graphics::ApplyCommandBuffer();
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
 
-        //模拟逻辑处理
-        //...
-
-        //逻辑处理完成，开始绘制
-        CommandBuffer& commandBuffer = Graphics::ApplyCommandBuffer();
+        GLCommandBuffer* glCommandBuffer = Graphics::BeginPresent();
+        //开始绘制
         commandBuffer.BeginRecording();
-        commandBuffer.SetViewport(0, 0, Graphics::GetPresentRenderTexture().GetWidth(), Graphics::GetPresentRenderTexture().GetHeight());
-        commandBuffer.SetViewProjectionMatrices(
-            inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1})),
-            float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f)
-        );
         commandBuffer.BeginRendering(Graphics::GetPresentRenderTexture(), true);
-        for (int i = 0; i < 4; ++i)
         {
-            float4x4 objectToWorld = float4x4::TRS(
-                float3{0, 0, static_cast<float>(i) * 0.1f} + move[i] * fmod(static_cast<float>(chronograph.Time()) / 6000, 1.0f),
-                {-90, 0, 0},
-                static_cast<float>(i + 1) / 4.0f
+            // commandBuffer.SetViewport(0, 0, Graphics::GetPresentRenderTexture().GetWidth(), Graphics::GetPresentRenderTexture().GetHeight());
+            commandBuffer.SetViewProjectionMatrices(
+                inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1})),
+                float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f)
             );
+            for (int i = 0; i < 4; ++i)
+            {
+                float4x4 objectToWorld = float4x4::TRS(
+                    float3{0, 0, static_cast<float>(i) * 0.1f} + move[i] * fmod(static_cast<float>(chronograph.Time()) / 6000, 1.0f),
+                    {-90, 0, 0},
+                    static_cast<float>(i + 1) / 4.0f
+                );
 
-            commandBuffer.Draw(mesh.get(), objectToWorld, material.get());
+                commandBuffer.Draw(*mesh, *material, objectToWorld);
+            }
+            commandBuffer.Draw(*lineMesh, *lineMaterial, float4x4::TRS(0, 0, 2));
         }
-        commandBuffer.Draw(lineMesh.get(), float4x4::TRS(0, 0, 2), lineMaterial.get());
         commandBuffer.EndRendering();
-
         commandBuffer.EndRecording();
-        Graphics::Present(commandBuffer);
 
         //等待绘制完成
-        Graphics::WaitPresent();
-        Graphics::ReleaseCommandBuffer(commandBuffer);
+        if (glCommandBuffer != nullptr)
+        {
+            glCommandBuffer->ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
+            Graphics::EndPresent(*glCommandBuffer);
+            Graphics::WaitPresent();
+        }
     }
+
+    Graphics::ReleaseCommandBuffer(commandBuffer);
 
     material.reset();
     texture.reset();

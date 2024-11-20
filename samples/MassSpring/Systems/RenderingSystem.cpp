@@ -5,9 +5,19 @@
 #include "LightECS/Runtime/View.hpp"
 #include "../Component.hpp"
 #include "LightGraphics/Runtime/Graphics.h"
+#include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/Window.h"
 
 namespace Light
 {
+    float2 Rendering::ScreenToWorldPoint(const float2& positionSS)
+    {
+        float2 positionWS = {
+            (positionSS.x / static_cast<float>(Graphics::GetPresentRenderTexture().width) - 0.5f) * GetOrthoSize(),
+            (positionSS.y / static_cast<float>(Graphics::GetPresentRenderTexture().height) - 0.5f) * GetOrthoSize()
+        };
+        return positionWS;
+    }
     void RenderingSystem::Start()
     {
         pointMesh = std::make_unique<MeshT<Vertex>>(&pointMeshLayout, true);
@@ -61,15 +71,26 @@ namespace Light
 
         auto& commandBuffer = Presentation::GetCommandBuffer();
         commandBuffer.BeginRendering(Graphics::GetPresentRenderTexture(), true);
-        commandBuffer.SetViewProjectionMatrices(float4x4::Identity(), float4x4::Ortho(50, 50, 0, 1));
+        commandBuffer.SetViewProjectionMatrices(
+            float4x4::Identity(),
+            float4x4::Ortho(Rendering::GetOrthoHalfSize(), Rendering::GetOrthoHalfSize(), 0, 1)
+        );
         if (pointMesh->GetIndexCount() != 0)
-            commandBuffer.Draw(pointMesh.get(), pointMaterial.get());
+            commandBuffer.Draw(*pointMesh, *pointMaterial);
         if (lineMesh->GetIndexCount() != 0)
-            commandBuffer.Draw(lineMesh.get(), lineMaterial.get());
+            commandBuffer.Draw(*lineMesh, *lineMaterial);
         commandBuffer.EndRendering();
     }
     void RenderingSystem::DrawUI()
     {
-        ImGui::ShowDemoWindow();
+        // ImGui::ShowDemoWindow();
+
+        ImGui::InputFloat2("MousePosition",Input::GetMousePosition().data);
+
+        int size[2];
+        glfwGetWindowSize(Window::GetGlfwWindow(),&size[0],&size[1]);
+        ImGui::InputInt2("WindowSize",size);
+        glfwGetFramebufferSize(Window::GetGlfwWindow(),&size[0],&size[1]);
+        ImGui::InputInt2("FramebufferSize",size);
     }
 }

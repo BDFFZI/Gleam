@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include <iostream>
 #include <set>
+#include <cassert>
 #include "Heap.h"
 #include "LightECS/Runtime/Archetype.hpp"
 
@@ -87,6 +87,7 @@ public:
     template <class TComponent>
     static TComponent& GetComponent(const Entity entity)
     {
+        assert(entityInfos.contains(entity), "实体不存在！");
         EntityInfo& entityInfo = entityInfos.at(entity);
         int offset = entityInfo.archetype->GetOffset(typeid(TComponent));
         return *reinterpret_cast<TComponent*>(entityInfo.components + offset);

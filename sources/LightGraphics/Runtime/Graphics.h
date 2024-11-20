@@ -44,20 +44,23 @@ namespace Light
         static void ReleaseCommandBuffer(CommandBuffer& commandBuffer);
 
         /**
-         * @brief 等待到可再次执行 @c PresentAsync()
+         * @brief 等待到下次执行呈现操作所用的资源已可用
          * 
          * 用于渲染的命令缓冲区存在上限（等同于交换链中帧缓冲区数量），若以异步的方式进行渲染，就存在没有命令缓冲区可用的情况，所以需要等待。
          * 使用该函数可以阻塞线程直到下次用于实现呈现绘制的命令缓冲区闲置。
          *
-         * @note 如果你并非异步渲染，可以忽略该函数。
+         * @note 和 @c WaitPresent 比较，两者相当于两种不同的等待策略，所以如果你选择同步渲染，则可忽略该函数。
          */
         static void WaitPresentable();
         /**
-         * 开始一次呈现操作。
-         * @return 本次呈现操作将使用的命令缓冲区，该缓冲区的录制启用和关闭由系统自动控制。
-         * @note 必须在之后调用 @c EndPresent() 来完成呈现。
+         * 向交换链申请开始一段呈现操作。
+         *
+         * 该函数会使系统向交互链申请呈现目标，若交换链失效，还会尝试进行重建。
+         * @return 本次呈现操作将使用的命令缓冲区，该缓冲区的录制启用和关闭由系统自动控制，若此时无法进行呈现操作，则返回空指针。
+         * @note 若开始呈现成功，则必须在之后调用 @c EndPresent() 来完成呈现。
+         * @note 若有命令缓冲区依赖交换链资源，应确保在执行该函数之后再录制相关命令。
          */
-        static GLCommandBuffer& BeginPresent();
+        static GLCommandBuffer* BeginPresent();
         /**
          * 结束 @c BeginPresent 引发的呈现操作。
          * @param presentCommandBuffer
@@ -70,11 +73,11 @@ namespace Light
          * 本质是对 @c BeginPresent() 和 @c EndPresent() 的快速调用。 
          * @param commandBuffer 
          */
-        static void Present(CommandBuffer& commandBuffer);
+        static bool Present(CommandBuffer& commandBuffer);
         /**
-         * @brief 所有呈现都是异步执行的，每次使用玩呈现命令后必须调用该函数以确保完成。
+         * @brief 等待上一次的呈现操作所使用的命令缓冲区执行完毕
          * 
-         * 更准确的说，是等待绘制用的命令缓冲区执行完毕，可以安全的释放绘制资源的时候，但此时真正的呈现命令可能还未开始。<br/>
+         * 该函数将堵塞线程以等待命令缓冲区执行完成，执行后便可安全释放上次绘制所使用的各种资源。但这不等于呈现操作已完成，真正的呈现命令此时甚至可能还未开始。<br/>
          * 如果每帧结束时都调用了@c WaitPresent()，那将退化为同步渲染，因此不存在缓冲区冲突的问题，这样就不用在每帧开始前调用@c WaitPresentable()
          */
         static void WaitPresent();
@@ -100,7 +103,7 @@ namespace Light
         inline static VkSemaphore currentImageAvailable;
         inline static VkSemaphore currentRenderFinishedSemaphores;
 
-        static void CreateSwapChain();
+        static bool TryCreateSwapChain();
 
         Graphics() = default;
     };

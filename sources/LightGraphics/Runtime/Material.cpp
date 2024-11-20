@@ -4,9 +4,9 @@
 
 using namespace Light;
 
-Material::Material(ShaderBase* shader): shader(shader)
+Material::Material(ShaderBase& shader): shader(&shader)
 {
-    const std::vector<GLDescriptorBinding>& descriptorBindings = shader->GetDescriptorBinding();
+    const std::vector<GLDescriptorBinding>& descriptorBindings = shader.GetDescriptorBinding();
     writeDescriptorSets.resize(descriptorBindings.size());
     for (size_t i = 0; i < descriptorBindings.size(); i++)
     {

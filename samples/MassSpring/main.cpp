@@ -13,7 +13,7 @@ using namespace Light;
 
 int main()
 {
-    Window window = Window::Initialize("MassSpring", 800, 800);
+    Window window = Window::Initialize("MassSpring", 800, 800, false);
     std::vector<const char*> extensions;
     Graphics::InitializeGLDemand(extensions);
     GL gl = GL::Initialize(Window::GetGlfwWindow(), extensions);
@@ -46,6 +46,6 @@ int main()
     UI::UnInitialize();
     Graphics::UnInitialize();
     GL::UnInitialize();
-    
+
     return 0;
 }

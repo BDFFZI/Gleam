@@ -4,11 +4,8 @@
 
 template <class Type, int Row, int Column>
 using matrix = vector<Type, Row * Column>;
-
-using float3x3 = vector<float, 3 * 3>;
-using float4x4 = vector<float, 4 * 4>;
-using bool3x3 = vector<bool, 3 * 3>;
-using bool4x4 = vector<bool, 4 * 4>;
+using float3x3 = matrix<float, 3, 3>;
+using float4x4 = matrix<float, 4, 4>;
 
 template <class Type>
 struct vector<Type, 3 * 3>
