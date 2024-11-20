@@ -40,7 +40,7 @@ namespace Light
         inline static std::unique_ptr<Shader> lineShader = nullptr;
         inline static std::unique_ptr<Material> pointMaterial = nullptr;
         inline static std::unique_ptr<Material> lineMaterial = nullptr;
-
+        
         static void DrawObject();
         static void DrawUI();
     };

@@ -1,21 +1,46 @@
 #pragma once
+
 #include "PresentationSystem.h"
-#include "SimulationSystem.h"
 #include "LightECS/Runtime/System.hpp"
 
 namespace Light
 {
-    struct PhysicsSystem : System<SimulationSystemGroup>
+    struct BeginPhysicsSystem: System<MinSystemOrder, BeginPresentationSystem>
     {
-        constexpr static float DeltaTime = 0.02f;
-
+        
+    };
+    
+    struct EndPhysicsSystem : System<BeginPhysicsSystem, BeginPresentationSystem>
+    {
         static void Update();
 
     private:
-        inline static float lastTime = 0;
-
-        static void UpdateSpring();
-        static void UpdateMassPoint();
+        static void CollectForce();
+        static void ResolveForce();
         static void UpdateRenderingData();
+    };
+
+#define PhysicsSystemGroup Light::BeginPhysicsSystem,Light::EndPhysicsSystem
+    
+    class Physics
+    {
+    public:
+        using Function = void(*)();
+
+        static float GetFixedDeltaTime() { return fixedDeltaTime; }
+        static float2 GetGravity() { return gravity; }
+        
+        static void SetFixedDeltaTime(const float fixedDeltaTime) { Physics::fixedDeltaTime = fixedDeltaTime; }
+        static void SetGravity(const float gravity) { Physics::gravity = gravity; }
+
+        static void AddFixedUpdate(const Function function) { fixedUpdates.push_back(function); }
+        static void RemoveFixedUpdate(const Function function) { fixedUpdates.remove(function); }
+
+    private:
+        friend EndPhysicsSystem;
+        inline static float lastTime = 0;
+        inline static float fixedDeltaTime = 0.02f;
+        inline static float2 gravity = {0.0f, -9.81f};
+        inline static std::list<Function> fixedUpdates = {};
     };
 }

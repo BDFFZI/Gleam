@@ -1,5 +1,7 @@
 ﻿#include "World.h"
 
+#include <ranges>
+
 Entity World::AddEntity(const Archetype& archetype)
 {
     Heap& heap = GetEntities(archetype);
@@ -88,16 +90,16 @@ void World::Update()
 
     if (systemStopQueue.empty() == false)
     {
-        for (const SystemInfo& systemInfo : systemStopQueue)
+        for (const SystemInfo& systemInfo : std::ranges::reverse_view(systemStopQueue))
             systemInfo.stop();
         systemStopQueue.clear();
     }
 }
 void World::Clear()
 {
-    for (const SystemInfo& systemInfo : systemStopQueue)
+    for (const SystemInfo& systemInfo : std::ranges::reverse_view(systemStopQueue))
         systemInfo.stop();
-    for (const SystemInfo& systemInfo : systemUpdateQueue)
+    for (const SystemInfo& systemInfo : std::ranges::reverse_view(systemUpdateQueue))
         systemInfo.stop();
 
     systemStartQueue.clear();

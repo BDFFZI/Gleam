@@ -3,48 +3,58 @@
 #include "LightECS/Runtime/View.hpp"
 #include "../Component.hpp"
 
-void Light::PhysicsSystem::Update()
+void Light::EndPhysicsSystem::Update()
 {
     float currentTime = Time::GetTime();
-    float delta = currentTime - lastTime;
-    while (delta >= DeltaTime)
+    float deltaTime = currentTime - Physics::lastTime;
+    while (deltaTime >= Physics::fixedDeltaTime)
     {
-        UpdateMassPoint();
-        UpdateSpring();
-        delta -= DeltaTime;
-        lastTime += DeltaTime;
+        CollectForce();
+        for (const auto fixedUpdate : Physics::fixedUpdates)
+            fixedUpdate();
+        ResolveForce();
+
+        deltaTime -= Physics::fixedDeltaTime;
+        Physics::lastTime += Physics::fixedDeltaTime;
     }
 
     UpdateRenderingData();
 }
 
-void Light::PhysicsSystem::UpdateSpring()
+void Light::EndPhysicsSystem::CollectForce()
 {
-    // View<Transform, RigidBody, SpringPhysics>::Each([](Transform& transform, RigidBody& rigidBody, SpringPhysics& spring)
-    // {
-    //     float vector = spring.pinPosition - transform.position;
-    //     float direction = vector >= 0 ? 1 : -1;
-    //     float distance = abs(vector) - spring.length;
-    //     float elasticForce = spring.elasticity * distance * direction; //弹力或推力
-    //     float resistance = -0.01f * spring.elasticity * (rigidBody.velocity * direction) * direction; //弹簧内部阻力（不添加无法使弹簧稳定）
-    //     rigidBody.force += elasticForce + resistance;
-    // });
+    //弹力
+    View<SpringPhysics>::Each([](SpringPhysics& springPhysics)
+    {
+        Point pointA;
+        MassPointPhysics massPointPhysicsA;
+        World::GetComponents(springPhysics.pointA, &pointA, &massPointPhysicsA);
+        Point pointB;
+        MassPointPhysics massPointPhysicsB;
+        World::GetComponents(springPhysics.pointB, &pointB, &massPointPhysicsB);
+    });
+
+    //重力
+    View<MassPointPhysics>::Each([](MassPointPhysics& massPointPhysics)
+    {
+        massPointPhysics.force += Physics::gravity * massPointPhysics.mass;
+    });
 }
-void Light::PhysicsSystem::UpdateMassPoint()
+void Light::EndPhysicsSystem::ResolveForce()
 {
+    //力->加速度->速度->位移
     View<Point, MassPointPhysics>::Each([](Point& point, MassPointPhysics& massPointPhysics)
     {
         //牛顿第二定律
         float2 acceleration = massPointPhysics.force / massPointPhysics.mass;
         massPointPhysics.force = 0;
-        //添加重力加速度
-        acceleration.y += -9.8f;
         //根据速度移动（速度不会自然衰减，牛顿第一定律）
-        massPointPhysics.velocity += acceleration * DeltaTime;
-        point.position += massPointPhysics.velocity * DeltaTime;
+        massPointPhysics.velocity += acceleration * Physics::fixedDeltaTime;
+        point.position += massPointPhysics.velocity * Physics::fixedDeltaTime;
     });
 }
-void Light::PhysicsSystem::UpdateRenderingData()
+
+void Light::EndPhysicsSystem::UpdateRenderingData()
 {
     View<Line, SpringPhysics>::Each([](Line& line, SpringPhysics& springPhysics)
     {

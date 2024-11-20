@@ -7,6 +7,7 @@ macro(addProject)
     add_executable(${ProjectName} ${ALL_FILE})
 
     set_target_properties(${ProjectName} PROPERTIES FOLDER LightSamples)
+    source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES "${ALL_FILE}")
 endmacro()
 
 macro(linkModule ModuleName)

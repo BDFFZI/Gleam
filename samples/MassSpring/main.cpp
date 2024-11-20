@@ -3,8 +3,6 @@
 #include "LightGL/Runtime/GL.h"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightUI/Runtime/UI.h"
-#include "LightWindow/Runtime/Input.h"
-#include "LightWindow/Runtime/Time.h"
 #include "LightWindow/Runtime/Window.h"
 #include "Systems/LogicSystem.h"
 #include "Systems/PresentationSystem.h"
@@ -24,13 +22,12 @@ int main()
 
     Window::SetWindowStartEvent([]
     {
-        World::AddSystem<BeginSimulationSystem>();
-        World::AddSystem<EndSimulationSystem>();
         World::AddSystem<BeginPresentationSystem>();
         World::AddSystem<EndPresentationSystem>();
-        World::AddSystem<LogicSystem>();
-        World::AddSystem<PhysicsSystem>();
+        World::AddSystem<BeginPhysicsSystem>();
+        World::AddSystem<EndPhysicsSystem>();
         World::AddSystem<RenderingSystem>();
+        World::AddSystem<LogicSystem>();
 
         Entity point1 = World::AddEntity(massPointArchetype, Point({-10, 0}));
         Entity point2 = World::AddEntity(massPointArchetype, Point({10, 0}));
@@ -39,11 +36,6 @@ int main()
     Window::SetWindowUpdateEvent([]()
     {
         World::Update();
-
-        if (Input::GetKey(KeyCode::Space))
-            Time::SetTimeScale(1);
-        else
-            Time::SetTimeScale(0);
     });
     Window::SetWindowStopEvent([]
     {
@@ -54,6 +46,6 @@ int main()
     UI::UnInitialize();
     Graphics::UnInitialize();
     GL::UnInitialize();
-
+    
     return 0;
 }
