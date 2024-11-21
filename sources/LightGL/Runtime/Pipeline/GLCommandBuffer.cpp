@@ -327,7 +327,7 @@ void GLCommandBuffer::SetVertexInputEXT(const GLVertexInput& vertexInput) const
 {
     PFN_vkVoidFunction functionAddr = vkGetDeviceProcAddr(GL::glDevice->device, "vkCmdSetVertexInputEXT");
     PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT = reinterpret_cast<PFN_vkCmdSetVertexInputEXT>(functionAddr); // NOLINT(clang-diagnostic-cast-function-type-strict)
-    
+
     vkCmdSetVertexInputEXT(
         commandBuffer,
         static_cast<uint32_t>(vertexInput.bindingDescription2EXTs.size()),
@@ -346,26 +346,25 @@ void GLCommandBuffer::DrawIndexed(const uint32_t indicesCount) const
 {
     vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
 }
-void GLCommandBuffer::ClearAttachments(const VkRect2D rect, float color[4], const float depth, const uint32_t stencil) const
+void GLCommandBuffer::ClearAttachments(const VkRect2D rect, const std::optional<VkClearColorValue>& color, const std::optional<VkClearDepthStencilValue> depthStencil) const
 {
-    VkClearColorValue colorValue;
-    std::memcpy(colorValue.float32, color, sizeof(float) * 4);
-    VkClearDepthStencilValue depthStencilValue;
-    depthStencilValue.depth = depth;
-    depthStencilValue.stencil = stencil;
+    VkClearAttachment clearAttachments[2] = {
+        {VK_IMAGE_ASPECT_COLOR_BIT, {}, {}},
+        {VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, {}, {}}
+    };
+    if (color.has_value())
+        clearAttachments[0].clearValue.color = color.value();
+    if (depthStencil.has_value())
+        clearAttachments[1].clearValue.depthStencil = depthStencil.value();
 
-    VkClearAttachment clearAttachments[2] = {{}, {}};
-    clearAttachments[0].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    clearAttachments[0].clearValue.color = colorValue;
-    clearAttachments[1].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-    clearAttachments[1].clearValue.depthStencil = depthStencilValue;
+    VkClearRect clearRect[2] = {
+        {rect, 0, 1},
+        {rect, 0, 1}
+    };
 
-    VkClearRect clearRect;
-    clearRect.rect = rect;
-    clearRect.baseArrayLayer = 0;
-    clearRect.layerCount = 1;
-
-    vkCmdClearAttachments(commandBuffer, std::size(clearAttachments), clearAttachments, 1, &clearRect);
+    int length = depthStencil.has_value() && color.has_value() ? 2 : 1;
+    int offset = color.has_value() ? 0 : 1;
+    vkCmdClearAttachments(commandBuffer, length, clearAttachments + offset, length, clearRect + offset);
 }
 void GLCommandBuffer::ExecuteSubCommands(const GLCommandBuffer& subCommandBuffer) const
 {

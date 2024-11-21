@@ -21,7 +21,7 @@ void CommandBuffer::EndRecording()
     matrixVP = float4x4::Identity();
 }
 
-void CommandBuffer::BeginRendering(const RenderTextureBase& renderTarget, const bool clearColor)
+void CommandBuffer::BeginRendering(const RenderTargetBase& renderTarget, const bool clearColor)
 {
     glCommandBuffer.BeginRendering(
         VkRect2D{
@@ -34,11 +34,9 @@ void CommandBuffer::BeginRendering(const RenderTextureBase& renderTarget, const 
         renderTarget.GetGLDepthStencilImageView(),
         renderTarget.GetGLColorResolveImageView()
     );
-    // glCommandBuffer.SetRasterizationSamples(renderTarget.GetSampleCount());
 
     lastRenderTexture = &renderTarget;
-
-    SetViewport(0, 0, renderTarget.GetWidth(), renderTarget.GetHeight());
+    SetViewportFullscreen();
 }
 void CommandBuffer::EndRendering() const
 {
@@ -47,7 +45,7 @@ void CommandBuffer::EndRendering() const
 
 void CommandBuffer::SetViewport(const int32_t x, int32_t y, const uint32_t width, const uint32_t height) const
 {
-    // y = static_cast<int32_t>(lastRenderTexture->GetHeight() - (y + height)); //转换到右手坐标系
+    y = static_cast<int32_t>(lastRenderTexture->GetHeight() - (y + height)); //转换到右手坐标系
 
     glCommandBuffer.SetViewport(
         static_cast<float>(x), static_cast<float>(y + height),
@@ -58,9 +56,17 @@ void CommandBuffer::SetViewport(const int32_t x, int32_t y, const uint32_t width
         {width, height}
     );
 }
+void CommandBuffer::SetViewportFullscreen() const
+{
+    SetViewport(0, 0, lastRenderTexture->GetWidth(), lastRenderTexture->GetHeight());
+}
 void CommandBuffer::SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix)
 {
     matrixVP = mul(projMatrix, viewMatrix);
+}
+void CommandBuffer::SetViewProjectionMatrices(const float4x4& matrixVP)
+{
+    this->matrixVP = matrixVP;
 }
 
 void CommandBuffer::Draw(MeshBase& mesh, MaterialBase& material, const float4x4& modelMatrix)
@@ -86,12 +92,24 @@ void CommandBuffer::Draw(MeshBase& mesh, MaterialBase& material, const float4x4&
         material.GetShader()->GetPushConstantBinding()[0],
         &pushConstant);
 
-    glCommandBuffer.DrawIndexed(mesh.GetIndexCount());
+    glCommandBuffer.DrawIndexed(mesh.GetGLIndexCount());
 }
-void CommandBuffer::ClearRenderTexture(float4 color, const float depth) const
+void CommandBuffer::ClearRenderTarget(const std::optional<float4>& color, const std::optional<float>& depth) const
 {
+    VkClearColorValue colorValue;
+    if (color.has_value())
+        std::memcpy(colorValue.float32, color.value().data, sizeof(float4));
+    VkClearDepthStencilValue depthStencilValue;
+    if (depth.has_value())
+    {
+        depthStencilValue.depth = depth.value();
+        depthStencilValue.stencil = 0;
+    }
+
     glCommandBuffer.ClearAttachments(
         VkRect2D{{0, 0}, {lastRenderTexture->GetWidth(), lastRenderTexture->GetHeight()}},
-        color.data, depth, 0
+        color.has_value() ? std::optional(colorValue) : std::nullopt,
+        // ReSharper disable once CppLocalVariableMightNotBeInitialized
+        depth.has_value() ? std::optional(depthStencilValue) : std::nullopt
     );
 }

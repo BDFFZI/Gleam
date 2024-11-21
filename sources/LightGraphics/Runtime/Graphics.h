@@ -6,7 +6,7 @@
 
 namespace Light
 {
-    struct PresentRenderTexture : RenderTextureBase
+    struct PresentRenderTarget : RenderTargetBase
     {
         uint32_t width, height;
         VkSampleCountFlagBits sampleCount;
@@ -17,7 +17,7 @@ namespace Light
         const GLImageView* glDepthStencilImageView;
         const GLImageView* glColorResolveImageView;
 
-        PresentRenderTexture() = default;
+        PresentRenderTarget() = default;
 
         uint32_t GetWidth() const override { return width; }
         uint32_t GetHeight() const override { return height; }
@@ -38,7 +38,7 @@ namespace Light
         static void UnInitialize();
 
         static const std::unique_ptr<GLSwapChain>& GetGLSwapChain() { return glSwapChain; }
-        static PresentRenderTexture& GetPresentRenderTexture() { return presentRenderTexture; }
+        static PresentRenderTarget& GetPresentRenderTarget() { return presentRenderTarget; }
 
         static CommandBuffer& ApplyCommandBuffer(const std::string& name = "");
         static void ReleaseCommandBuffer(CommandBuffer& commandBuffer);
@@ -96,7 +96,7 @@ namespace Light
         inline static std::unique_ptr<GLImage> presentDepthStencilImage = {};
         inline static std::unique_ptr<GLImageView> presentColorImageView = {}; //颜色或颜色解析视图
         inline static std::unique_ptr<GLImageView> presentDepthStencilImageView = {};
-        inline static PresentRenderTexture presentRenderTexture;
+        inline static PresentRenderTarget presentRenderTarget;
 
         inline static uint32_t currentImageIndex;
         inline static uint32_t currentBufferIndex;

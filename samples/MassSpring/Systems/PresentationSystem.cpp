@@ -22,7 +22,7 @@ void Light::BeginPresentationSystem::Update()
 void Light::EndPresentationSystem::Update()
 {
     //完成UI绘图录制并执行
-    Presentation::commandBuffer->BeginRendering(Graphics::GetPresentRenderTexture());
+    Presentation::commandBuffer->BeginRendering(Graphics::GetPresentRenderTarget());
     UI::EndFrame(Presentation::commandBuffer->GetGLCommandBuffer());
     Presentation::commandBuffer->EndRendering();
     //完成公共命令缓冲区录制并执行

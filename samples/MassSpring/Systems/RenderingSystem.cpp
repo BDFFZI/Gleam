@@ -13,8 +13,8 @@ namespace Light
     float2 Rendering::ScreenToWorldPoint(const float2& positionSS)
     {
         float2 positionWS = {
-            (positionSS.x / static_cast<float>(Graphics::GetPresentRenderTexture().width) - 0.5f) * GetOrthoSize(),
-            (positionSS.y / static_cast<float>(Graphics::GetPresentRenderTexture().height) - 0.5f) * GetOrthoSize()
+            (positionSS.x / static_cast<float>(Graphics::GetPresentRenderTarget().width) - 0.5f) * GetOrthoSize(),
+            (positionSS.y / static_cast<float>(Graphics::GetPresentRenderTarget().height) - 0.5f) * GetOrthoSize()
         };
         return positionWS;
     }
@@ -70,14 +70,14 @@ namespace Light
 
 
         auto& commandBuffer = Presentation::GetCommandBuffer();
-        commandBuffer.BeginRendering(Graphics::GetPresentRenderTexture(), true);
+        commandBuffer.BeginRendering(Graphics::GetPresentRenderTarget(), true);
         commandBuffer.SetViewProjectionMatrices(
             float4x4::Identity(),
             float4x4::Ortho(Rendering::GetOrthoHalfSize(), Rendering::GetOrthoHalfSize(), 0, 1)
         );
-        if (pointMesh->GetIndexCount() != 0)
+        if (!pointMesh->GetIndices().empty())
             commandBuffer.Draw(*pointMesh, *pointMaterial);
-        if (lineMesh->GetIndexCount() != 0)
+        if (!lineMesh->GetIndices().empty())
             commandBuffer.Draw(*lineMesh, *lineMaterial);
         commandBuffer.EndRendering();
     }
@@ -85,12 +85,12 @@ namespace Light
     {
         // ImGui::ShowDemoWindow();
 
-        ImGui::InputFloat2("MousePosition",Input::GetMousePosition().data);
+        ImGui::InputFloat2("MousePosition", Input::GetMousePosition().data);
 
         int size[2];
-        glfwGetWindowSize(Window::GetGlfwWindow(),&size[0],&size[1]);
-        ImGui::InputInt2("WindowSize",size);
-        glfwGetFramebufferSize(Window::GetGlfwWindow(),&size[0],&size[1]);
-        ImGui::InputInt2("FramebufferSize",size);
+        glfwGetWindowSize(Window::GetGlfwWindow(), &size[0], &size[1]);
+        ImGui::InputInt2("WindowSize", size);
+        glfwGetFramebufferSize(Window::GetGlfwWindow(), &size[0], &size[1]);
+        ImGui::InputInt2("FramebufferSize", size);
     }
 }

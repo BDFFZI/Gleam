@@ -58,7 +58,11 @@ namespace Light
         virtual ~MeshBase() = default;
         virtual void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MeshBase* lastMesh) = 0;
         virtual const GLMeshLayout* GetGLMeshLayout() const = 0;
-        virtual uint32_t GetIndexCount() const = 0;
+        /**
+         * GLIndexCount等于索引数量，但并非总是有效。因为它是专供图形接口使用的索引数量，因此只有在绑定资源到管线时才被计算。
+         * @return 
+         */
+        virtual uint32_t GetGLIndexCount() const = 0;
     };
 
     class ShaderBase
@@ -79,10 +83,10 @@ namespace Light
         virtual const ShaderBase* GetShader() const = 0;
     };
 
-    class RenderTextureBase
+    class RenderTargetBase
     {
     public:
-        virtual ~RenderTextureBase() = default;
+        virtual ~RenderTargetBase() = default;
         virtual uint32_t GetWidth() const = 0;
         virtual uint32_t GetHeight() const = 0;
         virtual VkSampleCountFlagBits GetSampleCount() const = 0;

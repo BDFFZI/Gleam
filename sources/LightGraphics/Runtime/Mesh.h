@@ -5,6 +5,7 @@
 #include "LightGL/Runtime/Resource/GLBuffer.h"
 #include "LightImport/Runtime/ModelImporter.h"
 #include "LightMath/Runtime/Vector.hpp"
+#include <cassert>
 
 namespace Light
 {
@@ -12,37 +13,62 @@ namespace Light
     class MeshT : public MeshBase
     {
     public:
+        /**
+         * 
+         * @param glMeshLayout 
+         * @param readwrite 网格是否可读写。若不可读写，资源上传到GPU后，CPU内存将被清除，相关读写功能也不可用。
+         */
         MeshT(const GLMeshLayout* glMeshLayout, const bool readwrite = false)
-            : isDirty(true), glMeshLayout(glMeshLayout), readwrite(readwrite)
+            : isDirty(true), glMeshLayout(glMeshLayout), glIndexCount(0), readwrite(readwrite)
         {
         }
 
+        /**
+         * 返回Mesh内部使用的CPU顶点缓冲区内存。
+         * 
+         * 如果你直接修改了其内容，必须显式调用@c SetDirty 以重新上传到GPU。
+         * @return 
+         */
         std::vector<TVertex>& GetVertices()
         {
             return vertices;
         }
+        /**
+         * 返回Mesh内部使用的CPU索引缓冲区内存。
+         * 
+         * 如果你直接修改了其内容，必须显式调用@c SetDirty 以重新上传到GPU。
+         * @return 
+         */
         std::vector<uint32_t>& GetIndices()
         {
             return indices;
         }
-        void SetVertices(std::vector<TVertex> data)
+        void SetVertices(const std::vector<TVertex>& data)
         {
-            vertices = std::move(data);
+            vertices.resize(data.size());
+            std::ranges::copy(data, vertices.data());
             isDirty = true;
         }
-        void SetIndices(std::vector<uint32_t> data)
+        void SetIndices(const std::vector<uint32_t>& data)
         {
-            indices = std::move(data);
+            indices.resize(data.size());
+            std::ranges::copy(data, indices.data());
             isDirty = true;
         }
+        void SetDirty() { isDirty = true; }
 
         const GLMeshLayout* GetGLMeshLayout() const override { return glMeshLayout; }
-        uint32_t GetIndexCount() const override { return static_cast<uint32_t>(indices.size()); }
+        uint32_t GetGLIndexCount() const override { return glIndexCount; }
 
         void BindToPipeline(const GLCommandBuffer& commandBuffer, const MeshBase* lastMesh) override
         {
             if (isDirty)
             {
+                assert(!vertices.empty(), "未设置任何顶点，网格数据无效");
+                assert(!indices.empty(), "未设置任何索引，网格数据无效");
+
+                glIndexCount = static_cast<uint32_t>(indices.size());
+
                 if (readwrite == false)
                 {
                     glVertexBuffer = std::make_unique<GLBuffer>(
@@ -105,6 +131,7 @@ namespace Light
         std::unique_ptr<GLBuffer> glVertexBuffer;
         std::unique_ptr<GLBuffer> glIndexBuffer;
         const GLMeshLayout* glMeshLayout;
+        uint32_t glIndexCount;
         bool readwrite;
     };
 

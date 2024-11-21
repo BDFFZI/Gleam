@@ -6,7 +6,7 @@
 
 namespace Light
 {
-    class RenderTexture : public RenderTextureBase
+    class RenderTexture : public RenderTargetBase
     {
     public:
         RenderTexture(

@@ -96,7 +96,7 @@ public:
     /**
      * 对当前绑定的帧缓冲区内容进行清除
      */
-    void ClearAttachments(VkRect2D rect, float color[4], float depth, uint32_t stencil) const;
+    void ClearAttachments(VkRect2D rect, const std::optional<VkClearColorValue>& color, std::optional<VkClearDepthStencilValue> depthStencil) const;
     void ExecuteSubCommands(const GLCommandBuffer& subCommandBuffer) const;
 
     /**
