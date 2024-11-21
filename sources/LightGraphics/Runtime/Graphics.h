@@ -38,6 +38,7 @@ namespace Light
         static void UnInitialize();
 
         static const std::unique_ptr<GLSwapChain>& GetGLSwapChain() { return glSwapChain; }
+        static uint32_t GetGLSwapChainBufferCount() { return glSwapChainBufferCount; }
         static PresentRenderTarget& GetPresentRenderTarget() { return presentRenderTarget; }
 
         static CommandBuffer& ApplyCommandBuffer(const std::string& name = "");
@@ -56,6 +57,8 @@ namespace Light
          * 向交换链申请开始一段呈现操作。
          *
          * 该函数会使系统向交互链申请呈现目标，若交换链失效，还会尝试进行重建。
+         * (这也意味着，在调用该函数之前，交换链数据是过期的，不应被使用！当然，你可能会发现，即使违背，画面也似乎显示正常，
+         * 那是因为你一直抓着呈现执行的间歇在向当前屏幕上正使用的图片写入，这可能导致画面撕裂，而且等真正的呈现完成后，画面将变成黑屏)
          * @return 本次呈现操作将使用的命令缓冲区，该缓冲区的录制启用和关闭由系统自动控制，若此时无法进行呈现操作，则返回空指针。
          * @note 若开始呈现成功，则必须在之后调用 @c EndPresent() 来完成呈现。
          * @note 若有命令缓冲区依赖交换链资源，应确保在执行该函数之后再录制相关命令。
@@ -68,13 +71,6 @@ namespace Light
          */
         static void EndPresent(GLCommandBuffer& presentCommandBuffer);
         /**
-         * @brief 异步绘制并呈现画面
-         * 
-         * 本质是对 @c BeginPresent() 和 @c EndPresent() 的快速调用。 
-         * @param commandBuffer 
-         */
-        static bool Present(CommandBuffer& commandBuffer);
-        /**
          * @brief 等待上一次的呈现操作所使用的命令缓冲区执行完毕
          * 
          * 该函数将堵塞线程以等待命令缓冲区执行完成，执行后便可安全释放上次绘制所使用的各种资源。但这不等于呈现操作已完成，真正的呈现命令此时甚至可能还未开始。<br/>
@@ -83,7 +79,7 @@ namespace Light
         static void WaitPresent();
 
     private:
-        inline static size_t glSwapChainBufferCount = {};
+        inline static uint32_t glSwapChainBufferCount = {};
 
         inline static VkSurfaceFormatKHR surfaceFormat = {};
         inline static VkPresentModeKHR presentMode = {};

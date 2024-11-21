@@ -99,17 +99,6 @@ void Graphics::EndPresent(GLCommandBuffer& presentCommandBuffer)
 
     glSwapChain->PresentImageAsync();
 }
-bool Graphics::Present(CommandBuffer& commandBuffer)
-{
-    GLCommandBuffer* primaryCommandBuffer = BeginPresent();
-    if (primaryCommandBuffer != nullptr)
-    {
-        primaryCommandBuffer->ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
-        EndPresent(*primaryCommandBuffer);
-        return true;
-    }
-    return false;
-}
 void Graphics::WaitPresent()
 {
     size_t bufferIndex = (glSwapChainBufferCount + glSwapChain->GetCurrentBufferIndex() - 1) % glSwapChainBufferCount;
@@ -124,7 +113,7 @@ bool Graphics::TryCreateSwapChain()
         return false;
 
     glSwapChain = std::make_unique<GLSwapChain>(surfaceFormat, presentMode);
-    glSwapChainBufferCount = glSwapChain->images.size();
+    glSwapChainBufferCount = glSwapChain->imageCount;
 
     if (presentSampleCount != VK_SAMPLE_COUNT_1_BIT)
     {

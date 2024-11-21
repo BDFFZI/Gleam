@@ -1,4 +1,6 @@
-﻿#include "LightGraphics/Runtime/CommandBuffer.h"
+﻿#include <thread>
+
+#include "LightGraphics/Runtime/CommandBuffer.h"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightImport/Runtime/ShaderImporter.h"
 #include "LightMath/Runtime/Matrix.hpp"
@@ -31,7 +33,7 @@ struct Fullscreen
             0, 1, 2,
             0, 2, 3
         });
-        
+
         shader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout);
         material = std::make_unique<Material>(*shader);
     }
@@ -120,26 +122,34 @@ void Update(GLFWwindow* glfwWindow)
     Chronograph chronograph;
     chronograph.Tick();
 
-    CommandBuffer& commandBuffer = Graphics::ApplyCommandBuffer();
+    std::vector<CommandBuffer*> commandBuffers = {};
+    for (uint32_t i = 0; i < Graphics::GetGLSwapChainBufferCount(); ++i)
+        commandBuffers.push_back(&Graphics::ApplyCommandBuffer());
 
     while (!glfwWindowShouldClose(glfwWindow))
     {
         glfwPollEvents();
 
         //开始呈现
-        GLCommandBuffer* glCommandBuffer = Graphics::BeginPresent();
+        Graphics::WaitPresentable();
+        GLCommandBuffer* presentCommandBuffer = Graphics::BeginPresent();
+        if (presentCommandBuffer == nullptr)
+            continue; //当前无法呈现
+        
         //开始渲染
+        CommandBuffer& commandBuffer = *commandBuffers[Graphics::GetGLSwapChain()->GetCurrentBufferIndex()];
         commandBuffer.BeginRecording();
         commandBuffer.BeginRendering(Graphics::GetPresentRenderTarget()); //设置渲染目标
+        
         //设置背景色
         commandBuffer.ClearRenderTarget(float4(0.5, 0.5, 0.5, 1));
 
-        commandBuffer.SetViewProjectionMatrices(
-            inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1})),
-            float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f)
-        );
         //测试变换
         {
+            commandBuffer.SetViewProjectionMatrices(
+                inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1})),
+                float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f)
+            );
             for (int i = 0; i < 4; ++i)
             {
                 float4x4 objectToWorld = float4x4::TRS(
@@ -150,11 +160,11 @@ void Update(GLFWwindow* glfwWindow)
 
                 commandBuffer.Draw(*box.mesh, *box.material, objectToWorld);
             }
-        }
-        //测试自定义网格
-        {
+
+            //测试自定义网格
             commandBuffer.Draw(*wireBox.mesh, *wireBox.material, float4x4::TRS(0, 0, 2));
         }
+
         //测试视口和NDC
         {
             uint32_t halfWidth = Graphics::GetPresentRenderTarget().width / 2;
@@ -167,16 +177,18 @@ void Update(GLFWwindow* glfwWindow)
         //完成渲染录制
         commandBuffer.EndRendering();
         commandBuffer.EndRecording();
+        
         //完成呈现
-        if (glCommandBuffer != nullptr)
-        {
-            glCommandBuffer->ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
-            Graphics::EndPresent(*glCommandBuffer);
-            Graphics::WaitPresent();
-        }
+        presentCommandBuffer->ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
+        Graphics::EndPresent(*presentCommandBuffer);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
 
-    Graphics::ReleaseCommandBuffer(commandBuffer);
+    Graphics::WaitPresent();
+
+    for (uint32_t i = 0; i < Graphics::GetGLSwapChainBufferCount(); ++i)
+        Graphics::ReleaseCommandBuffer(*commandBuffers[i]);
 }
 
 void main()

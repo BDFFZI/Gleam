@@ -34,7 +34,7 @@ public:
     uint32_t GetCurrentImageIndex() const { return currentImageIndex; }
 
     /**
-     * 
+     * 切换到下次呈现所要使用的图片索引
      * @param outImageIndex 返回被用于呈现的图像视图，获取后用户需将呈现内容写入其中。
      * @param outBufferIndex 返回交换链内部当前要使用的缓冲区索引，用户在外部构建相同的缓冲区后（如命令缓冲区列表），可以此确定缓冲区可用性
      * @param outImageAvailableSemaphore 返回呈现图像可用时的GPU信号，写入内容时需先等待该信号激活
@@ -42,6 +42,9 @@ public:
      * @return 
      */
     bool SwitchImageAsync(uint32_t* outImageIndex, uint32_t* outBufferIndex, VkSemaphore* outImageAvailableSemaphore, VkSemaphore* outPresentSemaphore);
+    /**
+     * 提交呈现画面命令到呈现管道（该呈现命令会自动等待到本次的命令缓冲区完成后执行），接着切换到下次呈现所要使用的命令缓冲区索引。
+     */
     void PresentImageAsync();
 
 private:

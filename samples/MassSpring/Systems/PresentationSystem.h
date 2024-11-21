@@ -22,6 +22,7 @@ namespace Light
     class Presentation
     {
     public:
+        static bool CanPresent();
         /**
          * 用于执行呈现命令的底层命令缓冲区。
          *

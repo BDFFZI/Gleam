@@ -12,7 +12,7 @@ void Light::BeginPresentationSystem::Stop()
 void Light::BeginPresentationSystem::Update()
 {
     //开始呈现命令缓冲区录制
-    Presentation::presentCommandBuffer = &Graphics::BeginPresent();
+    Presentation::presentCommandBuffer = Graphics::BeginPresent();
     //开始公共命令缓冲区录制
     Presentation::commandBuffer->BeginRecording();
     //开始UI绘图录制
@@ -21,6 +21,7 @@ void Light::BeginPresentationSystem::Update()
 
 void Light::EndPresentationSystem::Update()
 {
+    if()
     //完成UI绘图录制并执行
     Presentation::commandBuffer->BeginRendering(Graphics::GetPresentRenderTarget());
     UI::EndFrame(Presentation::commandBuffer->GetGLCommandBuffer());
