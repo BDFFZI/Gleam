@@ -92,7 +92,6 @@ void Window::Start()
         while (!glfwWindowShouldClose(glfwWindow))
         {
             Time::Update();
-            glfwPollEvents();
             Input::Update();
 
             //更新窗口

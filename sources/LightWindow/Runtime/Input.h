@@ -115,7 +115,15 @@ namespace Light
         static bool GetKeyUp(KeyCode keyCode);
 
         static float2 GetMouseScrollDelta();
+        /**
+         * 左手坐标系，左下角原点
+         * @return 
+         */
         static float2 GetMousePosition();
+        /**
+         * 左手坐标系，左下角原点
+         * @return 
+         */
         static float2 GetMouseMoveDelta();
 
     private:

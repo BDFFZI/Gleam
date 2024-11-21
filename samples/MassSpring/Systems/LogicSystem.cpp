@@ -1,11 +1,13 @@
 #include "LogicSystem.h"
 
+#include <imgui.h>
+
+#include "PhysicsSystem.h"
 #include "RenderingSystem.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Window.h"
 #include "LightECS/Runtime/View.hpp"
 #include "../Component.hpp"
-#include "LightGraphics/Runtime/Graphics.h"
 #include "LightWindow/Runtime/Time.h"
 
 
@@ -27,18 +29,35 @@ void Light::LogicSystem::Update()
     else
         Time::SetTimeScale(0);
 
+    mousePositionWS = Rendering::ScreenToWorldPoint(Input::GetMousePosition());
+
     if (Input::GetMouseButtonDown(MouseButton::Left))
     {
-        float2 mousePositionWS = Rendering::ScreenToWorldPoint(Input::GetMousePosition());
-        View<Point>::Each([mousePositionWS](const Entity entity, const Point& point)
-        {
-            if (distance(point.position, mousePositionWS) < 1)
-                captivePoint = entity;
-        });
+        if (captivePoint != Entity::Null)
+            captivePoint = Entity::Null;
+        else
+            View<Point>::Each([](const Entity entity, const Point& point)
+            {
+                if (distance(point.position, mousePositionWS) < 1)
+                    captivePoint = entity;
+            });
     }
+
+    if (captivePoint != Entity::Null)
+        World::GetComponent<Point>(captivePoint).position = mousePositionWS;
+
+    ImGui::Text(std::format("MousePositionWS:{}", to_string(mousePositionWS)).c_str());
+    int entity = static_cast<int>(captivePoint);
+    ImGui::Text(std::format("CaptivePoint:{}", entity).c_str());
 }
 void Light::LogicSystem::FixedUpdate()
 {
     if (captivePoint != Entity::Null)
-        World::GetComponent<MassPointPhysics>(captivePoint).force = 0;
+    {
+        Point* point;
+        MassPointPhysics* massPointPhysics;
+        World::GetComponents(captivePoint, &point, &massPointPhysics);
+        massPointPhysics->force = 0;
+        massPointPhysics->velocity = 0;
+    }
 }

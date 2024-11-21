@@ -48,6 +48,15 @@ struct vector<Type, 2>
         this->x = x;
         this->y = y;
     }
+    
+    template <class OtherType>
+    constexpr explicit operator vector<OtherType, 2>()
+    {
+        return {
+            static_cast<OtherType>(x),
+            static_cast<OtherType>(y),
+        };
+    }
 
     MakeVectorMemberFunctions(Type, 2)
     MakeVectorMemberFunctions_Indexer(Type)
@@ -89,6 +98,16 @@ struct vector<Type, 3>
         this->z = z;
     }
 
+    template <class OtherType>
+    constexpr explicit operator vector<OtherType, 3>()
+    {
+        return {
+            static_cast<OtherType>(x),
+            static_cast<OtherType>(y),
+            static_cast<OtherType>(z),
+        };
+    }
+    
     MakeVectorMemberFunctions(Type, 3)
     MakeVectorMemberFunctions_Indexer(Type)
 };
@@ -131,6 +150,17 @@ struct vector<Type, 4>
         y = xyz.y;
         z = xyz.z;
         this->w = w;
+    }
+
+    template <class OtherType>
+    constexpr explicit operator vector<OtherType, 4>()
+    {
+        return {
+            static_cast<OtherType>(x),
+            static_cast<OtherType>(y),
+            static_cast<OtherType>(z),
+            static_cast<OtherType>(w),
+        };
     }
 
     MakeVectorMemberFunctions(Type, 4)

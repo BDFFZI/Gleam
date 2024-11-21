@@ -5,11 +5,33 @@
 
 namespace Light
 {
-    struct BeginPhysicsSystem: System<MinSystemOrder, BeginPresentationSystem>
+    class Physics
     {
-        
+    public:
+        using Function = void(*)();
+
+        static float GetFixedDeltaTime() { return fixedDeltaTime; }
+        static float2 GetGravity() { return gravity; }
+
+        static void SetFixedDeltaTime(const float fixedDeltaTime) { Physics::fixedDeltaTime = fixedDeltaTime; }
+        static void SetGravity(const float gravity) { Physics::gravity = gravity; }
+
+        static void AddFixedUpdate(const Function function) { fixedUpdates.push_back(function); }
+        static void RemoveFixedUpdate(const Function function) { fixedUpdates.remove(function); }
+
+    private:
+        friend struct BeginPhysicsSystem;
+        friend struct EndPhysicsSystem;
+        inline static float lastTime = 0;
+        inline static float fixedDeltaTime = 0.01f;
+        inline static float2 gravity = {0.0f, -9.81f};
+        inline static std::list<Function> fixedUpdates = {};
     };
-    
+
+    struct BeginPhysicsSystem : System<MinSystemOrder, BeginPresentationSystem>
+    {
+    };
+
     struct EndPhysicsSystem : System<BeginPhysicsSystem, BeginPresentationSystem>
     {
         static void Update();
@@ -21,26 +43,4 @@ namespace Light
     };
 
 #define PhysicsSystemGroup Light::BeginPhysicsSystem,Light::EndPhysicsSystem
-    
-    class Physics
-    {
-    public:
-        using Function = void(*)();
-
-        static float GetFixedDeltaTime() { return fixedDeltaTime; }
-        static float2 GetGravity() { return gravity; }
-        
-        static void SetFixedDeltaTime(const float fixedDeltaTime) { Physics::fixedDeltaTime = fixedDeltaTime; }
-        static void SetGravity(const float gravity) { Physics::gravity = gravity; }
-
-        static void AddFixedUpdate(const Function function) { fixedUpdates.push_back(function); }
-        static void RemoveFixedUpdate(const Function function) { fixedUpdates.remove(function); }
-
-    private:
-        friend EndPhysicsSystem;
-        inline static float lastTime = 0;
-        inline static float fixedDeltaTime = 0.02f;
-        inline static float2 gravity = {0.0f, -9.81f};
-        inline static std::list<Function> fixedUpdates = {};
-    };
 }

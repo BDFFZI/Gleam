@@ -189,6 +189,12 @@ bool GLSwapChain::SwitchImageAsync(uint32_t* outImageIndex, uint32_t* outBufferI
     const VkResult result = vkAcquireNextImageKHR(
         GL::glDevice->device, swapChain,
         UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &currentImageIndex);
+
+    *outImageIndex = currentImageIndex;
+    *outBufferIndex = currentBufferIndex;
+    *outImageAvailableSemaphore = imageAvailableSemaphore;
+    *outPresentSemaphore = renderFinishedSemaphore;
+
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
         //交换链已失效需重新生成
@@ -196,11 +202,6 @@ bool GLSwapChain::SwitchImageAsync(uint32_t* outImageIndex, uint32_t* outBufferI
     }
     if (result != VK_SUCCESS)
         throw std::runtime_error("无法获取下一个交换链呈现图片!");
-
-    *outImageIndex = currentImageIndex;
-    *outBufferIndex = currentBufferIndex;
-    *outImageAvailableSemaphore = imageAvailableSemaphore;
-    *outPresentSemaphore = renderFinishedSemaphore;
 
     return true;
 }

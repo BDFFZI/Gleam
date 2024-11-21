@@ -1,5 +1,7 @@
 ﻿#include "Input.h"
 
+#include "Window.h"
+
 using namespace Light;
 
 
@@ -79,7 +81,7 @@ void Input::GlfwCursorPosCallback(GLFWwindow* window, const double xPos, const d
     if (inputHandlers.top().glfwCursorPosCallback)
         inputHandlers.top().glfwCursorPosCallback(window, xPos, yPos);
 
-    mousePosition[1] = {static_cast<float>(xPos), static_cast<float>(yPos)};
+    mousePosition[1] = {static_cast<float>(xPos), static_cast<float>(Window::GetResolution().y - yPos)};
 }
 void Input::GlfwMouseButtonCallback(GLFWwindow* window, const int button, const int action, const int mods)
 {
@@ -131,6 +133,8 @@ void Input::Initialize(GLFWwindow* glfwWindow)
 }
 void Input::Update()
 {
+    glfwPollEvents();
+
     //鼠标按钮
     for (auto& state : mouseButtonState)
     {

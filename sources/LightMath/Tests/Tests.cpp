@@ -16,6 +16,9 @@ TEST(Math, Vector)
     ASSERT_TRUE(all(vector2 == float2(4,3)));
 
     ASSERT_EQ(to_string(vector3.zyx), "(4.000000,4.000000,3.000000)");
+
+    ASSERT_EQ(to_string(-vector3.zyx), "(-4.000000,-4.000000,-3.000000)");
+    ASSERT_EQ(to_string(-vector3), "(-3.000000,-4.000000,-4.000000)");
 }
 
 TEST(Math, VectorMath)

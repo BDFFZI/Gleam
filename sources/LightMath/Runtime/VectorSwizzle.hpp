@@ -88,7 +88,7 @@ struct VectorSwizzle
     constexpr VectorSwizzle& operator--()
     {
         for (int i = 0; i < sizeof...(Index); i++)
-            ++At(indices[i]);
+            --At(indices[i]);
         return *this;
     }
     constexpr vector<Type, sizeof...(Index)> operator++(int)
@@ -104,6 +104,13 @@ struct VectorSwizzle
         for (int i = 0; i < sizeof...(Index); i++)
             --At(indices[i]);
         return temp;
+    }
+    constexpr vector<Type, sizeof...(Index)> operator-()
+    {
+        vector<Type, sizeof...(Index)> result = *this;
+        for (int i = 0; i < sizeof...(Index); i++)
+            result[i] = -result[i];
+        return result;
     }
 };
 

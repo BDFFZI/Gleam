@@ -13,6 +13,9 @@ void main()
     int height = 1080 / 2;
     Window::Initialize("Window", width, height, false);
 
+    int2 position;
+    glfwGetWindowPos(Window::GetGlfwWindow(), &position.x, &position.y);
+
     static float2 moveInput;
     static bool fireInput;
 
@@ -41,7 +44,7 @@ void main()
     {
         Input::PopInputHandler(inputEvent);
     });
-    Window::SetWindowUpdateEvent([&width,&height]
+    Window::SetWindowUpdateEvent([&width,&height,&position]
     {
         if (any(moveInput))
             std::cout << "Move:" << to_string(moveInput) << '\n';
@@ -49,6 +52,11 @@ void main()
             std::cout << "Fire:" << to_string(Input::GetMousePosition()) << '\n';
         if (Input::GetKey(KeyCode::T))
             std::cout << std::format("Time:{:f}\tDeltaTime:{:f}\n", Time::GetTime(), Time::GetDeltaTime());
+        if (Input::GetKey(KeyCode::LeftShift))
+        {
+            position += static_cast<int2>(float2(Input::GetMouseMoveDelta().x, -Input::GetMouseMoveDelta().y));
+            glfwSetWindowPos(Window::GetGlfwWindow(), position.x, position.y);
+        }
 
 
         if (Input::GetKeyDown(KeyCode::Minus))

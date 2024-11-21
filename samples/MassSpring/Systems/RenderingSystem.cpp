@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 
+#include "LogicSystem.h"
 #include "LightECS/Runtime/View.hpp"
 #include "../Component.hpp"
 #include "LightGraphics/Runtime/Graphics.h"
@@ -24,8 +25,8 @@ namespace Light
         lineMesh = std::make_unique<MeshT<Vertex>>(&lineMeshLayout, true);
         pointShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, pointMeshLayout);
         lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, lineMeshLayout);
-        pointMaterial = std::make_unique<Material>(pointShader.get());
-        lineMaterial = std::make_unique<Material>(lineShader.get());
+        pointMaterial = std::make_unique<Material>(*pointShader);
+        lineMaterial = std::make_unique<Material>(*lineShader);
     }
     void RenderingSystem::Stop()
     {
@@ -39,7 +40,6 @@ namespace Light
     void RenderingSystem::Update()
     {
         DrawObject();
-        DrawUI();
     }
 
     void RenderingSystem::DrawObject()
@@ -54,6 +54,7 @@ namespace Light
             pointVertices.emplace_back(point.position, renderer.color);
             pointIndices.emplace_back(pointIndex++);
         });
+        pointMesh->SetDirty();
 
         std::vector<Vertex>& lineVertices = lineMesh->GetVertices();
         std::vector<uint32_t>& lineIndices = lineMesh->GetIndices();
@@ -67,6 +68,7 @@ namespace Light
             lineVertices.emplace_back(line.positionB, renderer.color);
             lineIndices.emplace_back(lineIndex++);
         });
+        lineMesh->SetDirty();
 
 
         auto& commandBuffer = Presentation::GetCommandBuffer();
@@ -80,17 +82,5 @@ namespace Light
         if (!lineMesh->GetIndices().empty())
             commandBuffer.Draw(*lineMesh, *lineMaterial);
         commandBuffer.EndRendering();
-    }
-    void RenderingSystem::DrawUI()
-    {
-        // ImGui::ShowDemoWindow();
-
-        ImGui::InputFloat2("MousePosition", Input::GetMousePosition().data);
-
-        int size[2];
-        glfwGetWindowSize(Window::GetGlfwWindow(), &size[0], &size[1]);
-        ImGui::InputInt2("WindowSize", size);
-        glfwGetFramebufferSize(Window::GetGlfwWindow(), &size[0], &size[1]);
-        ImGui::InputInt2("FramebufferSize", size);
     }
 }

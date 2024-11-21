@@ -50,18 +50,19 @@ void Graphics::WaitPresentable()
 {
     presentCommandBuffers[glSwapChain->GetCurrentBufferIndex()]->WaitSubmissionFinish();
 }
-GLCommandBuffer* Graphics::BeginPresent()
+bool Graphics::BeginPresent(GLCommandBuffer** outPresentCommandBuffer)
 {
+    bool canPresent = true;
+
     //获取交换链下次呈现使用的相关信息
     if (glSwapChain->SwitchImageAsync(
         &currentImageIndex, &currentBufferIndex,
         &currentImageAvailable, &currentRenderFinishedSemaphores
     ) == false) //交换链过时，需重建
     {
-        vkDeviceWaitIdle(GL::glDevice->device);
-        glSwapChain.reset();
-        TryCreateSwapChain();
-        return nullptr;
+        if (TryCreateSwapChain())
+            return BeginPresent(outPresentCommandBuffer);
+        canPresent = false;
     }
 
     //更新渲染目标信息(交换链中有多张颜色缓冲区，每次都会切换)
@@ -77,9 +78,9 @@ GLCommandBuffer* Graphics::BeginPresent()
     }
 
     //添加命令
-    GLCommandBuffer& primaryCommandBuffer = *presentCommandBuffers[currentImageIndex];
-    primaryCommandBuffer.BeginRecording();
-    return &primaryCommandBuffer;
+    *outPresentCommandBuffer = presentCommandBuffers[currentBufferIndex].get();
+    (*outPresentCommandBuffer)->BeginRecording();
+    return canPresent;
 }
 void Graphics::EndPresent(GLCommandBuffer& presentCommandBuffer)
 {
@@ -112,6 +113,8 @@ bool Graphics::TryCreateSwapChain()
     if (width == 0 || height == 0)
         return false;
 
+    vkDeviceWaitIdle(GL::glDevice->device);
+    glSwapChain.reset();
     glSwapChain = std::make_unique<GLSwapChain>(surfaceFormat, presentMode);
     glSwapChainBufferCount = glSwapChain->imageCount;
 

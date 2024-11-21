@@ -7,6 +7,9 @@
 #include "Vector.hpp"
 
 //模板没法触发自动类型转换，且有候选优先级较低的问题，因此只能利用宏来大批量定义函数
+//VV1V：表示两个向量参与计算，并将结果存在第一个向量后返回
+//VV2V：表示两个向量参与计算，并将结果存在一个新向量后返回
+
 
 #define MakeVectorFunction_SymbolV1V(Symbol,Type,Number)\
 constexpr vector<Type, Number>& operator##Symbol##(vector<Type, Number>& a)\
@@ -23,6 +26,15 @@ vector<Type, Number> temp = a;\
 for (int i = 0; i < (Number); i++)\
 Symbol##a.data[i];\
 return temp;\
+}
+
+#define MakeVectorFunction_SymbolV2V(Symbol,Type,Number)\
+constexpr vector<Type, Number> operator##Symbol##(vector<Type, Number>& a)\
+{\
+vector<Type, Number> result;\
+for (int i = 0; i < (Number); i++)\
+result.data[i] = Symbol##a.data[i];\
+return result;\
 }
 
 #define MakeVectorFunction_SymbolVV1V(Symbol,Type,Number)\
@@ -176,11 +188,12 @@ constexpr vector<Type, Number> project(const vector<Type, Number>& v, const vect
     return n * dot(v, n);\
 }
 
-#define MakeVectorFunctions(Type,Number)\
+#define MakeVectorFunctions_Integer(Type,Number)\
 MakeVectorFunction_SymbolV1V(++, Type, Number);\
 MakeVectorFunction_SymbolV1V(--, Type, Number);\
 MakeVectorFunction_SymbolV1VSuf(++, Type, Number);\
 MakeVectorFunction_SymbolV1VSuf(--, Type, Number);\
+MakeVectorFunction_SymbolV2V(-, Type, Number);\
 MakeVectorFunction_SymbolVV1V(+=, Type, Number);\
 MakeVectorFunction_SymbolVV1V(-=, Type, Number);\
 MakeVectorFunction_SymbolVV1V(*=, Type, Number);\
@@ -188,7 +201,10 @@ MakeVectorFunction_SymbolVV1V(/=, Type, Number);\
 MakeVectorFunction_SymbolVV2V(+, Type, Number);\
 MakeVectorFunction_SymbolVV2V(-, Type, Number);\
 MakeVectorFunction_SymbolVV2V(*, Type, Number);\
-MakeVectorFunction_SymbolVV2V(/, Type, Number);\
+MakeVectorFunction_SymbolVV2V(/, Type, Number);
+
+#define MakeVectorFunctions_Decimals(Type,Number)\
+MakeVectorFunctions_Integer(Type,Number)\
 MakeVectorFunction_FunctionV2V(cos, Type, Number);\
 MakeVectorFunction_FunctionV2V(acos, Type, Number);\
 MakeVectorFunction_FunctionV2V(sin, Type, Number);\
@@ -211,9 +227,7 @@ MakeVectorFunction_FunctionVV2V(min, Type, Number);\
 MakeVectorFunction_FunctionVVV2V(clamp, Type, Number);\
 MakeVectorFunction_Equal(Type, Number);\
 MakeVectorFunction_All(Type, Number);\
-MakeVectorFunction_All(bool, Number)\
 MakeVectorFunction_Any(Type, Number);\
-MakeVectorFunction_Any(bool, Number)\
 MakeVectorFunction_Dot(Type, Number);\
 MakeVectorFunction_Length(Type, Number);\
 MakeVectorFunction_Normalize(Type, Number);\
@@ -258,21 +272,34 @@ return perpendicular * cos(rad) + cross(n, perpendicular) * sin(rad) + parallel;
 MakeVectorFunction_Cross3(Type)\
 MakeVectorFunction_Rotate3(Type)
 
-#define MakeVectorFunction_ToString(Type,Number)\
+#define MakeVectorFunction_ToString(Type,Number,Format)\
 inline std::string to_string(const vector<Type, Number>& a)\
 {\
 std::string str = "(";\
 for (int i = 0; i < (Number); i++)\
-str += std::format("{:f},", a.data[i]);\
+str += std::format("{" Format "},", a.data[i]);\
 str.pop_back();\
 return str + ")";\
 }
 
-MakeVectorFunctions(float, 2)
-MakeVectorFunctions(float, 3)
-MakeVectorFunctions(float, 4)
+MakeVectorFunctions_Decimals(float, 2)
+MakeVectorFunctions_Decimals(float, 3)
+MakeVectorFunctions_Decimals(float, 4)
 MakeVectorFunctions_Vector3Extra(float)
+MakeVectorFunction_ToString(float, 2, ":f")
+MakeVectorFunction_ToString(float, 3, ":f")
+MakeVectorFunction_ToString(float, 4, ":f")
 
-MakeVectorFunction_ToString(float, 2)
-MakeVectorFunction_ToString(float, 3)
-MakeVectorFunction_ToString(float, 4)
+MakeVectorFunction_All(bool, 2)
+MakeVectorFunction_All(bool, 3)
+MakeVectorFunction_All(bool, 4)
+MakeVectorFunction_Any(bool, 2)
+MakeVectorFunction_Any(bool, 3)
+MakeVectorFunction_Any(bool, 4)
+
+MakeVectorFunctions_Integer(int, 2)
+MakeVectorFunctions_Integer(int, 3)
+MakeVectorFunctions_Integer(int, 4)
+MakeVectorFunction_ToString(int, 2, "")
+MakeVectorFunction_ToString(int, 3, "")
+MakeVectorFunction_ToString(int, 4, "")

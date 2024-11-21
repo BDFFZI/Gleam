@@ -64,8 +64,8 @@ namespace Light
         {
             if (isDirty)
             {
-                assert(!vertices.empty(), "未设置任何顶点，网格数据无效");
-                assert(!indices.empty(), "未设置任何索引，网格数据无效");
+                assert(!vertices.empty() && "未设置任何顶点，网格数据无效");
+                assert(!indices.empty() && "未设置任何索引，网格数据无效");
 
                 glIndexCount = static_cast<uint32_t>(indices.size());
 

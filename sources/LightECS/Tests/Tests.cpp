@@ -181,10 +181,10 @@ TEST(ECS, World)
 
     RigidBody inRigidBody = {100, 1, 2};
     SpringPhysics inSpring = {1, 2, 3};
-    World::SetComponents(entities[1], inRigidBody, inSpring);
+    World::PasteComponents(entities[1], inRigidBody, inSpring);
     RigidBody outRigidBody;
     SpringPhysics outSpring;
-    World::GetComponents(entities[1], &outRigidBody, &outSpring);
+    World::CopyComponents(entities[1], &outRigidBody, &outSpring);
     ASSERT_EQ(outRigidBody, inRigidBody);
     ASSERT_EQ(outSpring, inSpring);
 

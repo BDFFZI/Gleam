@@ -11,28 +11,20 @@ void Light::BeginPresentationSystem::Stop()
 }
 void Light::BeginPresentationSystem::Update()
 {
-    //开始呈现命令缓冲区录制
-    Presentation::presentCommandBuffer = Graphics::BeginPresent();
+    //开始呈现并录制呈现命令缓冲区
+    Presentation::canPresent = Graphics::BeginPresent(&Presentation::presentCommandBuffer);
     //开始公共命令缓冲区录制
     Presentation::commandBuffer->BeginRecording();
-    //开始UI绘图录制
-    UI::BeginFrame();
 }
 
 void Light::EndPresentationSystem::Update()
 {
-    if()
-    //完成UI绘图录制并执行
-    Presentation::commandBuffer->BeginRendering(Graphics::GetPresentRenderTarget());
-    UI::EndFrame(Presentation::commandBuffer->GetGLCommandBuffer());
-    Presentation::commandBuffer->EndRendering();
-    //完成公共命令缓冲区录制并执行
+    //完成公共命令缓冲区录制
     Presentation::commandBuffer->EndRecording();
     Presentation::presentCommandBuffer->ExecuteSubCommands(Presentation::commandBuffer->GetGLCommandBuffer());
-    //完成呈现命令缓冲区录制并执行
-    Graphics::EndPresent(*Presentation::presentCommandBuffer);
-
-    //等待呈现完成
+    //结束呈现命令缓冲区录制并提交呈现命令
+    if (Presentation::CanPresent())
+        Graphics::EndPresent(*Presentation::presentCommandBuffer);
+    //等待上次呈现完成
     Graphics::WaitPresent();
 }
-

@@ -54,7 +54,7 @@ constexpr matrix<Type, Row, Column> adjoint(const matrix<Type, Row, Column>& m)\
 }
 
 #define MakeMatrixFunctions(Type,Row,Column)\
-MakeVectorFunctions(Type, (Row) * (Column))\
+MakeVectorFunctions_Decimals(Type, (Row) * (Column))\
 MakeMatrixFunction_Transpose(Type,Row,Column)\
 MakeMatrixFunction_Cofactor(Type,Row,Column)\
 MakeMatrixFunction_CofactorDeterminant(Type,Row,Column)\
@@ -240,3 +240,8 @@ constexpr std::string to_string(const matrix<Type, 4, 4>& m)
 
 MakeMatrixFunctions(float, 3, 3)
 MakeMatrixFunctions(float, 4, 4)
+
+MakeVectorFunction_All(bool, 3*3)
+MakeVectorFunction_All(bool, 4*4)
+MakeVectorFunction_Any(bool, 3*3)
+MakeVectorFunction_Any(bool, 4*4)

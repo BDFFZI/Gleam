@@ -132,15 +132,15 @@ void Update(GLFWwindow* glfwWindow)
 
         //开始呈现
         Graphics::WaitPresentable();
-        GLCommandBuffer* presentCommandBuffer = Graphics::BeginPresent();
-        if (presentCommandBuffer == nullptr)
+        GLCommandBuffer* presentCommandBuffer;
+        if (Graphics::BeginPresent(&presentCommandBuffer) == false)
             continue; //当前无法呈现
-        
+
         //开始渲染
         CommandBuffer& commandBuffer = *commandBuffers[Graphics::GetGLSwapChain()->GetCurrentBufferIndex()];
         commandBuffer.BeginRecording();
         commandBuffer.BeginRendering(Graphics::GetPresentRenderTarget()); //设置渲染目标
-        
+
         //设置背景色
         commandBuffer.ClearRenderTarget(float4(0.5, 0.5, 0.5, 1));
 
@@ -177,7 +177,7 @@ void Update(GLFWwindow* glfwWindow)
         //完成渲染录制
         commandBuffer.EndRendering();
         commandBuffer.EndRecording();
-        
+
         //完成呈现
         presentCommandBuffer->ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
         Graphics::EndPresent(*presentCommandBuffer);

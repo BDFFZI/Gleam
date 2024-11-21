@@ -23,6 +23,10 @@ void main()
             return;
         }
 
+        GLCommandBuffer* presentCommandBuffer;
+        if (Graphics::BeginPresent(&presentCommandBuffer) == false)
+            return;
+
         CommandBuffer& commandBuffer = Graphics::ApplyCommandBuffer();
         commandBuffer.BeginRecording();
         commandBuffer.BeginRendering(Graphics::GetPresentRenderTarget(), true);
@@ -33,8 +37,11 @@ void main()
 
         commandBuffer.EndRendering();
         commandBuffer.EndRecording();
-        Graphics::Present(commandBuffer);
+
+        presentCommandBuffer->ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
+        Graphics::EndPresent(*presentCommandBuffer);
         Graphics::WaitPresent();
+
         Graphics::ReleaseCommandBuffer(commandBuffer);
     });
     Window::Start();

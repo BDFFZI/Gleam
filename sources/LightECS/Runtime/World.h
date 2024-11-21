@@ -30,6 +30,18 @@ struct SystemInfo
     }
 };
 
+template <class TComponent>
+concept ComponentType = std::is_same_v<TComponent, std::remove_pointer_t<TComponent>>;
+
+template <class TSystem>
+concept SystemType = requires()
+{
+    TSystem::Order;
+    TSystem::Start;
+    TSystem::Update;
+    TSystem::Stop;
+};
+
 class World
 {
 public:
@@ -42,18 +54,18 @@ public:
     }
 
     static Entity AddEntity(const Archetype& archetype);
-    template <class... TComponents>
+    template <ComponentType... TComponents>
     static Entity AddEntity(const Archetype& archetype, const TComponents&... components)
     {
         Entity entity = AddEntity(archetype);
-        SetComponents(entity, components...);
+        PasteComponents(entity, components...);
         return entity;
     }
     static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
     static void MoveEntity(Entity entity, const Archetype& newArchetype);
     static void RemoveEntity(Entity entity);
 
-    template <class TSystem>
+    template <SystemType TSystem>
     static void AddSystem()
     {
         SystemInfo systemInfo;
@@ -65,7 +77,7 @@ public:
         systemStartQueue.insert(systemInfo);
         // std::cout << systemInfo.type.name() << '\t' << systemInfo.order << '\n' << std::flush;
     }
-    template <class TSystem>
+    template <SystemType TSystem>
     static void RemoveSystem()
     {
         SystemInfo key;
@@ -84,23 +96,30 @@ public:
         entities.insert({&archetype, Heap(archetype.size)});
         return entities.at(&archetype);
     }
-    template <class TComponent>
+    template <ComponentType TComponent>
     static TComponent& GetComponent(const Entity entity)
     {
-        assert(entityInfos.contains(entity), "实体不存在！");
+        assert(entityInfos.contains(entity) && "实体不存在！");
         EntityInfo& entityInfo = entityInfos.at(entity);
         int offset = entityInfo.archetype->GetOffset(typeid(TComponent));
         return *reinterpret_cast<TComponent*>(entityInfo.components + offset);
     }
-    template <class... TComponents>
-    static void GetComponents(const Entity entity, TComponents*... outComponents)
+    template <ComponentType... TComponents>
+    static void GetComponents(const Entity entity, TComponents**... outComponents)
+    {
+        EntityInfo& entityInfo = entityInfos.at(entity);
+        const Archetype& archetype = *entityInfo.archetype;
+        ((*outComponents = reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetOffset(typeid(TComponents)))), ...);
+    }
+    template <ComponentType... TComponents>
+    static void CopyComponents(const Entity entity, TComponents*... outComponents)
     {
         EntityInfo& entityInfo = entityInfos.at(entity);
         const Archetype& archetype = *entityInfo.archetype;
         ((*outComponents = *reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetOffset(typeid(TComponents)))), ...);
     }
-    template <class... TComponents>
-    static void SetComponents(const Entity entity, const TComponents&... outComponents)
+    template <ComponentType... TComponents>
+    static void PasteComponents(const Entity entity, const TComponents&... outComponents)
     {
         EntityInfo& entityInfo = entityInfos.at(entity);
         const Archetype& archetype = *entityInfo.archetype;

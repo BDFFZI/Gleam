@@ -24,14 +24,16 @@ struct MassPointPhysics
     float2 force;
     float2 velocity;
     float mass = 1;
+    float drag = 0.99f;
 };
 
 struct SpringPhysics
 {
     Entity pointA = Entity::Null;
     Entity pointB = Entity::Null;
-    float length = 5;
+    float length = 20;
     float elasticity = 200;
+    float resistance = 2;
 };
 
 MakeArchetype(massPointArchetype, Point, Renderer, MassPointPhysics)
