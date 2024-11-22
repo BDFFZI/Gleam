@@ -20,10 +20,10 @@ inline int main()
 {
     using namespace std;
     cout << "Hello Light" << '\n';
-    
+
     using namespace Light;
     Engine::Initialize();
     Engine::Begin();
-    
+
     return 0;
 }
