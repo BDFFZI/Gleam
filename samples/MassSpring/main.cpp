@@ -1,4 +1,6 @@
 #include "Component.hpp"
+#include "Editor/HierarchyWindow.h"
+#include "Editor/InspectorWindow.h"
 #include "LightECS/Runtime/World.h"
 #include "LightGL/Runtime/GL.h"
 #include "LightGraphics/Runtime/Graphics.h"
@@ -31,6 +33,8 @@ int main()
         World::AddSystem<EndPhysicsSystem>();
         World::AddSystem<RenderingSystem>();
         World::AddSystem<LogicSystem>();
+        World::AddSystem<HierarchyWindow>();
+        World::AddSystem<InspectorWindow>();
 
         Entity entities[5][5];
         constexpr int length = 4;

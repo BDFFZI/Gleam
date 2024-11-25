@@ -33,15 +33,14 @@ void Light::LogicSystem::Update()
 
     if (Input::GetMouseButtonDown(MouseButton::Left))
     {
-        if (captivePoint != Entity::Null)
-            captivePoint = Entity::Null;
-        else
-            View<Point>::Each([](const Entity entity, const Point& point)
-            {
-                if (distance(point.position, mousePositionWS) < 1)
-                    captivePoint = entity;
-            });
+        View<Point>::Each([](const Entity entity, const Point& point)
+        {
+            if (distance(point.position, mousePositionWS) < 1)
+                captivePoint = entity;
+        });
     }
+    if (Input::GetMouseButtonUp(MouseButton::Left))
+        captivePoint = Entity::Null;
 
     if (captivePoint != Entity::Null)
         World::GetComponent<Point>(captivePoint).position = mousePositionWS;

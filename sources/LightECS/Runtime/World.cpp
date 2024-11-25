@@ -2,6 +2,10 @@
 
 #include <ranges>
 
+EntityInfo World::GetEntityInfo(const Entity entity)
+{
+    return entityInfos.at(entity);
+}
 Entity World::AddEntity(const Archetype& archetype)
 {
     Heap& heap = GetEntities(archetype);

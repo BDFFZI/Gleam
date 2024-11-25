@@ -52,6 +52,7 @@ public:
             return nullptr;
         return &iterator->second;
     }
+    static EntityInfo GetEntityInfo(Entity entity);
 
     static Entity AddEntity(const Archetype& archetype);
     template <ComponentType... TComponents>
@@ -130,6 +131,7 @@ public:
     static void Clear();
 
 private:
+    friend struct HierarchyWindow;
     inline static uint32_t nextEntity = 1;
     inline static std::unordered_map<const Archetype*, Heap> entities = {};
     inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
