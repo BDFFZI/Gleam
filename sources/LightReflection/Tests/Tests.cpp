@@ -1,30 +1,50 @@
-﻿#include <typeindex>
+﻿#include <iostream>
+#include <ostream>
+#include <string>
+#include <typeindex>
 
 #include "LightMath/Runtime/Vector.hpp"
 class Transferrer
 {
 public:
     virtual ~Transferrer() = default;
+
     template <class TField>
     void TransferField(const char* name, TField& value)
     {
-        TransferField(name, value, typeid(TField));
+        PushPath(name);
+        TransferValue(value);
+        PopPath();
     }
-    void TransferField(const char* name, int& value)
-    
-    virtual void TransferValue(void& value, std::type_index type) = 0;
-    virtual void TransferBool(bool& value) = 0;
-    virtual void TransferChar(bool& value) = 0;
-    virtual void TransferInt(bool& value) = 0;
-    virtual void TransferFloat(bool& value) = 0;
+    template <class TField>
+    void TransferValue(TField& value)
+    {
+        TransferValue(&value, typeid(TField));
+    }
 
-    virtual void PushPath() = 0;
-    virtual void PopPath() = 0;
+    virtual void TransferValue(void* value, std::type_index type) = 0;
+    virtual void PushPath(const char* path)
+    {
+    }
+    virtual void PopPath()
+    {
+    }
 };
-class PrintTransmitter : public Transferrer
+class PrintTransferrer : public Transferrer
 {
 public:
-    void TransferField(const char* name, void& value, std::type_index type) override;
+    void TransferValue(void* value, const std::type_index type) override
+    {
+        if(type == typeid(float))
+        {
+            TransferFloat(*static_cast<float*>(value));
+        }
+
+    }
+    void TransferFloat(float& value)
+    {
+        std::cout << value << " ";
+    }
 };
 
 struct Data
@@ -40,4 +60,10 @@ struct Data
 void main()
 {
     Data data = {};
+
+    PrintTransferrer transferrer;
+    transferrer.TransferField("boolValue", data.boolValue);
+    transferrer.TransferField("charValue", data.charValue);
+    transferrer.TransferField("intValue", data.intValue);
+    transferrer.TransferField("floatValue", data.floatValue);
 }
