@@ -1,69 +1,76 @@
-﻿#include <iostream>
+﻿#include <deque>
+#include <fstream>
+#include <iostream>
 #include <ostream>
+#include <sstream>
 #include <string>
 #include <typeindex>
+#include <gtest/gtest.h>
 
+#include "LightMath/Runtime/VectorMath.hpp"
 #include "LightMath/Runtime/Vector.hpp"
-class Transferrer
-{
-public:
-    virtual ~Transferrer() = default;
+#include "LightReflection/Runtime/Serialization/BinaryReader.h"
+#include "LightReflection/Runtime/Serialization/BinaryWriter.h"
 
-    template <class TField>
-    void TransferField(const char* name, TField& value)
-    {
-        PushPath(name);
-        TransferValue(value);
-        PopPath();
-    }
-    template <class TField>
-    void TransferValue(TField& value)
-    {
-        TransferValue(&value, typeid(TField));
-    }
-
-    virtual void TransferValue(void* value, std::type_index type) = 0;
-    virtual void PushPath(const char* path)
-    {
-    }
-    virtual void PopPath()
-    {
-    }
-};
-class PrintTransferrer : public Transferrer
-{
-public:
-    void TransferValue(void* value, const std::type_index type) override
-    {
-        if(type == typeid(float))
-        {
-            TransferFloat(*static_cast<float*>(value));
-        }
-
-    }
-    void TransferFloat(float& value)
-    {
-        std::cout << value << " ";
-    }
-};
+using namespace Light;
 
 struct Data
 {
-    bool boolValue = true;
-    char charValue = 'A';
-    int intValue = 1;
-    float floatValue = 0.5f;
-    float3 float3Value = {1, 2, 3};
-    std::vector<bool> boolVectorValue = {false, true};
+    bool boolValue;
+    char charValue;
+    int intValue;
+    float floatValue;
+    std::string stringValue;
+    std::vector<bool> vectorValue;
+    float3 customValue;
+
+    friend bool operator==(const Data& lhs, const Data& rhs)
+    {
+        return lhs.boolValue == rhs.boolValue
+            && lhs.charValue == rhs.charValue
+            && lhs.intValue == rhs.intValue
+            && abs(lhs.floatValue - rhs.floatValue) < std::numeric_limits<float>::epsilon()
+            && lhs.stringValue == rhs.stringValue
+            && lhs.vectorValue == rhs.vectorValue
+            && all(lhs.customValue == rhs.customValue);
+    }
 };
 
-void main()
+template <class Type, int Number>
+struct ValueTransferrer<vector<Type, Number>>
 {
-    Data data = {};
+    static void TransferValue(Transferrer& transferrer, vector<Type, Number>& value)
+    {
+        for (int i = 0; i < Number; i++)
+            transferrer.TransferValue(value.data[i]);
+    }
+};
 
-    PrintTransferrer transferrer;
-    transferrer.TransferField("boolValue", data.boolValue);
-    transferrer.TransferField("charValue", data.charValue);
-    transferrer.TransferField("intValue", data.intValue);
-    transferrer.TransferField("floatValue", data.floatValue);
+TEST(Reflection, Data)
+{
+    std::ofstream outStream("test.bin", std::ios::binary);
+    BinaryWriter binaryWriter = {outStream};
+    Data oldData = {true, 'A', 1, 0.5f, "Hello World!", {false, true}, {1, 2, 3}};
+    binaryWriter.TransferField("boolValue", oldData.boolValue);
+    binaryWriter.TransferField("charValue", oldData.charValue);
+    binaryWriter.TransferField("intValue", oldData.intValue);
+    binaryWriter.TransferField("floatValue", oldData.floatValue);
+    binaryWriter.TransferField("stringValue", oldData.stringValue);
+    binaryWriter.TransferField("vectorValue", oldData.vectorValue);
+    binaryWriter.TransferField("customValue", oldData.customValue);
+    outStream.close();
+
+    std::ifstream inStream("test.bin", std::ios::binary);
+    BinaryReader binaryReader = {inStream};
+    Data newData = {};
+    binaryReader.TransferField("boolValue", newData.boolValue);
+    binaryReader.TransferField("charValue", newData.charValue);
+    binaryReader.TransferField("intValue", newData.intValue);
+    binaryReader.TransferField("floatValue", newData.floatValue);
+    binaryReader.TransferField("stringValue", newData.stringValue);
+    binaryReader.TransferField("vectorValue", newData.vectorValue);
+    binaryReader.TransferField("customValue", newData.customValue);
+    inStream.close();
+    
+    ASSERT_EQ(newData, oldData);
 }
