@@ -1,16 +1,16 @@
 #pragma once
 #include <istream>
 
-#include "Transferrer.hpp"
+#include "Serializer.hpp"
 
 namespace Light
 {
-    class   BinaryReader : public Transferrer
+    class BinaryReader : public Serializer
     {
     public:
         BinaryReader(std::basic_istream<char>& stream);
 
-        void TransferValue(void* value, std::type_index type) override;
+        void Transfer(void* value, std::type_index type) override;
 
         template <class TValue>
         void Read(TValue& value)

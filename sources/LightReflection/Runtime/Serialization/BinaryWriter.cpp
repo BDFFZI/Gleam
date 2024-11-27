@@ -6,7 +6,7 @@ namespace Light
     {
     }
 
-    void BinaryWriter::TransferValue(void* value, const std::type_index type)
+    void BinaryWriter::Transfer(void* value, const std::type_index type)
     {
 #define MakeTransfer(valueType) if (type == typeid(valueType)){Write(*static_cast<valueType##*>(value));return;}
         MakeTransfer(float)

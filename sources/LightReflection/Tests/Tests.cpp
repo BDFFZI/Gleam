@@ -9,6 +9,7 @@
 
 #include "LightMath/Runtime/VectorMath.hpp"
 #include "LightMath/Runtime/Vector.hpp"
+#include "LightReflection/Runtime/Type.h"
 #include "LightReflection/Runtime/Serialization/BinaryReader.h"
 #include "LightReflection/Runtime/Serialization/BinaryWriter.h"
 
@@ -37,16 +38,16 @@ struct Data
 };
 
 template <class Type, int Number>
-struct ValueTransferrer<vector<Type, Number>>
+struct SerializerOperator<vector<Type, Number>>
 {
-    static void TransferValue(Transferrer& transferrer, vector<Type, Number>& value)
+    static void TransferValue(Serializer& transferrer, vector<Type, Number>& value)
     {
         for (int i = 0; i < Number; i++)
-            transferrer.TransferValue(value.data[i]);
+            transferrer.Transfer(value.data[i]);
     }
 };
 
-TEST(Reflection, Data)
+TEST(Reflection, BinaryTransferrer)
 {
     std::ofstream outStream("test.bin", std::ios::binary);
     BinaryWriter binaryWriter = {outStream};
@@ -71,6 +72,30 @@ TEST(Reflection, Data)
     binaryReader.TransferField("vectorValue", newData.vectorValue);
     binaryReader.TransferField("customValue", newData.customValue);
     inStream.close();
-    
+
     ASSERT_EQ(newData, oldData);
+}
+
+struct UserData
+{
+    float value;
+};
+
+// MakeType("C4BAB34E-B145-4297-8BA3-6DD1BD05110D", UserData)
+// {
+//     MakeType_AddField(value);
+// }
+
+template <TSerializer Serializer,class T>
+void TypeOperator<UserData>::Serialize(Serializer& serializer, UserData& value)
+{
+    MakeType_AddField(value);
+}
+
+TEST(Reflection, Type)
+{
+    // uuids::uuid uuid = uuids::uuid::from_string("C4BAB34E-B145-4297-8BA3-6DD1BD05110D").value();
+    // Type* type = Type::uuidToType[uuid];
+    //
+    // std::cout << type->info->name() << std::endl;
 }

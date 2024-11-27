@@ -6,7 +6,7 @@ namespace Light
         : stream(&stream)
     {
     }
-    void BinaryReader::TransferValue(void* value, const std::type_index type)
+    void BinaryReader::Transfer(void* value, const std::type_index type)
     {
 #define MakeTransfer(valueType) if (type == typeid(valueType)){Read(*static_cast<valueType##*>(value));return;}
         MakeTransfer(float)
