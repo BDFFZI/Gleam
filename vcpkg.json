@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "dependencies": [
     "gtest",
     "benchmark",
@@ -8,6 +9,7 @@
     "shaderc",
     "stb",
     "tinyobjloader",
+    "stduuid",
     {
       "name": "imgui",
       "features": [
