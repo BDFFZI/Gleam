@@ -38,9 +38,9 @@ struct Data
 };
 
 template <class Type, int Number>
-struct SerializerOperator<vector<Type, Number>>
+struct SerializerTransfer<vector<Type, Number>>
 {
-    static void TransferValue(Serializer& transferrer, vector<Type, Number>& value)
+    static void Invoke(Serializer& transferrer, vector<Type, Number>& value)
     {
         for (int i = 0; i < Number; i++)
             transferrer.Transfer(value.data[i]);
@@ -81,21 +81,15 @@ struct UserData
     float value;
 };
 
-// MakeType("C4BAB34E-B145-4297-8BA3-6DD1BD05110D", UserData)
-// {
-//     MakeType_AddField(value);
-// }
-
-template <TSerializer Serializer,class T>
-void TypeOperator<UserData>::Serialize(Serializer& serializer, UserData& value)
+MakeType("C4BAB34E-B145-4297-8BA3-6DD1BD05110D", UserData)
 {
     MakeType_AddField(value);
 }
 
 TEST(Reflection, Type)
 {
-    // uuids::uuid uuid = uuids::uuid::from_string("C4BAB34E-B145-4297-8BA3-6DD1BD05110D").value();
-    // Type* type = Type::uuidToType[uuid];
-    //
-    // std::cout << type->info->name() << std::endl;
+    uuids::uuid uuid = uuids::uuid::from_string("C4BAB34E-B145-4297-8BA3-6DD1BD05110D").value();
+    Type* type = Type::uuidToType[uuid];
+
+    std::cout << type->info->name() << std::endl;
 }

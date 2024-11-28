@@ -10,26 +10,30 @@
 
 namespace Light
 {
-    template <class Serializer>
-    concept TSerializer = requires(Serializer& serializer, void* value) { serializer.TransferField("value", value); };
-
     template <typename T>
-    struct TypeOperator
+    struct TypeConstruct
     {
-        static void Construct(void* address)
+        static void Invoke(void* address)
         {
             new(address) T();
         }
-        template <TSerializer Serializer>
-        static void Serialize(Serializer& serializer, T& value)
+    };
+
+    template <class TTransferrer>
+    concept Transferable = requires(TTransferrer& transferrer, void* value) { transferrer.TransferField("value", value); };
+
+    template <typename T,Transferable TTransferrer>
+    struct TypeTransfer
+    {
+        static void Invoke(TTransferrer& transferrer, T& value)
         {
         }
     };
 
     struct Type
     {
-        using Constructor = void (*)(void* address);
-        using Serializer = void (*)(Serializer&, void*);
+        using Construct = void (*)(void* address);
+        using Serialize = void (*)(Serializer&, void*);
 
         inline static std::vector<std::unique_ptr<Type>> allTypes = {};
         inline static std::unordered_map<uuids::uuid, Type*> uuidToType = {};
@@ -44,32 +48,35 @@ namespace Light
             else
                 throw std::invalid_argument("UUID字符串无效！");
 
-            std::unique_ptr<Type>& type = allTypes.emplace_back();
+            std::unique_ptr<Type>& type = allTypes.emplace_back(new Type());
             uuidToType.insert({uuid, type.get()});
             indexToType.insert({typeid(T), type.get()});
 
             type->uuid = uuid;
-            type->info = typeid(T);
+            type->info = &typeid(T);
             type->size = sizeof(T);
-            type->constructor = TypeOperator<T>::Construct;
-            type->serializer = [](Serializer& transferrer, void* ptr) { TypeOperator<T>::Serialize(transferrer, *static_cast<T*>(ptr)); };
-            type->deserializer = type->serializer;
+            type->construct = TypeConstruct<T>::Invoke;
+            type->serialize = [](Serializer& serializer, void* ptr) { TypeTransfer<T, Serializer>::Invoke(serializer, *static_cast<T*>(ptr)); };
+            type->deserialize = type->serialize;
             return type.get();
         }
 
         uuids::uuid uuid;
-        std::type_info* info = nullptr;
+        const type_info* info = nullptr;
         size_t size = 0;
-        Constructor constructor = nullptr;
-        Serializer serializer = nullptr;
-        Serializer deserializer = nullptr;
+        Construct construct = nullptr;
+        Serialize serialize = nullptr;
+        Serialize deserialize = nullptr;
         std::vector<int> fieldOffsets;
         std::vector<std::type_index> fieldTypes;
     };
 
-#define MakeType_AddField(field) serializer.TransferField(#field, value.field)
+#define MakeType_AddField(field) transferrer.TransferField(#field, value.field)
 #define MakeType(uuidStr,type,...)\
-Light::Type* type##Type = Light::Type::Register<type>(uuidStr);\
-template <class TSerializer>\
-void TypeOperator<type>::Serialize(TSerializer& serializer, type& value)
+    Light::Type* type##Type = Light::Type::Register<type>(uuidStr);\
+    template <Transferable TTransferrer>\
+    struct Light::TypeTransfer<type, TTransferrer>\
+    {static void Invoke(TTransferrer& transferrer, type& value);};\
+    template <Transferable TTransferrer>\
+    void Light::TypeTransfer<type,TTransferrer>::Invoke(TTransferrer& transferrer, type& value)
 }

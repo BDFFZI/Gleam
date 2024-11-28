@@ -6,9 +6,9 @@ namespace Light
 {
     class Serializer;
     template <class TValue>
-    struct SerializerOperator
+    struct SerializerTransfer
     {
-        static void Transfer(Serializer& serializer, TValue& value);
+        static void Invoke(Serializer& serializer, TValue& value);
     };
 
     class Serializer
@@ -26,7 +26,7 @@ namespace Light
         template <class TValue>
         void Transfer(TValue& value)
         {
-            SerializerOperator<TValue>::Transfer(*this, value);
+            SerializerTransfer<TValue>::Invoke(*this, value);
         }
 
         virtual void Transfer(void* value, std::type_index type) = 0;
@@ -39,16 +39,16 @@ namespace Light
     };
 
     template <class TValue>
-    void SerializerOperator<TValue>::Transfer(Serializer& serializer, TValue& value)
+    void SerializerTransfer<TValue>::Invoke(Serializer& serializer, TValue& value)
     {
         serializer.Transfer(&value, typeid(TValue));
     }
 
     template <class TContainer>
         requires requires(TContainer container) { container.resize(0);std::size(container);std::begin(container);std::end(container); }
-    struct SerializerOperator<TContainer>
+    struct SerializerTransfer<TContainer>
     {
-        static void Transfer(Serializer& serializer, TContainer& value)
+        static void Invoke(Serializer& serializer, TContainer& value)
         {
             int size = static_cast<int>(std::size(value));
             serializer.TransferField("size", size);
@@ -61,9 +61,9 @@ namespace Light
         }
     };
     template <>
-    struct SerializerOperator<std::vector<bool>>
+    struct SerializerTransfer<std::vector<bool>>
     {
-        static void Transfer(Serializer& serializer, std::vector<bool>& value)
+        static void Invoke(Serializer& serializer, std::vector<bool>& value)
         {
             int size = static_cast<int>(std::size(value));
             serializer.TransferField("size", size);
@@ -80,17 +80,17 @@ namespace Light
         }
     };
     template <>
-    struct SerializerOperator<std::vector<std::byte>>
+    struct SerializerTransfer<std::vector<std::byte>>
     {
-        static void Transfer(Serializer& serializer, std::vector<std::byte>& value)
+        static void Invoke(Serializer& serializer, std::vector<std::byte>& value)
         {
             serializer.Transfer(&value, typeid(std::vector<std::byte>));
         }
     };
     template <>
-    struct SerializerOperator<std::string>
+    struct SerializerTransfer<std::string>
     {
-        static void Transfer(Serializer& serializer, std::string& value)
+        static void Invoke(Serializer& serializer, std::string& value)
         {
             serializer.Transfer(&value, typeid(std::string));
         }
