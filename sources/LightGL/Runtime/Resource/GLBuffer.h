@@ -30,7 +30,7 @@ public:
     * @param data 
     * @return 
     */
-    GLBuffer(int size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, const void* data);
+    GLBuffer(size_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, const void* data);
     GLBuffer(const GLBuffer&) = delete;
     ~GLBuffer();
 

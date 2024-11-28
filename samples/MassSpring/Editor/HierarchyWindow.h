@@ -1,8 +1,11 @@
 #pragma once
 #include "../Systems/UISystem.h"
-#include "LightECS/Runtime/System.hpp"
+#include "LightECS/Runtime/_Template.hpp"
 
-struct HierarchyWindow : System<UISystemGroup>
+namespace Light
 {
-    static void Update();
-};
+    struct HierarchyWindow : SystemT<UISystemGroup>
+    {
+        static void Update();
+    };
+}

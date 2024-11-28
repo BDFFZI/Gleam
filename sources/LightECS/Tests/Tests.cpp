@@ -6,8 +6,10 @@
 #include "LightECS/Runtime/Archetype.hpp"
 #include "LightECS/Runtime/World.h"
 #include "LightECS/Runtime/Heap.h"
-#include "LightECS/Runtime/System.hpp"
+#include "LightECS/Runtime/_Template.hpp"
 #include "LightECS/Runtime/View.hpp"
+
+using namespace Light;
 
 struct Transform
 {
@@ -15,7 +17,7 @@ struct Transform
 
     friend bool operator==(const Transform& lhs, const Transform& rhs)
     {
-        return lhs.position == rhs.position;
+        return abs(lhs.position - rhs.position) < std::numeric_limits<float>::epsilon();
     }
 };
 
@@ -27,9 +29,9 @@ struct RigidBody
 
     friend bool operator==(const RigidBody& lhs, const RigidBody& rhs)
     {
-        return lhs.force == rhs.force
-            && lhs.mass == rhs.mass
-            && lhs.velocity == rhs.velocity;
+        return abs(lhs.force - rhs.force) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.mass - rhs.mass) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.velocity - rhs.velocity) < std::numeric_limits<float>::epsilon();
     }
 };
 
@@ -41,9 +43,9 @@ struct SpringPhysics
 
     friend bool operator==(const SpringPhysics& lhs, const SpringPhysics& rhs)
     {
-        return lhs.pinPosition == rhs.pinPosition
-            && lhs.length == rhs.length
-            && lhs.elasticity == rhs.elasticity;
+        return abs(lhs.pinPosition - rhs.pinPosition) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.length - rhs.length) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.elasticity - rhs.elasticity) < std::numeric_limits<float>::epsilon();
     }
 };
 
@@ -105,7 +107,7 @@ TEST(ECS, HeapBenchmark)
             for (size_t i = 0; i < container.size(); i++)
             {
                 if (i % 2 == 0)
-                    container.erase(container.begin() + i);
+                    container.erase(container.begin() + static_cast<int64_t>(i));
             }
         }
     });
@@ -192,7 +194,7 @@ TEST(ECS, World)
     ASSERT_EQ(World::GetComponent<Transform>(entities[0]), Transform{3});
 }
 
-struct PhysicsSystem : System<MinSystemOrder, MaxSystemOrder>
+struct PhysicsSystem : SystemT<SystemMinOrder, SystemMaxOrder>
 {
     //质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
     inline static float DeltaTime = 0.02f;

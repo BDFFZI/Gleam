@@ -6,10 +6,11 @@
 #include <string>
 #include <typeindex>
 #include <gtest/gtest.h>
+#include <ranges>
 
 #include "LightMath/Runtime/VectorMath.hpp"
 #include "LightMath/Runtime/Vector.hpp"
-#include "LightReflection/Runtime/Type.h"
+#include "LightReflection/Runtime/Type.hpp"
 #include "LightReflection/Runtime/Serialization/BinaryReader.h"
 #include "LightReflection/Runtime/Serialization/BinaryWriter.h"
 
@@ -76,14 +77,15 @@ TEST(Reflection, BinaryTransferrer)
     ASSERT_EQ(newData, oldData);
 }
 
-struct UserData
+MakeType("C4BAB34E-B145-4297-8BA3-6DD1BD05110D", Data)
 {
-    float value;
-};
-
-MakeType("C4BAB34E-B145-4297-8BA3-6DD1BD05110D", UserData)
-{
-    MakeType_AddField(value);
+    MakeType_AddField(boolValue);
+    MakeType_AddField(charValue);
+    MakeType_AddField(intValue);
+    MakeType_AddField(floatValue);
+    MakeType_AddField(stringValue);
+    MakeType_AddField(vectorValue);
+    MakeType_AddField(customValue);
 }
 
 TEST(Reflection, Type)
@@ -91,5 +93,12 @@ TEST(Reflection, Type)
     uuids::uuid uuid = uuids::uuid::from_string("C4BAB34E-B145-4297-8BA3-6DD1BD05110D").value();
     Type* type = Type::uuidToType[uuid];
 
-    std::cout << type->info->name() << std::endl;
+    std::cout << type->info->name() << '\n';
+    for (auto& fieldInfo : type->fieldInfos)
+    {
+        std::cout << fieldInfo.name << '\t';
+        std::cout << fieldInfo.type.name() << '\t';
+        std::cout << fieldInfo.offset << '\t';
+        std::cout << fieldInfo.size << '\n';
+    }
 }

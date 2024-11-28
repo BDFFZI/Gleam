@@ -1,7 +1,7 @@
 #pragma once
 
 #include "PresentationSystem.h"
-#include "LightECS/Runtime/System.hpp"
+#include "LightECS/Runtime/_Template.hpp"
 
 namespace Light
 {
@@ -28,11 +28,11 @@ namespace Light
         inline static std::list<Function> fixedUpdates = {};
     };
 
-    struct BeginPhysicsSystem : System<MinSystemOrder, BeginPresentationSystem>
+    struct BeginPhysicsSystem : SystemT<SystemMinOrder, BeginPresentationSystem::Order>
     {
     };
 
-    struct EndPhysicsSystem : System<BeginPhysicsSystem, BeginPresentationSystem>
+    struct EndPhysicsSystem : SystemT<BeginPhysicsSystem::Order, BeginPresentationSystem::Order>
     {
         static void Update();
 

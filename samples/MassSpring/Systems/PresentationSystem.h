@@ -1,5 +1,5 @@
 #pragma once
-#include "LightECS/Runtime/System.hpp"
+#include "LightECS/Runtime/_Template.hpp"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 #include "LightGraphics/Runtime/CommandBuffer.h"
 
@@ -38,17 +38,17 @@ namespace Light
         inline static CommandBuffer* commandBuffer = nullptr;
     };
 
-    struct BeginPresentationSystem : System<MinSystemOrder, MaxSystemOrder>
+    struct BeginPresentationSystem : SystemT<SystemMinOrder, SystemMaxOrder>
     {
         static void Start();
         static void Stop();
         static void Update();
     };
 
-    struct EndPresentationSystem : System<BeginPresentationSystem, MaxSystemOrder>
+    struct EndPresentationSystem : SystemT<BeginPresentationSystem::Order, SystemMaxOrder>
     {
         static void Update();
     };
 
-#define PresentationSystemGroup Light::BeginPresentationSystem,Light::EndPresentationSystem
+#define PresentationSystemGroup Light::BeginPresentationSystem::Order,Light::EndPresentationSystem::Order
 }

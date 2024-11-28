@@ -1,6 +1,6 @@
 #pragma once
 #include "PresentationSystem.h"
-#include "LightECS/Runtime/System.hpp"
+#include "LightECS/Runtime/_Template.hpp"
 #include "LightGraphics/Runtime/Material.h"
 #include "LightGraphics/Runtime/Mesh.h"
 #include "LightGraphics/Runtime/Shader.h"
@@ -16,7 +16,7 @@ namespace Light
         static float2 ScreenToWorldPoint(const float2& positionSS);
     };
 
-    struct RenderingSystem : System<PresentationSystemGroup>
+    struct RenderingSystem : SystemT<PresentationSystemGroup>
     {
         static void Start();
         static void Stop();

@@ -1,12 +1,15 @@
 #pragma once
 #include "../Systems/UISystem.h"
-#include "LightECS/Runtime/System.hpp"
+#include "LightECS/Runtime/_Concept.hpp"
+#include "LightECS/Runtime/_Template.hpp"
+#include "LightReflection/Runtime/Serialization/Serializer.hpp"
 
-struct InspectorWindow : System<UISystemGroup>
+namespace Light
 {
-    inline static void* inspectingTarget = nullptr;
-    inline static void (*inspectingMethod)() = nullptr;
+    struct InspectorWindow : SystemT<UISystemGroup>
+    {
+        inline static Entity target;
 
-    static void Update();
-    static void InspectEntity();
-};
+        static void Update();
+    };
+}

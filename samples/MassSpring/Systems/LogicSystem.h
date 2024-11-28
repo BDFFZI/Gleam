@@ -1,11 +1,11 @@
 #pragma once
 #include "UISystem.h"
-#include "LightECS/Runtime/Entity.hpp"
-#include "LightECS/Runtime/System.hpp"
+#include "LightECS/Runtime/_Concept.hpp"
+#include "LightECS/Runtime/_Template.hpp"
 
 namespace Light
 {
-    struct LogicSystem : System<UISystemGroup>
+    struct LogicSystem : SystemT<UISystemGroup>
     {
         inline static Entity captivePoint = Entity::Null;
         inline static float2 mousePositionWS = 0;

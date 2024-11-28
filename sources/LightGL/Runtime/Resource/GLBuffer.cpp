@@ -52,7 +52,7 @@ GLBuffer::GLBuffer(const size_t size, const VkBufferUsageFlags usage, const VkMe
     //绑定内存与缓冲区
     vkBindBufferMemory(GL::glDevice->device, buffer, bufferMemory, 0);
 }
-GLBuffer::GLBuffer(const int size, const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties, const void* data)
+GLBuffer::GLBuffer(const size_t size, const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties, const void* data)
     : GLBuffer(size, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, properties)
 {
     CopyFrom(data);

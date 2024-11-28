@@ -1,6 +1,9 @@
 #pragma once
 #include <typeindex>
 #include <vector>
+#include <string>
+
+#include "LightReflection/Runtime/Concept.hpp"
 
 namespace Light
 {
@@ -17,7 +20,7 @@ namespace Light
         virtual ~Serializer() = default;
 
         template <class TValue>
-        void TransferField(const std::string_view name, TValue& value)
+        void TransferField(const char* name, TValue& value)
         {
             PushPath(name);
             Transfer(value);
@@ -30,13 +33,14 @@ namespace Light
         }
 
         virtual void Transfer(void* value, std::type_index type) = 0;
-        virtual void PushPath(const std::string_view name)
+        virtual void PushPath(const char* name)
         {
         }
         virtual void PopPath()
         {
         }
     };
+    static_assert(Transferrer<Serializer>);
 
     template <class TValue>
     void SerializerTransfer<TValue>::Invoke(Serializer& serializer, TValue& value)

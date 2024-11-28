@@ -8,6 +8,7 @@
 #include "LightWindow/Runtime/Window.h"
 #include "LightECS/Runtime/View.hpp"
 #include "../Component.hpp"
+#include "../Editor/InspectorWindow.h"
 #include "LightWindow/Runtime/Time.h"
 
 
@@ -36,7 +37,10 @@ void Light::LogicSystem::Update()
         View<Point>::Each([](const Entity entity, const Point& point)
         {
             if (distance(point.position, mousePositionWS) < 1)
+            {
                 captivePoint = entity;
+                InspectorWindow::target = entity;
+            }
         });
     }
     if (Input::GetMouseButtonUp(MouseButton::Left))

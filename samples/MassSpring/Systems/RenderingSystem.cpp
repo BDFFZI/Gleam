@@ -1,13 +1,9 @@
 #include "RenderingSystem.h"
-
-#include <imgui.h>
-
 #include "LogicSystem.h"
 #include "LightECS/Runtime/View.hpp"
 #include "../Component.hpp"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightWindow/Runtime/Input.h"
-#include "LightWindow/Runtime/Window.h"
 
 namespace Light
 {
@@ -73,14 +69,16 @@ namespace Light
 
         auto& commandBuffer = Presentation::GetCommandBuffer();
         commandBuffer.BeginRendering(Graphics::GetPresentRenderTarget(), true);
-        commandBuffer.SetViewProjectionMatrices(
-            float4x4::Identity(),
-            float4x4::Ortho(Rendering::GetOrthoHalfSize(), Rendering::GetOrthoHalfSize(), 0, 1)
-        );
-        if (!pointMesh->GetIndices().empty())
-            commandBuffer.Draw(*pointMesh, *pointMaterial);
-        if (!lineMesh->GetIndices().empty())
-            commandBuffer.Draw(*lineMesh, *lineMaterial);
+        {
+            commandBuffer.SetViewProjectionMatrices(
+                float4x4::Identity(),
+                float4x4::Ortho(Rendering::GetOrthoHalfSize(), Rendering::GetOrthoHalfSize(), 0, 1)
+            );
+            if (!lineMesh->GetIndices().empty())
+                commandBuffer.Draw(*lineMesh, *lineMaterial);
+            if (!pointMesh->GetIndices().empty())
+                commandBuffer.Draw(*pointMesh, *pointMaterial);
+        }
         commandBuffer.EndRendering();
     }
 }
