@@ -9,9 +9,17 @@ namespace Light
 {
     float2 Rendering::ScreenToWorldPoint(const float2& positionSS)
     {
+        float2 positionUV = {
+            positionSS.x / static_cast<float>(Graphics::GetPresentRenderTarget().width),
+            positionSS.y / static_cast<float>(Graphics::GetPresentRenderTarget().height)
+        };
+        float2 viewSizeWS = {
+            Graphics::GetPresentRenderTarget().GetAspectRatio() * GetOrthoSize(),
+            GetOrthoSize()
+        };
         float2 positionWS = {
-            (positionSS.x / static_cast<float>(Graphics::GetPresentRenderTarget().width) - 0.5f) * GetOrthoSize(),
-            (positionSS.y / static_cast<float>(Graphics::GetPresentRenderTarget().height) - 0.5f) * GetOrthoSize()
+            (positionUV.x - 0.5f) * viewSizeWS.x,
+            (positionUV.y - 0.5f) * viewSizeWS.y,
         };
         return positionWS;
     }
@@ -72,7 +80,9 @@ namespace Light
         {
             commandBuffer.SetViewProjectionMatrices(
                 float4x4::Identity(),
-                float4x4::Ortho(Rendering::GetOrthoHalfSize(), Rendering::GetOrthoHalfSize(), 0, 1)
+                float4x4::Ortho(
+                    Graphics::GetPresentRenderTarget().GetAspectRatio() * Rendering::GetOrthoHalfSize(),
+                    Rendering::GetOrthoHalfSize(), 0, 1)
             );
             if (!lineMesh->GetIndices().empty())
                 commandBuffer.Draw(*lineMesh, *lineMaterial);

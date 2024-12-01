@@ -53,7 +53,7 @@ void Graphics::WaitPresentable()
 bool Graphics::BeginPresent(GLCommandBuffer** outPresentCommandBuffer)
 {
     bool canPresent = true;
-
+    
     //获取交换链下次呈现使用的相关信息
     if (glSwapChain->SwitchImageAsync(
         &currentImageIndex, &currentBufferIndex,

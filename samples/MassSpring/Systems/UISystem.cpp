@@ -4,6 +4,7 @@
 void Light::BeginUISystem::Update()
 {
     UI::BeginFrame();
+    ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
 }
 void Light::EndUISystem::Update()
 {

@@ -96,5 +96,6 @@ namespace Light
         virtual const GLImageView& GetGLColorImageView() const = 0;
         virtual const GLImageView* GetGLDepthStencilImageView() const = 0;
         virtual const GLImageView* GetGLColorResolveImageView() const = 0;
+        float GetAspectRatio() const { return static_cast<float>(GetWidth()) / GetHeight(); }
     };
 }

@@ -13,7 +13,7 @@ Window Window::Initialize(const char* name, const int width, const int height, c
         throw std::exception("窗口初始化失败");
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    // glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindow = glfwCreateWindow(width, height, name, fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
     if (!glfwWindow)
     {
