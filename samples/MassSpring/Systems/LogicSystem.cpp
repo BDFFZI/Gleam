@@ -1,6 +1,7 @@
 #include "LogicSystem.h"
 
 #include <imgui.h>
+#include <magic_enum.hpp>
 
 #include "PhysicsSystem.h"
 #include "RenderingSystem.h"
@@ -8,59 +9,108 @@
 #include "LightWindow/Runtime/Window.h"
 #include "LightECS/Runtime/View.hpp"
 #include "../Component.hpp"
+#include "../Editor/EditorUIUtility.h"
 #include "../Editor/InspectorWindow.h"
 #include "LightWindow/Runtime/Time.h"
 
+using namespace Light;
 
-void Light::LogicSystem::Start()
+void LogicSystem::Start()
 {
     Physics::AddFixedUpdate(FixedUpdate);
 }
-void Light::LogicSystem::Stop()
+void LogicSystem::Stop()
 {
     Physics::RemoveFixedUpdate(FixedUpdate);
 }
-void Light::LogicSystem::Update()
+
+
+void LogicSystem::UpdateUI()
 {
-    if (Input::GetKeyDown(KeyCode::Esc))
+    const char* editModeOptions[] = {
+        magic_enum::enum_name(static_cast<EditMode>(0)).data(),
+        magic_enum::enum_name(static_cast<EditMode>(1)).data(),
+        magic_enum::enum_name(static_cast<EditMode>(2)).data(),
+        magic_enum::enum_name(static_cast<EditMode>(3)).data(),
+    };
+    ImGui::Combo("EditMode", reinterpret_cast<int*>(&editMode), editModeOptions, std::size(editModeOptions));
+
+    ImGui::Checkbox("Simulating", &simulating);
+    if (Input::GetKeyDown(KeyCode::Space))
+        simulating = true;
+    if (Input::GetKeyUp(KeyCode::Space))
+        simulating = false;
+
+    ImGui::Text("SelectingPoint");
+    ImGui::SameLine();
+    EditorUIUtility::DrawEntityButton(selectingPoint);
+
+    if (ImGui::Button("ExitGame"))
         Window::Stop();
-
-    if (Input::GetKey(KeyCode::Space))
-        Time::SetTimeScale(1);
-    else
-        Time::SetTimeScale(0);
-
-    mousePositionWS = Rendering::ScreenToWorldPoint(Input::GetMousePosition());
-
+}
+void LogicSystem::OnMovePoint()
+{
     if (Input::GetMouseButtonDown(MouseButton::Left))
     {
         View<Point>::Each([](const Entity entity, const Point& point)
         {
             if (distance(point.position, mousePositionWS) < 1)
             {
-                captivePoint = entity;
+                selectingPoint = entity;
                 InspectorWindow::target = entity;
             }
         });
     }
+
     if (Input::GetMouseButtonUp(MouseButton::Left))
-        captivePoint = Entity::Null;
+        selectingPoint = Entity::Null;
 
-    if (captivePoint != Entity::Null)
-        World::GetComponent<Point>(captivePoint).position = mousePositionWS;
-
-    ImGui::Text(std::format("MousePositionWS:{}", to_string(mousePositionWS)).c_str());
-    int entity = static_cast<int>(captivePoint);
-    ImGui::Text(std::format("CaptivePoint:{}", entity).c_str());
+    if (selectingPoint != Entity::Null)
+        World::GetComponent<Point>(selectingPoint).position = mousePositionWS;
 }
-void Light::LogicSystem::FixedUpdate()
+void LogicSystem::OnCreatePoint()
 {
-    if (captivePoint != Entity::Null)
+}
+void LogicSystem::OnDeletePoint()
+{
+}
+void LogicSystem::OnCreateSpring()
+{
+}
+
+void LogicSystem::Update()
+{
+    UpdateUI();
+
+    Time::SetTimeScale(simulating ? 1 : 0);
+
+    mousePositionWS = Rendering::ScreenToWorldPoint(Input::GetMousePosition());
+    switch (editMode)
     {
-        Point* point;
-        MassPointPhysics* massPointPhysics;
-        World::GetComponents(captivePoint, &point, &massPointPhysics);
-        massPointPhysics->force = 0;
-        massPointPhysics->velocity = 0;
+    case EditMode::MovePoint:
+        OnMovePoint();
+    case EditMode::CreatePoint:
+        OnCreatePoint();
+        break;
+    case EditMode::DeletePoint:
+        OnDeletePoint();
+        break;
+    case EditMode::CreateSpring:
+        OnCreateSpring();
+        break;
+    }
+}
+void LogicSystem::FixedUpdate()
+{
+    if (editMode == EditMode::MovePoint)
+    {
+        if (selectingPoint != Entity::Null)
+        {
+            Point* point;
+            MassPointPhysics* massPointPhysics;
+            World::GetComponents(selectingPoint, &point, &massPointPhysics);
+            massPointPhysics->force = 0;
+            massPointPhysics->velocity = 0;
+        }
     }
 }

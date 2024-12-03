@@ -16,7 +16,7 @@ using namespace Light;
 
 int main()
 {
-    Window window = Window::Initialize("MassSpring", 800, 600, false);
+    Window window = Window::Initialize("MassSpring", static_cast<int>(1920 * 0.7f), static_cast<int>(1080 * 0.7f), false);
     std::vector<const char*> extensions;
     Graphics::InitializeGLDemand(extensions);
     GL gl = GL::Initialize(Window::GetGlfwWindow(), extensions);
