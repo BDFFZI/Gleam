@@ -70,6 +70,7 @@ void LogicSystem::OnMovePoint()
 }
 void LogicSystem::OnCreatePoint()
 {
+    // World::AddEntity(massPointArchetype,)
 }
 void LogicSystem::OnDeletePoint()
 {

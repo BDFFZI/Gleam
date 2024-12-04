@@ -46,10 +46,11 @@ namespace Light
         inline static std::unordered_map<std::type_index, Type*> indexToType = {};
 
         template <typename T>
-        static Type* Register(const char* uuidStr)
+        static Type& Register(const char* uuidStr)
         {
-            uuids::uuid uuid = uuids::uuid::from_string(uuidStr).value_or(uuids::uuid());
             std::unique_ptr<Type>& type = allTypes.emplace_back(new Type());
+            
+            uuids::uuid uuid = uuids::uuid::from_string(uuidStr).value_or(uuids::uuid());
             uuidToType.insert({uuid, type.get()});
             indexToType.insert({typeid(T), type.get()});
 
@@ -66,7 +67,7 @@ namespace Light
             TypeTransfer<T, MemberTransferrer>::Invoke(memberTransferrer, *reinterpret_cast<T*>(instance));
             type->fieldInfos.swap(memberTransferrer.GetResult());
 
-            return type.get();
+            return *type;
         }
 
         uuids::uuid uuid;
@@ -112,7 +113,7 @@ namespace Light
 
 #define MakeType_AddField(field) transferrer.TransferField(#field, value.field)
 #define MakeType(uuidStr,type,...)\
-    inline Light::Type* type##Type = Light::Type::Register<type>(uuidStr);\
+    inline const Light::Type& type##Type = Light::Type::Register<type>(uuidStr);\
     template <Light::Transferrer TTransferrer>\
     struct Light::TypeTransfer<type, TTransferrer>\
     {static void Invoke(TTransferrer& transferrer, type& value);};\

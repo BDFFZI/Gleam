@@ -29,7 +29,7 @@ namespace Light
 
     private:
         inline static bool isQueried = false;
-        inline static std::vector<const Archetype*> targetArchetypes = {};
+        inline static std::vector<Archetype*> targetArchetypes = {};
         inline static std::vector<std::array<int, sizeof...(TComponents)>> targetComponentOffsets = {};
         inline static int targetArchetypeCount = {};
 
@@ -37,11 +37,11 @@ namespace Light
         {
             if (isQueried == false)
             {
-                for (const Archetype* archetype : Archetype::allArchetypes)
+                for (std::unique_ptr<Archetype>& archetype : Archetype::allArchetypes)
                 {
                     if (archetype->Contains<TComponents...>())
                     {
-                        targetArchetypes.emplace_back(archetype);
+                        targetArchetypes.emplace_back(archetype.get());
                         targetComponentOffsets.emplace_back(archetype->MemoryMap<TComponents...>());
                     }
                 }

@@ -27,28 +27,28 @@ namespace Light
         using ComponentConstructor = void(*)(std::byte*);
         using ComponentDestructor = void(*)(std::byte*);
 
-        inline static std::vector<const Archetype*> allArchetypes = {};
+        inline static std::vector<std::unique_ptr<Archetype>> allArchetypes = {}; //不能直接存对象，因为扩容时对象地址会变，旧指针或引用会失效
 
         template <Component... TComponents>
             requires ArchetypeComponentList<TComponents...>
-        static Archetype Create(const char* name)
+        static Archetype& Register(const char* name)
         {
-            Archetype archetype;
-            archetype.name = name;
-            archetype.componentCount = {sizeof...(TComponents)};
-            archetype.componentTypes = {typeid(TComponents)...};
-            archetype.componentSizes = {sizeof(TComponents)...};
-            archetype.componentOffsets.resize(sizeof...(TComponents));
-            for (int i = 1; i < sizeof...(TComponents); ++i)
-                archetype.componentOffsets[i] = archetype.componentOffsets[i - 1] + archetype.componentSizes[i - 1];
-            archetype.constructors = {ArchetypeComponentOperator<TComponents>::Constructor...};
-            archetype.destructors = {ArchetypeComponentOperator<TComponents>::Destructor...};
-            archetype.size = archetype.componentOffsets[sizeof...(TComponents) - 1] + archetype.componentSizes[sizeof...(TComponents) - 1];
-            for (int i = 0; i < sizeof...(TComponents); i++)
-                archetype.componentOffsetsMap.insert({archetype.componentTypes[i], archetype.componentOffsets[i]});
+            std::unique_ptr<Archetype>& archetype = allArchetypes.emplace_back(new Archetype());
 
-            allArchetypes.emplace_back(&archetype); //依赖RVO
-            return archetype;
+            archetype->name = name;
+            archetype->componentCount = {sizeof...(TComponents)};
+            archetype->componentTypes = {typeid(TComponents)...};
+            archetype->componentSizes = {sizeof(TComponents)...};
+            archetype->componentOffsets.resize(sizeof...(TComponents));
+            for (int i = 1; i < sizeof...(TComponents); ++i)
+                archetype->componentOffsets[i] = archetype->componentOffsets[i - 1] + archetype->componentSizes[i - 1];
+            archetype->constructors = {ArchetypeComponentOperator<TComponents>::Constructor...};
+            archetype->destructors = {ArchetypeComponentOperator<TComponents>::Destructor...};
+            archetype->size = archetype->componentOffsets[sizeof...(TComponents) - 1] + archetype->componentSizes[sizeof...(TComponents) - 1];
+            for (int i = 0; i < sizeof...(TComponents); i++)
+                archetype->componentOffsetsMap.insert({archetype->componentTypes[i], archetype->componentOffsets[i]});
+
+            return *archetype;
         }
 
         const char* name;
@@ -110,5 +110,5 @@ namespace Light
     };
 
 #define MakeArchetype(name,...)\
-const Archetype name = Archetype::Create<Entity,__VA_ARGS__>(#name);
+inline const Archetype& name = Archetype::Register<Entity,__VA_ARGS__>(#name);
 }
