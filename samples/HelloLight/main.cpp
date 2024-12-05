@@ -16,24 +16,8 @@
 #include <iostream>
 #include <LightEngine/Runtime/Engine.h>
 
-struct A
-{
-    A(int& b, int c): b(b), c(c)
-    {
-    }
-    A(A& a) = delete;
-
-    int& b;
-    const int c;
-};
-
 inline int main()
 {
-    int b = 0;
-    A a = {b, b};
-    A c = std::move(a);
-
-
     using namespace std;
     cout << "Hello Light" << '\n';
 
