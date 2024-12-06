@@ -5,13 +5,17 @@
 using namespace Light;
 
 
+InputHandler& Input::TopInputHandler()
+{
+    return inputHandlers.top();
+}
 void Input::PushInputHandler(const InputHandler& inputHandler)
 {
     inputHandlers.push(inputHandler);
 }
 void Input::PopInputHandler(const InputHandler& inputHandler)
 {
-    if (inputHandlers.top().name != inputHandler.name)
+    if (inputHandlers.top() != inputHandler)
         throw std::runtime_error("输入回调出栈顺序异常！");
 
     inputHandlers.pop();

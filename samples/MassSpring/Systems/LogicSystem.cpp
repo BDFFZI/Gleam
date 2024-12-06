@@ -18,10 +18,12 @@ using namespace Light;
 void LogicSystem::Start()
 {
     Physics::AddFixedUpdate(FixedUpdate);
+    Input::PushInputHandler(inputHandler);
 }
 void LogicSystem::Stop()
 {
     Physics::RemoveFixedUpdate(FixedUpdate);
+    Input::PopInputHandler(inputHandler);
 }
 
 
@@ -43,7 +45,7 @@ void LogicSystem::UpdateUI()
 
     ImGui::Text("SelectingPoint");
     ImGui::SameLine();
-    EditorUIUtility::DrawEntityButton(selectingPoint);
+    EditorUIUtility::DrawEntityButton(coveringPoint);
 
     if (ImGui::Button("ExitGame"))
         Window::Stop();
@@ -52,64 +54,93 @@ void LogicSystem::OnMovePoint()
 {
     if (Input::GetMouseButtonDown(MouseButton::Left))
     {
-        View<Point>::Each([](const Entity entity, const Point& point)
-        {
-            if (distance(point.position, mousePositionWS) < 1)
-            {
-                selectingPoint = entity;
-                InspectorWindow::target = entity;
-            }
-        });
+        movingPoint = coveringPoint;
+        InspectorWindow::target = movingPoint;
     }
 
     if (Input::GetMouseButtonUp(MouseButton::Left))
-        selectingPoint = Entity::Null;
+        movingPoint = Entity::Null;
 
-    if (selectingPoint != Entity::Null)
-        World::GetComponent<Point>(selectingPoint).position = mousePositionWS;
+    if (movingPoint != Entity::Null)
+        World::GetComponent<Point>(movingPoint).position = mousePositionWS;
 }
 void LogicSystem::OnCreatePoint()
 {
-    // World::AddEntity(massPointArchetype,)
+    if (Input::GetMouseButtonDown(MouseButton::Left))
+    {
+        Entity entity = World::AddEntity(massPointArchetype, Point{mousePositionWS});
+        InspectorWindow::target = entity;
+    }
 }
 void LogicSystem::OnDeletePoint()
 {
+    if (Input::GetMouseButtonDown(MouseButton::Left))
+    {
+        World::RemoveEntity(coveringPoint);
+    }
 }
 void LogicSystem::OnCreateSpring()
 {
+    // if(springPoints[0] == Entity::Null)
+    // {
+    //     if (Input::GetMouseButtonDown(MouseButton::Left))
+    //     {
+    //         
+    //     }
+    // }
 }
 
 void LogicSystem::Update()
 {
-    UpdateUI();
+    //将输入回调处理权释放给UI
+    if (Input::GetKeyDown(KeyCode::LeftAlt))
+        Input::PopInputHandler(inputHandler);
+    if (Input::GetKeyUp(KeyCode::LeftAlt))
+        Input::PushInputHandler(inputHandler);
+    //处理UI输入
+    if (Input::GetKey(KeyCode::LeftAlt))
+        UpdateUI();
 
+    //根据当前数值状态运行游戏逻辑
     Time::SetTimeScale(simulating ? 1 : 0);
-
-    mousePositionWS = Rendering::ScreenToWorldPoint(Input::GetMousePosition());
-    switch (editMode)
+    if (Input::TopInputHandler() == inputHandler)
     {
-    case EditMode::MovePoint:
-        OnMovePoint();
-    case EditMode::CreatePoint:
-        OnCreatePoint();
-        break;
-    case EditMode::DeletePoint:
-        OnDeletePoint();
-        break;
-    case EditMode::CreateSpring:
-        OnCreateSpring();
-        break;
+        //获取鼠标位置
+        mousePositionWS = Rendering::ScreenToWorldPoint(Input::GetMousePosition());
+        //获取当前鼠标覆盖的顶点
+        coveringPoint = Entity::Null;
+        View<Point>::Each([](const Entity entity, const Point& point)
+        {
+            if (distance(point.position, mousePositionWS) < 1)
+                coveringPoint = entity;
+        });
+
+        switch (editMode)
+        {
+        case EditMode::MovePoint:
+            OnMovePoint();
+            break;
+        case EditMode::CreatePoint:
+            OnCreatePoint();
+            break;
+        case EditMode::DeletePoint:
+            OnDeletePoint();
+            break;
+        case EditMode::CreateSpring:
+            OnCreateSpring();
+            break;
+        }
     }
 }
 void LogicSystem::FixedUpdate()
 {
     if (editMode == EditMode::MovePoint)
     {
-        if (selectingPoint != Entity::Null)
+        if (movingPoint != Entity::Null)
         {
             Point* point;
             MassPointPhysics* massPointPhysics;
-            World::GetComponents(selectingPoint, &point, &massPointPhysics);
+            World::GetComponents(coveringPoint, &point, &massPointPhysics);
             massPointPhysics->force = 0;
             massPointPhysics->velocity = 0;
         }

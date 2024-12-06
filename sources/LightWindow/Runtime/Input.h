@@ -16,6 +16,8 @@ namespace Light
         Esc = GLFW_KEY_ESCAPE,
         Space = GLFW_KEY_SPACE,
         LeftShift = GLFW_KEY_LEFT_SHIFT,
+        LeftCtrl = GLFW_KEY_LEFT_CONTROL,
+        LeftAlt = GLFW_KEY_LEFT_ALT,
         F1 = GLFW_KEY_F1,
         F2 = GLFW_KEY_F2,
         F3 = GLFW_KEY_F3,
@@ -98,12 +100,22 @@ namespace Light
         GLFWkeyfun glfwKeyCallback = nullptr;
         GLFWcharfun glfwCharCallback = nullptr;
         GLFWmonitorfun glfwMonitorCallback = nullptr;
+
+        bool operator==(const InputHandler& other) const
+        {
+            return name == other.name;
+        }
+        bool operator!=(const InputHandler& other) const
+        {
+            return !(*this == other);
+        }
     };
 
     class Window;
     class Input
     {
     public:
+        static InputHandler& TopInputHandler();
         static void PushInputHandler(const InputHandler& inputHandler);
         static void PopInputHandler(const InputHandler& inputHandler);
 

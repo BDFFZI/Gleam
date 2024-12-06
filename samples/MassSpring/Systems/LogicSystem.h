@@ -2,6 +2,7 @@
 #include "UISystem.h"
 #include "LightECS/Runtime/_Concept.hpp"
 #include "LightECS/Runtime/_Template.hpp"
+#include "LightWindow/Runtime/Input.h"
 
 namespace Light
 {
@@ -17,8 +18,12 @@ namespace Light
     {
         inline static EditMode editMode = EditMode::MovePoint;
         inline static bool simulating = false;
-        inline static Entity selectingPoint = Entity::Null;
+
         inline static float2 mousePositionWS = 0;
+        inline static Entity coveringPoint = Entity::Null;
+
+        inline static Entity movingPoint = Entity::Null;
+        inline static Entity springPoints[2] = {Entity::Null, Entity::Null};
 
         static void Start();
         static void Stop();
@@ -26,6 +31,8 @@ namespace Light
         static void FixedUpdate();
 
     private:
+        inline static InputHandler inputHandler = {"LogicSystemInputHandler"};
+
         static void UpdateUI();
         static void OnMovePoint();
         static void OnCreatePoint();
