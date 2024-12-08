@@ -4,6 +4,8 @@
 
 /// 验证工具：https://www.math666.com/
 
+using namespace Light;
+
 TEST(Math, Vector)
 {
     float3 vector3 = 0;

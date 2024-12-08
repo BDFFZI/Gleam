@@ -8,7 +8,7 @@ void Light::BeginUISystem::Update()
 }
 void Light::EndUISystem::Update()
 {
-    // ImGui::ShowDemoWindow();
+    ImGui::ShowDemoWindow();
 
     //完成UI绘图录制并执行
     Presentation::GetCommandBuffer().BeginRendering(Graphics::GetPresentRenderTarget());

@@ -36,13 +36,7 @@ void LogicSystem::UpdateUI()
         magic_enum::enum_name(static_cast<EditMode>(3)).data(),
     };
     ImGui::Combo("EditMode", reinterpret_cast<int*>(&editMode), editModeOptions, std::size(editModeOptions));
-
     ImGui::Checkbox("Simulating", &simulating);
-    if (Input::GetKeyDown(KeyCode::Space))
-        simulating = true;
-    if (Input::GetKeyUp(KeyCode::Space))
-        simulating = false;
-
     ImGui::Text("SelectingPoint");
     ImGui::SameLine();
     EditorUIUtility::DrawEntityButton(coveringPoint);
@@ -72,39 +66,61 @@ void LogicSystem::OnCreatePoint()
         InspectorWindow::target = entity;
     }
 }
+
+std::vector<Entity> lines;
 void LogicSystem::OnDeletePoint()
 {
-    if (Input::GetMouseButtonDown(MouseButton::Left))
+    if (Input::GetMouseButtonDown(MouseButton::Left) && coveringPoint != Entity::Null)
     {
+        lines.clear();
+        View<SpringPhysics>::Each([](const Entity entity, SpringPhysics& springPhysics)
+        {
+            if (springPhysics.pointA == coveringPoint || springPhysics.pointB == coveringPoint)
+                lines.push_back(entity);
+        });
+        for (Entity entity : lines)
+            World::RemoveEntity(entity);
         World::RemoveEntity(coveringPoint);
     }
 }
 void LogicSystem::OnCreateSpring()
 {
-    // if(springPoints[0] == Entity::Null)
-    // {
-    //     if (Input::GetMouseButtonDown(MouseButton::Left))
-    //     {
-    //         
-    //     }
-    // }
+    if (springPoints[0] == Entity::Null)
+    {
+        if (Input::GetMouseButtonDown(MouseButton::Left))
+            springPoints[0] = coveringPoint;
+    }
+    else if (springPoints[1] == Entity::Null)
+    {
+        if (Input::GetMouseButtonDown(MouseButton::Left) && coveringPoint != springPoints[0])
+        {
+            springPoints[1] = coveringPoint;
+            World::AddEntity(springArchetype, SpringPhysics{springPoints[0], springPoints[1]});
+        }
+    }
 }
 
 void LogicSystem::Update()
 {
     //将输入回调处理权释放给UI
     if (Input::GetKeyDown(KeyCode::LeftAlt))
-        Input::PopInputHandler(inputHandler);
-    if (Input::GetKeyUp(KeyCode::LeftAlt))
-        Input::PushInputHandler(inputHandler);
+    {
+        if (Input::TopInputHandler() == inputHandler)
+            Input::PopInputHandler(inputHandler);
+        else
+            Input::PushInputHandler(inputHandler);
+    }
     //处理UI输入
-    if (Input::GetKey(KeyCode::LeftAlt))
+    if (Input::TopInputHandler() != inputHandler)
         UpdateUI();
 
     //根据当前数值状态运行游戏逻辑
-    Time::SetTimeScale(simulating ? 1 : 0);
     if (Input::TopInputHandler() == inputHandler)
     {
+        if (Input::GetKeyDown(KeyCode::Space))
+            simulating = true;
+        if (Input::GetKeyUp(KeyCode::Space))
+            simulating = false;
         //获取鼠标位置
         mousePositionWS = Rendering::ScreenToWorldPoint(Input::GetMousePosition());
         //获取当前鼠标覆盖的顶点
@@ -131,6 +147,8 @@ void LogicSystem::Update()
             break;
         }
     }
+
+    Time::SetTimeScale(simulating ? 1 : 0);
 }
 void LogicSystem::FixedUpdate()
 {
@@ -140,7 +158,7 @@ void LogicSystem::FixedUpdate()
         {
             Point* point;
             MassPointPhysics* massPointPhysics;
-            World::GetComponents(coveringPoint, &point, &massPointPhysics);
+            World::GetComponents(movingPoint, &point, &massPointPhysics);
             massPointPhysics->force = 0;
             massPointPhysics->velocity = 0;
         }

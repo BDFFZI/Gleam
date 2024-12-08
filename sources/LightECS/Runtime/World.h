@@ -91,7 +91,8 @@ namespace Light
         template <Component TComponent>
         static TComponent& GetComponent(const Entity entity)
         {
-            assert(entityInfos.contains(entity) && "实体不存在！");
+            assert(entity != Entity::Null && "目标实体未空！");
+            assert(entityInfos.contains(entity) && "目标实体不存在！");
             EntityInfo& entityInfo = entityInfos.at(entity);
             int offset = entityInfo.archetype->GetOffset(typeid(TComponent));
             return *reinterpret_cast<TComponent*>(entityInfo.components + offset);
@@ -99,6 +100,8 @@ namespace Light
         template <Component... TComponents>
         static void GetComponents(const Entity entity, TComponents**... outComponents)
         {
+            assert(entity != Entity::Null && "目标实体未空！");
+            assert(entityInfos.contains(entity) && "目标实体不存在！");
             EntityInfo& entityInfo = entityInfos.at(entity);
             const Archetype& archetype = *entityInfo.archetype;
             ((*outComponents = reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetOffset(typeid(TComponents)))), ...);

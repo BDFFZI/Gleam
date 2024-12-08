@@ -6,6 +6,7 @@
 #include <imgui_impl_vulkan.h>
 
 #include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/Window.h"
 
 namespace Light
 {

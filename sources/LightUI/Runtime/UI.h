@@ -1,9 +1,17 @@
 #pragma once
 #include <imgui_impl_glfw.h>
 
+#define IM_VEC2_CLASS_EXTRA ImVec2(Light::float2 value){x=value.x;y=value.y;} \
+operator Light::float2()const{return{x,y};}
+#define IM_VEC4_CLASS_EXTRA ImVec4(BDXKEngine::Color value){x=value.r;y=value.g;z=value.b;w=value.a;} \
+operator BDXKEngine::Color()const{return{x,y,z,w};}
+
+#include <imgui.h>
+
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightWindow/Runtime/Input.h"
-#include "LightWindow/Runtime/Window.h"
+
+float2 a = static_cast<float2>(ImVec2());
 
 namespace Light
 {

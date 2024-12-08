@@ -75,6 +75,7 @@ namespace Light
     }
     void World::RemoveEntity(const Entity entity)
     {
+        assert(entity != Entity::Null && "实体不能未空");
         //取出实体信息
         EntityInfo entityInfo = entityInfos.extract(entity).mapped();
         //运行析构函数
