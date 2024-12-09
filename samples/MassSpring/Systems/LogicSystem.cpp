@@ -19,11 +19,15 @@ void LogicSystem::Start()
 {
     Physics::AddFixedUpdate(FixedUpdate);
     Input::PushInputHandler(inputHandler);
+
+    tempLinePointB = World::AddEntity(massPointArchetype);
 }
 void LogicSystem::Stop()
 {
     Physics::RemoveFixedUpdate(FixedUpdate);
     Input::PopInputHandler(inputHandler);
+
+    World::RemoveEntity(tempLinePointB);
 }
 
 
@@ -48,15 +52,15 @@ void LogicSystem::OnMovePoint()
 {
     if (Input::GetMouseButtonDown(MouseButton::Left))
     {
-        movingPoint = coveringPoint;
-        InspectorWindow::target = movingPoint;
+        fixedPoint = coveringPoint;
+        InspectorWindow::target = fixedPoint;
     }
 
     if (Input::GetMouseButtonUp(MouseButton::Left))
-        movingPoint = Entity::Null;
+        fixedPoint = Entity::Null;
 
-    if (movingPoint != Entity::Null)
-        World::GetComponent<Point>(movingPoint).position = mousePositionWS;
+    if (fixedPoint != Entity::Null)
+        World::GetComponent<Point>(fixedPoint).position = mousePositionWS;
 }
 void LogicSystem::OnCreatePoint()
 {
@@ -85,19 +89,33 @@ void LogicSystem::OnDeletePoint()
 }
 void LogicSystem::OnCreateSpring()
 {
-    if (springPoints[0] == Entity::Null)
+    if (springPointA == Entity::Null)
     {
         if (Input::GetMouseButtonDown(MouseButton::Left))
-            springPoints[0] = coveringPoint;
-    }
-    else if (springPoints[1] == Entity::Null)
-    {
-        if (Input::GetMouseButtonDown(MouseButton::Left) && coveringPoint != springPoints[0])
         {
-            springPoints[1] = coveringPoint;
-            World::AddEntity(springArchetype, SpringPhysics{springPoints[0], springPoints[1]});
+            springPointA = coveringPoint;
+            fixedPoint = tempLinePointB;
+            tempLine = World::AddEntity(lineArchetype, SpringPhysics{springPointA, tempLinePointB});
         }
     }
+    else
+    {
+        if (Input::GetMouseButtonDown(MouseButton::Left))
+        {
+            if (coveringPoint == Entity::Null)
+            {
+                
+            }
+            else if (coveringPoint != springPointA)
+            {
+            }
+
+            springPoints[1] = coveringPoint;
+        }
+    }
+
+    if (fixedPoint != Entity::Null)
+        World::GetComponent<Point>(fixedPoint).position = mousePositionWS;
 }
 
 void LogicSystem::Update()
@@ -152,15 +170,12 @@ void LogicSystem::Update()
 }
 void LogicSystem::FixedUpdate()
 {
-    if (editMode == EditMode::MovePoint)
+    if (fixedPoint != Entity::Null)
     {
-        if (movingPoint != Entity::Null)
-        {
-            Point* point;
-            MassPointPhysics* massPointPhysics;
-            World::GetComponents(movingPoint, &point, &massPointPhysics);
-            massPointPhysics->force = 0;
-            massPointPhysics->velocity = 0;
-        }
+        Point* point;
+        MassPointPhysics* massPointPhysics;
+        World::GetComponents(fixedPoint, &point, &massPointPhysics);
+        massPointPhysics->force = 0;
+        massPointPhysics->velocity = 0;
     }
 }

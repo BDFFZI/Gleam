@@ -11,8 +11,6 @@ operator BDXKEngine::Color()const{return{x,y,z,w};}
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightWindow/Runtime/Input.h"
 
-float2 a = static_cast<float2>(ImVec2());
-
 namespace Light
 {
     class UI

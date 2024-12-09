@@ -6,14 +6,14 @@ namespace Light
 {
     void GameWindow::Start()
     {
-        renderTexture = std::make_unique<RenderTexture>()
+        // renderTexture = std::make_unique<RenderTexture>()
     }
     void GameWindow::Update()
     {
-        ImGui::Begin("GameWindow");
-
-        ImGui::GetWindowSize()
-
-        ImGui::End();
+        // ImGui::Begin("GameWindow");
+        //
+        // ImGui::GetWindowSize()
+        //
+        // ImGui::End();
     }
 }

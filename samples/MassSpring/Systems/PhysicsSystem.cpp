@@ -28,10 +28,10 @@ void Light::EndPhysicsSystem::CollectForce()
     {
         Point* pointA;
         MassPointPhysics* massPointPhysicsA;
-        World::GetComponents(springPhysics.pointA, &pointA, &massPointPhysicsA);
+        springPhysics.pointA.Get(&pointA, &massPointPhysicsA);
         Point* pointB;
         MassPointPhysics* massPointPhysicsB;
-        World::GetComponents(springPhysics.pointB, &pointB, &massPointPhysicsB);
+        springPhysics.pointB.Get(&pointB, &massPointPhysicsB);
 
         float2 elasticityVector_BToA = pointA->position - pointB->position;
         float2 elasticityDirection_BToA = normalize(elasticityVector_BToA);
@@ -73,10 +73,10 @@ void Light::EndPhysicsSystem::UpdateRenderingData()
     {
         Point pointA;
         MassPointPhysics massPointPhysicsA;
-        World::CopyComponents(springPhysics.pointA, &pointA, &massPointPhysicsA);
+        springPhysics.pointA.Get(&pointA, &massPointPhysicsA);
         Point pointB;
         MassPointPhysics massPointPhysicsB;
-        World::CopyComponents(springPhysics.pointB, &pointB, &massPointPhysicsB);
+        springPhysics.pointB.Get(&pointB, &massPointPhysicsB);
 
         line.positionA = pointA.position;
         line.positionB = pointB.position;

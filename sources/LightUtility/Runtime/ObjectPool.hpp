@@ -13,7 +13,7 @@ namespace Light
     public:
         ObjectPool() = default;
         ObjectPool(const ObjectPool&) = delete;
-        ~ObjectPool()
+        ~ObjectPool() noexcept(false)
         {
             if (GetUsableObjectsCount() != GetAllObjectsCount())
                 throw std::runtime_error("对象池开始销毁，但物体并没有全部归还！");

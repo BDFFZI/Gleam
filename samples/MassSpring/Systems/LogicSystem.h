@@ -22,8 +22,10 @@ namespace Light
         inline static float2 mousePositionWS = 0;
         inline static Entity coveringPoint = Entity::Null;
 
-        inline static Entity movingPoint = Entity::Null;
-        inline static Entity springPoints[2] = {Entity::Null, Entity::Null};
+        inline static Entity fixedPoint = Entity::Null;
+        inline static Entity springPointA = Entity::Null;
+        inline static Entity tempLinePointB = Entity::Null;
+        inline static Entity tempLine = Entity::Null;
 
         static void Start();
         static void Stop();

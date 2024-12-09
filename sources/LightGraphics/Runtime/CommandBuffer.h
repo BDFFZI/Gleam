@@ -39,7 +39,7 @@ namespace Light
         void SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix);
         void SetViewProjectionMatrices(const float4x4& matrixVP);
         void Draw(MeshBase& mesh, MaterialBase& material, const float4x4& modelMatrix = float4x4::Identity());
-        void ClearRenderTarget(const std::optional<float4>& color = 0, const std::optional<float>& depth = 1) const;
+        void ClearRenderTarget(const std::optional<float4>& color = 0.0f, const std::optional<float>& depth = 1.0f) const;
 
     private:
         inline static std::stack<CommandBuffer*> commandBufferPool = {};

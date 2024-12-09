@@ -206,21 +206,21 @@ Light_MakeVectorFunction_SymbolVV2V(/, Type, Number);
 
 #define Light_MakeVectorFunctions_Decimals(Type,Number)\
 Light_MakeVectorFunctions_Integer(Type,Number)\
-Light_MakeVectorFunction_FunctionV2V(cos, Type, Number);\
-Light_MakeVectorFunction_FunctionV2V(acos, Type, Number);\
-Light_MakeVectorFunction_FunctionV2V(sin, Type, Number);\
-Light_MakeVectorFunction_FunctionV2V(asin, Type, Number);\
-Light_MakeVectorFunction_FunctionV2V(tan, Type, Number);\
-Light_MakeVectorFunction_FunctionV2V(atan, Type, Number);\
+Light_MakeVectorFunction_FunctionV2V(cos, Type, Number, );\
+Light_MakeVectorFunction_FunctionV2V(acos, Type, Number, );\
+Light_MakeVectorFunction_FunctionV2V(sin, Type, Number, );\
+Light_MakeVectorFunction_FunctionV2V(asin, Type, Number, );\
+Light_MakeVectorFunction_FunctionV2V(tan, Type, Number, );\
+Light_MakeVectorFunction_FunctionV2V(atan, Type, Number, );\
 Light_MakeVectorFunction_FunctionV2V(degrees, Type, Number,Light);\
 Light_MakeVectorFunction_FunctionV2V(radians, Type, Number,Light);\
-Light_MakeVectorFunction_FunctionV2V(sqrt, Type, Number);\
+Light_MakeVectorFunction_FunctionV2V(sqrt, Type, Number, );\
 Light_MakeVectorFunction_FunctionV2V(rsqrt, Type, Number,Light);\
-Light_MakeVectorFunction_FunctionV2V(abs, Type, Number);\
-Light_MakeVectorFunction_FunctionV2V(round, Type, Number);\
-Light_MakeVectorFunction_FunctionV2V(trunc, Type, Number);\
-Light_MakeVectorFunction_FunctionV2V(ceil, Type, Number);\
-Light_MakeVectorFunction_FunctionV2V(floor, Type, Number);\
+Light_MakeVectorFunction_FunctionV2V(abs, Type, Number, );\
+Light_MakeVectorFunction_FunctionV2V(round, Type, Number, );\
+Light_MakeVectorFunction_FunctionV2V(trunc, Type, Number, );\
+Light_MakeVectorFunction_FunctionV2V(ceil, Type, Number, );\
+Light_MakeVectorFunction_FunctionV2V(floor, Type, Number, );\
 Light_MakeVectorFunction_FunctionVV2V(fmod, Type, Number);\
 Light_MakeVectorFunction_FunctionVV2V(pow, Type, Number);\
 Light_MakeVectorFunction_FunctionVV2V(max, Type, Number);\

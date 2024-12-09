@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "LightECS/Runtime/Archetype.hpp"
+#include "LightECS/Runtime/Reference.hpp"
 #include "LightMath/Runtime/Vector.hpp"
 #include "LightReflection/Runtime/Type.hpp"
 
@@ -55,8 +56,8 @@ namespace Light
 
     struct SpringPhysics
     {
-        Entity pointA = Entity::Null;
-        Entity pointB = Entity::Null;
+        Reference<Point, MassPointPhysics> pointA;
+        Reference<Point, MassPointPhysics> pointB;
         float length = 20;
         float elasticity = 200;
         float resistance = 2;
@@ -73,4 +74,5 @@ namespace Light
 
     MakeArchetype(massPointArchetype, Point, Renderer, MassPointPhysics)
     MakeArchetype(springArchetype, Line, Renderer, SpringPhysics)
+    MakeArchetype(lineArchetype, Line, Renderer)
 }

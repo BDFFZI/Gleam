@@ -191,7 +191,7 @@ void Update(GLFWwindow* glfwWindow)
         Graphics::ReleaseCommandBuffer(*commandBuffers[i]);
 }
 
-void main()
+int main()
 {
     constexpr uint32_t WIDTH = 1920 / 3;
     constexpr uint32_t HEIGHT = 1080 / 3;
@@ -210,4 +210,6 @@ void main()
 
     Graphics::UnInitialize();
     GL::UnInitialize();
+
+    return 0;
 }
