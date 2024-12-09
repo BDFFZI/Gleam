@@ -11,9 +11,9 @@ namespace Light
     public:
         RenderTexture(
             uint32_t width, uint32_t height,
-            VkFormat colorFormat,
-            VkFormat depthFormat = VK_FORMAT_UNDEFINED,
-            VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
+            VkFormat colorFormat = DefaultColorFormat,
+            VkFormat depthStencilFormat = DefaultDepthStencilFormat,
+            VkSampleCountFlagBits sampleCount = DefaultGLStateLayout.multisample.rasterizationSamples);
         RenderTexture(const RenderTexture&) = delete;
 
         uint32_t GetWidth() const override { return width; }

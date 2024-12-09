@@ -24,7 +24,6 @@ namespace Light
 
         inline static Entity fixedPoint = Entity::Null;
         inline static Entity springPointA = Entity::Null;
-        inline static Entity tempLinePointB = Entity::Null;
         inline static Entity tempLine = Entity::Null;
 
         static void Start();

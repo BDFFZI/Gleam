@@ -1,7 +1,6 @@
 #include "UI.h"
 
 #include <format>
-#include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
@@ -88,5 +87,9 @@ namespace Light
         ImGui::Render();
         //提交绘制命令
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer.commandBuffer);
+    }
+    ImTextureID UI::CreateImage()
+    {
+        return nullptr;
     }
 }

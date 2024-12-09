@@ -1,13 +1,14 @@
 #pragma once
-#include <imgui_impl_glfw.h>
-
+// ReSharper disable CppUnusedIncludeDirective
 #define IM_VEC2_CLASS_EXTRA ImVec2(Light::float2 value){x=value.x;y=value.y;} \
-operator Light::float2()const{return{x,y};}
-#define IM_VEC4_CLASS_EXTRA ImVec4(BDXKEngine::Color value){x=value.r;y=value.g;z=value.b;w=value.a;} \
-operator BDXKEngine::Color()const{return{x,y,z,w};}
-
+operator Light::float2()const{return Light::float2{x,y};}
+#define IM_VEC4_CLASS_EXTRA ImVec4(Light::float4 value){x=value.x;y=value.y;z=value.z;w=value.w;} \
+operator Light::float4()const{return Light::float4{x,y,z,w};}
+#include "LightMath/Runtime/Vector.hpp"
 #include <imgui.h>
+// ReSharper restore CppUnusedIncludeDirective
 
+#include <imgui_impl_glfw.h>
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightWindow/Runtime/Input.h"
 
@@ -20,6 +21,8 @@ namespace Light
         static void UnInitialize();
         static void BeginFrame();
         static void EndFrame(GLCommandBuffer& commandBuffer);
+
+        static ImTextureID CreateImage();
 
     private:
         inline static std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = {};

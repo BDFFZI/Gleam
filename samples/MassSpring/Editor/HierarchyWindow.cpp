@@ -1,10 +1,8 @@
 #include "HierarchyWindow.h"
-
-#include <imgui.h>
-
 #include "EditorUIUtility.h"
 #include "InspectorWindow.h"
 #include "LightECS/Runtime/World.h"
+#include "LightUI/Runtime/UI.h"
 
 namespace Light
 {

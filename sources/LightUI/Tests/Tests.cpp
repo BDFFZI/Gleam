@@ -1,4 +1,3 @@
-#include <imgui.h>
 
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightUI/Runtime/UI.h"

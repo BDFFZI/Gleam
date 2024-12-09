@@ -24,11 +24,11 @@ namespace Light
         }
         void Get(TComponent*... components)
         {
-            World::CopyComponents(target, components...);
+            World::GetComponents(target, components...);
         }
         void Set(const TComponent&... components)
         {
-            World::PasteComponents(target, components...);
+            World::SetComponents(target, components...);
         }
 
         bool operator==(const Entity entity) const

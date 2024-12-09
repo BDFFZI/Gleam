@@ -1,4 +1,5 @@
 #include "Component.hpp"
+#include "Editor/GameWindow.h"
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
 #include "LightECS/Runtime/World.h"
@@ -35,6 +36,7 @@ int main()
         World::AddSystem<LogicSystem>();
         World::AddSystem<HierarchyWindow>();
         World::AddSystem<InspectorWindow>();
+        World::AddSystem<GameWindow>();
 
         Entity entities[5][5];
         constexpr int length = 4;

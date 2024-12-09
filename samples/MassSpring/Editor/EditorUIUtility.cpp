@@ -1,8 +1,5 @@
 #include "EditorUIUtility.h"
-
-#include <imgui.h>
-#include <typeindex>
-
+#include "LightUI/Runtime/UI.h"
 #include "InspectorWindow.h"
 #include "LightECS/Runtime/World.h"
 #include "LightECS/Runtime/_Concept.hpp"

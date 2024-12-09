@@ -1,8 +1,4 @@
 #include "LogicSystem.h"
-
-#include <imgui.h>
-#include <magic_enum.hpp>
-
 #include "PhysicsSystem.h"
 #include "RenderingSystem.h"
 #include "LightWindow/Runtime/Input.h"
@@ -12,6 +8,8 @@
 #include "../Editor/EditorUIUtility.h"
 #include "../Editor/InspectorWindow.h"
 #include "LightWindow/Runtime/Time.h"
+#include "LightUI/Runtime/UI.h"
+#include <magic_enum.hpp>
 
 using namespace Light;
 
@@ -19,15 +17,12 @@ void LogicSystem::Start()
 {
     Physics::AddFixedUpdate(FixedUpdate);
     Input::PushInputHandler(inputHandler);
-
-    tempLinePointB = World::AddEntity(massPointArchetype);
 }
 void LogicSystem::Stop()
 {
     Physics::RemoveFixedUpdate(FixedUpdate);
-    Input::PopInputHandler(inputHandler);
-
-    World::RemoveEntity(tempLinePointB);
+    if (Input::TopInputHandler() == inputHandler)
+        Input::PopInputHandler(inputHandler);
 }
 
 
@@ -93,9 +88,11 @@ void LogicSystem::OnCreateSpring()
     {
         if (Input::GetMouseButtonDown(MouseButton::Left))
         {
-            springPointA = coveringPoint;
-            fixedPoint = tempLinePointB;
-            tempLine = World::AddEntity(lineArchetype, SpringPhysics{springPointA, tempLinePointB});
+            if (coveringPoint != Entity::Null)
+            {
+                springPointA = coveringPoint;
+                tempLine = World::AddEntity(lineArchetype);
+            }
         }
     }
     else
@@ -104,18 +101,31 @@ void LogicSystem::OnCreateSpring()
         {
             if (coveringPoint == Entity::Null)
             {
-                
+                springPointA = Entity::Null;
             }
             else if (coveringPoint != springPointA)
             {
+                Point pointA = World::GetComponent<Point>(springPointA);
+                Point pointB = World::GetComponent<Point>(coveringPoint);
+                World::AddEntity(
+                    springArchetype,
+                    SpringPhysics{
+                        springPointA,
+                        coveringPoint,
+                        distance(pointA.position, pointB.position),
+                    });
+                springPointA = Entity::Null;
             }
 
-            springPoints[1] = coveringPoint;
+            World::RemoveEntity(tempLine);
         }
     }
 
-    if (fixedPoint != Entity::Null)
-        World::GetComponent<Point>(fixedPoint).position = mousePositionWS;
+    if (tempLine != Entity::Null)
+    {
+        Point pointA = World::GetComponent<Point>(springPointA);
+        World::SetComponents(tempLine, Line{pointA.position, mousePositionWS});
+    }
 }
 
 void LogicSystem::Update()

@@ -5,6 +5,7 @@
 #include <typeindex>
 #include <vector>
 #include <unordered_map>
+#include <cassert>
 #include "_Concept.hpp"
 
 namespace Light
@@ -63,6 +64,7 @@ namespace Light
 
         int GetOffset(const std::type_index component) const
         {
+            assert(componentOffsetsMap.contains(component) && "此原型不包含目标组件！");
             return componentOffsetsMap.at(component);
         }
         bool HasComponent(const std::type_index component) const

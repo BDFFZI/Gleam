@@ -3,22 +3,22 @@
 using namespace Light;
 
 
-RenderTexture::RenderTexture(const uint32_t width, const uint32_t height, const VkFormat colorFormat, const VkFormat depthFormat, const VkSampleCountFlagBits sampleCount)
+RenderTexture::RenderTexture(const uint32_t width, const uint32_t height, const VkFormat colorFormat, const VkFormat depthStencilFormat, const VkSampleCountFlagBits sampleCount)
     : width(width), height(height), sampleCount(sampleCount)
 {
     glColorImage = GLImage::CreateFrameBufferColor(width, height, colorFormat, sampleCount);
     glColorImageView = std::make_unique<GLImageView>(*glColorImage, VK_IMAGE_ASPECT_COLOR_BIT);
 
-    if (depthFormat != VK_FORMAT_UNDEFINED)
+    if (depthStencilFormat != VK_FORMAT_UNDEFINED)
     {
-        glDepthStencilImage = GLImage::CreateFrameBufferDepth(width, height, depthFormat, sampleCount);
-        glDepthStencilImageView = std::make_unique<GLImageView>(*glColorImage, VK_IMAGE_ASPECT_DEPTH_BIT);
+        glDepthStencilImage = GLImage::CreateFrameBufferDepth(width, height, depthStencilFormat, sampleCount);
+        glDepthStencilImageView = std::make_unique<GLImageView>(*glDepthStencilImage, VK_IMAGE_ASPECT_DEPTH_BIT);
     }
 
     if (sampleCount != VK_SAMPLE_COUNT_1_BIT)
     {
         glColorResolveImage = GLImage::CreateFrameBufferColor(width, height, colorFormat, VK_SAMPLE_COUNT_1_BIT);
-        glColorResolveImageView = std::make_unique<GLImageView>(*glColorImage, VK_IMAGE_ASPECT_COLOR_BIT);
+        glColorResolveImageView = std::make_unique<GLImageView>(*glColorResolveImage, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 }
 

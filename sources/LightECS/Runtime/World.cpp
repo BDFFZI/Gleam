@@ -41,6 +41,9 @@ namespace Light
     }
     void World::MoveEntity(const Entity entity, const Archetype& newArchetype)
     {
+        assert(entity != Entity::Null && "目标实体为空！");
+        assert(entityInfos.contains(entity) && "目标实体不存在！");
+        
         //获取旧实体信息
         EntityInfo entityInfo = entityInfos[entity];
         const Archetype& oldArchetype = *entityInfo.archetype;
@@ -73,9 +76,11 @@ namespace Light
         //写回新实体信息
         entityInfos[entity] = entityInfo;
     }
-    void World::RemoveEntity(const Entity entity)
+    void World::RemoveEntity(Entity& entity)
     {
-        assert(entity != Entity::Null && "实体不能未空");
+        assert(entity != Entity::Null && "目标实体为空！");
+        assert(entityInfos.contains(entity) && "目标实体不存在！");
+        
         //取出实体信息
         EntityInfo entityInfo = entityInfos.extract(entity).mapped();
         //运行析构函数
@@ -83,6 +88,8 @@ namespace Light
         archetype.RunDestructor(entityInfo.components);
         //从内存中移除
         RemoveHeapItem(archetype, entityInfo.indexAtHeap);
+
+        entity = Entity::Null;
     }
     void World::Update()
     {

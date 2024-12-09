@@ -191,6 +191,7 @@ namespace Light
     }
 }
 
+#include <type_traits>
 template <class Type, int Number>
 struct std::hash<Light::vector<Type, Number>> // NOLINT(cert-dcl58-cpp)
 {
