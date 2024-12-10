@@ -1,59 +1,80 @@
 ﻿#include "CommandBuffer.h"
 
+#include <cassert>
+
 #include "LightMath/Runtime/MatrixMath.hpp"
 
 using namespace Light;
 
-GLCommandBuffer& CommandBuffer::GetGLCommandBuffer()
-{
-    return glCommandBuffer;
-}
 void CommandBuffer::BeginRecording()
 {
     glCommandBuffer.BeginRecording();
 }
 void CommandBuffer::EndRecording()
 {
+    if (lastRenderTarget != nullptr)
+        EndRendering();
+
     glCommandBuffer.EndRecording();
     //全部属性重置为初始值
     lastMesh = nullptr;
     lastMaterial = nullptr;
-    lastRenderTexture = nullptr;
+    lastRenderTarget = nullptr;
     matrixVP = float4x4::Identity();
 }
 
 void CommandBuffer::BeginRendering(const RenderTargetBase& renderTarget, const bool clearColor)
 {
-    glCommandBuffer.BeginRendering(
-        VkRect2D{
-            {0, 0}, {
-                renderTarget.GetWidth(),
-                renderTarget.GetHeight()
-            }
-        }, clearColor,
-        renderTarget.GetGLColorImageView(),
-        renderTarget.GetGLDepthStencilImageView(),
-        renderTarget.GetGLColorResolveImageView()
-    );
+    if (lastRenderTarget != &renderTarget)
+    {
+        glCommandBuffer.BeginRendering(
+            VkRect2D{
+                {0, 0}, {
+                    renderTarget.GetWidth(),
+                    renderTarget.GetHeight()
+                }
+            }, clearColor,
+            renderTarget.GetGLColorImageView(),
+            renderTarget.GetGLDepthStencilImageView(),
+            renderTarget.GetGLColorResolveImageView()
+        );
+        lastRenderTarget = &renderTarget;
+    }
 
-    lastRenderTexture = &renderTarget;
     SetViewportToFullscreen();
 }
-void CommandBuffer::EndRendering() const
+void CommandBuffer::EndRendering()
 {
+    lastRenderTarget = nullptr;
     glCommandBuffer.EndRendering();
 }
 
-void CommandBuffer::SetViewport(const int32_t x, int32_t y, const uint32_t width, const uint32_t height) const
+void CommandBuffer::SetRenderTarget(const RenderTargetBase& renderTarget)
 {
-    y = static_cast<int32_t>(lastRenderTexture->GetHeight() - (y + height)); //转换到右手坐标系
+    if (lastRenderTarget != &renderTarget && lastRenderTarget != nullptr)
+        EndRendering();
+    BeginRendering(renderTarget);
+}
+void CommandBuffer::SetRenderTargetToNull()
+{
+    EndRendering();
+}
+
+void CommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t width, const uint32_t height) const
+{
+    assert(x >=0 && static_cast<uint32_t>(x) < lastRenderTarget->GetWidth() && "x超出最大渲染范围！");
+    assert(y >=0 && static_cast<uint32_t>(y) < lastRenderTarget->GetHeight() && "y超出最大渲染范围！");
+    assert(x + width <= lastRenderTarget->GetWidth() && "width超出最大渲染范围！");
+    assert(y + height <= lastRenderTarget->GetHeight() && "height超出最大渲染范围！");
+
+    int32_t rightY = static_cast<int32_t>(lastRenderTarget->GetHeight() - (y + height)); //转换到右手坐标系
 
     glCommandBuffer.SetViewport(
-        static_cast<float>(x), static_cast<float>(y + height),
+        static_cast<float>(x), static_cast<float>(rightY + height),
         static_cast<float>(width), -static_cast<float>(height)
     ); //利用-height的特性，实现剪辑空间的上下反转。这样传入左手坐标系的顶点后就可以负负得正了。
     glCommandBuffer.SetScissor(
-        {x, y},
+        {x, rightY},
         {width, height}
     );
 }
@@ -68,7 +89,7 @@ void CommandBuffer::SetViewProjectionMatrices(const float4x4& matrixVP)
 
 void CommandBuffer::SetViewportToFullscreen() const
 {
-    SetViewport(0, 0, lastRenderTexture->GetWidth(), lastRenderTexture->GetHeight());
+    SetViewport(0, 0, lastRenderTarget->GetWidth(), lastRenderTarget->GetHeight());
 }
 void CommandBuffer::SetViewProjectionMatricesToIdentity()
 {
@@ -113,7 +134,7 @@ void CommandBuffer::ClearRenderTarget(const std::optional<float4>& color, const 
     }
 
     glCommandBuffer.ClearAttachments(
-        VkRect2D{{0, 0}, {lastRenderTexture->GetWidth(), lastRenderTexture->GetHeight()}},
+        VkRect2D{{0, 0}, {lastRenderTarget->GetWidth(), lastRenderTarget->GetHeight()}},
         color.has_value() ? std::optional(colorValue) : std::nullopt,
         // ReSharper disable once CppLocalVariableMightNotBeInitialized
         depth.has_value() ? std::optional(depthStencilValue) : std::nullopt

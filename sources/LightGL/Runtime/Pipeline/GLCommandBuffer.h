@@ -38,6 +38,16 @@ public:
      * 通过传输的方式清除图片值
      */
     void ClearDepthStencilImage(const GLImage& glImage, float depth, uint32_t stencil) const;
+    /**
+     * 利用Barrier功能，转换图片的内存布局
+     * @param image 
+     * @param oldLayout 转换前的图片布局
+     * @param newLayout 转换后的图片布局
+     * @param srcAccessMask 表明必须在哪类操作完成后才可进行转换
+     * @param dstAccessMask 表明哪类操作必须在转换完成后才可进行
+     * @param srcStage 表明srcAccessMask所作用的着色器阶段
+     * @param dstStage 表明dstAccessMask所作用的着色器阶段
+     */
     void TransitionImageLayout(
         const VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout,
         VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,

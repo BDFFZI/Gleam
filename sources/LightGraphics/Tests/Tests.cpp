@@ -66,6 +66,10 @@ void CreateAssets()
         float3(-1, -1, 1), float3(-1, 1, 1),
         float3(1, 1, 1), float3(1, -1, 1)
     });
+    fullScreenMesh->SetUVs({
+        float2(0, 0), float2(0, 1),
+        float2(1, 1), float2(1, 0)
+    });
     float4 red = float4(1.0f, 0.0f, 0.0f, 1.0f);
     fullScreenMesh->SetColors({red, red, red, red});
     fullScreenMesh->SetIndices({
@@ -104,14 +108,17 @@ void CreateAssets()
 
     //纹理材质球
     texture2DMaterial = std::make_unique<Material>(*texture2DShader);
-    texture2DMaterial->SetTexture2D(0, *texture2D);
+    texture2DMaterial->SetTexture(0, *texture2D);
     //顶点颜色材质球
     vertexColorMaterial = std::make_unique<Material>(*vertexColorShader);
     //线框顶点颜色材质球
     wireVertexColorMaterial = std::make_unique<Material>(*wireVertexColorShader);
 
     //渲染纹理
-    renderTexture = std::make_unique<RenderTexture>(200, 200);
+    renderTexture = std::make_unique<RenderTexture>(
+        Graphics::GetPresentRenderTarget().width,
+        Graphics::GetPresentRenderTarget().height
+    );
 }
 
 void DeleteAssets()
@@ -133,13 +140,14 @@ void DeleteAssets()
     fullScreenMesh.reset();
 }
 
-void Draw(CommandBuffer& commandBuffer)
+void Draw(CommandBuffer& commandBuffer, float4 background = float4(0.5, 0.5, 0.5, 1))
 {
     //绘制背景色
-    commandBuffer.ClearRenderTarget(float4(0.5, 0.5, 0.5, 1));
+    commandBuffer.ClearRenderTarget(background);
 
     //测试变换，纹理
     {
+        texture2DMaterial->SetTexture(0, *texture2D);
         for (int i = 0; i < 4; ++i)
         {
             float4x4 objectToWorld = float4x4::TRS(
@@ -157,8 +165,8 @@ void Draw(CommandBuffer& commandBuffer)
 
     //测试视口和NDC
     {
-        uint32_t halfWidth = Graphics::GetPresentRenderTarget().width / 2;
-        uint32_t halfHeight = Graphics::GetPresentRenderTarget().height / 2;
+        uint32_t halfWidth = commandBuffer.GetRenderTarget()->GetWidth() / 2;
+        uint32_t halfHeight = commandBuffer.GetRenderTarget()->GetHeight() / 2;
         commandBuffer.SetViewProjectionMatrices(float4x4::Identity());
         commandBuffer.SetViewport(static_cast<int32_t>(halfWidth), static_cast<int32_t>(halfHeight), halfWidth / 2, halfHeight / 2);
         commandBuffer.Draw(*fullScreenMesh, *vertexColorMaterial);
@@ -190,28 +198,35 @@ void Update(GLFWwindow* glfwWindow)
         commandBuffer.BeginRecording();
 
         //绘制相机1到自定义渲染目标
-        commandBuffer.BeginRendering(*renderTexture); //设置渲染目标
+        commandBuffer.SetRenderTarget(*renderTexture); //设置渲染目标
         commandBuffer.SetViewProjectionMatrices( //设置视角
             inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1})),
             float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f)
         );
-        Draw(commandBuffer);
-        commandBuffer.EndRendering();
+        Draw(commandBuffer,0);
+        commandBuffer.SetRenderTargetToNull();
+        //将自定义渲染目标布局转为着色器的采样纹理
+        commandBuffer.GetGLCommandBuffer().TransitionImageLayout(
+            renderTexture->GetVKColorImage(),
+            VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
 
         //绘制相机2到屏幕
-        commandBuffer.BeginRendering(Graphics::GetPresentRenderTarget()); //设置渲染目标
+        commandBuffer.SetRenderTarget(Graphics::GetPresentRenderTarget()); //设置渲染目标
+        commandBuffer.ClearRenderTarget();
         commandBuffer.SetViewProjectionMatrices( //设置视角
             inverse(float4x4::TRS({0, 2, 3}, {30, -180, 0}, {1, 1, 1})),
             float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f)
         );
         Draw(commandBuffer);
-        commandBuffer.EndRendering();
-
         //绘制相机1画面到屏幕
-        commandBuffer.BeginRendering(Graphics::GetPresentRenderTarget()); //设置渲染目标
-        
-        commandBuffer.EndRendering();
-        
+        commandBuffer.SetViewport(50, 50, 160, 90);
+        commandBuffer.SetViewProjectionMatricesToIdentity();
+        texture2DMaterial->SetTexture(0, *renderTexture);
+        commandBuffer.Draw(*fullScreenMesh, *texture2DMaterial);
+
 
         //结束绘制命令录制
         commandBuffer.EndRecording();

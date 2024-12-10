@@ -27,7 +27,8 @@ public:
     uint32_t height;
     uint32_t mipLevels;
 
-    GLImage(uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usageFlags, uint32_t mipmapCount = 1, VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
+    GLImage(uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usageFlags,
+            uint32_t mipmapCount = 1, VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_UNDEFINED);
     GLImage(const GLImage&) = delete;
     ~GLImage();
 };

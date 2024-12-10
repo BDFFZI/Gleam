@@ -154,7 +154,7 @@ std::unique_ptr<GLImage> GLImage::CreateFrameBufferColor(const uint32_t width, c
 {
     return std::make_unique<GLImage>(
         width, height, colorFormat,
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
         1, sampleCount
     );
 }
@@ -168,8 +168,8 @@ std::unique_ptr<GLImage> GLImage::CreateFrameBufferDepth(const uint32_t width, c
 }
 
 GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat format, const VkImageUsageFlags usageFlags,
-                 const uint32_t mipLevels, const VkSampleCountFlagBits sampleCount)
-    : layout(VK_IMAGE_LAYOUT_UNDEFINED), format(format), width(width), height(height), mipLevels(mipLevels)
+                 const uint32_t mipLevels, const VkSampleCountFlagBits sampleCount, const VkImageLayout imageLayout)
+    : layout(imageLayout), format(format), width(width), height(height), mipLevels(mipLevels)
 {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;

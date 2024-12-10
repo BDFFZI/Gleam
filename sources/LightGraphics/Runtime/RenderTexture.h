@@ -6,7 +6,7 @@
 
 namespace Light
 {
-    class RenderTexture : public RenderTargetBase
+    class RenderTexture : public RenderTargetBase, public TextureBase
     {
     public:
         RenderTexture(
@@ -26,9 +26,13 @@ namespace Light
         const GLImageView* GetGLDepthStencilImageView() const override;
         const GLImageView* GetGLColorResolveImageView() const override;
 
+        const GLImageView& GetGLImageView() const override { return *glColorImageView; }
+        const GLImageSampler& GetGLImageSampler() const override { return *glImageSampler; }
+
     private:
         uint32_t width, height;
         VkSampleCountFlagBits sampleCount;
+        std::unique_ptr<GLImageSampler> glImageSampler;
         std::unique_ptr<GLImage> glColorImage;
         std::unique_ptr<GLImage> glDepthStencilImage;
         std::unique_ptr<GLImage> glColorResolveImage;

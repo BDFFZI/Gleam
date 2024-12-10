@@ -48,12 +48,12 @@ void Material::SetBuffer(const int slotIndex, const Buffer& buffer) const
     bufferInfo->offset = 0;
     bufferInfo->range = buffer.GetGLBuffer().size;
 }
-void Material::SetTexture2D(const int slotIndex, const Texture2D& texture2D) const
+void Material::SetTexture(const int slotIndex, const TextureBase& texture) const
 {
     VkDescriptorImageInfo* imageInfo = const_cast<VkDescriptorImageInfo*>(writeDescriptorSets[slotIndex].pImageInfo);
     imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo->imageView = texture2D.GetGLImageView().imageView;
-    imageInfo->sampler = texture2D.GetGLImageSampler().imageSampler;
+    imageInfo->imageView = texture.GetGLImageView().imageView;
+    imageInfo->sampler = texture.GetGLImageSampler().imageSampler;
 }
 
 void Material::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialBase* lastMaterial)

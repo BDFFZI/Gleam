@@ -14,7 +14,7 @@ namespace Light
 
         const ShaderBase* GetShader() const override { return shader; }
         void SetBuffer(int slotIndex, const Buffer& buffer) const;
-        void SetTexture2D(int slotIndex, const Texture2D& texture2D) const;
+        void SetTexture(int slotIndex, const TextureBase& texture) const;
 
         void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialBase* lastMaterial) override;
 

@@ -83,6 +83,14 @@ namespace Light
         virtual const ShaderBase* GetShader() const = 0;
     };
 
+    class TextureBase
+    {
+    public:
+        virtual ~TextureBase() = default;
+        virtual const GLImageView& GetGLImageView() const = 0;
+        virtual const GLImageSampler& GetGLImageSampler() const = 0;
+    };
+
     class RenderTargetBase
     {
     public:

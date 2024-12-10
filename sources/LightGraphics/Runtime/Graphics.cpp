@@ -53,7 +53,7 @@ void Graphics::WaitPresentable()
 bool Graphics::BeginPresent(GLCommandBuffer** outPresentCommandBuffer)
 {
     bool canPresent = true;
-    
+
     //获取交换链下次呈现使用的相关信息
     if (glSwapChain->SwitchImageAsync(
         &currentImageIndex, &currentBufferIndex,
@@ -82,8 +82,10 @@ bool Graphics::BeginPresent(GLCommandBuffer** outPresentCommandBuffer)
     (*outPresentCommandBuffer)->BeginRecording();
     return canPresent;
 }
+bool a = false;
 void Graphics::EndPresent(GLCommandBuffer& presentCommandBuffer)
 {
+    //由于没有使用renderPass，因此布局变换得手动设置。每次渲染后图片布局默认为“未定义”，需在呈现前将布局调整为“呈现源”
     presentCommandBuffer.TransitionImageLayout(
         glSwapChain->images[currentImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
