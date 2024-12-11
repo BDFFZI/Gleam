@@ -32,6 +32,7 @@ namespace Light
         VertexInput, InputAssembly
     };
 
+
     class Mesh : public MeshT<Vertex>
     {
     public:

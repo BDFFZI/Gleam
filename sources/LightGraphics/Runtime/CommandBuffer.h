@@ -1,16 +1,16 @@
 ﻿#pragma once
 #include <stack>
-
-#include "GraphicsConfig.hpp"
+#include "Material.h"
 #include "RenderTexture.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
+#include "LightMath/Runtime/Matrix.hpp"
 
 namespace Light
 {
     class CommandBuffer
     {
     public:
-        CommandBuffer(VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_SECONDARY) : glCommandBuffer(level)
+        CommandBuffer() : glCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY)
         {
         }
         CommandBuffer(const CommandBuffer&) = delete;
@@ -45,13 +45,9 @@ namespace Light
          * @param height 
          */
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) const;
-        void SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix);
-        void SetViewProjectionMatrices(const float4x4& matrixVP);
-
         void SetViewportToFullscreen() const;
-        void SetViewProjectionMatricesToIdentity();
 
-        void Draw(MeshBase& mesh, MaterialBase& material, const float4x4& modelMatrix = float4x4::Identity());
+        void Draw(MeshBase& mesh, MaterialBase& material);
         void ClearRenderTarget(const std::optional<float4>& color = 0.0f, const std::optional<float>& depth = 1.0f) const;
 
     private:
@@ -61,6 +57,5 @@ namespace Light
         const MeshBase* lastMesh = nullptr;
         const MaterialBase* lastMaterial = nullptr;
         const RenderTargetBase* lastRenderTarget = nullptr;
-        float4x4 matrixVP = float4x4::Identity();
     };
 }

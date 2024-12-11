@@ -7,9 +7,10 @@
 #include "LightUtility/Runtime/Chronograph.hpp"
 #include "LightGraphics/Runtime/Mesh.h"
 #include "LightGraphics/Runtime/Shader.h"
-#include "LightGraphics/Runtime/Texture2D.h"
+#include "LightGraphics/Runtime/Texture.h"
 #include "LightGraphics/Runtime/Material.h"
 #include "LightMath/Runtime/MatrixMath.hpp"
+#include "LightRendering/Runtime/Shader.h"
 
 using namespace Light;
 
@@ -17,22 +18,35 @@ using namespace Light;
 struct Point
 {
     float3 position;
+    float2 uv;
     float4 color;
 };
 
-//自定义线框网格布局
-GLMeshLayout lineMeshLayout = {
-    GLVertexInput{
-        sizeof(Point), {
-            GLVertexAttribute{0,offsetof(Point, position), VK_FORMAT_R32G32B32_SFLOAT},
-            GLVertexAttribute{4,offsetof(Point, color), VK_FORMAT_R32G32B32A32_SFLOAT},
-        }
-    },
+GLVertexInput VertexInput = GLVertexInput{
+    sizeof(Point), {
+        GLVertexAttribute{0,offsetof(Point, position), VK_FORMAT_R32G32B32_SFLOAT},
+        GLVertexAttribute{1,offsetof(Point, uv), VK_FORMAT_R32G32_SFLOAT},
+        GLVertexAttribute{2,offsetof(Point, color), VK_FORMAT_R32G32B32A32_SFLOAT},
+    }
+};
+
+//三角面列表网格布局
+GLMeshLayout TriangleMeshLayout = {
+    VertexInput,
+    GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false}
+};
+
+//线框条带网格布局
+GLMeshLayout LineMeshLayout = {
+    VertexInput,
     GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, false}
 };
 
+VkFormat ColorFormat = VK_FORMAT_R8G8B8A8_SRGB;
+VkFormat DepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;
+
 //变换测试用的移动方向
-inline static float3 move[4] = {
+inline float3 Move[4] = {
     float3(-1, 1, 1),
     float3(1, 1, -1),
     float3(1, -1, 1),
@@ -42,64 +56,90 @@ inline static float3 move[4] = {
 //计时器，每帧置零
 Chronograph chronograph;
 
-std::unique_ptr<Mesh> fullScreenMesh;
-std::unique_ptr<Mesh> boxMesh;
+std::unique_ptr<MeshT<Point>> fullScreenMesh;
+std::unique_ptr<MeshT<Point>> boxMesh;
 std::unique_ptr<MeshT<Point>> wireBoxMesh;
 
-std::unique_ptr<Shader> texture2DShader;
-std::unique_ptr<Shader> vertexColorShader;
-std::unique_ptr<Shader> wireVertexColorShader;
+std::unique_ptr<ShaderT> triangleShader;
+std::unique_ptr<ShaderT> lineShader;
 
-std::unique_ptr<Texture2D> texture2D;
+std::unique_ptr<Texture2D> imageTexture2D;
+std::unique_ptr<Texture2D> whiteTexture2D;
 
-std::unique_ptr<Material> texture2DMaterial;
-std::unique_ptr<Material> vertexColorMaterial;
-std::unique_ptr<Material> wireVertexColorMaterial;
+std::unique_ptr<MaterialT> material;
+std::unique_ptr<MaterialT> wireMaterial;
 
 std::unique_ptr<RenderTexture> renderTexture;
 
 void CreateAssets()
 {
-    //全屏网格
-    fullScreenMesh = std::make_unique<Mesh>();
-    fullScreenMesh->SetPositions({
-        float3(-1, -1, 1), float3(-1, 1, 1),
-        float3(1, 1, 1), float3(1, -1, 1)
-    });
-    fullScreenMesh->SetUVs({
-        float2(0, 1), float2(0, 0),
-        float2(1, 0), float2(1, 1)
-    });
     float4 red = float4(1.0f, 0.0f, 0.0f, 1.0f);
-    fullScreenMesh->SetColors({red, red, red, red});
+    //全屏网格
+    fullScreenMesh = std::make_unique<MeshT<Point>>(&TriangleMeshLayout);
+    fullScreenMesh->SetVertices({
+        {float3(-1, -1, 1), float2(0, 1), red},
+        {float3(-1, 1, 1), float2(0, 0), red},
+        {float3(1, 1, 1), float2(1, 0), red},
+        {float3(1, -1, 1), float2(1, 1), red},
+    });
     fullScreenMesh->SetIndices({
         0, 1, 2,
         0, 2, 3
     });
     //盒状网格
-    boxMesh = Mesh::CreateFromRawMesh(ModelImporter::ImportObj("Assets/Cube.obj"));
-    //线框盒状网格
-    std::vector<DefaultVertex> vertices = boxMesh->GetVertices();
-    std::vector<Point> lineVertices(vertices.size());
-    for (uint32_t i = 0; i < vertices.size(); i++)
+    RawMesh rawMesh = ModelImporter::ImportObj("Assets/Cube.obj");
+    std::vector<Point> vertices = {};
+    for (int i = 0; i < rawMesh.positions.size(); ++i)
     {
-        lineVertices[i].position = vertices[i].position;
-        lineVertices[i].color = vertices[i].color;
+        vertices.emplace_back(
+            rawMesh.positions[i],
+            rawMesh.uvs[i],
+            1
+        );
     }
-    wireBoxMesh = std::make_unique<MeshT<Point>>(&lineMeshLayout);
-    wireBoxMesh->SetVertices(lineVertices);
-    wireBoxMesh->SetIndices(boxMesh->GetIndices());
+    boxMesh = std::make_unique<MeshT<Point>>(&TriangleMeshLayout);
+    boxMesh->SetVertices(vertices);
+    boxMesh->SetIndices(rawMesh.triangles);
+    //线框盒状网格
+    wireBoxMesh = std::make_unique<MeshT<Point>>(&LineMeshLayout);
+    wireBoxMesh->SetVertices(vertices);
+    wireBoxMesh->SetIndices(rawMesh.triangles);
 
-    //纹理着色器
-    texture2DShader = Shader::CreateFromFile(
+    //着色器
+    std::vector<std::byte> vertexShaderCode = ShaderImporter::ImportHlslFromFile(
+        "Assets/Shader.hlsl", shaderc_vertex_shader, "VertexShader");
+    std::vector<std::byte> fragmentShaderCode = ShaderImporter::ImportHlslFromFile(
+        "Assets/Shader.hlsl", shaderc_fragment_shader, "FragmentShader");
+    std::vector shaderLayout = {
+        GLShader(VK_SHADER_STAGE_VERTEX_BIT, std::move(vertexShaderCode), "VertexShader"),
+        GLShader(VK_SHADER_STAGE_FRAGMENT_BIT, std::move(vertexShaderCode), "FragmentShader")
+    };
+    GLStateLayout layout = {};
+    layout.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+    layout.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
+    layout.SetViewportCount(1, 1);
+    //三角面着色器
+    triangleShader = std::make_unique<ShaderT>(
+        shaderLayout, layout, TriangleMeshLayout, ColorFormat, DepthStencilFormat,
+        std::vector{GLDescriptorBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)},
+        VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,
+        std::vector{VkPushConstantRange{VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant)}});
+    //线着色器
+    lineShader = std::make_unique<ShaderT>(
+        shaderLayout, layout, LineMeshLayout, ColorFormat, DepthStencilFormat,
+        std::vector{GLDescriptorBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)},
+        VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,
+        std::vector{VkPushConstantRange{VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant)}});
+
+    texture2DShader = ShaderT::CreateFromFile(
         "Assets/Texture2D.hlsl",
         std::vector{
             GLDescriptorBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
         });
     //顶点颜色着色器
-    vertexColorShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout);
+    vertexColorShader = ShaderT::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout);
     //线框顶点颜色着色器
-    wireVertexColorShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, lineMeshLayout);
+    wireVertexColorShader = ShaderT::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, lineMeshLayout);
 
     //纹理
     std::vector data(9, float4(1));
@@ -107,12 +147,12 @@ void CreateAssets()
     texture2D = std::make_unique<Texture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, data.data(), sizeof float4 * data.size());
 
     //纹理材质球
-    texture2DMaterial = std::make_unique<Material>(*texture2DShader);
+    texture2DMaterial = std::make_unique<MaterialT>(*texture2DShader);
     texture2DMaterial->SetTexture(0, *texture2D);
     //顶点颜色材质球
-    vertexColorMaterial = std::make_unique<Material>(*vertexColorShader);
+    vertexColorMaterial = std::make_unique<MaterialT>(*vertexColorShader);
     //线框顶点颜色材质球
-    wireVertexColorMaterial = std::make_unique<Material>(*wireVertexColorShader);
+    wireVertexColorMaterial = std::make_unique<MaterialT>(*wireVertexColorShader);
 
     //渲染纹理
     renderTexture = std::make_unique<RenderTexture>(
@@ -203,7 +243,7 @@ void Update(GLFWwindow* glfwWindow)
             inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1})),
             float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f)
         );
-        Draw(commandBuffer,0);
+        Draw(commandBuffer, 0);
         commandBuffer.SetRenderTargetToNull();
         //将自定义渲染目标布局转为着色器的采样纹理
         commandBuffer.GetGLCommandBuffer().TransitionImageLayout(

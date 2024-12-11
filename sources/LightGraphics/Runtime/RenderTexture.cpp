@@ -3,7 +3,9 @@
 using namespace Light;
 
 
-RenderTexture::RenderTexture(const uint32_t width, const uint32_t height, const VkFormat colorFormat, const VkFormat depthStencilFormat, const VkSampleCountFlagBits sampleCount)
+RenderTexture::RenderTexture(
+    const uint32_t width, const uint32_t height,
+    const VkFormat colorFormat, const VkFormat depthStencilFormat, const VkSampleCountFlagBits sampleCount)
     : width(width), height(height), sampleCount(sampleCount)
 {
     glImageSampler = std::make_unique<GLImageSampler>();
@@ -23,27 +25,27 @@ RenderTexture::RenderTexture(const uint32_t width, const uint32_t height, const 
     }
 }
 
-const VkImage& RenderTexture::GetVKColorImage() const
-{
-    return glColorImage->image;
-}
-const VkImage* RenderTexture::GetVkDepthStencilImage() const
-{
-    return glDepthStencilImage == nullptr ? nullptr : &glDepthStencilImage->image;
-}
-const VkImage* RenderTexture::GetVkColorResolveImage() const
-{
-    return glColorResolveImage == nullptr ? nullptr : &glColorResolveImage->image;
-}
-const GLImageView& RenderTexture::GetGLColorImageView() const
-{
-    return *glColorImageView;
-}
-const GLImageView* RenderTexture::GetGLDepthStencilImageView() const
-{
-    return glDepthStencilImageView.get();
-}
-const GLImageView* RenderTexture::GetGLColorResolveImageView() const
-{
-    return glColorResolveImageView.get();
-}
+// const VkImage& RenderTexture::GetVKColorImage() const
+// {
+//     return glColorImage->image;
+// }
+// const VkImage* RenderTexture::GetVkDepthStencilImage() const
+// {
+//     return glDepthStencilImage == nullptr ? nullptr : &glDepthStencilImage->image;
+// }
+// const VkImage* RenderTexture::GetVkColorResolveImage() const
+// {
+//     return glColorResolveImage == nullptr ? nullptr : &glColorResolveImage->image;
+// }
+// const GLImageView& RenderTexture::GetGLColorImageView() const
+// {
+//     return *glColorImageView;
+// }
+// const GLImageView* RenderTexture::GetGLDepthStencilImageView() const
+// {
+//     return glDepthStencilImageView.get();
+// }
+// const GLImageView* RenderTexture::GetGLColorResolveImageView() const
+// {
+//     return glColorResolveImageView.get();
+// }

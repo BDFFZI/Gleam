@@ -20,7 +20,6 @@ void CommandBuffer::EndRecording()
     lastMesh = nullptr;
     lastMaterial = nullptr;
     lastRenderTarget = nullptr;
-    matrixVP = float4x4::Identity();
 }
 
 void CommandBuffer::BeginRendering(const RenderTargetBase& renderTarget, const bool clearColor)
@@ -78,25 +77,12 @@ void CommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t
         {width, height}
     );
 }
-void CommandBuffer::SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix)
-{
-    matrixVP = mul(projMatrix, viewMatrix);
-}
-void CommandBuffer::SetViewProjectionMatrices(const float4x4& matrixVP)
-{
-    this->matrixVP = matrixVP;
-}
-
 void CommandBuffer::SetViewportToFullscreen() const
 {
     SetViewport(0, 0, lastRenderTarget->GetWidth(), lastRenderTarget->GetHeight());
 }
-void CommandBuffer::SetViewProjectionMatricesToIdentity()
-{
-    SetViewProjectionMatrices(float4x4::Identity());
-}
 
-void CommandBuffer::Draw(MeshBase& mesh, MaterialBase& material, const float4x4& modelMatrix)
+void CommandBuffer::Draw(MeshBase& mesh, MaterialBase& material)
 {
     //绑定网格
     if (&mesh != lastMesh)
@@ -111,13 +97,6 @@ void CommandBuffer::Draw(MeshBase& mesh, MaterialBase& material, const float4x4&
         material.BindToPipeline(glCommandBuffer, lastMaterial);
         lastMaterial = &material;
     }
-
-    //推送常量
-    DefaultPushConstant pushConstant = {mul(matrixVP, modelMatrix)};
-    glCommandBuffer.PushConstant(
-        material.GetShader()->GetGLPipelineLayout(),
-        material.GetShader()->GetPushConstantBinding()[0],
-        &pushConstant);
 
     glCommandBuffer.DrawIndexed(mesh.GetGLIndexCount());
 }

@@ -4,7 +4,7 @@
 
 using namespace Light;
 
-Material::Material(ShaderBase& shader): shader(&shader)
+MaterialT::MaterialT(ShaderBase& shader): shader(&shader)
 {
     const std::vector<GLDescriptorBinding>& descriptorBindings = shader.GetDescriptorBinding();
     writeDescriptorSets.resize(descriptorBindings.size());
@@ -30,7 +30,7 @@ Material::Material(ShaderBase& shader): shader(&shader)
         writeDescriptorSets[i] = writeDescriptorSet;
     }
 }
-Material::~Material()
+MaterialT::~MaterialT()
 {
     for (auto& descriptor : writeDescriptorSets)
     {
@@ -41,14 +41,14 @@ Material::~Material()
     }
 }
 
-void Material::SetBuffer(const int slotIndex, const Buffer& buffer) const
+void MaterialT::SetBuffer(const int slotIndex, const Buffer& buffer) const
 {
     VkDescriptorBufferInfo* bufferInfo = const_cast<VkDescriptorBufferInfo*>(writeDescriptorSets[slotIndex].pBufferInfo);
     bufferInfo->buffer = buffer.GetGLBuffer().buffer;
     bufferInfo->offset = 0;
     bufferInfo->range = buffer.GetGLBuffer().size;
 }
-void Material::SetTexture(const int slotIndex, const TextureBase& texture) const
+void MaterialT::SetTexture(const int slotIndex, const TextureBase& texture) const
 {
     VkDescriptorImageInfo* imageInfo = const_cast<VkDescriptorImageInfo*>(writeDescriptorSets[slotIndex].pImageInfo);
     imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -56,7 +56,7 @@ void Material::SetTexture(const int slotIndex, const TextureBase& texture) const
     imageInfo->sampler = texture.GetGLImageSampler().imageSampler;
 }
 
-void Material::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialBase* lastMaterial)
+void MaterialT::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialBase* lastMaterial)
 {
     if (lastMaterial == nullptr || lastMaterial->GetShader() != shader)
         shader->BindToPipeline(glCommandBuffer, lastMaterial == nullptr ? nullptr : lastMaterial->GetShader());

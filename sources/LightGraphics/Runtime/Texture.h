@@ -8,14 +8,21 @@
 
 namespace Light
 {
+    class TextureBase
+    {
+    public:
+        virtual ~TextureBase() = default;
+        virtual const GLImageView& GetGLImageView() const = 0;
+        virtual const GLImageSampler& GetGLImageSampler() const = 0;
+    };
+
     class Texture2D : public TextureBase
     {
     public:
         Texture2D(int width, int height, VkFormat format, const void* data, size_t size);
 
-        const GLImage& GetGLImage() const;
-        const GLImageView& GetGLImageView() const override;
-        const GLImageSampler& GetGLImageSampler() const override;
+        const GLImageView& GetGLImageView() const override { return *glImageView; }
+        const GLImageSampler& GetGLImageSampler() const override { return *glImageSampler; }
 
     private:
         std::unique_ptr<GLImage> glImage;

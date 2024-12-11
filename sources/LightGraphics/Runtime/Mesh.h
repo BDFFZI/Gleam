@@ -1,14 +1,27 @@
 ﻿#pragma once
 #include <memory>
 
-#include "GraphicsConfig.hpp"
 #include "LightGL/Runtime/Resource/GLBuffer.h"
 #include "LightImport/Runtime/ModelImporter.h"
-#include "LightMath/Runtime/Vector.hpp"
 #include <cassert>
+
+#include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 
 namespace Light
 {
+    class MeshBase
+    {
+    public:
+        virtual ~MeshBase() = default;
+        virtual void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MeshBase* lastMesh) = 0;
+        virtual const GLMeshLayout* GetGLMeshLayout() const = 0;
+        /**
+         * GLIndexCount等于索引数量，但并非总是有效。因为它是专供图形接口使用的索引数量，因此只有在绑定资源到管线时才被计算。
+         * @return 
+         */
+        virtual uint32_t GetGLIndexCount() const = 0;
+    };
+
     template <class TVertex>
     class MeshT : public MeshBase
     {
@@ -134,6 +147,4 @@ namespace Light
         uint32_t glIndexCount;
         bool readwrite;
     };
-
-    
 }

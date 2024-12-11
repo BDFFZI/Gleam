@@ -1,16 +1,25 @@
 ﻿#pragma once
 #include "Buffer.h"
 #include "Shader.h"
-#include "Texture2D.h"
+#include "Texture.h"
+#include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 
 namespace Light
 {
-    class Material : public MaterialBase
+    class MaterialBase
     {
     public:
-        Material(ShaderBase& shader);
-        Material(const Material&) = delete;
-        ~Material() override;
+        virtual ~MaterialBase() = default;
+        virtual void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialBase* lastMaterial) = 0;
+        virtual const ShaderBase* GetShader() const = 0;
+    };
+    
+    class MaterialT : public MaterialBase
+    {
+    public:
+        MaterialT(ShaderBase& shader);
+        MaterialT(const MaterialT&) = delete;
+        ~MaterialT() override;
 
         const ShaderBase* GetShader() const override { return shader; }
         void SetBuffer(int slotIndex, const Buffer& buffer) const;

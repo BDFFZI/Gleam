@@ -1,4 +1,4 @@
-﻿#include "Texture2D.h"
+﻿#include "Texture.h"
 
 namespace Light
 {
@@ -8,17 +8,5 @@ namespace Light
         glImageView = std::make_unique<GLImageView>(*glImage, VK_IMAGE_ASPECT_COLOR_BIT);
         glImageSampler = std::make_unique<GLImageSampler>();
     }
-
-    const GLImage& Texture2D::GetGLImage() const
-    {
-        return *glImage;
-    }
-    const GLImageView& Texture2D::GetGLImageView() const
-    {
-        return *glImageView;
-    }
-    const GLImageSampler& Texture2D::GetGLImageSampler() const
-    {
-        return *glImageSampler;
-    }
+    
 }
