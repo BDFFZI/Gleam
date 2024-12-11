@@ -90,6 +90,7 @@ namespace Light
     }
     ImTextureID UI::CreateImage()
     {
+        ImGui_ImplVulkan_AddTexture()
         return nullptr;
     }
 }

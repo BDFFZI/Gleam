@@ -67,8 +67,8 @@ void CreateAssets()
         float3(1, 1, 1), float3(1, -1, 1)
     });
     fullScreenMesh->SetUVs({
-        float2(0, 0), float2(0, 1),
-        float2(1, 1), float2(1, 0)
+        float2(0, 1), float2(0, 0),
+        float2(1, 0), float2(1, 1)
     });
     float4 red = float4(1.0f, 0.0f, 0.0f, 1.0f);
     fullScreenMesh->SetColors({red, red, red, red});

@@ -6,51 +6,11 @@
 #include "LightMath/Runtime/Matrix.hpp"
 #include "LightMath/Runtime/Vector.hpp"
 
-
 namespace Light
 {
-    constexpr VkFormat DefaultColorFormat = VK_FORMAT_B8G8R8A8_SRGB;
-    constexpr VkFormat DefaultDepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;
-    const GLStateLayout DefaultGLStateLayout = []
-    {
-        GLStateLayout layout;
-        layout.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
-        layout.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
-        layout.SetViewportCount(1, 1);
-        return layout;
-    }();
 
-    struct DefaultPushConstant
-    {
-        alignas(16) float4x4 MatrixMVP;
-    };
 
-    struct DefaultVertex
-    {
-        float3 position;
-        float3 normal;
-        float4 tangent;
-        float2 uv;
-        float4 color;
-    };
 
-    const GLVertexInput DefaultGLVertexInput = {
-        sizeof(DefaultVertex), {
-            GLVertexAttribute{0,offsetof(DefaultVertex, position), VK_FORMAT_R32G32B32_SFLOAT},
-            GLVertexAttribute{1,offsetof(DefaultVertex, normal), VK_FORMAT_R32G32B32_SFLOAT},
-            GLVertexAttribute{2,offsetof(DefaultVertex, tangent), VK_FORMAT_R32G32B32A32_SFLOAT},
-            GLVertexAttribute{3,offsetof(DefaultVertex, uv), VK_FORMAT_R32G32_SFLOAT},
-            GLVertexAttribute{4,offsetof(DefaultVertex, color), VK_FORMAT_R32G32B32A32_SFLOAT},
-        }
-    };
-    const GLInputAssembly DefaultGLInputAssembly = {
-        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-        false
-    };
-
-    const GLMeshLayout DefaultGLMeshLayout = {
-        DefaultGLVertexInput, DefaultGLInputAssembly
-    };
 
     class MeshBase
     {
@@ -104,6 +64,6 @@ namespace Light
         virtual const GLImageView& GetGLColorImageView() const = 0;
         virtual const GLImageView* GetGLDepthStencilImageView() const = 0;
         virtual const GLImageView* GetGLColorResolveImageView() const = 0;
-        float GetAspectRatio() const { return static_cast<float>(GetWidth()) / GetHeight(); }
+        float GetAspectRatio() const { return static_cast<float>(GetWidth()) / static_cast<float>(GetHeight()); }
     };
 }

@@ -56,7 +56,7 @@ struct GLStateLayout
         depthStencil.flags = 0;
         depthStencil.depthTestEnable = VK_TRUE; //启用深度测试
         depthStencil.depthWriteEnable = VK_TRUE; //启用深度写入
-        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL; //深度测试通过条件为小于或等于
+        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL; //深度测试通过条件为小于或等于(这样当深度为1时也可以渲染，而不是别扭的设置成0.99)
         depthStencil.depthBoundsTestEnable = VK_FALSE;
         depthStencil.minDepthBounds = 0.0f; // 最小深度
         depthStencil.maxDepthBounds = 1.0f; // 最大深度

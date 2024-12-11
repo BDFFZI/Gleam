@@ -135,27 +135,5 @@ namespace Light
         bool readwrite;
     };
 
-    class Mesh : public MeshT<DefaultVertex>
-    {
-    public:
-        static std::unique_ptr<Mesh> CreateFromRawMesh(const RawMesh& rawMesh);
-
-        Mesh(const GLMeshLayout* glMeshLayout = &DefaultGLMeshLayout, const bool readwrite = false)
-            : MeshT(glMeshLayout, readwrite)
-        {
-        }
-        Mesh(const Mesh&) = delete;
-
-        void GetPositions(std::vector<float3>& buffer) const;
-        void GetNormals(std::vector<float3>& buffer) const;
-        void GetTangents(std::vector<float4>& buffer) const;
-        void GetUVs(std::vector<float2>& buffer) const;
-        void GetColors(std::vector<float4>& buffer) const;
-
-        void SetPositions(const std::vector<float3>& data);
-        void SetNormals(const std::vector<float3>& data);
-        void SetTangents(const std::vector<float4>& data);
-        void SetUVs(const std::vector<float2>& data);
-        void SetColors(const std::vector<float4>& data);
-    };
+    
 }

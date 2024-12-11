@@ -1,13 +1,18 @@
-
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Window.h"
 
-void main()
-{
-    using namespace Light;
+using namespace Light;
 
+void DrawUI()
+{
+    ImGui::ShowDemoWindow();
+    ImGui::Image(UI::CreateImage(), float2(50));
+}
+
+int main()
+{
     Window window = Window::Initialize("Tests", 800, 600, false);
     GL gl = GL::Initialize(Window::GetGlfwWindow());
     Graphics graphics = Graphics::Initialize(gl);
@@ -31,7 +36,7 @@ void main()
         commandBuffer.BeginRendering(Graphics::GetPresentRenderTarget(), true);
 
         UI::BeginFrame();
-        ImGui::ShowDemoWindow();
+        DrawUI();
         UI::EndFrame(commandBuffer.GetGLCommandBuffer());
 
         commandBuffer.EndRendering();
@@ -48,4 +53,6 @@ void main()
     UI::UnInitialize();
     Graphics::UnInitialize();
     GL::UnInitialize();
+
+    return 0;
 }
