@@ -16,26 +16,6 @@
 #include <iostream>
 #include <LightEngine/Runtime/Engine.h>
 
-// namespace Light
-// {
-//     struct float2
-//     {
-//         float2() = default;
-//         explicit  float2(float value): x(value), y(value)
-//         {
-//         }
-//
-//         float x, y;
-//     };
-//
-//     float2 abs(float2 a)
-//     {
-//         int b = abs(1);
-//     }
-//
-//
-// }
-
 inline int main()
 {
     using namespace std;

@@ -20,6 +20,11 @@ namespace Light
         virtual const std::vector<VkPushConstantRange>& GetPushConstantBinding() const = 0;
     };
 
+    class Shader
+    {
+        GLPipelineLayout* 
+    };
+    
     class ShaderT : public ShaderBase
     {
     public:
@@ -29,6 +34,7 @@ namespace Light
             VkFormat colorFormat, VkFormat depthStencilFormat,
             const std::vector<GLDescriptorBinding>& descriptorBindings, VkDescriptorSetLayoutCreateFlags descriptorFlags,
             const std::vector<VkPushConstantRange>& pushConstantRanges);
+        ShaderT();
         ShaderT(const ShaderT&) = delete;
 
         const GLPipelineLayout& GetGLPipelineLayout() const override { return *glPipelineLayout; }

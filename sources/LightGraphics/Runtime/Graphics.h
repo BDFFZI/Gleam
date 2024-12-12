@@ -5,6 +5,11 @@
 
 namespace Light
 {
+    struct GraphicsConfig
+    {
+        
+    }; 
+    
     class Graphics
     {
     public:
