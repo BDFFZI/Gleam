@@ -2,7 +2,7 @@
 #include <memory>
 #include <vulkan/vulkan_core.h>
 
-#include "RenderTexture.h"
+#include "RenderTarget.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
 
 namespace Light
@@ -10,16 +10,16 @@ namespace Light
     class SwapChain
     {
     public:
-        static RenderTarget& GetPresentRenderTarget() { return presentRenderTarget; }
+        static RenderTargetAsset& GetPresentRenderTarget() { return presentRenderTarget; }
 
         /**
- * @brief 等待到下次执行呈现操作所用的资源已可用
- * 
- * 用于渲染的命令缓冲区存在上限（等同于交换链中帧缓冲区数量），若以异步的方式进行渲染，就存在没有命令缓冲区可用的情况，所以需要等待。
- * 使用该函数可以阻塞线程直到下次用于实现呈现绘制的命令缓冲区闲置。
- *
- * @note 和 @c WaitPresent 比较，两者相当于两种不同的等待策略，所以如果你选择同步渲染，则可忽略该函数。
- */
+         * @brief 等待到下次执行呈现操作所用的资源已可用
+         * 
+         * 用于渲染的命令缓冲区存在上限（等同于交换链中帧缓冲区数量），若以异步的方式进行渲染，就存在没有命令缓冲区可用的情况，所以需要等待。
+         * 使用该函数可以阻塞线程直到下次用于实现呈现绘制的命令缓冲区闲置。
+         *
+         * @note 和 @c WaitPresent 比较，两者相当于两种不同的等待策略，所以如果你选择同步渲染，则可忽略该函数。
+         */
         static void WaitPresentable();
         /**
          * 向交换链申请开始一段呈现操作。
@@ -64,7 +64,7 @@ namespace Light
         inline static std::unique_ptr<GLImage> presentMultiColorImage = {};
         inline static std::unique_ptr<GLImageView> presentMultiColorImageView = {};
         //渲染目标信息
-        inline static RenderTarget presentRenderTarget = {};
+        inline static RenderTargetAsset presentRenderTarget = {};
         //呈现资源信息
         inline static std::vector<std::unique_ptr<GLCommandBuffer>> presentCommandBuffers;
         inline static uint32_t currentImageIndex; //当前呈现用的图片索引

@@ -12,45 +12,46 @@ void CommandBuffer::BeginRecording()
 }
 void CommandBuffer::EndRecording()
 {
-    if (lastRenderTarget != nullptr)
+    if (currentRenderTarget != nullptr)
         EndRendering();
 
     glCommandBuffer.EndRecording();
     //全部属性重置为初始值
-    lastMesh = nullptr;
-    lastMaterial = nullptr;
-    lastRenderTarget = nullptr;
+    currentMesh = nullptr;
+    currentMaterial = nullptr;
+    currentRenderTarget = nullptr;
+    matrixVP = float4x4::Identity();
 }
 
-void CommandBuffer::BeginRendering(const RenderTargetBase& renderTarget, const bool clearColor)
+void CommandBuffer::BeginRendering(const RenderTargetAsset& renderTarget, const bool clearColor)
 {
-    if (lastRenderTarget != &renderTarget)
+    if (currentRenderTarget != &renderTarget)
     {
         glCommandBuffer.BeginRendering(
             VkRect2D{
                 {0, 0}, {
-                    renderTarget.GetWidth(),
-                    renderTarget.GetHeight()
+                    renderTarget.width,
+                    renderTarget.height
                 }
             }, clearColor,
-            renderTarget.GetGLColorImageView(),
-            renderTarget.GetGLDepthStencilImageView(),
-            renderTarget.GetGLColorResolveImageView()
+            *renderTarget.glColorImageView,
+            renderTarget.glDepthStencilImageView,
+            renderTarget.glColorResolveImageView
         );
-        lastRenderTarget = &renderTarget;
+        currentRenderTarget = &renderTarget;
     }
 
     SetViewportToFullscreen();
 }
 void CommandBuffer::EndRendering()
 {
-    lastRenderTarget = nullptr;
+    currentRenderTarget = nullptr;
     glCommandBuffer.EndRendering();
 }
 
-void CommandBuffer::SetRenderTarget(const RenderTargetBase& renderTarget)
+void CommandBuffer::SetRenderTarget(const RenderTargetAsset& renderTarget)
 {
-    if (lastRenderTarget != &renderTarget && lastRenderTarget != nullptr)
+    if (currentRenderTarget != &renderTarget && currentRenderTarget != nullptr)
         EndRendering();
     BeginRendering(renderTarget);
 }
@@ -61,12 +62,12 @@ void CommandBuffer::SetRenderTargetToNull()
 
 void CommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t width, const uint32_t height) const
 {
-    assert(x >=0 && static_cast<uint32_t>(x) < lastRenderTarget->GetWidth() && "x超出最大渲染范围！");
-    assert(y >=0 && static_cast<uint32_t>(y) < lastRenderTarget->GetHeight() && "y超出最大渲染范围！");
-    assert(x + width <= lastRenderTarget->GetWidth() && "width超出最大渲染范围！");
-    assert(y + height <= lastRenderTarget->GetHeight() && "height超出最大渲染范围！");
+    assert(x >=0 && static_cast<uint32_t>(x) < currentRenderTarget->width && "x超出最大渲染范围！");
+    assert(y >=0 && static_cast<uint32_t>(y) < currentRenderTarget->height && "y超出最大渲染范围！");
+    assert(x + width <= currentRenderTarget->width && "width超出最大渲染范围！");
+    assert(y + height <= currentRenderTarget->height && "height超出最大渲染范围！");
 
-    int32_t rightY = static_cast<int32_t>(lastRenderTarget->GetHeight() - (y + height)); //转换到右手坐标系
+    int32_t rightY = static_cast<int32_t>(currentRenderTarget->height - (y + height)); //转换到右手坐标系
 
     glCommandBuffer.SetViewport(
         static_cast<float>(x), static_cast<float>(rightY + height),
@@ -79,26 +80,39 @@ void CommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t
 }
 void CommandBuffer::SetViewportToFullscreen() const
 {
-    SetViewport(0, 0, lastRenderTarget->GetWidth(), lastRenderTarget->GetHeight());
+    SetViewport(0, 0, currentRenderTarget->width, currentRenderTarget->height);
 }
 
-void CommandBuffer::Draw(MeshBase& mesh, MaterialBase& material)
+void CommandBuffer::SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix)
 {
-    //绑定网格
-    if (&mesh != lastMesh)
-    {
-        mesh.BindToPipeline(glCommandBuffer, lastMesh);
-        lastMesh = &mesh;
-    }
+    matrixVP = mul(projMatrix, viewMatrix);
+}
+void CommandBuffer::SetViewProjectionMatrices(const float4x4& matrixVP)
+{
+    this->matrixVP = matrixVP;
+}
+void CommandBuffer::SetViewProjectionMatricesToIdentity()
+{
+    SetViewProjectionMatrices(float4x4::Identity());
+}
 
-    //绑定材质球
-    if (&material != lastMaterial)
-    {
-        material.BindToPipeline(glCommandBuffer, lastMaterial);
-        lastMaterial = &material;
-    }
+void CommandBuffer::Draw(MeshAsset& mesh, MaterialAsset& material)
+{
+    mesh.BindToPipeline(glCommandBuffer, currentMesh);
+    material.shaderAsset->BindToPipeline(glCommandBuffer, currentShader);
+    material.BindToPipeline(glCommandBuffer, currentMaterial);
 
-    glCommandBuffer.DrawIndexed(mesh.GetGLIndexCount());
+    currentMesh = &mesh;
+    currentShader = material.shaderAsset;
+    currentMaterial = &material;
+
+    glCommandBuffer.DrawIndexed(mesh.glIndexCount);
+}
+void CommandBuffer::Draw(MeshAsset& mesh, Material& material, const float4x4& modelMatrix)
+{
+    float4x4 matrixMVP = mul(matrixVP, modelMatrix);
+    material.SetPushConstant(0, &matrixMVP);
+    Draw(mesh, material);
 }
 void CommandBuffer::ClearRenderTarget(const std::optional<float4>& color, const std::optional<float>& depth) const
 {
@@ -113,7 +127,7 @@ void CommandBuffer::ClearRenderTarget(const std::optional<float4>& color, const 
     }
 
     glCommandBuffer.ClearAttachments(
-        VkRect2D{{0, 0}, {lastRenderTarget->GetWidth(), lastRenderTarget->GetHeight()}},
+        VkRect2D{{0, 0}, {currentRenderTarget->width, currentRenderTarget->height}},
         color.has_value() ? std::optional(colorValue) : std::nullopt,
         // ReSharper disable once CppLocalVariableMightNotBeInitialized
         depth.has_value() ? std::optional(depthStencilValue) : std::nullopt

@@ -4,10 +4,13 @@
 
 using namespace Light;
 
-MaterialT::MaterialT(ShaderBase& shader): shader(&shader)
+Material::Material(ShaderAsset& shader)
+    : isDirty(true)
 {
-    const std::vector<GLDescriptorBinding>& descriptorBindings = shader.GetDescriptorBinding();
-    writeDescriptorSets.resize(descriptorBindings.size());
+    shaderAsset = &shader;
+
+    const std::vector<GLDescriptorBinding>& descriptorBindings = *shaderAsset->glDescriptorBindings;
+    glDescriptorSets.resize(descriptorBindings.size());
     for (size_t i = 0; i < descriptorBindings.size(); i++)
     {
         VkDescriptorType descriptorType = descriptorBindings[i].descriptorType;
@@ -27,12 +30,17 @@ MaterialT::MaterialT(ShaderBase& shader): shader(&shader)
         else
             throw std::runtime_error("不支持的描述符类型");
 
-        writeDescriptorSets[i] = writeDescriptorSet;
+        glDescriptorSets[i] = writeDescriptorSet;
     }
+
+    const std::vector<VkPushConstantRange>& pushConstantRanges = *shaderAsset->glPushConstantRanges;
+    glPushConstants.resize(pushConstantRanges.size());
+    for (size_t i = 0; i < pushConstantRanges.size(); i++)
+        glPushConstants[i].resize(pushConstantRanges[i].size);
 }
-MaterialT::~MaterialT()
+Material::~Material()
 {
-    for (auto& descriptor : writeDescriptorSets)
+    for (auto& descriptor : glDescriptorSets)
     {
         if (descriptor.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
             delete descriptor.pBufferInfo;
@@ -41,26 +49,32 @@ MaterialT::~MaterialT()
     }
 }
 
-void MaterialT::SetBuffer(const int slotIndex, const Buffer& buffer) const
+void Material::SetBuffer(const int slotIndex, const Buffer& buffer) const
 {
-    VkDescriptorBufferInfo* bufferInfo = const_cast<VkDescriptorBufferInfo*>(writeDescriptorSets[slotIndex].pBufferInfo);
+    VkDescriptorBufferInfo* bufferInfo = const_cast<VkDescriptorBufferInfo*>(glDescriptorSets[slotIndex].pBufferInfo);
     bufferInfo->buffer = buffer.GetGLBuffer().buffer;
     bufferInfo->offset = 0;
     bufferInfo->range = buffer.GetGLBuffer().size;
+    //TODO 需要dirty？
 }
-void MaterialT::SetTexture(const int slotIndex, const TextureBase& texture) const
+void Material::SetTexture(const int slotIndex, const TextureAsset& texture) const
 {
-    VkDescriptorImageInfo* imageInfo = const_cast<VkDescriptorImageInfo*>(writeDescriptorSets[slotIndex].pImageInfo);
+    VkDescriptorImageInfo* imageInfo = const_cast<VkDescriptorImageInfo*>(glDescriptorSets[slotIndex].pImageInfo);
     imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo->imageView = texture.GetGLImageView().imageView;
-    imageInfo->sampler = texture.GetGLImageSampler().imageSampler;
+    imageInfo->imageView = texture.glImageView->imageView;
+    imageInfo->sampler = texture.glImageSampler->imageSampler;
+    //TODO 需要dirty？
 }
-
-void MaterialT::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialBase* lastMaterial)
+void Material::SetPushConstant(const int slotIndex, const void* data)
 {
-    if (lastMaterial == nullptr || lastMaterial->GetShader() != shader)
-        shader->BindToPipeline(glCommandBuffer, lastMaterial == nullptr ? nullptr : lastMaterial->GetShader());
-
-    if (writeDescriptorSets.empty() == false)
-        glCommandBuffer.PushDescriptorSetKHR(shader->GetGLPipelineLayout(), writeDescriptorSets);
+    std::memcpy(glPushConstants[slotIndex].data(), data, (*shaderAsset->glPushConstantRanges)[slotIndex].size);
+    isDirty = true;
+}
+void Material::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialAsset* lastMaterial)
+{
+    if (this != lastMaterial || isDirty)
+    {
+        MaterialAsset::BindToPipeline(glCommandBuffer, lastMaterial);
+        isDirty = false;
+    }
 }

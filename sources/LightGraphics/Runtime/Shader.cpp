@@ -4,23 +4,39 @@
 
 using namespace Light;
 
-ShaderT::ShaderT(
-    const std::vector<GLShader>& shaderLayout,
-    const GLStateLayout& stateLayout, const GLMeshLayout& meshLayout,
-    const VkFormat colorFormat, const VkFormat depthStencilFormat,
-    const std::vector<GLDescriptorBinding>& descriptorBindings, VkDescriptorSetLayoutCreateFlags descriptorFlags,
-    const std::vector<VkPushConstantRange>& pushConstantRanges
-): pushConstantRanges(pushConstantRanges)
+Shader::Shader(const std::string& shaderFile, const GLStateLayout& glStateLayout, const GLMeshLayout& glMeshLayout)
+    : Shader(
+        std::vector{
+            GLShader(
+                VK_SHADER_STAGE_VERTEX_BIT,
+                ShaderImporter::ImportHlslFromFile(
+                    shaderFile, shaderc_vertex_shader, "VertexShader"
+                ), "VertexShader"
+            ),
+            GLShader(
+                VK_SHADER_STAGE_FRAGMENT_BIT,
+                ShaderImporter::ImportHlslFromFile(
+                    shaderFile, shaderc_fragment_shader, "FragmentShader"
+                ), "FragmentShader")
+        },
+        glStateLayout, glMeshLayout
+    )
 {
-    glDescriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(descriptorBindings, descriptorFlags);
-    glPipelineLayout = std::make_unique<GLPipelineLayout>(*glDescriptorSetLayout, pushConstantRanges);
-    glPipeline = std::make_unique<GLPipeline>(
-        std::vector{colorFormat}, depthStencilFormat,
-        shaderLayout, meshLayout, *this->glPipelineLayout,
-        stateLayout);
 }
-
-void ShaderT::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const ShaderBase* lastShader)
+Shader::Shader(const std::vector<GLShader>& shaderLayout, const GLStateLayout& glStateLayout, const GLMeshLayout& glMeshLayout)
 {
-    glCommandBuffer.BindPipeline(*glPipeline);
+    pipeline = std::make_unique<GLPipeline>(
+        std::vector{GraphicsPreset::DefaultColorFormat}, GraphicsPreset::DefaultDepthStencilFormat,
+        shaderLayout, glMeshLayout, *GraphicsPreset::DefaultGLPipelineLayout,
+        glStateLayout);
+
+    glDescriptorBindings = &GraphicsPreset::DefaultDescriptorBindings;
+    glPushConstantRanges = &GraphicsPreset::DefaultPushConstantRanges;
+    glPipelineLayout = GraphicsPreset::DefaultGLPipelineLayout.get();
+    glPipeline = pipeline.get();
+}
+void Shader::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const ShaderAsset* lastShader)
+{
+    if (this != lastShader)
+        ShaderAsset::BindToPipeline(glCommandBuffer, lastShader);
 }

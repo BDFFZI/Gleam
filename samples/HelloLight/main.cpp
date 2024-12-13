@@ -13,17 +13,17 @@
     所以接下来就请借助Framework层的功能，实现你的游戏代码...
  */
 
-#include <iostream>
-#include <LightEngine/Runtime/Engine.h>
+// #include <iostream>
+// #include <LightEngine/Runtime/Engine.h>
 
 inline int main()
 {
-    using namespace std;
-    cout << "Hello Light" << '\n';
-
-    using namespace Light;
-    Engine::Initialize();
-    Engine::Begin();
+    // using namespace std;
+    // cout << "Hello Light" << '\n';
+    //
+    // using namespace Light;
+    // Engine::Initialize();
+    // Engine::Begin();
 
     return 0;
 }

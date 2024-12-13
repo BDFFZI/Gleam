@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <stack>
 #include "Material.h"
-#include "RenderTexture.h"
+#include "RenderTarget.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 #include "LightMath/Runtime/Matrix.hpp"
 
@@ -16,7 +16,10 @@ namespace Light
         CommandBuffer(const CommandBuffer&) = delete;
 
         GLCommandBuffer& GetGLCommandBuffer() { return glCommandBuffer; }
-        const RenderTargetBase* GetRenderTarget() const { return lastRenderTarget; }
+        const MeshAsset* GetCurrentMesh() const { return currentMesh; }
+        const ShaderAsset* GetCurrentShader() const { return currentShader; }
+        const MaterialAsset* GetCurrentMaterial() const { return currentMaterial; }
+        const RenderTargetAsset* GetCurrentRenderTarget() const { return currentRenderTarget; }
 
         void BeginRecording();
         void EndRecording();
@@ -26,7 +29,7 @@ namespace Light
          * @param renderTarget 绘制到的目标帧缓冲区
          * @param clearColor 绘制前是否清除颜色（这比单独的清除操作性能更好）
          */
-        void BeginRendering(const RenderTargetBase& renderTarget, bool clearColor = false);
+        void BeginRendering(const RenderTargetAsset& renderTarget, bool clearColor = false);
         void EndRendering();
 
         /**
@@ -34,7 +37,7 @@ namespace Light
          * @param renderTarget 
          * @note 若要从SetRenderTarget方式切换回Rendering，必须先调用SetRenderTargetToNull
          */
-        void SetRenderTarget(const RenderTargetBase& renderTarget);
+        void SetRenderTarget(const RenderTargetAsset& renderTarget);
         void SetRenderTargetToNull();
 
         /**
@@ -47,15 +50,22 @@ namespace Light
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) const;
         void SetViewportToFullscreen() const;
 
-        void Draw(MeshBase& mesh, MaterialBase& material);
+        void SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix);
+        void SetViewProjectionMatrices(const float4x4& matrixVP);
+        void SetViewProjectionMatricesToIdentity();
+
+        void Draw(MeshAsset& mesh, MaterialAsset& material);
+        void Draw(MeshAsset& mesh, Material& material, const float4x4& modelMatrix);
         void ClearRenderTarget(const std::optional<float4>& color = 0.0f, const std::optional<float>& depth = 1.0f) const;
 
     private:
         inline static std::stack<CommandBuffer*> commandBufferPool = {};
 
         GLCommandBuffer glCommandBuffer;
-        const MeshBase* lastMesh = nullptr;
-        const MaterialBase* lastMaterial = nullptr;
-        const RenderTargetBase* lastRenderTarget = nullptr;
+        const MeshAsset* currentMesh = nullptr;
+        const ShaderAsset* currentShader = nullptr;
+        const MaterialAsset* currentMaterial = nullptr;
+        const RenderTargetAsset* currentRenderTarget = nullptr;
+        float4x4 matrixVP = float4x4::Identity();
     };
 }

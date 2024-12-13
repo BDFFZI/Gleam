@@ -45,10 +45,10 @@ namespace Light
 
         inline static std::unique_ptr<MeshT<Vertex>> pointMesh = nullptr;
         inline static std::unique_ptr<MeshT<Vertex>> lineMesh = nullptr;
-        inline static std::unique_ptr<ShaderT> pointShader = nullptr;
-        inline static std::unique_ptr<ShaderT> lineShader = nullptr;
-        inline static std::unique_ptr<MaterialT> pointMaterial = nullptr;
-        inline static std::unique_ptr<MaterialT> lineMaterial = nullptr;
+        inline static std::unique_ptr<Shader> pointShader = nullptr;
+        inline static std::unique_ptr<Shader> lineShader = nullptr;
+        inline static std::unique_ptr<Material> pointMaterial = nullptr;
+        inline static std::unique_ptr<Material> lineMaterial = nullptr;
 
         static void DrawObject();
     };

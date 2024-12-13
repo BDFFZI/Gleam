@@ -27,10 +27,10 @@ namespace Light
     {
         pointMesh = std::make_unique<MeshT<Vertex>>(&pointMeshLayout, true);
         lineMesh = std::make_unique<MeshT<Vertex>>(&lineMeshLayout, true);
-        pointShader = ShaderT::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, pointMeshLayout);
-        lineShader = ShaderT::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, lineMeshLayout);
-        pointMaterial = std::make_unique<MaterialT>(*pointShader);
-        lineMaterial = std::make_unique<MaterialT>(*lineShader);
+        pointShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, pointMeshLayout);
+        lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, lineMeshLayout);
+        pointMaterial = std::make_unique<Material>(*pointShader);
+        lineMaterial = std::make_unique<Material>(*lineShader);
     }
     void RenderingSystem::Stop()
     {
