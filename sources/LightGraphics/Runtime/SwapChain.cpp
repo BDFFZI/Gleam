@@ -27,6 +27,7 @@ namespace Light
         }
 
         //更新渲染目标信息(交换链中有多张颜色缓冲区，每次都会切换)
+        presentRenderTarget.glFinalImage = glSwapChain->images[currentImageIndex];
         if (presentSampleCount == VK_SAMPLE_COUNT_1_BIT)
             presentRenderTarget.glColorImageView = glSwapChain->imageViews[currentImageIndex].get();
         else
@@ -87,7 +88,7 @@ namespace Light
             presentMultiColorImageView = std::make_unique<GLImageView>(*presentMultiColorImage, VK_IMAGE_ASPECT_COLOR_BIT);
         }
         //重建PresentRenderTexture信息
-        presentRenderTarget.glTargetLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        presentRenderTarget.glFinalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         presentRenderTarget.width = glSwapChain->imageExtent.width;
         presentRenderTarget.height = glSwapChain->imageExtent.height;
         presentRenderTarget.glDepthStencilImageView = presentDepthStencilImageView.get();

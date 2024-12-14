@@ -1,4 +1,6 @@
 #include "PresentationSystem.h"
+
+#include "LightGraphics/Runtime/SwapChain.h"
 #include "LightUI/Runtime/UI.h"
 
 void Light::BeginPresentationSystem::Start()
@@ -12,7 +14,7 @@ void Light::BeginPresentationSystem::Stop()
 void Light::BeginPresentationSystem::Update()
 {
     //开始呈现并录制呈现命令缓冲区
-    Presentation::canPresent = Graphics::BeginPresent(&Presentation::presentCommandBuffer);
+    Presentation::canPresent = SwapChain::BeginPresent(&Presentation::presentCommandBuffer);
     //开始公共命令缓冲区录制
     Presentation::commandBuffer->BeginRecording();
 }
@@ -24,7 +26,7 @@ void Light::EndPresentationSystem::Update()
     Presentation::presentCommandBuffer->ExecuteSubCommands(Presentation::commandBuffer->GetGLCommandBuffer());
     //结束呈现命令缓冲区录制并提交呈现命令
     if (Presentation::CanPresent())
-        Graphics::EndPresent(*Presentation::presentCommandBuffer);
+        SwapChain::EndPresent(*Presentation::presentCommandBuffer);
     //等待上次呈现完成
-    Graphics::WaitPresent();
+    SwapChain::WaitPresent();
 }

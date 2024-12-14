@@ -99,11 +99,7 @@ void LogicSystem::OnCreateSpring()
     {
         if (Input::GetMouseButtonDown(MouseButton::Left))
         {
-            if (coveringPoint == Entity::Null)
-            {
-                springPointA = Entity::Null;
-            }
-            else if (coveringPoint != springPointA)
+            if (coveringPoint != Entity::Null && coveringPoint != springPointA)
             {
                 Point pointA = World::GetComponent<Point>(springPointA);
                 Point pointB = World::GetComponent<Point>(coveringPoint);
@@ -114,9 +110,9 @@ void LogicSystem::OnCreateSpring()
                         coveringPoint,
                         distance(pointA.position, pointB.position),
                     });
-                springPointA = Entity::Null;
             }
 
+            springPointA = Entity::Null;
             World::RemoveEntity(tempLine);
         }
     }
@@ -161,17 +157,13 @@ void LogicSystem::Update()
 
         switch (editMode)
         {
-        case EditMode::MovePoint:
-            OnMovePoint();
+        case EditMode::MovePoint: OnMovePoint();
             break;
-        case EditMode::CreatePoint:
-            OnCreatePoint();
+        case EditMode::CreatePoint: OnCreatePoint();
             break;
-        case EditMode::DeletePoint:
-            OnDeletePoint();
+        case EditMode::DeletePoint: OnDeletePoint();
             break;
-        case EditMode::CreateSpring:
-            OnCreateSpring();
+        case EditMode::CreateSpring: OnCreateSpring();
             break;
         }
     }

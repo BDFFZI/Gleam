@@ -42,6 +42,11 @@ namespace Light
 
     struct RenderTargetAsset
     {
+        uint32_t width, height; //渲染区域
+        GLImageView* glColorImageView; //颜色附件
+        GLImageView* glDepthStencilImageView; //深度模板附件
+        GLImageView* glColorResolveImageView; //颜色重解算附件
+
         /**
          * @brief 渲染后希望的布局（意图，如作为呈现源或着色器纹理）
          *
@@ -50,10 +55,7 @@ namespace Light
          * 
          * @return 
          */
-        VkImageLayout glTargetLayout;
-        uint32_t width, height; //渲染区域
-        GLImageView* glColorImageView; //颜色附件
-        GLImageView* glDepthStencilImageView; //深度模板附件
-        GLImageView* glColorResolveImageView; //颜色重解算附件
+        VkImageLayout glFinalLayout;
+        VkImage glFinalImage;
     };
 }

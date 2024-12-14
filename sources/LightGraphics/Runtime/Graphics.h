@@ -11,8 +11,7 @@ namespace Light
     public:
         static void InitializeGLDemand(std::vector<const char*>& extensions);
 
-        static Graphics Initialize(
-            GL&, VkFormat presentColorFormat, VkFormat presentDepthStencilFormat, VkSampleCountFlagBits presentSampleCount);
+        static Graphics Initialize(GL&);
         static void UnInitialize();
         
         static CommandBuffer& ApplyCommandBuffer(const std::string& name = "");

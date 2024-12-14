@@ -11,6 +11,7 @@ namespace Light
     {
     public:
         static RenderTargetAsset& GetPresentRenderTarget() { return presentRenderTarget; }
+        static GLSwapChain& GetGLSwapChain() { return *glSwapChain; }
 
         /**
          * @brief 等待到下次执行呈现操作所用的资源已可用

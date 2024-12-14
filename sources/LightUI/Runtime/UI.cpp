@@ -4,6 +4,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
+#include "LightGraphics/Runtime/SwapChain.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Window.h"
 
@@ -34,11 +35,11 @@ namespace Light
         VkPipelineRenderingCreateInfo renderingInfo = {};
         renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
         renderingInfo.pNext = VK_NULL_HANDLE;
-        VkFormat colorFormat[] = {DefaultColorFormat};
+        VkFormat colorFormat[] = {GraphicsPreset::DefaultColorFormat};
         renderingInfo.colorAttachmentCount = std::size(colorFormat);
         renderingInfo.pColorAttachmentFormats = colorFormat;
-        renderingInfo.depthAttachmentFormat = DefaultDepthStencilFormat;
-        renderingInfo.stencilAttachmentFormat = DefaultDepthStencilFormat;
+        renderingInfo.depthAttachmentFormat = GraphicsPreset::DefaultDepthStencilFormat;
+        renderingInfo.stencilAttachmentFormat = GraphicsPreset::DefaultDepthStencilFormat;
 
         // Setup Platform/Renderer backends
 
@@ -50,9 +51,9 @@ namespace Light
         initInfo.QueueFamily = GL::glDevice->graphicQueueFamily;
         initInfo.Queue = GL::glDevice->graphicQueue;
         initInfo.DescriptorPool = descriptorPool->descriptorPool; // See requirements in note above
-        initInfo.MinImageCount = Graphics::GetGLSwapChain()->minImageCount; // >= 2
-        initInfo.ImageCount = Graphics::GetGLSwapChain()->imageCount; // >= MinImageCount
-        initInfo.MSAASamples = DefaultGLStateLayout.multisample.rasterizationSamples; // 0 defaults to VK_SAMPLE_COUNT_1_BIT
+        initInfo.MinImageCount = SwapChain::GetGLSwapChain().minImageCount; // >= 2
+        initInfo.ImageCount = SwapChain::GetGLSwapChain().imageCount; // >= MinImageCount
+        initInfo.MSAASamples = GraphicsPreset::DefaultStateLayout.multisample.rasterizationSamples; // 0 defaults to VK_SAMPLE_COUNT_1_BIT
         initInfo.UseDynamicRendering = true;
         initInfo.PipelineRenderingCreateInfo = renderingInfo;
         initInfo.CheckVkResultFn = CheckVKResult;
@@ -87,10 +88,5 @@ namespace Light
         ImGui::Render();
         //提交绘制命令
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer.commandBuffer);
-    }
-    ImTextureID UI::CreateImage()
-    {
-        ImGui_ImplVulkan_AddTexture()
-        return nullptr;
     }
 }

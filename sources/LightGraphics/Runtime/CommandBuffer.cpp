@@ -18,6 +18,7 @@ void CommandBuffer::EndRecording()
     glCommandBuffer.EndRecording();
     //全部属性重置为初始值
     currentMesh = nullptr;
+    currentShader = nullptr;
     currentMaterial = nullptr;
     currentRenderTarget = nullptr;
     matrixVP = float4x4::Identity();

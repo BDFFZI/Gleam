@@ -2,7 +2,6 @@
 
 using namespace Light;
 
-
 RenderTexture::RenderTexture(
     const uint32_t width, const uint32_t height, // NOLINT
     const VkFormat colorFormat, const VkFormat depthStencilFormat, const VkSampleCountFlagBits sampleCount)
@@ -20,9 +19,10 @@ RenderTexture::RenderTexture(
         colorResolveImageView = std::make_unique<GLImageView>(*colorResolveImage, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
-    glTargetLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    RenderTargetData::width = width;
-    RenderTargetData::height = height;
+    glFinalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    glFinalImage = colorResolveImage ? colorResolveImage->image : colorImage->image;
+    RenderTargetAsset::width = width;
+    RenderTargetAsset::height = height;
     glColorImageView = colorImageView.get();
     glDepthStencilImageView = depthStencilImageView.get();
     glColorResolveImageView = colorResolveImageView.get();

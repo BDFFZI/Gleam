@@ -3,18 +3,24 @@
 #include "LightECS/Runtime/View.hpp"
 #include "../Component.hpp"
 #include "LightGraphics/Runtime/Graphics.h"
+#include "LightGraphics/Runtime/SwapChain.h"
 #include "LightWindow/Runtime/Input.h"
 
 namespace Light
 {
+    float GetAspectRatio(RenderTargetAsset& renderTarget)
+    {
+        return static_cast<float>(renderTarget.width) / static_cast<float>(renderTarget.height);
+    }
+
     float2 Rendering::ScreenToWorldPoint(const float2& positionSS)
     {
         float2 positionUV = {
-            positionSS.x / static_cast<float>(Graphics::GetPresentRenderTarget().width),
-            positionSS.y / static_cast<float>(Graphics::GetPresentRenderTarget().height)
+            positionSS.x / static_cast<float>(SwapChain::GetPresentRenderTarget().width),
+            positionSS.y / static_cast<float>(SwapChain::GetPresentRenderTarget().height)
         };
         float2 viewSizeWS = {
-            Graphics::GetPresentRenderTarget().GetAspectRatio() * GetOrthoSize(),
+            GetAspectRatio(SwapChain::GetPresentRenderTarget()) * GetOrthoSize(),
             GetOrthoSize()
         };
         float2 positionWS = {
@@ -25,10 +31,10 @@ namespace Light
     }
     void RenderingSystem::Start()
     {
-        pointMesh = std::make_unique<MeshT<Vertex>>(&pointMeshLayout, true);
-        lineMesh = std::make_unique<MeshT<Vertex>>(&lineMeshLayout, true);
-        pointShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, pointMeshLayout);
-        lineShader = Shader::CreateFromFile("Assets/VertexColor.hlsl", {}, DefaultGLStateLayout, lineMeshLayout);
+        pointMesh = std::make_unique<MeshT<Vertex>>(true);
+        lineMesh = std::make_unique<MeshT<Vertex>>(true);
+        pointShader = std::make_unique<Shader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, pointMeshLayout);
+        lineShader = std::make_unique<Shader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, lineMeshLayout);
         pointMaterial = std::make_unique<Material>(*pointShader);
         lineMaterial = std::make_unique<Material>(*lineShader);
     }
@@ -76,18 +82,18 @@ namespace Light
 
 
         auto& commandBuffer = Presentation::GetCommandBuffer();
-        commandBuffer.BeginRendering(Graphics::GetPresentRenderTarget(), true);
+        commandBuffer.BeginRendering(SwapChain::GetPresentRenderTarget(), true);
         {
             commandBuffer.SetViewProjectionMatrices(
                 float4x4::Identity(),
                 float4x4::Ortho(
-                    Graphics::GetPresentRenderTarget().GetAspectRatio() * Rendering::GetOrthoHalfSize(),
+                    GetAspectRatio(SwapChain::GetPresentRenderTarget()) * Rendering::GetOrthoHalfSize(),
                     Rendering::GetOrthoHalfSize(), 0, 1)
             );
             if (!lineMesh->GetIndices().empty())
-                commandBuffer.Draw(*lineMesh, *lineMaterial);
+                commandBuffer.Draw(*lineMesh, *lineMaterial, float4x4::Identity());
             if (!pointMesh->GetIndices().empty())
-                commandBuffer.Draw(*pointMesh, *pointMaterial);
+                commandBuffer.Draw(*pointMesh, *pointMaterial, float4x4::Identity());
         }
         commandBuffer.EndRendering();
     }

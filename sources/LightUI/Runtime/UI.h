@@ -22,8 +22,6 @@ namespace Light
         static void BeginFrame();
         static void EndFrame(GLCommandBuffer& commandBuffer);
 
-        static ImTextureID CreateImage();
-
     private:
         inline static std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = {};
         inline static std::unique_ptr<GLDescriptorPool> descriptorPool = {};

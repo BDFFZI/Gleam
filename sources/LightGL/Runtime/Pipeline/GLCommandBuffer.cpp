@@ -1,6 +1,7 @@
 #include "GLCommandBuffer.h"
 
 #include <array>
+#include <cassert>
 #include <stdexcept>
 
 #include "../GL.h"
@@ -344,6 +345,7 @@ void GLCommandBuffer::SetInputAssembly(const GLInputAssembly& inputAssembly) con
 
 void GLCommandBuffer::DrawIndexed(const uint32_t indicesCount) const
 {
+    assert(indicesCount != 0 && "绘制的索引数量不应为0！");
     vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
 }
 void GLCommandBuffer::ClearAttachments(const VkRect2D rect, const std::optional<VkClearColorValue>& color, const std::optional<VkClearDepthStencilValue> depthStencil) const

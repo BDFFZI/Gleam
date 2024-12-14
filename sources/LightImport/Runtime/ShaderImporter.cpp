@@ -73,8 +73,13 @@ std::vector<std::byte> ShaderImporter::ImportHlslFromFile(const std::string& fil
     options.SetOptimizationLevel(shaderc_optimization_level_performance);
     options.SetIncluder(std::make_unique<ShaderIncluder>());
 
+    //bom处理
+    std::string fileCode = Utility::ReadFile(file);
+    char bom[] = {static_cast<char>(0xEF), static_cast<char>(0xBB), static_cast<char>(0xBF)};
+    if (std::equal(std::begin(bom), std::end(bom), fileCode.data()))
+        fileCode = fileCode.substr(3);
 
-    auto preprocessResult = compiler.PreprocessGlsl(Utility::ReadFile(file), type, file.c_str(), options);
+    auto preprocessResult = compiler.PreprocessGlsl(fileCode, type, file.c_str(), options);
     if (preprocessResult.GetCompilationStatus() != shaderc_compilation_status_success)
     {
         std::string errorMessage = preprocessResult.GetErrorMessage();

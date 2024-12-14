@@ -157,7 +157,7 @@ namespace Light
     template <class Type>
     struct vector<Type, 4 * 4>
     {
-        constexpr static vector Identity()
+        consteval static vector Identity()
         {
             return {
                 1, 0, 0, 0,

@@ -1,4 +1,4 @@
-#include "../Assets/Graphics.hlsl"
+#include "../../Assets/Graphics.hlsl"
 
 struct Fragment
 {

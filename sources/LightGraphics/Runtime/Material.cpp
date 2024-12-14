@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+#include "GraphicsPreset.h"
+
 using namespace Light;
 
 Material::Material(ShaderAsset& shader)
@@ -31,6 +33,9 @@ Material::Material(ShaderAsset& shader)
             throw std::runtime_error("不支持的描述符类型");
 
         glDescriptorSets[i] = writeDescriptorSet;
+
+        if (descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            SetTexture(i, *GraphicsPreset::DefaultTexture2D);
     }
 
     const std::vector<VkPushConstantRange>& pushConstantRanges = *shaderAsset->glPushConstantRanges;
@@ -49,21 +54,21 @@ Material::~Material()
     }
 }
 
-void Material::SetBuffer(const int slotIndex, const Buffer& buffer) const
+void Material::SetBuffer(const int slotIndex, const Buffer& buffer)
 {
     VkDescriptorBufferInfo* bufferInfo = const_cast<VkDescriptorBufferInfo*>(glDescriptorSets[slotIndex].pBufferInfo);
     bufferInfo->buffer = buffer.GetGLBuffer().buffer;
     bufferInfo->offset = 0;
     bufferInfo->range = buffer.GetGLBuffer().size;
-    //TODO 需要dirty？
+    isDirty = true;
 }
-void Material::SetTexture(const int slotIndex, const TextureAsset& texture) const
+void Material::SetTexture(const int slotIndex, const TextureAsset& texture)
 {
     VkDescriptorImageInfo* imageInfo = const_cast<VkDescriptorImageInfo*>(glDescriptorSets[slotIndex].pImageInfo);
     imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     imageInfo->imageView = texture.glImageView->imageView;
     imageInfo->sampler = texture.glImageSampler->imageSampler;
-    //TODO 需要dirty？
+    isDirty = true;
 }
 void Material::SetPushConstant(const int slotIndex, const void* data)
 {

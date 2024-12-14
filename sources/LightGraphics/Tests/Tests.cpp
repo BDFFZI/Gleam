@@ -9,6 +9,7 @@
 #include "LightGraphics/Runtime/Shader.h"
 #include "LightGraphics/Runtime/Texture.h"
 #include "LightGraphics/Runtime/Material.h"
+#include "LightGraphics/Runtime/SwapChain.h"
 #include "LightMath/Runtime/MatrixMath.hpp"
 
 using namespace Light;
@@ -57,7 +58,7 @@ std::unique_ptr<Texture2D> imageTexture2D;
 std::unique_ptr<Texture2D> whiteTexture2D;
 
 std::unique_ptr<Material> material;
-std::unique_ptr<Material> wireMaterial;
+std::unique_ptr<Material> lineMaterial;
 
 std::unique_ptr<RenderTexture> renderTexture;
 
@@ -92,7 +93,7 @@ void CreateAssets()
         wireVertices[i] = {
             vertices[i].position,
             vertices[i].uv,
-            float4(vertices[i].normal, 1)
+            float4(vertices[i].position, 1)
         };
     }
     customBoxMesh = std::make_unique<MeshT<Point>>();
@@ -105,24 +106,18 @@ void CreateAssets()
     lineShader = std::make_unique<Shader>("Assets/CustomVertexShader.hlsl", GraphicsPreset::DefaultStateLayout, LineMeshLayout);
 
     //图片纹理
-    imageTexture2D = std::make_unique<Texture2D>("Assets/")
-    
-    std::vector data(9, float4(1));
-    data[4] = float4(0);
-    texture2D = std::make_unique<Texture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, data.data(), sizeof float4 * data.size());
+    imageTexture2D = std::make_unique<Texture2D>("Assets/texture.jpg");
+    //白色纹理
+    whiteTexture2D = std::make_unique<Texture2D>(1);
 
     //纹理材质球
-    texture2DMaterial = std::make_unique<Material>(*texture2DShader);
-    texture2DMaterial->SetTexture(0, *texture2D);
-    //顶点颜色材质球
-    vertexColorMaterial = std::make_unique<Material>(*vertexColorShader);
-    //线框顶点颜色材质球
-    wireVertexColorMaterial = std::make_unique<Material>(*wireVertexColorShader);
+    material = std::make_unique<Material>(*shader);
+    lineMaterial = std::make_unique<Material>(*lineShader);
 
     //渲染纹理
     renderTexture = std::make_unique<RenderTexture>(
-        Graphics::GetPresentRenderTarget().width,
-        Graphics::GetPresentRenderTarget().height
+        SwapChain::GetPresentRenderTarget().width,
+        SwapChain::GetPresentRenderTarget().height
     );
 }
 
@@ -130,15 +125,14 @@ void DeleteAssets()
 {
     renderTexture.reset();
 
-    wireVertexColorMaterial.reset();
-    vertexColorMaterial.reset();
-    texture2DMaterial.reset();
+    lineMaterial.reset();
+    material.reset();
 
-    texture2D.reset();
+    whiteTexture2D.reset();
+    imageTexture2D.reset();
 
-    wireVertexColorShader.reset();
-    vertexColorShader.reset();
-    texture2DShader.reset();
+    lineShader.reset();
+    shader.reset();
 
     customBoxMesh.reset();
     boxMesh.reset();
@@ -152,29 +146,31 @@ void Draw(CommandBuffer& commandBuffer, float4 background = float4(0.5, 0.5, 0.5
 
     //测试变换，纹理
     {
-        texture2DMaterial->SetTexture(0, *texture2D);
+        material->SetTexture(0, *imageTexture2D);
         for (int i = 0; i < 4; ++i)
         {
             float4x4 objectToWorld = float4x4::TRS(
-                float3{0, 0, static_cast<float>(i) * 0.1f} + move[i] * fmod(static_cast<float>(chronograph.Time()) / 6000, 1.0f),
+                float3{0, 0, static_cast<float>(i) * 0.1f} + Move[i] * fmod(static_cast<float>(chronograph.Time()) / 6000, 1.0f),
                 {-90, 0, 0},
                 static_cast<float>(i + 1) / 4.0f
             );
 
-            commandBuffer.Draw(*boxMesh, *texture2DMaterial, objectToWorld);
+            commandBuffer.Draw(*boxMesh, *material, objectToWorld);
         }
     }
 
     //测试自定义网格
-    commandBuffer.Draw(*customBoxMesh, *wireVertexColorMaterial, float4x4::TRS(0, 0, 2));
+    lineMaterial->SetTexture(0, *whiteTexture2D);
+    commandBuffer.Draw(*customBoxMesh, *lineMaterial, float4x4::TRS(0, 0, 2));
 
     //测试视口和NDC
     {
-        uint32_t halfWidth = commandBuffer.GetCurrentRenderTarget()->GetWidth() / 2;
-        uint32_t halfHeight = commandBuffer.GetCurrentRenderTarget()->GetHeight() / 2;
+        uint32_t halfWidth = commandBuffer.GetCurrentRenderTarget()->width / 2;
+        uint32_t halfHeight = commandBuffer.GetCurrentRenderTarget()->height / 2;
         commandBuffer.SetViewProjectionMatrices(float4x4::Identity());
         commandBuffer.SetViewport(static_cast<int32_t>(halfWidth), static_cast<int32_t>(halfHeight), halfWidth / 2, halfHeight / 2);
-        commandBuffer.Draw(*fullScreenMesh, *vertexColorMaterial);
+        material->SetTexture(0, *whiteTexture2D);
+        commandBuffer.Draw(*fullScreenMesh, *material, float4x4::Identity());
     }
 }
 
@@ -185,7 +181,7 @@ void Update(GLFWwindow* glfwWindow)
 
     //提前申请绘制时使用的子命令缓冲区
     std::vector<CommandBuffer*> commandBuffers = {};
-    for (uint32_t i = 0; i < Graphics::GetGLSwapChainBufferCount(); ++i)
+    for (uint32_t i = 0; i < SwapChain::GetGLSwapChain().imageCount; ++i)
         commandBuffers.push_back(&Graphics::ApplyCommandBuffer());
 
     while (!glfwWindowShouldClose(glfwWindow))
@@ -193,13 +189,13 @@ void Update(GLFWwindow* glfwWindow)
         glfwPollEvents();
 
         //申请开始一次呈现，并获取本次呈现用的主命令缓冲区
-        Graphics::WaitPresentable();
+        SwapChain::WaitPresentable();
         GLCommandBuffer* presentCommandBuffer;
-        if (Graphics::BeginPresent(&presentCommandBuffer) == false)
+        if (SwapChain::BeginPresent(&presentCommandBuffer) == false)
             continue; //当前无法呈现
 
         //取出绘制用的命令缓冲区开始录制绘制命令
-        CommandBuffer& commandBuffer = *commandBuffers[Graphics::GetGLSwapChain()->GetCurrentBufferIndex()];
+        CommandBuffer& commandBuffer = *commandBuffers[SwapChain::GetGLSwapChain().GetCurrentBufferIndex()];
         commandBuffer.BeginRecording();
 
         //绘制相机1到自定义渲染目标
@@ -212,14 +208,14 @@ void Update(GLFWwindow* glfwWindow)
         commandBuffer.SetRenderTargetToNull();
         //将自定义渲染目标布局转为着色器的采样纹理
         commandBuffer.GetGLCommandBuffer().TransitionImageLayout(
-            renderTexture->GetVKColorImage(),
+            renderTexture->glFinalImage,
             VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
 
         //绘制相机2到屏幕
-        commandBuffer.SetRenderTarget(Graphics::GetPresentRenderTarget()); //设置渲染目标
+        commandBuffer.SetRenderTarget(SwapChain::GetPresentRenderTarget()); //设置渲染目标
         commandBuffer.ClearRenderTarget();
         commandBuffer.SetViewProjectionMatrices( //设置视角
             inverse(float4x4::TRS({0, 2, 3}, {30, -180, 0}, {1, 1, 1})),
@@ -229,8 +225,8 @@ void Update(GLFWwindow* glfwWindow)
         //绘制相机1画面到屏幕
         commandBuffer.SetViewport(50, 50, 160, 90);
         commandBuffer.SetViewProjectionMatricesToIdentity();
-        texture2DMaterial->SetTexture(0, *renderTexture);
-        commandBuffer.Draw(*fullScreenMesh, *texture2DMaterial);
+        material->SetTexture(0, *renderTexture);
+        commandBuffer.Draw(*fullScreenMesh, *material, float4x4::Identity());
 
 
         //结束绘制命令录制
@@ -239,14 +235,14 @@ void Update(GLFWwindow* glfwWindow)
         //将绘制命令提交到主命令缓冲区
         presentCommandBuffer->ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
         //将主命令缓冲区提交到管道，完成呈现
-        Graphics::EndPresent(*presentCommandBuffer);
+        SwapChain::EndPresent(*presentCommandBuffer);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
     }
 
-    Graphics::WaitPresent();
+    SwapChain::WaitPresent();
 
-    for (uint32_t i = 0; i < Graphics::GetGLSwapChainBufferCount(); ++i)
+    for (uint32_t i = 0; i < SwapChain::GetGLSwapChain().imageCount; ++i)
         Graphics::ReleaseCommandBuffer(*commandBuffers[i]);
 }
 

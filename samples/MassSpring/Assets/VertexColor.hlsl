@@ -1,6 +1,6 @@
-#include "Graphics.hlsli"
+#include "../../../sources/LightGraphics/Assets/Graphics.hlsl"
 
-struct Vertex
+struct CustomVertex
 {
     float2 position;
     float4 color;
@@ -14,7 +14,7 @@ struct Fragment
     float pointSize:TEXCOORD0;
 };
 
-Fragment VertexShader(Vertex vertex)
+Fragment VertexShader(CustomVertex vertex)
 {
     Fragment fragment;
     fragment.positionCS = TransformObjectToClip(float3(vertex.position,0.5f));

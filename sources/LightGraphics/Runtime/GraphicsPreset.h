@@ -1,10 +1,11 @@
 ﻿#pragma once
 #include <vulkan/vulkan_core.h>
 
+#include "GraphicsAssets.h"
+#include "Texture.h"
 #include "LightGL/Runtime/Pipeline/GLPipeline.h"
 #include "LightGL/Runtime/Resource/GLImageSampler.h"
 #include "LightMath/Runtime/Matrix.hpp"
-
 
 namespace Light
 {
@@ -66,6 +67,8 @@ namespace Light
         inline static std::unique_ptr<GLDescriptorSetLayout> DefaultGLDescriptorSetLayout = {};
         inline static std::unique_ptr<GLPipelineLayout> DefaultGLPipelineLayout = {};
         inline static std::unique_ptr<GLImageSampler> DefaultGLImageSampler = {};
+        //默认资源
+        inline static std::unique_ptr<Texture2D> DefaultTexture2D = {};
 
     private:
         friend class Graphics;

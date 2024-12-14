@@ -90,6 +90,8 @@ namespace Light
             assert(!vertices.empty() && "未设置任何顶点，网格数据无效");
             assert(!indices.empty() && "未设置任何索引，网格数据无效");
 
+            glIndexCount = static_cast<uint32_t>(indices.size());//indices有可能被清空，需提前设置
+            
             if (readwrite == false)
             {
                 vertexBuffer = std::make_unique<GLBuffer>(
@@ -138,7 +140,6 @@ namespace Light
 
             glVertexBuffer = vertexBuffer.get();
             glIndexBuffer = indexBuffer.get();
-            glIndexCount = static_cast<uint32_t>(indices.size());
         }
     };
 
