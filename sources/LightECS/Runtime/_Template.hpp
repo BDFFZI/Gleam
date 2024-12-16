@@ -4,8 +4,7 @@
 
 namespace Light
 {
-    constexpr int32_t SystemMinOrder = std::numeric_limits<int32_t>::lowest();
-    constexpr int32_t SystemMaxOrder = std::numeric_limits<int32_t>::max();
+
 
     template <int MinOrder, int MaxOrder>
     struct SystemT

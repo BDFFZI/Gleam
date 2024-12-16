@@ -2,6 +2,7 @@
 #include <set>
 #include <cassert>
 #include "Heap.h"
+#include "System.h"
 #include "LightECS/Runtime/Archetype.hpp"
 #include "_Concept.hpp"
 
@@ -14,23 +15,8 @@ namespace Light
         int indexAtHeap;
     };
 
-    struct SystemInfo
+    class WorldSystem : public SystemBase<void, SystemMinOrder, SystemMaxOrder>
     {
-        using Function = void(*)();
-
-        std::type_index type = typeid(void);
-        int order;
-        Function start;
-        Function update;
-        Function stop;
-
-        bool operator<(const SystemInfo& other) const
-        {
-            if (order == other.order)
-                return type.hash_code() < other.type.hash_code();
-
-            return order < other.order;
-        }
     };
 
     class World
@@ -93,7 +79,7 @@ namespace Light
         {
             assert(entity != Entity::Null && "目标实体为空！");
             assert(entityInfos.contains(entity) && "目标实体不存在！");
-            
+
             EntityInfo& entityInfo = entityInfos.at(entity);
             int offset = entityInfo.archetype->GetOffset(typeid(TComponent));
             return *reinterpret_cast<TComponent*>(entityInfo.components + offset);
@@ -103,7 +89,7 @@ namespace Light
         {
             assert(entity != Entity::Null && "目标实体为空！");
             assert(entityInfos.contains(entity) && "目标实体不存在！");
-            
+
             EntityInfo& entityInfo = entityInfos.at(entity);
             const Archetype& archetype = *entityInfo.archetype;
             ((*outComponents = reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetOffset(typeid(TComponents)))), ...);
@@ -113,7 +99,7 @@ namespace Light
         {
             assert(entity != Entity::Null && "目标实体为空！");
             assert(entityInfos.contains(entity) && "目标实体不存在！");
-            
+
             EntityInfo& entityInfo = entityInfos.at(entity);
             const Archetype& archetype = *entityInfo.archetype;
             ((*outComponents = *reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetOffset(typeid(TComponents)))), ...);
@@ -123,7 +109,7 @@ namespace Light
         {
             assert(entity != Entity::Null && "目标实体为空！");
             assert(entityInfos.contains(entity) && "目标实体不存在！");
-            
+
             EntityInfo& entityInfo = entityInfos.at(entity);
             const Archetype& archetype = *entityInfo.archetype;
             ((*reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetOffset(typeid(TComponents))) = components), ...);
@@ -137,10 +123,9 @@ namespace Light
         inline static uint32_t nextEntity = 1;
         inline static std::unordered_map<const Archetype*, Heap> entities = {};
         inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
-        inline static std::set<SystemInfo> systemStartQueue = {};
-        inline static std::set<SystemInfo> systemStopQueue = {};
-        inline static std::set<SystemInfo> systemUpdateQueue = {};
+        inline static SystemBase<>
 
-        static void RemoveHeapItem(const Archetype& archetype, int index);
+        static
+        void RemoveHeapItem(const Archetype& archetype, int index);
     };
 }
