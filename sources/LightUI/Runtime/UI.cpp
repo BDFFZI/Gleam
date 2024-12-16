@@ -30,7 +30,7 @@ namespace Light
         descriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(std::vector<GLDescriptorBinding>{
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
         });
-        descriptorPool = std::make_unique<GLDescriptorPool>(*descriptorSetLayout, 1, VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT);
+        descriptorPool = std::make_unique<GLDescriptorPool>(*descriptorSetLayout, 10, VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT);
 
         VkPipelineRenderingCreateInfo renderingInfo = {};
         renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
@@ -88,5 +88,23 @@ namespace Light
         ImGui::Render();
         //提交绘制命令
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer.commandBuffer);
+    }
+    ImTextureID UI::CreateTexture(TextureAsset& texture)
+    {
+        VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(
+            GraphicsPreset::DefaultGLImageSampler->imageSampler,
+            texture.glImageView->imageView,
+            VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL);
+        return descriptorSet;
+    }
+    void UI::DeleteTexture(const ImTextureID texture)
+    {
+        ImGui_ImplVulkan_RemoveTexture(static_cast<VkDescriptorSet>(texture));
+    }
+    float2 UI::GetWindowContentRegionSize()
+    {
+        const float2 windowMin = ImGui::GetWindowContentRegionMin();
+        const float2 windowMax = ImGui::GetWindowContentRegionMax();
+        return windowMax - windowMin;
     }
 }

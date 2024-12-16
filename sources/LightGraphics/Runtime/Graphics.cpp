@@ -16,6 +16,7 @@ Graphics Graphics::Initialize(GL&)
         GraphicsPreset::DefaultDepthStencilFormat,
         GraphicsPreset::DefaultStateLayout.multisample.rasterizationSamples);
     paintCommandBufferPool = std::make_unique<ObjectPool<CommandBuffer>>();
+    defaultRenderTarget = &SwapChain::GetPresentRenderTarget();
     return {};
 }
 void Graphics::UnInitialize()
@@ -33,4 +34,13 @@ CommandBuffer& Graphics::ApplyCommandBuffer(const std::string& name)
 void Graphics::ReleaseCommandBuffer(CommandBuffer& commandBuffer)
 {
     paintCommandBufferPool->Release(commandBuffer);
+}
+
+RenderTargetAsset& Graphics::GetDefaultRenderTarget()
+{
+    return *defaultRenderTarget;
+}
+void Graphics::SetDefaultRenderTarget(RenderTargetAsset& renderTarget)
+{
+    defaultRenderTarget = &renderTarget;
 }

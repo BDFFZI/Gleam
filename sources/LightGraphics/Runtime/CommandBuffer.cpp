@@ -46,8 +46,16 @@ void CommandBuffer::BeginRendering(const RenderTargetAsset& renderTarget, const 
 }
 void CommandBuffer::EndRendering()
 {
-    currentRenderTarget = nullptr;
     glCommandBuffer.EndRendering();
+
+    //由于没有使用renderPass，因此布局变换得手动设置。每次渲染后图片布局默认为“未定义”，需在呈现前将布局调整为渲染目标期望的布局
+    glCommandBuffer.TransitionImageLayout(
+        currentRenderTarget->glFinalImage,
+        VK_IMAGE_LAYOUT_UNDEFINED, currentRenderTarget->glFinalLayout,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+    currentRenderTarget = nullptr;
 }
 
 void CommandBuffer::SetRenderTarget(const RenderTargetAsset& renderTarget)

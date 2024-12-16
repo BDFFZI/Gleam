@@ -116,8 +116,8 @@ void CreateAssets()
 
     //渲染纹理
     renderTexture = std::make_unique<RenderTexture>(
-        SwapChain::GetPresentRenderTarget().width,
-        SwapChain::GetPresentRenderTarget().height
+        Graphics::GetDefaultRenderTarget().width,
+        Graphics::GetDefaultRenderTarget().height
     );
 }
 
@@ -206,16 +206,9 @@ void Update(GLFWwindow* glfwWindow)
         );
         Draw(commandBuffer, 0);
         commandBuffer.SetRenderTargetToNull();
-        //将自定义渲染目标布局转为着色器的采样纹理
-        commandBuffer.GetGLCommandBuffer().TransitionImageLayout(
-            renderTexture->glFinalImage,
-            VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-
 
         //绘制相机2到屏幕
-        commandBuffer.SetRenderTarget(SwapChain::GetPresentRenderTarget()); //设置渲染目标
+        commandBuffer.SetRenderTarget(Graphics::GetDefaultRenderTarget()); //设置渲染目标
         commandBuffer.ClearRenderTarget();
         commandBuffer.SetViewProjectionMatrices( //设置视角
             inverse(float4x4::TRS({0, 2, 3}, {30, -180, 0}, {1, 1, 1})),

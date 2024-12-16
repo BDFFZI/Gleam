@@ -13,12 +13,16 @@ namespace Light
 
         static Graphics Initialize(GL&);
         static void UnInitialize();
-        
+
         static CommandBuffer& ApplyCommandBuffer(const std::string& name = "");
         static void ReleaseCommandBuffer(CommandBuffer& commandBuffer);
 
+        static RenderTargetAsset& GetDefaultRenderTarget();
+        static void SetDefaultRenderTarget(RenderTargetAsset& renderTarget);
+
     private:
         inline static std::unique_ptr<ObjectPool<CommandBuffer>> paintCommandBufferPool = {};
+        inline static RenderTargetAsset* defaultRenderTarget = nullptr;
 
         Graphics() = default;
     };

@@ -8,32 +8,31 @@ namespace Light
 {
     void GameWindow::Start()
     {
-        imageSampler = std::make_unique<GLImageSampler>();
     }
     void GameWindow::Stop()
     {
-        ImGui_ImplVulkan_RemoveTexture(descriptorSet);
+        if (textureID != nullptr)
+            UI::DeleteTexture(textureID);
         renderTexture.reset();
-        imageSampler.reset();
     }
     void GameWindow::Update()
     {
         ImGui::Begin("GameWindow");
 
-        // float2 windowSizeF = ImGui::GetWindowSize();
-        // uint32_t windowSize[] = {static_cast<uint32_t>(windowSizeF.x), static_cast<uint32_t>(windowSizeF.y)};
-        // if (lastWindowSize[0] != windowSize[0] || lastWindowSize[1] != windowSize[1])
-        // {
-        //     renderTexture = std::make_unique<RenderTexture>(windowSize[0], windowSize[1]);
-        //     if (descriptorSet != VK_NULL_HANDLE) ImGui_ImplVulkan_RemoveTexture(descriptorSet);
-        //     descriptorSet = ImGui_ImplVulkan_AddTexture(
-        //         imageSampler->imageSampler,
-        //         renderTexture->GetGLColorImageView().imageView,
-        //         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        //     );
-        //     lastWindowSize[0] = windowSize[0];
-        //     lastWindowSize[1] = windowSize[1];
-        // }
+        float2 windowSizeF = UI::GetWindowContentRegionSize();
+        uint32_t windowSize[] = {static_cast<uint32_t>(windowSizeF.x), static_cast<uint32_t>(windowSizeF.y)};
+        if (lastWindowSize[0] != windowSize[0] || lastWindowSize[1] != windowSize[1])
+        {
+            renderTexture = std::make_unique<RenderTexture>(windowSize[0], windowSize[1]);
+            Graphics::SetDefaultRenderTarget(*renderTexture);
+            if (textureID != nullptr)
+                UI::DeleteTexture(textureID);
+            textureID = UI::CreateTexture(*renderTexture);
+            lastWindowSize[0] = windowSize[0];
+            lastWindowSize[1] = windowSize[1];
+        }
+
+        ImGui::Image(textureID, windowSizeF);
 
         ImGui::End();
     }

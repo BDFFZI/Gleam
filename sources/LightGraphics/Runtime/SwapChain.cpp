@@ -40,12 +40,6 @@ namespace Light
     }
     void SwapChain::EndPresent(GLCommandBuffer& presentCommandBuffer)
     {
-        //由于没有使用renderPass，因此布局变换得手动设置。每次渲染后图片布局默认为“未定义”，需在呈现前将布局调整为“呈现源”
-        presentCommandBuffer.TransitionImageLayout(
-            glSwapChain->images[currentImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-        );
         presentCommandBuffer.EndRecording();
 
         //提交命令

@@ -16,11 +16,11 @@ namespace Light
     float2 Rendering::ScreenToWorldPoint(const float2& positionSS)
     {
         float2 positionUV = {
-            positionSS.x / static_cast<float>(SwapChain::GetPresentRenderTarget().width),
-            positionSS.y / static_cast<float>(SwapChain::GetPresentRenderTarget().height)
+            positionSS.x / static_cast<float>(Graphics::GetDefaultRenderTarget().width),
+            positionSS.y / static_cast<float>(Graphics::GetDefaultRenderTarget().height)
         };
         float2 viewSizeWS = {
-            GetAspectRatio(SwapChain::GetPresentRenderTarget()) * GetOrthoSize(),
+            GetAspectRatio(Graphics::GetDefaultRenderTarget()) * GetOrthoSize(),
             GetOrthoSize()
         };
         float2 positionWS = {
@@ -82,12 +82,12 @@ namespace Light
 
 
         auto& commandBuffer = Presentation::GetCommandBuffer();
-        commandBuffer.BeginRendering(SwapChain::GetPresentRenderTarget(), true);
+        commandBuffer.BeginRendering(Graphics::GetDefaultRenderTarget(), true);
         {
             commandBuffer.SetViewProjectionMatrices(
                 float4x4::Identity(),
                 float4x4::Ortho(
-                    GetAspectRatio(SwapChain::GetPresentRenderTarget()) * Rendering::GetOrthoHalfSize(),
+                    GetAspectRatio(Graphics::GetDefaultRenderTarget()) * Rendering::GetOrthoHalfSize(),
                     Rendering::GetOrthoHalfSize(), 0, 1)
             );
             if (!lineMesh->GetIndices().empty())
