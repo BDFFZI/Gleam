@@ -43,8 +43,9 @@ namespace Light
 
         static bool HasSystem(System& system);
         static void AddSystem(System& system);
-        static void AddSystem(std::initializer_list<System&> systems);
+        static void AddSystem(std::initializer_list<System*> systems);
         static void RemoveSystem(System& system);
+        static void RemoveSystem(std::initializer_list<System*> systems);
 
         static Heap& GetEntities(const Archetype& archetype)
         {
@@ -97,7 +98,7 @@ namespace Light
         }
 
         static void Update();
-        static void Clear();
+        static void Close();
 
     private:
         friend struct HierarchyWindow;

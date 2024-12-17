@@ -122,10 +122,10 @@ namespace Light
                 system.group->AddSubSystem(system);
         }
     }
-    void World::AddSystem(std::initializer_list<System&> systems)
+    void World::AddSystem(const std::initializer_list<System*> systems)
     {
-        for (System& system : systems)
-            AddSystem(system);
+        for (System* system : systems)
+            AddSystem(*system);
     }
     /**
      * @brief 移除系统
@@ -157,12 +157,17 @@ namespace Light
                 system.group->RemoveSubSystem(system);
         }
     }
+    void World::RemoveSystem(const std::initializer_list<System*> systems)
+    {
+        for (System* system : systems)
+            RemoveSystem(*system);
+    }
 
     void World::Update()
     {
         systemGroup.Update();
     }
-    void World::Clear()
+    void World::Close()
     {
         Update();
         assert(systems.empty() && "存在尚未回收的系统！");

@@ -20,12 +20,12 @@ namespace Light
             positionSS.y / static_cast<float>(Graphics::GetDefaultRenderTarget().height)
         };
         float2 viewSizeWS = {
-            GetAspectRatio(Graphics::GetDefaultRenderTarget()) * orthoSize,
+            orthoSize * GetAspectRatio(Graphics::GetDefaultRenderTarget()),
             orthoSize
         };
         float2 positionWS = {
             (positionUV.x - 0.5f) * viewSizeWS.x,
-            (positionUV.y - 0.5f) * viewSizeWS.y,
+            (1 - positionUV.y - 0.5f) * viewSizeWS.y,
         };
         return positionWS;
     }

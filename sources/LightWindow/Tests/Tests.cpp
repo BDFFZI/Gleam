@@ -54,9 +54,11 @@ void main()
             std::cout << std::format("Time:{:f}\tDeltaTime:{:f}\n", Time::GetTime(), Time::GetDeltaTime());
         if (Input::GetKey(KeyCode::LeftShift))
         {
-            position += static_cast<int2>(float2(Input::GetMouseMoveDelta().x, -Input::GetMouseMoveDelta().y));
+            position += static_cast<int2>(float2(Input::GetMouseMoveDelta().x, Input::GetMouseMoveDelta().y));
             glfwSetWindowPos(Window::GetGlfwWindow(), position.x, position.y);
         }
+        if (Input::GetMouseButtonDown(MouseButton::Right))
+            Input::SetMouseOrigin(Input::GetRealMousePosition());
 
 
         if (Input::GetKeyDown(KeyCode::Minus))

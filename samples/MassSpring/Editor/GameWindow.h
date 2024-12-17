@@ -11,14 +11,31 @@ namespace Light
         GameWindow(): System(&UISystem)
         {
         }
-    
+
     private:
+        friend class GameWindowLogic;
         uint32_t lastWindowSize[2] = {0, 0};
-        std::unique_ptr<RenderTexture> renderTexture = nullptr;
+        uint32_t windowSize[2] = {0, 0};
         ImTextureID textureID = {};
 
         void Start() override;
         void Stop() override;
         void Update() override;
     };
+    inline GameWindow GameWindow = {};
+
+    class GameWindowLogic : public System
+    {
+    public:
+        GameWindowLogic(): System(nullptr, RightOrder)
+        {
+        }
+
+    private:
+        std::unique_ptr<RenderTexture> renderTexture = nullptr;
+        
+        void Update() override;
+        void Stop() override;
+    };
+    inline GameWindowLogic GameWindowLogic = {};
 }

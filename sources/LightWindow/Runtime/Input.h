@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <functional>
+#include <cassert>
 #include <stack>
 #include <string>
 #include <GLFW/glfw3.h>
@@ -115,9 +115,13 @@ namespace Light
     class Input
     {
     public:
-        static InputHandler& TopInputHandler();
-        static void PushInputHandler(const InputHandler& inputHandler);
-        static void PopInputHandler(const InputHandler& inputHandler);
+        static InputHandler& TopInputHandler() { return inputHandlers.top(); }
+        static void PushInputHandler(const InputHandler& inputHandler) { inputHandlers.push(inputHandler); }
+        static void PopInputHandler(const InputHandler& inputHandler)
+        {
+            assert(inputHandlers.top() == inputHandler && "输入回调出栈顺序异常！");
+            inputHandlers.pop();
+        }
 
         static bool GetMouseButtonDown(MouseButton mouseButton);
         static bool GetMouseButton(MouseButton mouseButton);
@@ -126,17 +130,16 @@ namespace Light
         static bool GetKey(KeyCode keyCode);
         static bool GetKeyUp(KeyCode keyCode);
 
-        static float2 GetMouseScrollDelta();
+        static float2 GetMouseScrollDelta() { return mouseScrollDelta[0]; }
+        static float2 GetMousePosition() { return mousePosition[0]; }
+        static float2 GetMouseMoveDelta() { return mousePositionDelta; }
+
         /**
-         * 左手坐标系，左下角原点
-         * @return 
+         * 设置计算鼠标位置的起点，从而实现计算鼠标相对位置
+         * @param origin 
          */
-        static float2 GetMousePosition();
-        /**
-         * 左手坐标系，左下角原点
-         * @return 
-         */
-        static float2 GetMouseMoveDelta();
+        static void SetMouseOrigin(const float2 origin) { mouseOrigin = origin; }
+        static float2 GetRealMousePosition() { return mousePosition[0] + mouseOrigin; }
 
     private:
         inline static std::stack<InputHandler> inputHandlers;
@@ -145,6 +148,7 @@ namespace Light
         inline static bool mouseButtonState[3][3];
         inline static bool keyboardState[349][3];
         inline static float2 mouseScrollDelta[2];
+        inline static float2 mouseOrigin;
         inline static float2 mousePosition[2];
         inline static float2 mousePositionDelta;
 

@@ -16,18 +16,20 @@ void Light::PresentationSystem::Stop()
 void Light::PresentationSystem::Update()
 {
     //开始呈现并录制呈现命令缓冲区
-    canPresent = SwapChain::BeginPresent(&presentCommandBuffer);
-    //开始公共命令缓冲区录制
-    commandBuffer->BeginRecording();
+    if (SwapChain::BeginPresent(&presentCommandBuffer))
+    {
+        //开始公共命令缓冲区录制
+        commandBuffer->BeginRecording();
 
-    SystemGroup::Update();
+        SystemGroup::Update();
 
-    //完成公共命令缓冲区录制
-    commandBuffer->EndRecording();
-    presentCommandBuffer->ExecuteSubCommands(commandBuffer->GetGLCommandBuffer());
-    //结束呈现命令缓冲区录制并提交呈现命令
-    if (canPresent)
+        //完成公共命令缓冲区录制
+        commandBuffer->EndRecording();
+        //执行公共缓冲区中的命令
+        presentCommandBuffer->ExecuteSubCommands(commandBuffer->GetGLCommandBuffer());
+        //结束呈现命令缓冲区录制并提交呈现命令
         SwapChain::EndPresent(*presentCommandBuffer);
-    //等待呈现完成
-    SwapChain::WaitPresent();
+        //等待呈现完成
+        SwapChain::WaitPresent();
+    }
 }

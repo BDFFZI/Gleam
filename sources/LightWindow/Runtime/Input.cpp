@@ -4,23 +4,6 @@
 
 using namespace Light;
 
-
-InputHandler& Input::TopInputHandler()
-{
-    return inputHandlers.top();
-}
-void Input::PushInputHandler(const InputHandler& inputHandler)
-{
-    inputHandlers.push(inputHandler);
-}
-void Input::PopInputHandler(const InputHandler& inputHandler)
-{
-    if (inputHandlers.top() != inputHandler)
-        throw std::runtime_error("输入回调出栈顺序异常！");
-
-    inputHandlers.pop();
-}
-
 bool Input::GetMouseButtonDown(MouseButton mouseButton)
 {
     const int index = static_cast<int>(mouseButton);
@@ -57,18 +40,6 @@ bool Input::GetKeyUp(KeyCode keyCode)
     return keyboardState[index][0] == true &&
         keyboardState[index][1] == false;
 }
-float2 Input::GetMouseScrollDelta()
-{
-    return mouseScrollDelta[0];
-}
-float2 Input::GetMousePosition()
-{
-    return mousePosition[0];
-}
-float2 Input::GetMouseMoveDelta()
-{
-    return mousePositionDelta;
-}
 
 void Input::GlfwWindowFocusCallback(GLFWwindow* window, const int focused)
 {
@@ -85,7 +56,7 @@ void Input::GlfwCursorPosCallback(GLFWwindow* window, const double xPos, const d
     if (inputHandlers.top().glfwCursorPosCallback)
         inputHandlers.top().glfwCursorPosCallback(window, xPos, yPos);
 
-    mousePosition[1] = {static_cast<float>(xPos), static_cast<float>(Window::GetResolution().y - yPos)};
+    mousePosition[1] = float2{static_cast<float>(xPos), static_cast<float>(yPos)} - mouseOrigin;
 }
 void Input::GlfwMouseButtonCallback(GLFWwindow* window, const int button, const int action, const int mods)
 {

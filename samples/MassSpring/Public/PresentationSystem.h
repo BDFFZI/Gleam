@@ -11,14 +11,7 @@ namespace Light
         PresentationSystem(): SystemGroup(nullptr, MiddleOrder, RightOrder)
         {
         }
-
-        /**
-         * 本次呈现是否有效
-         *
-         * 当呈现无效时，依然可以正常使用相关资源进行渲染，这样可以保证一定的代码兼容性。但由于呈现无效，相关代码的执行最终也是无效的，若追求效率，应检查该值。
-         * @return 
-         */
-        bool CanPresent() const { return canPresent; }
+        
         /**
          * 用于执行呈现命令的底层命令缓冲区。
          *
@@ -39,7 +32,6 @@ namespace Light
         void Update() override;
 
     private:
-        bool canPresent = false;
         GLCommandBuffer* presentCommandBuffer = nullptr;
         CommandBuffer* commandBuffer = nullptr;
     };

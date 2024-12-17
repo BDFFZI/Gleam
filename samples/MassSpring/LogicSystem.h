@@ -23,6 +23,7 @@ public:
 
     EditMode& GetEditMode() { return editMode; }
     bool& GetSimulating() { return simulating; }
+    Light::InputHandler& GetInputHandler() { return inputHandler; }
     Light::Entity GetFixedPoint() const { return fixedPoint; }
     Light::Entity GetCoveringPoint() const { return coveringPoint; }
 

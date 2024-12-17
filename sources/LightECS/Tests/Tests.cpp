@@ -253,7 +253,7 @@ TEST(ECS, System)
     }
 
     World::RemoveSystem(PhysicsSystem);
-    World::Clear();
+    World::Close();
 }
 
 inline std::stringstream printResult = {};
@@ -346,7 +346,7 @@ TEST(ECS, SystemOrder)
     World::RemoveSystem(system3_2_2);
     World::RemoveSystem(system3_2_1);
 
-    World::Clear();
+    World::Close();
 
     ASSERT_EQ(printResult.str(), R"(system1->Start
 system2->Start

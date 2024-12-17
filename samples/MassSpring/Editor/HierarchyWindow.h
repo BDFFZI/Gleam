@@ -14,4 +14,5 @@ namespace Light
     private:
         void Update() override;
     };
+    inline HierarchyWindow HierarchyWindow = {};
 }

@@ -13,27 +13,39 @@ namespace Light
     {
         if (textureID != nullptr)
             UI::DeleteTexture(textureID);
-        renderTexture.reset();
     }
     void GameWindow::Update()
     {
         ImGui::Begin("GameWindow");
 
         const float2 windowSizeF = UI::GetWindowContentRegionSize();
-        uint32_t windowSize[] = {static_cast<uint32_t>(windowSizeF.x), static_cast<uint32_t>(windowSizeF.y)};
-        if (lastWindowSize[0] != windowSize[0] || lastWindowSize[1] != windowSize[1])
-        {
-            renderTexture = std::make_unique<RenderTexture>(windowSize[0], windowSize[1]);
-            Graphics::SetDefaultRenderTarget(*renderTexture);
-            if (textureID != nullptr)
-                UI::DeleteTexture(textureID);
-            textureID = UI::CreateTexture(*renderTexture);
-            lastWindowSize[0] = windowSize[0];
-            lastWindowSize[1] = windowSize[1];
-        }
+        lastWindowSize[0] = windowSize[0];
+        lastWindowSize[1] = windowSize[1];
+        windowSize[0] = {static_cast<uint32_t>(windowSizeF.x)};
+        windowSize[1] = {static_cast<uint32_t>(windowSizeF.y)};
 
-        ImGui::Image(textureID, windowSizeF);
+        const float2 windowOrigin = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
+        Input::SetMouseOrigin(windowOrigin);
+
+        if (textureID != nullptr)
+            ImGui::Image(textureID, windowSizeF);
 
         ImGui::End();
+    }
+
+    void GameWindowLogic::Update()
+    {
+        if (GameWindow.lastWindowSize[0] != GameWindow.windowSize[0] || GameWindow.lastWindowSize[1] != GameWindow.windowSize[1])
+        {
+            renderTexture = std::make_unique<RenderTexture>(GameWindow.windowSize[0], GameWindow.windowSize[1]);
+            Graphics::SetDefaultRenderTarget(*renderTexture);
+            if (GameWindow.textureID != nullptr)
+                UI::DeleteTexture(GameWindow.textureID);
+            GameWindow.textureID = UI::CreateTexture(*renderTexture);
+        }
+    }
+    void GameWindowLogic::Stop()
+    {
+        renderTexture.reset();
     }
 }

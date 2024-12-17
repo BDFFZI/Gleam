@@ -1,6 +1,8 @@
+#include "Archetype.hpp"
 #include "FixedPointSystem.h"
 #include "GameUISystem.h"
 #include "LineUpdateSystem.h"
+#include "LogicSystem.h"
 #include "Editor/GameWindow.h"
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
@@ -25,21 +27,18 @@ int main()
     Graphics graphics = Graphics::Initialize(gl);
     UI::Initialize(window, graphics);
 
+    static std::initializer_list<System*> gameLogics = {&FixedPointSystem, &LineUpdateSystem, &LogicSystem};
+    static std::initializer_list<System*> editorWindows = {&GameWindow, &HierarchyWindow, &InspectorWindow};
+    static std::initializer_list<System*> editorWindowUpdates = {&GameWindowLogic};
+
     Window::SetWindowStartEvent([]
     {
-        World::AddSystem({PhysicsSystem, ForceSystem, PositionSystem, CollisionSystem});
-        World::AddSystem({UISystem, GameUISystem});
-        World::AddSystem({FixedPointSystem, LineUpdateSystem,})
-        World::AddSystem<EndPresentationSystem>();
-        World::AddSystem<BeginUISystem>();
-        World::AddSystem<EndUISystem>();
-        World::AddSystem<BeginPhysicsSystem>();
-        World::AddSystem<EndPhysicsSystem>();
-        World::AddSystem<RenderingSystem>();
-        World::AddSystem<LogicSystem>();
-        World::AddSystem<HierarchyWindow>();
-        World::AddSystem<InspectorWindow>();
-        World::AddSystem<GameWindow>();
+        World::AddSystem({&PhysicsSystem, &ForceSystem, &PositionSystem, &CollisionSystem});
+        World::AddSystem({&RenderingSystem,});
+        World::AddSystem({&UISystem, &GameUISystem});
+        World::AddSystem(gameLogics);
+        World::AddSystem(editorWindows);
+        World::AddSystem(editorWindowUpdates);
 
         Entity entities[5][5];
         constexpr int length = 4;
@@ -47,7 +46,7 @@ int main()
         for (int i = 0, y = -10; i < 5; i++, y += length)
             for (int j = 0, x = -10; j < 5; j++, x += length)
             {
-                Entity entity = World::AddEntity(massPointArchetype, Point{{static_cast<float>(x), static_cast<float>(y)}});
+                Entity entity = World::AddEntity(MassPointArchetype, Point{{static_cast<float>(x), static_cast<float>(y)}});
                 entities[i][j] = entity;
             }
 
@@ -55,17 +54,17 @@ int main()
             for (int x = 0; x < 5; x++)
             {
                 if (x + 1 < 5)
-                    World::AddEntity(springArchetype, SpringPhysics{entities[y][x], entities[y][x + 1], length});
+                    World::AddEntity(SpringArchetype, SpringPhysics{entities[y][x], entities[y][x + 1], length});
                 if (y + 1 < 5)
-                    World::AddEntity(springArchetype, SpringPhysics{entities[y][x], entities[y + 1][x], length});
+                    World::AddEntity(SpringArchetype, SpringPhysics{entities[y][x], entities[y + 1][x], length});
                 if (x + 1 < 5 && y + 1 < 5)
-                    World::AddEntity(springArchetype, SpringPhysics{entities[y][x], entities[y + 1][x + 1], bevelLength});
+                    World::AddEntity(SpringArchetype, SpringPhysics{entities[y][x], entities[y + 1][x + 1], bevelLength});
                 if (x + 1 < 5 && y - 1 >= 0)
-                    World::AddEntity(springArchetype, SpringPhysics{entities[y][x], entities[y - 1][x + 1], bevelLength});
+                    World::AddEntity(SpringArchetype, SpringPhysics{entities[y][x], entities[y - 1][x + 1], bevelLength});
                 if (x + 2 < 5)
-                    World::AddEntity(springArchetype, SpringPhysics{entities[y][x], entities[y][x + 2], length * 2});
+                    World::AddEntity(SpringArchetype, SpringPhysics{entities[y][x], entities[y][x + 2], length * 2});
                 if (y + 2 < 5)
-                    World::AddEntity(springArchetype, SpringPhysics{entities[y][x], entities[y + 2][x], length * 2});
+                    World::AddEntity(SpringArchetype, SpringPhysics{entities[y][x], entities[y + 2][x], length * 2});
             }
     });
     Window::SetWindowUpdateEvent([]()
@@ -74,7 +73,14 @@ int main()
     });
     Window::SetWindowStopEvent([]
     {
-        World::Clear();
+        World::RemoveSystem({&PhysicsSystem, &ForceSystem, &PositionSystem, &CollisionSystem});
+        World::RemoveSystem({&RenderingSystem,});
+        World::RemoveSystem({&UISystem, &GameUISystem});
+        World::RemoveSystem(gameLogics);
+        World::RemoveSystem(editorWindows);
+        World::RemoveSystem(editorWindowUpdates);
+
+        World::Close();
     });
     Window::Start();
 

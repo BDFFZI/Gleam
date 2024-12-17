@@ -1,14 +1,10 @@
 ﻿# Window 模块
 
-## 基本信息
+- `Window.h`:创建窗口
+- `Input.h`:获取用户输入
+- `Time.h`:获取时间信息
 
-- 入口：`Window.h`
-- 功能：
-    - 获取用户输入（`Input.h`）
-    - 获取时间信息（`Time.h`）
-- 依赖：
-    - Mathematics 模块
-    - glfw 库
+坐标系跟随glfw，以屏幕左上角为准，同时这样也便于兼容imgui。
 
 ## 实现目的
 
