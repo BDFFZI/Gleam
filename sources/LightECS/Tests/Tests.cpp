@@ -6,7 +6,6 @@
 #include "LightECS/Runtime/Archetype.hpp"
 #include "LightECS/Runtime/World.h"
 #include "LightECS/Runtime/Heap.h"
-#include "LightECS/Runtime/_Template.hpp"
 #include "LightECS/Runtime/View.hpp"
 
 using namespace Light;
@@ -194,11 +193,19 @@ TEST(ECS, World)
     ASSERT_EQ(World::GetComponent<Transform>(entities[0]), Transform{3});
 }
 
-struct PhysicsSystem : SystemT<SystemMinOrder, SystemMaxOrder>
+/**
+ * 质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
+ */
+class PhysicsSystem : public System
 {
-    //质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
-    inline static float DeltaTime = 0.02f;
+public:
+    constexpr static float DeltaTime = 0.02f;
 
+    PhysicsSystem(): System(nullptr, 0)
+    {
+    }
+
+private:
     static void Update()
     {
         View<Transform, RigidBody>::Each([](Transform& transform, RigidBody& rigidBody)
@@ -221,13 +228,14 @@ struct PhysicsSystem : SystemT<SystemMinOrder, SystemMaxOrder>
         });
     }
 };
+inline PhysicsSystem PhysicsSystem;
 
 TEST(ECS, System)
 {
     for (int i = 0; i < 10; i++)
         World::AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
 
-    World::AddSystem<PhysicsSystem>();
+    World::AddSystem(PhysicsSystem);
 
     std::stringstream log;
     for (int i = 0; i < 200; i++)
@@ -243,4 +251,126 @@ TEST(ECS, System)
         std::cout << log.str() << "\n";
         log.str("");
     }
+
+    World::RemoveSystem(PhysicsSystem);
+    World::Clear();
+}
+
+inline std::stringstream printResult = {};
+class PrintSystem : public System
+{
+public:
+    PrintSystem(SystemGroup* group, const int order, const char* name)
+        : System(group, order), name(name)
+    {
+    }
+
+private:
+    const char* const name;
+
+    void Start() override
+    {
+        printResult << name << "->Start\n";
+    }
+    void Stop() override
+    {
+        printResult << name << "->Stop\n";
+    }
+    void Update() override
+    {
+        printResult << name << "->Update\n";
+    }
+};
+class PrintSystemGroup : public SystemGroup
+{
+public:
+    PrintSystemGroup(SystemGroup* group, const int order, const char* name)
+        : SystemGroup(group, order), name(name)
+    {
+    }
+
+private:
+    const char* const name;
+
+    void Start() override
+    {
+        printResult << name << "->Start\n";
+        SystemGroup::Start();
+    }
+    void Stop() override
+    {
+        SystemGroup::Stop();
+        printResult << name << "->Stop\n";
+    }
+    void Update() override
+    {
+        printResult << name << "->Update\n";
+        SystemGroup::Update();
+    }
+};
+
+TEST(ECS, SystemOrder)
+{
+    ///- system1
+    ///- system2
+    ///- system3
+    ///  - system3_1
+    ///  - system3_2
+    ///    - system3_2_1
+    ///    - system3_2_2
+    ///  - system3_3
+    PrintSystem system2 = {nullptr, 2, "system2"};
+    PrintSystemGroup system3 = {nullptr, 3, "system3"};
+    PrintSystemGroup system3_2 = {&system3, 2, "system3_2"};
+    PrintSystem system3_1 = {&system3, 1, "system3_1"};
+    PrintSystem system1 = {nullptr, 1, "system1"};
+    PrintSystem system3_3 = {&system3, 3, "system3_3"};
+    PrintSystem system3_2_2 = {&system3_2, 2, "system3_2_2"};
+    PrintSystem system3_2_1 = {&system3_2, 1, "system3_2_1"};
+
+    World::AddSystem(system2);
+    World::AddSystem(system3);
+    World::AddSystem(system3_1);
+    World::AddSystem(system1);
+    World::AddSystem(system3_3);
+    World::AddSystem(system3_2_2);
+    World::AddSystem(system3_2_1);
+
+    World::Update();
+
+    World::RemoveSystem(system2);
+    World::RemoveSystem(system3);
+    World::RemoveSystem(system3_1);
+    World::RemoveSystem(system1);
+    World::RemoveSystem(system3_3);
+    World::RemoveSystem(system3_2_2);
+    World::RemoveSystem(system3_2_1);
+
+    World::Clear();
+
+    ASSERT_EQ(printResult.str(), R"(system1->Start
+system2->Start
+system3->Start
+system3_1->Start
+system3_2->Start
+system3_2_1->Start
+system3_2_2->Start
+system3_3->Start
+system1->Update
+system2->Update
+system3->Update
+system3_1->Update
+system3_2->Update
+system3_2_1->Update
+system3_2_2->Update
+system3_3->Update
+system3_3->Stop
+system3_2_2->Stop
+system3_2_1->Stop
+system3_2->Stop
+system3_1->Stop
+system3->Stop
+system2->Stop
+system1->Stop
+)");
 }

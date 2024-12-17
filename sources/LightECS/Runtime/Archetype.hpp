@@ -112,5 +112,5 @@ namespace Light
     };
 
 #define MakeArchetype(name,...)\
-inline const Archetype& name = Archetype::Register<Entity,__VA_ARGS__>(#name);
+inline const Light::Archetype& name = Light::Archetype::Register<Light::Entity,__VA_ARGS__>(#name);
 }

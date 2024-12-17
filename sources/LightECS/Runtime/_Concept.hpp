@@ -11,15 +11,6 @@ namespace Light
     template <class TComponent>
     concept Component = !std::is_pointer_v<TComponent> && !std::is_reference_v<TComponent>;
 
-    template <class TSystem>
-    concept System = requires()
-    {
-        TSystem::Order;
-        TSystem::Start;
-        TSystem::Update;
-        TSystem::Stop;
-    };
-
     template <class TFunction, class... TComponents>
     concept ViewIterator = requires(TFunction function, TComponents&... components) { function(components...); };
 

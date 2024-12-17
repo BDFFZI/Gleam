@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <set>
 #include <cassert>
+
 #include "Heap.h"
 #include "System.h"
 #include "LightECS/Runtime/Archetype.hpp"
@@ -15,10 +16,6 @@ namespace Light
         int indexAtHeap;
     };
 
-    class WorldSystem : public SystemBase<void, SystemMinOrder, SystemMaxOrder>
-    {
-    };
-
     class World
     {
     public:
@@ -30,8 +27,8 @@ namespace Light
             return &iterator->second;
         }
         static EntityInfo GetEntityInfo(Entity entity);
-        static bool HasEntity(Entity entity);
 
+        static bool HasEntity(Entity entity);
         static Entity AddEntity(const Archetype& archetype);
         template <Component... TComponents>
         static Entity AddEntity(const Archetype& archetype, const TComponents&... components)
@@ -44,26 +41,10 @@ namespace Light
         static void MoveEntity(Entity entity, const Archetype& newArchetype);
         static void RemoveEntity(Entity& entity);
 
-        template <System TSystem>
-        static void AddSystem()
-        {
-            SystemInfo systemInfo;
-            systemInfo.type = typeid(TSystem);
-            systemInfo.order = TSystem::Order;
-            systemInfo.start = TSystem::Start;
-            systemInfo.update = TSystem::Update;
-            systemInfo.stop = TSystem::Stop;
-            systemStartQueue.insert(systemInfo);
-        }
-        template <System TSystem>
-        static void RemoveSystem()
-        {
-            SystemInfo key;
-            key.type = typeid(TSystem);
-            key.order = TSystem::Order;
-            SystemInfo systemInfo = systemUpdateQueue.extract(key).value();
-            systemStopQueue.insert(systemInfo);
-        }
+        static bool HasSystem(System& system);
+        static void AddSystem(System& system);
+        static void AddSystem(std::initializer_list<System&> systems);
+        static void RemoveSystem(System& system);
 
         static Heap& GetEntities(const Archetype& archetype)
         {
@@ -123,9 +104,9 @@ namespace Light
         inline static uint32_t nextEntity = 1;
         inline static std::unordered_map<const Archetype*, Heap> entities = {};
         inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
-        inline static SystemBase<>
+        inline static std::unordered_map<System*, int> systems = {};
+        inline static SystemGroup systemGroup = {nullptr, 0};
 
-        static
-        void RemoveHeapItem(const Archetype& archetype, int index);
+        static void RemoveHeapItem(const Archetype& archetype, int index);
     };
 }

@@ -1,15 +1,21 @@
 #pragma once
-#include "../Systems/UISystem.h"
+#include "LightECS/Runtime/System.h"
 #include "LightECS/Runtime/_Concept.hpp"
-#include "LightECS/Runtime/_Template.hpp"
-#include "LightReflection/Runtime/Serialization/Serializer.hpp"
+#include "../Public/UISystem.h"
 
 namespace Light
 {
-    struct InspectorWindow : SystemT<UISystemGroup>
+    class InspectorWindow : public System
     {
-        inline static Entity target;
+    public:
+        Entity target = Entity::Null;
 
-        static void Update();
+        InspectorWindow(): System(&UISystem)
+        {
+        }
+
+    private:
+        void Update() override;
     };
+    inline InspectorWindow InspectorWindow;
 }

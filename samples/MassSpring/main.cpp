@@ -1,4 +1,6 @@
-#include "Component.hpp"
+#include "FixedPointSystem.h"
+#include "GameUISystem.h"
+#include "LineUpdateSystem.h"
 #include "Editor/GameWindow.h"
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
@@ -7,11 +9,10 @@
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightWindow/Runtime/Window.h"
-#include "Systems/LogicSystem.h"
-#include "Systems/PresentationSystem.h"
-#include "Systems/PhysicsSystem.h"
-#include "Systems/RenderingSystem.h"
-#include "Systems/UISystem.h"
+#include "Physics/CollisionSystem.h"
+#include "Physics/ForceSystem.h"
+#include "Physics/PhysicsSystem.h"
+#include "Physics/PositionSystem.h"
 
 using namespace Light;
 
@@ -26,7 +27,9 @@ int main()
 
     Window::SetWindowStartEvent([]
     {
-        World::AddSystem<BeginPresentationSystem>();
+        World::AddSystem({PhysicsSystem, ForceSystem, PositionSystem, CollisionSystem});
+        World::AddSystem({UISystem, GameUISystem});
+        World::AddSystem({FixedPointSystem, LineUpdateSystem,})
         World::AddSystem<EndPresentationSystem>();
         World::AddSystem<BeginUISystem>();
         World::AddSystem<EndUISystem>();

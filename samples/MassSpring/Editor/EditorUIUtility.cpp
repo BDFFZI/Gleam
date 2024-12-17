@@ -11,7 +11,22 @@ namespace Light
     {
         if (ImGui::Button(std::format("Entity:{}", static_cast<uint32_t>(entity)).c_str()))
         {
-            InspectorWindow::target = entity;
+            InspectorWindow.target = entity;
+        }
+    }
+    void EditorUIUtility::DrawSystemGroup(SystemGroup& systemGroup)
+    {
+        if (ImGui::TreeNode(typeid(systemGroup).name()))
+        {
+            for (const auto subSystem : systemGroup.subSystemUpdateQueue)
+            {
+                if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
+                    DrawSystemGroup(*subSystemGroup);
+                else
+                    ImGui::Text(typeid(*subSystem).name());
+            }
+
+            ImGui::TreePop();
         }
     }
 }

@@ -1,20 +1,24 @@
 #pragma once
+#include "../Public/UISystem.h"
+#include "LightECS/Runtime/System.h"
 #include "LightUI/Runtime/UI.h"
-#include "LightECS/Runtime/_Template.hpp"
-#include "../Systems/UISystem.h"
 
 namespace Light
 {
-    class GameWindow : public SystemT<UISystemGroup>
+    class GameWindow : public System
     {
     public:
-        static void Start();
-        static void Stop();
-        static void Update();
-
+        GameWindow(): System(&UISystem)
+        {
+        }
+    
     private:
-        inline static uint32_t lastWindowSize[2] = {0, 0};
-        inline static std::unique_ptr<RenderTexture> renderTexture = nullptr;
-        inline static ImTextureID textureID = {};
+        uint32_t lastWindowSize[2] = {0, 0};
+        std::unique_ptr<RenderTexture> renderTexture = nullptr;
+        ImTextureID textureID = {};
+
+        void Start() override;
+        void Stop() override;
+        void Update() override;
     };
 }

@@ -16,27 +16,7 @@ namespace Light
         ImGui::SeparatorText("Details");
         if (ImGui::CollapsingHeader("System"))
         {
-            if (ImGui::TreeNode("SystemStartQueue"))
-            {
-                for (auto& system : World::systemStartQueue)
-                    ImGui::Text(system.type.name());
-
-                ImGui::TreePop();
-            }
-            if (ImGui::TreeNode("SystemStopQueue"))
-            {
-                for (auto& system : World::systemStopQueue)
-                    ImGui::Text(system.type.name());
-
-                ImGui::TreePop();
-            }
-            if (ImGui::TreeNode("SystemUpdateQueue"))
-            {
-                for (auto& system : World::systemUpdateQueue)
-                    ImGui::Text(system.type.name());
-
-                ImGui::TreePop();
-            }
+            EditorUIUtility::DrawSystemGroup(World::systemGroup);
         }
         if (ImGui::CollapsingHeader("Archetype"))
         {

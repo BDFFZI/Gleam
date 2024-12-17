@@ -19,7 +19,7 @@ namespace Light
     {
         ImGui::Begin("GameWindow");
 
-        float2 windowSizeF = UI::GetWindowContentRegionSize();
+        const float2 windowSizeF = UI::GetWindowContentRegionSize();
         uint32_t windowSize[] = {static_cast<uint32_t>(windowSizeF.x), static_cast<uint32_t>(windowSizeF.y)};
         if (lastWindowSize[0] != windowSize[0] || lastWindowSize[1] != windowSize[1])
         {

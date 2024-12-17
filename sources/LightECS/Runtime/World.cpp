@@ -8,6 +8,7 @@ namespace Light
     {
         return entityInfos.at(entity);
     }
+
     bool World::HasEntity(const Entity entity)
     {
         return entityInfos.contains(entity);
@@ -43,7 +44,7 @@ namespace Light
     {
         assert(entity != Entity::Null && "目标实体为空！");
         assert(entityInfos.contains(entity) && "目标实体不存在！");
-        
+
         //获取旧实体信息
         EntityInfo entityInfo = entityInfos[entity];
         const Archetype& oldArchetype = *entityInfo.archetype;
@@ -80,7 +81,7 @@ namespace Light
     {
         assert(entity != Entity::Null && "目标实体为空！");
         assert(entityInfos.contains(entity) && "目标实体不存在！");
-        
+
         //取出实体信息
         EntityInfo entityInfo = entityInfos.extract(entity).mapped();
         //运行析构函数
@@ -91,39 +92,82 @@ namespace Light
 
         entity = Entity::Null;
     }
+    bool World::HasSystem(System& system)
+    {
+        return systems.contains(&system);
+    }
+
+    /**
+     * @brief 添加系统
+     *
+     * 1. 会自动递归添加依赖的系统组
+     * 2. 允许重复添加，会自动记录使用计数以供移除时使用
+     * 
+     * @param system 
+     */
+    void World::AddSystem(System& system)
+    {
+        if (system.group != nullptr)
+            AddSystem(*system.group);
+
+        int count = 1 + (systems.contains(&system) ? systems[&system] : 0);
+        systems[&system] = count;
+
+        if (count == 1)
+        {
+            //首次添加，需实际注册到系统组接收事件。
+            if (system.group == nullptr)
+                systemGroup.AddSubSystem(system);
+            else
+                system.group->AddSubSystem(system);
+        }
+    }
+    void World::AddSystem(std::initializer_list<System&> systems)
+    {
+        for (System& system : systems)
+            AddSystem(system);
+    }
+    /**
+     * @brief 移除系统
+     *
+     * 1. 会自动递归移除依赖的系统组
+     * 2. 重复添加后需重复移除，当使用计数为0时才会真正移除系统
+     * 
+     * @param system 
+     */
+    void World::RemoveSystem(System& system)
+    {
+        assert(systems.contains(&system) && "无法移除未添加过的系统！");
+
+        if (system.group != nullptr)
+            RemoveSystem(*system.group);
+
+        int count = systems[&system] - 1;
+        if (count == 0)
+            systems.erase(&system);
+        else
+            systems[&system] = count;
+
+        if (count == 0)
+        {
+            //最后一次移除，需实际从系统组移除。
+            if (system.group == nullptr)
+                systemGroup.RemoveSubSystem(system);
+            else
+                system.group->RemoveSubSystem(system);
+        }
+    }
+
     void World::Update()
     {
-        if (systemStartQueue.empty() == false)
-        {
-            for (const SystemInfo& systemInfo : systemStartQueue)
-                systemInfo.start();
-            systemUpdateQueue.insert(systemStartQueue.begin(), systemStartQueue.end());
-            systemStartQueue.clear();
-        }
-
-        for (const SystemInfo& systemInfo : systemUpdateQueue)
-        {
-            systemInfo.update();
-        }
-
-        if (systemStopQueue.empty() == false)
-        {
-            for (const SystemInfo& systemInfo : std::ranges::reverse_view(systemStopQueue))
-                systemInfo.stop();
-            systemStopQueue.clear();
-        }
+        systemGroup.Update();
     }
     void World::Clear()
     {
-        for (const SystemInfo& systemInfo : std::ranges::reverse_view(systemStopQueue))
-            systemInfo.stop();
-        for (const SystemInfo& systemInfo : std::ranges::reverse_view(systemUpdateQueue))
-            systemInfo.stop();
-
-        systemStartQueue.clear();
-        systemStopQueue.clear();
-        systemUpdateQueue.clear();
+        Update();
+        assert(systems.empty() && "存在尚未回收的系统！");
     }
+
     void World::RemoveHeapItem(const Archetype& archetype, const int index)
     {
         Heap& heap = entities.at(&archetype);

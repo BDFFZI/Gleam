@@ -1,11 +1,17 @@
 #pragma once
-#include "../Systems/UISystem.h"
-#include "LightECS/Runtime/_Template.hpp"
+#include "../Public/UISystem.h"
+#include "LightECS/Runtime/System.h"
 
 namespace Light
 {
-    struct HierarchyWindow : SystemT<UISystemGroup>
+    class HierarchyWindow : public System
     {
-        static void Update();
+    public:
+        HierarchyWindow(): System(&UISystem)
+        {
+        }
+
+    private:
+        void Update() override;
     };
 }

@@ -1,54 +1,33 @@
 #include "LogicSystem.h"
-#include "PhysicsSystem.h"
-#include "RenderingSystem.h"
+
+#include "Archetype.hpp"
+#include "Editor/InspectorWindow.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Window.h"
 #include "LightECS/Runtime/View.hpp"
-#include "../Component.hpp"
-#include "../Editor/EditorUIUtility.h"
-#include "../Editor/InspectorWindow.h"
 #include "LightWindow/Runtime/Time.h"
-#include "LightUI/Runtime/UI.h"
-#include <magic_enum.hpp>
+
+#include "Public/Component.hpp"
+#include "Rendering/RenderingSystem.h"
 
 using namespace Light;
 
 void LogicSystem::Start()
 {
-    Physics::AddFixedUpdate(FixedUpdate);
     Input::PushInputHandler(inputHandler);
 }
 void LogicSystem::Stop()
 {
-    Physics::RemoveFixedUpdate(FixedUpdate);
     if (Input::TopInputHandler() == inputHandler)
         Input::PopInputHandler(inputHandler);
 }
 
-
-void LogicSystem::UpdateUI()
-{
-    const char* editModeOptions[] = {
-        magic_enum::enum_name(static_cast<EditMode>(0)).data(),
-        magic_enum::enum_name(static_cast<EditMode>(1)).data(),
-        magic_enum::enum_name(static_cast<EditMode>(2)).data(),
-        magic_enum::enum_name(static_cast<EditMode>(3)).data(),
-    };
-    ImGui::Combo("EditMode", reinterpret_cast<int*>(&editMode), editModeOptions, std::size(editModeOptions));
-    ImGui::Checkbox("Simulating", &simulating);
-    ImGui::Text("SelectingPoint");
-    ImGui::SameLine();
-    EditorUIUtility::DrawEntityButton(coveringPoint);
-
-    if (ImGui::Button("ExitGame"))
-        Window::Stop();
-}
 void LogicSystem::OnMovePoint()
 {
     if (Input::GetMouseButtonDown(MouseButton::Left))
     {
         fixedPoint = coveringPoint;
-        InspectorWindow::target = fixedPoint;
+        InspectorWindow.target = fixedPoint;
     }
 
     if (Input::GetMouseButtonUp(MouseButton::Left))
@@ -57,12 +36,12 @@ void LogicSystem::OnMovePoint()
     if (fixedPoint != Entity::Null)
         World::GetComponent<Point>(fixedPoint).position = mousePositionWS;
 }
-void LogicSystem::OnCreatePoint()
+void LogicSystem::OnCreatePoint() const
 {
     if (Input::GetMouseButtonDown(MouseButton::Left))
     {
-        Entity entity = World::AddEntity(massPointArchetype, Point{mousePositionWS});
-        InspectorWindow::target = entity;
+        const Entity entity = World::AddEntity(MassPointArchetype, Point{mousePositionWS});
+        InspectorWindow.target = entity;
     }
 }
 
@@ -72,7 +51,7 @@ void LogicSystem::OnDeletePoint()
     if (Input::GetMouseButtonDown(MouseButton::Left) && coveringPoint != Entity::Null)
     {
         lines.clear();
-        View<SpringPhysics>::Each([](const Entity entity, SpringPhysics& springPhysics)
+        View<SpringPhysics>::Each([this](const Entity entity, SpringPhysics& springPhysics)
         {
             if (springPhysics.pointA == coveringPoint || springPhysics.pointB == coveringPoint)
                 lines.push_back(entity);
@@ -91,7 +70,7 @@ void LogicSystem::OnCreateSpring()
             if (coveringPoint != Entity::Null)
             {
                 springPointA = coveringPoint;
-                tempLine = World::AddEntity(lineArchetype);
+                tempLine = World::AddEntity(LineArchetype);
             }
         }
     }
@@ -104,7 +83,7 @@ void LogicSystem::OnCreateSpring()
                 Point pointA = World::GetComponent<Point>(springPointA);
                 Point pointB = World::GetComponent<Point>(coveringPoint);
                 World::AddEntity(
-                    springArchetype,
+                    SpringArchetype,
                     SpringPhysics{
                         springPointA,
                         coveringPoint,
@@ -134,9 +113,6 @@ void LogicSystem::Update()
         else
             Input::PushInputHandler(inputHandler);
     }
-    //处理UI输入
-    if (Input::TopInputHandler() != inputHandler)
-        UpdateUI();
 
     //根据当前数值状态运行游戏逻辑
     if (Input::TopInputHandler() == inputHandler)
@@ -146,10 +122,10 @@ void LogicSystem::Update()
         if (Input::GetKeyUp(KeyCode::Space))
             simulating = false;
         //获取鼠标位置
-        mousePositionWS = Rendering::ScreenToWorldPoint(Input::GetMousePosition());
+        mousePositionWS = RenderingSystem.ScreenToWorldPoint(Input::GetMousePosition());
         //获取当前鼠标覆盖的顶点
         coveringPoint = Entity::Null;
-        View<Point>::Each([](const Entity entity, const Point& point)
+        View<Point>::Each([this](const Entity entity, const Point& point)
         {
             if (distance(point.position, mousePositionWS) < 1)
                 coveringPoint = entity;
@@ -169,15 +145,4 @@ void LogicSystem::Update()
     }
 
     Time::SetTimeScale(simulating ? 1 : 0);
-}
-void LogicSystem::FixedUpdate()
-{
-    if (fixedPoint != Entity::Null)
-    {
-        Point* point;
-        MassPointPhysics* massPointPhysics;
-        World::GetComponents(fixedPoint, &point, &massPointPhysics);
-        massPointPhysics->force = 0;
-        massPointPhysics->velocity = 0;
-    }
 }
