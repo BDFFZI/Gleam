@@ -6,6 +6,12 @@
 
 GLPipelineLayout::GLPipelineLayout(const GLDescriptorSetLayout& glDescriptorSetLayout, const std::vector<VkPushConstantRange>& pushConstantRanges)
 {
+    uint32_t pushConstantSize = 0;
+    for (const auto& pushConstantRange : pushConstantRanges)
+        pushConstantSize += pushConstantRange.size;
+    if (pushConstantSize > GL::glDevice->deviceProperties.limits.maxPushConstantsSize)
+        throw std::runtime_error("推送常量总计大小超出显卡支持范围！");
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;

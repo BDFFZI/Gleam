@@ -69,11 +69,12 @@ void CmdBlitImageMipmap(
                    VK_FILTER_LINEAR);
 }
 
-GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, const VkFormat format, const void* data, const size_t size, const bool mipChain)
+std::unique_ptr<GLImage> GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, const VkFormat format, const void* data, const size_t size, const bool mipChain)
 {
     const uint32_t mipLevels = mipChain ? static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))) + 1) : 1;
     if (mipLevels != 1)
     {
+        //检查mipChain支持
         VkFormatProperties formatProperties = GL::glDevice->GetFormatProperties(format);
         if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
             throw std::runtime_error("该纹理格式不支持线性过滤，故无法自动生成mipmap！");
@@ -82,14 +83,14 @@ GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, c
     GLImage* glImage = new GLImage(
         width, height,
         format,
-        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
         mipLevels
     );
 
-    std::unique_ptr<GLBuffer> transmitter(GLBuffer::CreateTransmitter(data, size));
+    std::unique_ptr<GLBuffer> transmitter(GLBuffer::CreateTransmitter(data, size)); //不放在委托里是为了避免超出作用域后回收
     GLCommandBuffer::ExecuteSingleTimeCommands([&](const GLCommandBuffer& commandBuffer)
     {
-        //图片整体转为传输目标布局
+        //先将所有mipmap的图片转为传输目标布局
         CmdTransitionImageLayout(
             commandBuffer, glImage->image,
             glImage->layout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, mipLevels,
@@ -98,18 +99,20 @@ GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, c
             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, //屏障在图形管道的最早阶段就可执行
             VK_PIPELINE_STAGE_TRANSFER_BIT //必须确保屏障在传输阶段前完成
         );
-        //填充一级mipmap
+
+        //以原图片填充第一级mipmap
         commandBuffer.CopyBufferToImage(*transmitter, *glImage);
 
-        //遍历后续mipmap（如果没有生成mipmap则不会触发）
-        int32_t mipWidth = static_cast<int32_t>(width);
-        int32_t mipHeight = static_cast<int32_t>(height);
+        //遍历后续mipmap
+        int32_t mipWidth = static_cast<int32_t>(glImage->width);
+        int32_t mipHeight = static_cast<int32_t>(glImage->height);
         for (uint32_t i = 1; i < mipLevels; i++)
         {
             //将前一级mipmap转为传输源
             CmdTransitionImageLayout(
                 commandBuffer, glImage->image,
-                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, i - 1, 1,
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                i - 1, 1,
                 VK_ACCESS_TRANSFER_WRITE_BIT,
                 VK_ACCESS_TRANSFER_READ_BIT,
                 VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -124,7 +127,8 @@ GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, c
             //前一级mipmap使用完毕，将其转为着色器只读模式
             CmdTransitionImageLayout(
                 commandBuffer, glImage->image,
-                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, i - 1, 1,
+                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                i - 1, 1,
                 VK_ACCESS_TRANSFER_READ_BIT, //传输完成后才可执行该屏障
                 VK_ACCESS_SHADER_READ_BIT, //该屏障完成后着色器才可进行资源读取操作
                 VK_PIPELINE_STAGE_TRANSFER_BIT, //发生在传输阶段
@@ -135,10 +139,11 @@ GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, c
             if (mipHeight > 1) mipHeight /= 2;
         }
 
-        //处理最后一个mipmap的转换
+        //将最后一个mipmap转换为着色器只读模式
         CmdTransitionImageLayout(
             commandBuffer, glImage->image,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels - 1, 1,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            mipLevels - 1, 1,
             VK_ACCESS_TRANSFER_WRITE_BIT, //传输完成后才可执行该屏障
             VK_ACCESS_SHADER_READ_BIT, //该屏障完成后着色器才可进行资源读取操作
             VK_PIPELINE_STAGE_TRANSFER_BIT, //发生在传输阶段
@@ -146,24 +151,38 @@ GLImage* GLImage::CreateTexture2D(const uint32_t width, const uint32_t height, c
         );
     });
 
-
     glImage->layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    return glImage;
+    return std::unique_ptr<GLImage>(glImage);
 }
-GLImage* GLImage::CreateFrameBufferColor(const uint32_t width, const uint32_t height, const VkFormat colorFormat, const VkSampleCountFlagBits sampleCount)
+std::unique_ptr<GLImage> GLImage::CreateFrameBufferColor(const uint32_t width, const uint32_t height, const VkFormat colorFormat, const VkSampleCountFlagBits sampleCount)
 {
-    return new GLImage(width, height, colorFormat,
-                       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT, 1, sampleCount);
+    return std::make_unique<GLImage>(
+        width, height, colorFormat,
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        1, sampleCount
+    );
 }
-GLImage* GLImage::CreateFrameBufferDepth(const uint32_t width, const uint32_t height, const VkFormat depthFormat, const VkSampleCountFlagBits sampleCount)
+std::unique_ptr<GLImage> GLImage::CreateFrameBufferDepth(const uint32_t width, const uint32_t height, const VkFormat depthFormat, const VkSampleCountFlagBits sampleCount)
 {
-    return new GLImage(width, height, depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 1, sampleCount);
+    return std::make_unique<GLImage>(
+        width, height, depthFormat,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        1, sampleCount
+    );
 }
 
 GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat format, const VkImageUsageFlags usageFlags,
-                 const uint32_t mipLevels, const VkSampleCountFlagBits sampleCount)
-    : layout(VK_IMAGE_LAYOUT_UNDEFINED), format(format), width(width), height(height), mipLevels(mipLevels)
+                 const uint32_t mipLevels, const VkSampleCountFlagBits sampleCount, const VkImageLayout imageLayout)
+    : layout(imageLayout), format(format), width(width), height(height), mipLevels(mipLevels)
 {
+    VkImageFormatProperties imageFormatProperties;
+    vkGetPhysicalDeviceImageFormatProperties(
+        GL::glDevice->physicalDevice, format,
+        VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usageFlags, 0, &imageFormatProperties
+    );
+    if (imageFormatProperties.maxArrayLayers == 0)
+        throw std::runtime_error("不支持的图片格式！");
+
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D; //普通2D纹理
@@ -179,7 +198,7 @@ GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat for
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE; //图形队列独占
     imageInfo.samples = sampleCount; //多重采样
     imageInfo.flags = 0; // Optional
-    if (vkCreateImage(GL::glDevice->device, &imageInfo, nullptr, &image) != VK_SUCCESS)
+    if (VkResult result = vkCreateImage(GL::glDevice->device, &imageInfo, nullptr, &image); result != VK_SUCCESS)
         throw std::runtime_error("创建图片失败！");
 
     VkMemoryRequirements memRequirements;
@@ -191,7 +210,7 @@ GLImage::GLImage(const uint32_t width, const uint32_t height, const VkFormat for
     //VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT是GPU访问最高效的内存属性，但通常也无法被CPU直接访问
     allocInfo.memoryTypeIndex = GL::glDevice->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    if (vkAllocateMemory(GL::glDevice->device, &allocInfo, nullptr, &memory) != VK_SUCCESS)
+    if (VkResult result = vkAllocateMemory(GL::glDevice->device, &allocInfo, nullptr, &memory); result != VK_SUCCESS)
         throw std::runtime_error("分配图片内存失败！");
 
     vkBindImageMemory(GL::glDevice->device, image, memory, 0);

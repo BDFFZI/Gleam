@@ -2,7 +2,7 @@
 #include <functional>
 #include <vector>
 
-namespace LightRuntime
+namespace Light
 {
     class Engine
     {

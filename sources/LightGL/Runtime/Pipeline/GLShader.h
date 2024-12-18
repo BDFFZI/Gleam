@@ -16,5 +16,5 @@ struct GLShader
      * @param shaderEntrance shader源码中的函数名
      * @return 
      */
-    GLShader(VkShaderStageFlagBits shaderStage, const std::vector<std::byte>& shaderBytecode, std::string shaderEntrance);
+    GLShader(VkShaderStageFlagBits shaderStage, std::vector<std::byte> shaderBytecode, std::string shaderEntrance);
 };

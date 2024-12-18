@@ -1,16 +1,14 @@
 ﻿#include <iostream>
 #include <ostream>
+#include <typeindex>
 #include <benchmark/benchmark.h>
 #include <gtest/gtest.h>
-
-#include "LightECS/Runtime/Heap.h"
+#include "LightECS/Runtime/Archetype.hpp"
 #include "LightECS/Runtime/World.h"
-#include <stdarg.h>
-#include <unordered_set>
+#include "LightECS/Runtime/Heap.h"
+#include "LightECS/Runtime/View.hpp"
 
-#include "LightECS/Runtime/System.h"
-#include "LightUtility/Runtime/Chronograph.h"
-
+using namespace Light;
 
 struct Transform
 {
@@ -18,7 +16,7 @@ struct Transform
 
     friend bool operator==(const Transform& lhs, const Transform& rhs)
     {
-        return lhs.position == rhs.position;
+        return abs(lhs.position - rhs.position) < std::numeric_limits<float>::epsilon();
     }
 };
 
@@ -30,28 +28,28 @@ struct RigidBody
 
     friend bool operator==(const RigidBody& lhs, const RigidBody& rhs)
     {
-        return lhs.force == rhs.force
-            && lhs.mass == rhs.mass
-            && lhs.velocity == rhs.velocity;
+        return abs(lhs.force - rhs.force) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.mass - rhs.mass) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.velocity - rhs.velocity) < std::numeric_limits<float>::epsilon();
     }
 };
 
-struct Spring
+struct SpringPhysics
 {
     float pinPosition = 0;
     float length = 5;
     float elasticity = 200;
 
-    friend bool operator==(const Spring& lhs, const Spring& rhs)
+    friend bool operator==(const SpringPhysics& lhs, const SpringPhysics& rhs)
     {
-        return lhs.pinPosition == rhs.pinPosition
-            && lhs.length == rhs.length
-            && lhs.elasticity == rhs.elasticity;
+        return abs(lhs.pinPosition - rhs.pinPosition) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.length - rhs.length) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.elasticity - rhs.elasticity) < std::numeric_limits<float>::epsilon();
     }
 };
 
 MakeArchetype(physicsArchetype, Transform, RigidBody)
-MakeArchetypeInherited(physicsWithSpringArchetype, physicsArchetype, Spring)
+MakeArchetype(physicsWithSpringArchetype, Transform, RigidBody, SpringPhysics)
 
 TEST(ECS, Heap)
 {
@@ -83,7 +81,7 @@ TEST(ECS, HeapBenchmark)
 {
     struct Data
     {
-        float data[32];
+        size_t data[32];
     };
 
     benchmark::RegisterBenchmark("Vector", [](benchmark::State& state)
@@ -93,22 +91,22 @@ TEST(ECS, HeapBenchmark)
             std::vector<Data> container;
             container.resize(30);
             container.resize(60);
-            int size = container.size();
-            for (int i = 0; i < size; i++)
+            size_t size = container.size();
+            for (size_t i = 0; i < size; i++)
                 container[i].data[0] = i;
             container.erase(container.begin(), container.begin() + 30);
 
             container.resize(90);
             container.resize(120);
             size = container.size();
-            for (int i = 0; i < size; i++)
+            for (size_t i = 0; i < size; i++)
                 container[i].data[1] = i;
             container.erase(container.begin() + 30, container.begin() + 60);
 
-            for (int i = 0; i < container.size(); i++)
+            for (size_t i = 0; i < container.size(); i++)
             {
                 if (i % 2 == 0)
-                    container.erase(container.begin() + i);
+                    container.erase(container.begin() + static_cast<int64_t>(i));
             }
         }
     });
@@ -153,54 +151,73 @@ TEST(ECS, Archetype)
     for (auto& archetype : Archetype::allArchetypes)
     {
         std::cout << archetype->ToString() << "\n";
-        std::cout << archetype->GetSize() << "\n";
+        std::cout << archetype->size << "\n";
     }
 
-    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype->GetSize()));
-    physicsWithSpringArchetype->RunConstructor(data);
-    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype->GetComponentOffsets()[0]);
-    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype->GetComponentOffsets()[1]);
-    Spring& spring = *reinterpret_cast<Spring*>(data + physicsWithSpringArchetype->GetComponentOffsets()[2]);
+    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype.size));
+    physicsWithSpringArchetype.RunConstructor(data);
+    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype.componentOffsets[1]);
+    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype.componentOffsets[2]);
+    SpringPhysics& spring = *reinterpret_cast<SpringPhysics*>(data + physicsWithSpringArchetype.componentOffsets[3]);
     ASSERT_EQ(transform, Transform());
     ASSERT_EQ(rigidBody, RigidBody());
-    ASSERT_EQ(spring, Spring());
+    ASSERT_EQ(spring, SpringPhysics());
     free(data);
 }
 
-TEST(ECS, WorldAndView)
+TEST(ECS, World)
 {
-    World world;
-    world.AddEntities(physicsWithSpringArchetypeID, 1);
+    Entity entities[2];
+    World::AddEntities(physicsArchetype, 2, entities);
+    World::RemoveEntity(entities[0]);
+    World::MoveEntity(entities[1], physicsWithSpringArchetype);
 
-    View<Transform, RigidBody, Spring> view;
-    view.Each(world, [](auto& transform, auto& rigidBody, auto& spring)
+    View<Transform, RigidBody, SpringPhysics>::Each([entities](auto& entity, auto& transform, auto& rigidBody, auto& spring)
     {
+        ASSERT_EQ(entity, entities[1]);
         ASSERT_EQ(transform, Transform());
         ASSERT_EQ(rigidBody, RigidBody());
-        ASSERT_EQ(spring, Spring());
+        ASSERT_EQ(spring, SpringPhysics());
     });
+
+    RigidBody inRigidBody = {100, 1, 2};
+    SpringPhysics inSpring = {1, 2, 3};
+    World::SetComponents(entities[1], inRigidBody, inSpring);
+    RigidBody outRigidBody;
+    SpringPhysics outSpring;
+    World::GetComponents(entities[1], &outRigidBody, &outSpring);
+    ASSERT_EQ(outRigidBody, inRigidBody);
+    ASSERT_EQ(outSpring, inSpring);
+
+    entities[0] = World::AddEntity(physicsArchetype, Transform{3});
+    ASSERT_EQ(World::GetComponent<Transform>(entities[0]), Transform{3});
 }
 
+/**
+ * 质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
+ */
 class PhysicsSystem : public System
 {
-    //质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
 public:
-    float deltaTime;
+    constexpr static float DeltaTime = 0.02f;
 
-    void Update(World& world) const override
+    PhysicsSystem(): System(nullptr, 0)
     {
-        View<Transform, RigidBody> physicalEntities = {};
-        physicalEntities.Each(world, [deltaTime = deltaTime](Transform& transform, RigidBody& rigidBody)
+    }
+
+private:
+    static void Update()
+    {
+        View<Transform, RigidBody>::Each([](Transform& transform, RigidBody& rigidBody)
         {
             float acceleration = rigidBody.force / rigidBody.mass; //牛顿第二定律
             acceleration += rigidBody.mass * -9.8f; //添加重力加速度
-            rigidBody.velocity += acceleration * deltaTime;
-            transform.position += rigidBody.velocity * deltaTime;
+            rigidBody.velocity += acceleration * DeltaTime;
+            transform.position += rigidBody.velocity * DeltaTime;
             rigidBody.force = 0;
         });
 
-        View<Transform, RigidBody, Spring> physicalElasticEntities = {};
-        physicalElasticEntities.Each(world, [](Transform& transform, RigidBody& rigidBody, Spring& spring)
+        View<Transform, RigidBody, SpringPhysics>::Each([](Transform& transform, RigidBody& rigidBody, SpringPhysics& spring)
         {
             float vector = spring.pinPosition - transform.position;
             float direction = vector >= 0 ? 1 : -1;
@@ -211,84 +228,149 @@ public:
         });
     }
 };
+inline PhysicsSystem PhysicsSystem;
 
 TEST(ECS, System)
 {
-    World world;
     for (int i = 0; i < 10; i++)
-        world.AddEntity(i % 2 == 0 ? physicsArchetypeID : physicsWithSpringArchetypeID);
+        World::AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
 
-    PhysicsSystem physicsSystem = {};
-    physicsSystem.deltaTime = 0.02f;
+    World::AddSystem(PhysicsSystem);
 
     std::stringstream log;
     for (int i = 0; i < 200; i++)
     {
         //更新
-        physicsSystem.Update(world);
+        World::Update();
 
         //输出
-        View<Transform> transformView = {};
-        transformView.Each(world, [&log](Transform& transform)
+        View<Transform>::Each([&log](Transform& transform)
         {
             log << std::format("{:10.3f}", transform.position) << '|';
         });
         std::cout << log.str() << "\n";
         log.str("");
     }
+
+    World::RemoveSystem(PhysicsSystem);
+    World::Close();
 }
 
-void Performance_StdFunction(const std::function<void()>& func)
+inline std::stringstream printResult = {};
+class PrintSystem : public System
 {
-    func();
-}
-
-template <typename T>
-void Performance_Lambda(const T& func)
-{
-    func();
-}
-
-void Performance_FunctionPtr(void (*func)())
-{
-    func();
-}
-
-void Performance_Func()
-{
-}
-
-TEST(Function, Performance)
-{
-    benchmark::RegisterBenchmark("std::function", [](benchmark::State& state)
+public:
+    PrintSystem(SystemGroup* group, const int order, const char* name)
+        : System(group, order), name(name)
     {
-        std::function func = []()
-        {
-        };
-        for (auto _ : state)
-        {
-            Performance_StdFunction(func);
-        }
-    });
+    }
 
+private:
+    const char* const name;
 
-    benchmark::RegisterBenchmark("Lambda", [](benchmark::State& state)
+    void Start() override
     {
-        for (auto _ : state)
-        {
-            Performance_FunctionPtr([]
-            {
-            });
-        }
-    });
-
-    benchmark::RegisterBenchmark("Function", [](benchmark::State& state)
+        printResult << name << "->Start\n";
+    }
+    void Stop() override
     {
-        for (auto _ : state)
-        {
-            Performance_FunctionPtr(Performance_Func);
-        }
-    });
+        printResult << name << "->Stop\n";
+    }
+    void Update() override
+    {
+        printResult << name << "->Update\n";
+    }
+};
+class PrintSystemGroup : public SystemGroup
+{
+public:
+    PrintSystemGroup(SystemGroup* group, const int order, const char* name)
+        : SystemGroup(group, order), name(name)
+    {
+    }
 
-    benchmark::RunSpecifiedBenchmarks();
+private:
+    const char* const name;
+
+    void Start() override
+    {
+        printResult << name << "->Start\n";
+        SystemGroup::Start();
+    }
+    void Stop() override
+    {
+        SystemGroup::Stop();
+        printResult << name << "->Stop\n";
+    }
+    void Update() override
+    {
+        printResult << name << "->Update\n";
+        SystemGroup::Update();
+    }
+};
+
+TEST(ECS, SystemOrder)
+{
+    ///- system1
+    ///- system2
+    ///- system3
+    ///  - system3_1
+    ///  - system3_2
+    ///    - system3_2_1
+    ///    - system3_2_2
+    ///  - system3_3
+    PrintSystem system2 = {nullptr, 2, "system2"};
+    PrintSystemGroup system3 = {nullptr, 3, "system3"};
+    PrintSystemGroup system3_2 = {&system3, 2, "system3_2"};
+    PrintSystem system3_1 = {&system3, 1, "system3_1"};
+    PrintSystem system1 = {nullptr, 1, "system1"};
+    PrintSystem system3_3 = {&system3, 3, "system3_3"};
+    PrintSystem system3_2_2 = {&system3_2, 2, "system3_2_2"};
+    PrintSystem system3_2_1 = {&system3_2, 1, "system3_2_1"};
+
+    World::AddSystem(system2);
+    World::AddSystem(system3);
+    World::AddSystem(system3_1);
+    World::AddSystem(system1);
+    World::AddSystem(system3_3);
+    World::AddSystem(system3_2_2);
+    World::AddSystem(system3_2_1);
+
+    World::Update();
+
+    World::RemoveSystem(system2);
+    World::RemoveSystem(system3);
+    World::RemoveSystem(system3_1);
+    World::RemoveSystem(system1);
+    World::RemoveSystem(system3_3);
+    World::RemoveSystem(system3_2_2);
+    World::RemoveSystem(system3_2_1);
+
+    World::Close();
+
+    ASSERT_EQ(printResult.str(), R"(system1->Start
+system2->Start
+system3->Start
+system3_1->Start
+system3_2->Start
+system3_2_1->Start
+system3_2_2->Start
+system3_3->Start
+system1->Update
+system2->Update
+system3->Update
+system3_1->Update
+system3_2->Update
+system3_2_1->Update
+system3_2_2->Update
+system3_3->Update
+system3_3->Stop
+system3_2_2->Stop
+system3_2_1->Stop
+system3_2->Stop
+system3_1->Stop
+system3->Stop
+system2->Stop
+system1->Stop
+)");
 }

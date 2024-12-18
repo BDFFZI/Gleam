@@ -6,12 +6,13 @@
 
 #include "LightMath/Runtime/VectorMath.hpp"
 
-using namespace LightRuntime;
+using namespace Light;
 
 struct ObjVertex
 {
     float3 pos;
     float2 texCoord;
+    float4 color;
 
     bool operator==(const ObjVertex& other) const
     {
@@ -58,11 +59,19 @@ RawMesh ModelImporter::ImportObj(const std::string& filePath)
                 attrib.texcoords[2 * index.texcoord_index + 1]
             };
 
+            vertex.color = {
+                attrib.colors[3 * index.vertex_index + 0],
+                attrib.colors[3 * index.vertex_index + 1],
+                attrib.colors[3 * index.vertex_index + 2],
+                1,
+            };
+
             if (!uniqueVertices.contains(vertex))
             {
                 uniqueVertices[vertex] = static_cast<uint32_t>(mesh.positions.size());
                 mesh.positions.push_back(vertex.pos);
                 mesh.uvs.push_back(vertex.texCoord);
+                mesh.colors.push_back(vertex.color);
             }
 
             mesh.triangles.push_back(uniqueVertices[vertex]);

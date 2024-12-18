@@ -1,106 +1,144 @@
 ﻿#include "CommandBuffer.h"
 
-#include "Graphics.h"
+#include <cassert>
 
-using namespace LightRuntime;
+#include "LightMath/Runtime/MatrixMath.hpp"
 
-GLCommandBuffer& CommandBuffer::GetGLCommandBuffer()
-{
-    return glCommandBuffer;
-}
+using namespace Light;
+
 void CommandBuffer::BeginRecording()
 {
     glCommandBuffer.BeginRecording();
 }
 void CommandBuffer::EndRecording()
 {
+    if (currentRenderTarget != nullptr)
+        EndRendering();
+
     glCommandBuffer.EndRecording();
-    lastMesh = nullptr;
-    lastMaterial = nullptr;
-    lastShader = nullptr;
+    //全部属性重置为初始值
+    currentMesh = nullptr;
+    currentShader = nullptr;
+    currentMaterial = nullptr;
+    currentRenderTarget = nullptr;
+    matrixVP = float4x4::Identity();
 }
 
-void CommandBuffer::BeginRendering(const RenderTexture* renderTarget, const bool clearColor) const
+void CommandBuffer::BeginRendering(const RenderTargetAsset& renderTarget, const bool clearColor)
 {
-    if (renderTarget != nullptr)
+    if (currentRenderTarget != &renderTarget)
     {
         glCommandBuffer.BeginRendering(
             VkRect2D{
                 {0, 0}, {
-                    static_cast<uint32_t>(renderTarget->GetWidth()),
-                    static_cast<uint32_t>(renderTarget->GetHeight())
+                    renderTarget.width,
+                    renderTarget.height
                 }
             }, clearColor,
-            *renderTarget->GetGLColorImageView(),
-            renderTarget->GetGLDepthStencilImageView().get(),
-            renderTarget->GetGLColorResolveImageView().get()
+            *renderTarget.glColorImageView,
+            renderTarget.glDepthStencilImageView,
+            renderTarget.glColorResolveImageView
         );
+        currentRenderTarget = &renderTarget;
     }
-    else
-    {
-        const std::unique_ptr<GLSwapChain>& glSwapChain = Graphics::GetGLSwapChain();
 
-        glCommandBuffer.BeginRendering(
-            VkRect2D{{0, 0}, glSwapChain->imageExtent},
-            clearColor,
-            *Graphics::GetPresentColorImageView(),
-            Graphics::GetPresentDepthStencilImageView().get(),
-            Graphics::GetPresentColorResolveImageView().get()
-        );
-    }
+    SetViewportToFullscreen();
 }
-void CommandBuffer::EndRendering() const
+void CommandBuffer::EndRendering()
 {
     glCommandBuffer.EndRendering();
+
+    //由于没有使用renderPass，因此布局变换得手动设置。每次渲染后图片布局默认为“未定义”，需在呈现前将布局调整为渲染目标期望的布局
+    glCommandBuffer.TransitionImageLayout(
+        currentRenderTarget->glFinalImage,
+        VK_IMAGE_LAYOUT_UNDEFINED, currentRenderTarget->glFinalLayout,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+    currentRenderTarget = nullptr;
 }
 
-void CommandBuffer::SetViewport(float x, float y, float width, float height) const
+void CommandBuffer::SetRenderTarget(const RenderTargetAsset& renderTarget)
 {
+    if (currentRenderTarget != &renderTarget && currentRenderTarget != nullptr)
+        EndRendering();
+    BeginRendering(renderTarget);
+}
+void CommandBuffer::SetRenderTargetToNull()
+{
+    EndRendering();
+}
+
+void CommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t width, const uint32_t height) const
+{
+    assert(x >=0 && static_cast<uint32_t>(x) < currentRenderTarget->width && "x超出最大渲染范围！");
+    assert(y >=0 && static_cast<uint32_t>(y) < currentRenderTarget->height && "y超出最大渲染范围！");
+    assert(x + width <= currentRenderTarget->width && "width超出最大渲染范围！");
+    assert(y + height <= currentRenderTarget->height && "height超出最大渲染范围！");
+
+    int32_t rightY = static_cast<int32_t>(currentRenderTarget->height - (y + height)); //转换到右手坐标系
+
     glCommandBuffer.SetViewport(
-        x, y + height,
-        width, -height
+        static_cast<float>(x), static_cast<float>(rightY + height),
+        static_cast<float>(width), -static_cast<float>(height)
     ); //利用-height的特性，实现剪辑空间的上下反转。这样传入左手坐标系的顶点后就可以负负得正了。
     glCommandBuffer.SetScissor(
-        {
-            static_cast<int32_t>(x),
-            static_cast<int32_t>(y)
-        },
-        {
-            static_cast<uint32_t>(width),
-            static_cast<uint32_t>(height)
-        });
+        {x, rightY},
+        {width, height}
+    );
 }
-void CommandBuffer::PushConstant(const Shader& shader, const int slotIndex, void* data) const
+void CommandBuffer::SetViewportToFullscreen() const
 {
-    glCommandBuffer.PushConstant(
-        shader.GetGLPipelineLayout(),
-        shader.GetPushConstantBinding()[slotIndex],
-        data);
+    SetViewport(0, 0, currentRenderTarget->width, currentRenderTarget->height);
 }
-void CommandBuffer::Draw(const MeshBase& mesh, const Material& material)
+
+void CommandBuffer::SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix)
 {
-    //绑定网格
-    if (&mesh != lastMesh)
+    matrixVP = mul(projMatrix, viewMatrix);
+}
+void CommandBuffer::SetViewProjectionMatrices(const float4x4& matrixVP)
+{
+    this->matrixVP = matrixVP;
+}
+void CommandBuffer::SetViewProjectionMatricesToIdentity()
+{
+    SetViewProjectionMatrices(float4x4::Identity());
+}
+
+void CommandBuffer::Draw(MeshAsset& mesh, MaterialAsset& material)
+{
+    mesh.BindToPipeline(glCommandBuffer, currentMesh);
+    material.shaderAsset->BindToPipeline(glCommandBuffer, currentShader);
+    material.BindToPipeline(glCommandBuffer, currentMaterial);
+
+    currentMesh = &mesh;
+    currentShader = material.shaderAsset;
+    currentMaterial = &material;
+
+    glCommandBuffer.DrawIndexed(mesh.glIndexCount);
+}
+void CommandBuffer::Draw(MeshAsset& mesh, Material& material, const float4x4& modelMatrix)
+{
+    float4x4 matrixMVP = mul(matrixVP, modelMatrix);
+    material.SetPushConstant(0, &matrixMVP);
+    Draw(mesh, material);
+}
+void CommandBuffer::ClearRenderTarget(const std::optional<float4>& color, const std::optional<float>& depth) const
+{
+    VkClearColorValue colorValue;
+    if (color.has_value())
+        std::memcpy(colorValue.float32, color.value().data, sizeof(float4));
+    VkClearDepthStencilValue depthStencilValue;
+    if (depth.has_value())
     {
-        glCommandBuffer.BindVertexBuffers(mesh.GetGLVertexBuffer());
-        glCommandBuffer.BindIndexBuffer(mesh.GetGLIndexBuffer());
-        lastMesh = &mesh;
+        depthStencilValue.depth = depth.value();
+        depthStencilValue.stencil = 0;
     }
 
-    //绑定材质球
-    if (&material != lastMaterial)
-    {
-        const Shader& shader = material.GetShader();
-        glCommandBuffer.PushDescriptorSet(shader.GetGLPipelineLayout(), material.GetDescriptorSet());
-        lastMaterial = &material;
-
-        //绑定着色器
-        if (&shader != lastShader)
-        {
-            glCommandBuffer.BindPipeline(shader.GetGLPipeline());
-            lastShader = &shader;
-        }
-    }
-
-    glCommandBuffer.DrawIndexed(mesh.GetIndexCount());
+    glCommandBuffer.ClearAttachments(
+        VkRect2D{{0, 0}, {currentRenderTarget->width, currentRenderTarget->height}},
+        color.has_value() ? std::optional(colorValue) : std::nullopt,
+        // ReSharper disable once CppLocalVariableMightNotBeInitialized
+        depth.has_value() ? std::optional(depthStencilValue) : std::nullopt
+    );
 }

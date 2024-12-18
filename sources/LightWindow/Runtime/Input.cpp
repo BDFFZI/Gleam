@@ -1,19 +1,8 @@
 ﻿#include "Input.h"
 
-using namespace LightRuntime;
+#include "Window.h"
 
-
-void Input::PushInputHandler(const InputHandler& inputHandler)
-{
-    inputHandlers.push(inputHandler);
-}
-void Input::PopInputHandler(const InputHandler& inputHandler)
-{
-    if (inputHandlers.top().name != inputHandler.name)
-        throw std::exception("输入回调出栈顺序异常");
-
-    inputHandlers.pop();
-}
+using namespace Light;
 
 bool Input::GetMouseButtonDown(MouseButton mouseButton)
 {
@@ -51,51 +40,76 @@ bool Input::GetKeyUp(KeyCode keyCode)
     return keyboardState[index][0] == true &&
         keyboardState[index][1] == false;
 }
-float2 Input::GetMouseScrollDelta()
+
+void Input::GlfwWindowFocusCallback(GLFWwindow* window, const int focused)
 {
-    return mouseScrollDelta[0];
+    if (inputHandlers.top().glfwWindowFocusCallback)
+        inputHandlers.top().glfwWindowFocusCallback(window, focused);
 }
-float2 Input::GetMousePosition()
+void Input::GlfwCursorEnterCallback(GLFWwindow* window, const int entered)
 {
-    return mousePosition[0];
+    if (inputHandlers.top().glfwCursorEnterCallback)
+        inputHandlers.top().glfwCursorEnterCallback(window, entered);
 }
-float2 Input::GetMouseMoveDelta()
+void Input::GlfwCursorPosCallback(GLFWwindow* window, const double xPos, const double yPos)
 {
-    return mousePositionDelta;
+    if (inputHandlers.top().glfwCursorPosCallback)
+        inputHandlers.top().glfwCursorPosCallback(window, xPos, yPos);
+
+    mousePosition[1] = float2{static_cast<float>(xPos), static_cast<float>(yPos)} - mouseOrigin;
+}
+void Input::GlfwMouseButtonCallback(GLFWwindow* window, const int button, const int action, const int mods)
+{
+    if (inputHandlers.top().glfwMouseButtonCallback)
+        inputHandlers.top().glfwMouseButtonCallback(window, button, action, mods);
+
+    mouseButtonState[button][2] = action != GLFW_RELEASE;
+}
+void Input::GlfwScrollCallback(GLFWwindow* window, const double xOffset, const double yOffset)
+{
+    if (inputHandlers.top().glfwScrollCallback)
+        inputHandlers.top().glfwScrollCallback(window, xOffset, yOffset);
+
+    mouseScrollDelta[1] = {static_cast<float>(xOffset), static_cast<float>(yOffset)};
+}
+void Input::GlfwKeyCallback(GLFWwindow* window, const int key, const int scancode, const int action, const int mods)
+{
+    if (inputHandlers.top().glfwKeyCallback)
+        inputHandlers.top().glfwKeyCallback(window, key, scancode, action, mods);
+
+    keyboardState[key][2] = action != GLFW_RELEASE;
+}
+void Input::GlfwCharCallback(GLFWwindow* window, const unsigned int codepoint)
+{
+    if (inputHandlers.top().glfwCharCallback)
+        inputHandlers.top().glfwCharCallback(window, codepoint);
+}
+void Input::GlfwMonitorCallback(GLFWmonitor* monitor, const int event)
+{
+    if (inputHandlers.top().glfwMonitorCallback)
+        inputHandlers.top().glfwMonitorCallback(monitor, event);
 }
 
 void Input::Initialize(GLFWwindow* glfwWindow)
 {
     Input::glfwWindow = glfwWindow;
-    glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods)
-    {
-        keyboardState[key][2] = action != GLFW_RELEASE;
-    });
-    glfwSetMouseButtonCallback(glfwWindow, [](GLFWwindow* window, int button, int action, int mods)
-    {
-        mouseButtonState[button][2] = action != GLFW_RELEASE;
-    });
-    glfwSetScrollCallback(glfwWindow, [](GLFWwindow* window, double xoffset, double yoffset)
-    {
-        mouseScrollDelta[1] = {static_cast<float>(xoffset), static_cast<float>(yoffset)};
-    });
-    glfwSetCursorPosCallback(glfwWindow, [](GLFWwindow* window, double xpos, double ypos)
-    {
-        mousePosition[1] = {static_cast<float>(xpos), static_cast<float>(ypos)};
-    });
 
+    glfwSetWindowFocusCallback(glfwWindow, GlfwWindowFocusCallback);
+    glfwSetCursorEnterCallback(glfwWindow, GlfwCursorEnterCallback);
+    glfwSetCursorPosCallback(glfwWindow, GlfwCursorPosCallback);
+    glfwSetMouseButtonCallback(glfwWindow, GlfwMouseButtonCallback);
+    glfwSetScrollCallback(glfwWindow, GlfwScrollCallback);
+    glfwSetKeyCallback(glfwWindow, GlfwKeyCallback);
+    glfwSetCharCallback(glfwWindow, GlfwCharCallback);
+    glfwSetMonitorCallback(GlfwMonitorCallback);
 
     //添加一个默认输入回调，这样后续不需要总是判断是否存在
-    inputHandlers.push(
-        {
-            "default",
-            []
-            {
-            },
-        });
+    PushInputHandler({"default"});
 }
 void Input::Update()
 {
+    glfwPollEvents();
+
     //鼠标按钮
     for (auto& state : mouseButtonState)
     {
@@ -115,5 +129,6 @@ void Input::Update()
     mousePositionDelta = mousePosition[1] - mousePosition[0];
     mousePosition[0] = mousePosition[1];
 
-    inputHandlers.top().event();
+    if (inputHandlers.top().inputCallback)
+        inputHandlers.top().inputCallback();
 }

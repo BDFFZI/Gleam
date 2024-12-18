@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "dependencies": [
     "gtest",
     "benchmark",
@@ -7,6 +8,15 @@
     "glfw3",
     "shaderc",
     "stb",
-    "tinyobjloader"
+    "tinyobjloader",
+    "stduuid",
+    {
+      "name": "imgui",
+      "features": [
+        "docking-experimental",
+        "vulkan-binding",
+        "glfw-binding"
+      ]
+    }
   ]
 }

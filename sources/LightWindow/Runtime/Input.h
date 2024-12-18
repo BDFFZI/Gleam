@@ -1,11 +1,11 @@
 ﻿#pragma once
-#include <functional>
+#include <cassert>
 #include <stack>
 #include <string>
 #include <GLFW/glfw3.h>
 #include "LightMath/Runtime/VectorMath.hpp"
 
-namespace LightRuntime
+namespace Light
 {
     enum class KeyCode:uint16_t
     {
@@ -16,6 +16,20 @@ namespace LightRuntime
         Esc = GLFW_KEY_ESCAPE,
         Space = GLFW_KEY_SPACE,
         LeftShift = GLFW_KEY_LEFT_SHIFT,
+        LeftCtrl = GLFW_KEY_LEFT_CONTROL,
+        LeftAlt = GLFW_KEY_LEFT_ALT,
+        F1 = GLFW_KEY_F1,
+        F2 = GLFW_KEY_F2,
+        F3 = GLFW_KEY_F3,
+        F4 = GLFW_KEY_F4,
+        F5 = GLFW_KEY_F5,
+        F6 = GLFW_KEY_F6,
+        F7 = GLFW_KEY_F7,
+        F8 = GLFW_KEY_F8,
+        F9 = GLFW_KEY_F9,
+        F10 = GLFW_KEY_F10,
+        F11 = GLFW_KEY_F11,
+        F12 = GLFW_KEY_F12,
         Alpha0 = GLFW_KEY_0,
         Alpha1 = GLFW_KEY_1,
         Alpha2 = GLFW_KEY_2,
@@ -52,6 +66,17 @@ namespace LightRuntime
         X = GLFW_KEY_X,
         Y = GLFW_KEY_Y,
         Z = GLFW_KEY_Z,
+        BackQuote = GLFW_KEY_GRAVE_ACCENT, //反引号 `
+        Minus = GLFW_KEY_MINUS, //减号 -
+        Equals = GLFW_KEY_EQUAL, //等于号 =
+        LeftBracket = GLFW_KEY_LEFT_BRACKET, //左方括号 [
+        RightBracket = GLFW_KEY_RIGHT_BRACKET, //右方括号 ]
+        Semicolon = GLFW_KEY_SEMICOLON, //分号 ;
+        Quote = GLFW_KEY_APOSTROPHE, //引号 '
+        Backslash = GLFW_KEY_BACKSLASH, /* 反斜杠 \ */
+        Comma = GLFW_KEY_COMMA, //逗号 ,
+        Period = GLFW_KEY_PERIOD, //句号 .
+        Slash = GLFW_KEY_SLASH, //斜杠 /
     };
 
     enum class MouseButton:std::uint8_t
@@ -63,16 +88,40 @@ namespace LightRuntime
 
     struct InputHandler
     {
+        using InputCallback = void(*)();
+
         std::string name;
-        std::function<void()> event;
+        InputCallback inputCallback = nullptr;
+        GLFWwindowfocusfun glfwWindowFocusCallback = nullptr;
+        GLFWcursorenterfun glfwCursorEnterCallback = nullptr;
+        GLFWcursorposfun glfwCursorPosCallback = nullptr;
+        GLFWmousebuttonfun glfwMouseButtonCallback = nullptr;
+        GLFWscrollfun glfwScrollCallback = nullptr;
+        GLFWkeyfun glfwKeyCallback = nullptr;
+        GLFWcharfun glfwCharCallback = nullptr;
+        GLFWmonitorfun glfwMonitorCallback = nullptr;
+
+        bool operator==(const InputHandler& other) const
+        {
+            return name == other.name;
+        }
+        bool operator!=(const InputHandler& other) const
+        {
+            return !(*this == other);
+        }
     };
 
     class Window;
     class Input
     {
     public:
-        static void PushInputHandler(const InputHandler& inputHandler);
-        static void PopInputHandler(const InputHandler& inputHandler);
+        static InputHandler& TopInputHandler() { return inputHandlers.top(); }
+        static void PushInputHandler(const InputHandler& inputHandler) { inputHandlers.push(inputHandler); }
+        static void PopInputHandler(const InputHandler& inputHandler)
+        {
+            assert(inputHandlers.top() == inputHandler && "输入回调出栈顺序异常！");
+            inputHandlers.pop();
+        }
 
         static bool GetMouseButtonDown(MouseButton mouseButton);
         static bool GetMouseButton(MouseButton mouseButton);
@@ -81,9 +130,16 @@ namespace LightRuntime
         static bool GetKey(KeyCode keyCode);
         static bool GetKeyUp(KeyCode keyCode);
 
-        static float2 GetMouseScrollDelta();
-        static float2 GetMousePosition();
-        static float2 GetMouseMoveDelta();
+        static float2 GetMouseScrollDelta() { return mouseScrollDelta[0]; }
+        static float2 GetMousePosition() { return mousePosition[0]; }
+        static float2 GetMouseMoveDelta() { return mousePositionDelta; }
+
+        /**
+         * 设置计算鼠标位置的起点，从而实现计算鼠标相对位置
+         * @param origin 
+         */
+        static void SetMouseOrigin(const float2 origin) { mouseOrigin = origin; }
+        static float2 GetRealMousePosition() { return mousePosition[0] + mouseOrigin; }
 
     private:
         inline static std::stack<InputHandler> inputHandlers;
@@ -92,8 +148,18 @@ namespace LightRuntime
         inline static bool mouseButtonState[3][3];
         inline static bool keyboardState[349][3];
         inline static float2 mouseScrollDelta[2];
+        inline static float2 mouseOrigin;
         inline static float2 mousePosition[2];
         inline static float2 mousePositionDelta;
+
+        static void GlfwWindowFocusCallback(GLFWwindow* window, int focused);
+        static void GlfwCursorEnterCallback(GLFWwindow* window, int entered);
+        static void GlfwCursorPosCallback(GLFWwindow* window, double xPos, double yPos);
+        static void GlfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+        static void GlfwScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
+        static void GlfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        static void GlfwCharCallback(GLFWwindow* window, unsigned int codepoint);
+        static void GlfwMonitorCallback(GLFWmonitor* monitor, int event);
 
         friend Window;
         static void Initialize(GLFWwindow* glfwWindow);

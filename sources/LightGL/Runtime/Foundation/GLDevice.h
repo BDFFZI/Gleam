@@ -8,7 +8,7 @@
 class GLDevice
 {
 public:
-    VkPhysicalDevice physicalDevice;
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice device;
     uint32_t graphicQueueFamily;
     VkQueue graphicQueue;
@@ -18,7 +18,7 @@ public:
     VkPhysicalDeviceMemoryProperties deviceMemoryProperties; //!< 显卡支持分配的内存种类
     VkSampleCountFlagBits maxUsableSampleCount; //!< 最大多重采样次数
 
-    GLDevice(const GLInstance& glInstance, const GLSurface& glSurface);
+    GLDevice(const GLInstance& glInstance, const GLSurface& glSurface, const std::vector<const char*>& extensions = {}, void* extensionFeatures = VK_NULL_HANDLE);
     GLDevice(const GLDevice&) = delete;
     ~GLDevice();
 

@@ -1,69 +1,108 @@
-#pragma once
-#include <vector>
-#include "Archetype.h"
-#include "Heap.h"
-#include "World.h"
+﻿#pragma once
+#include <cassert>
+#include <functional>
+#include <ranges>
+#include <set>
 
-
-template <class... TComponents>
-    requires (sizeof...(TComponents) != 0)
-class View
+namespace Light
 {
-public:
-    View(ArchetypeMeta<TComponents...>&)
+    class SystemGroup;
+    class System
     {
-    }
-    View()
-    {
-        if (isQueried == false)
+    public:
+        constexpr static int32_t LeftOrder = std::numeric_limits<int32_t>::lowest();
+        constexpr static int32_t RightOrder = std::numeric_limits<int32_t>::max();
+        constexpr static int32_t MiddleOrder = 0;
+
+        SystemGroup* const group;
+        const int order;
+
+        System(SystemGroup* group, const int order = MiddleOrder)
+            : group(group), order(order)
         {
-            int count = static_cast<int>(Archetype::allArchetypes.size());
-            for (int i = 0; i < count; i++)
+        }
+        System(SystemGroup* group, const int minOrder, const int maxOrder)
+            : System(group, static_cast<int32_t>((static_cast<int64_t>(minOrder) + static_cast<int64_t>(maxOrder)) / 2))
+        {
+            assert(minOrder <= maxOrder && "最大顺序不能小于最小顺序！");
+        }
+        virtual ~System() = default;
+        System(System& system) = delete;
+
+        virtual void Start()
+        {
+        }
+        virtual void Stop()
+        {
+        }
+        virtual void Update()
+        {
+        }
+    };
+
+    class SystemGroup : public System
+    {
+    public:
+        SystemGroup(SystemGroup* group, const int order)
+            : System(group, order)
+        {
+        }
+        SystemGroup(SystemGroup* group, const int minOrder, const int maxOrder)
+            : System(group, minOrder, maxOrder)
+        {
+        }
+
+        void AddSubSystem(System& system)
+        {
+            subSystemStartQueue.insert(&system);
+        }
+        void RemoveSubSystem(System& system)
+        {
+            subSystemUpdateQueue.erase(&system);
+            subSystemStopQueue.insert(&system);
+        }
+
+        void Start() override;
+        void Stop() override;
+        void Update() override;
+
+    private:
+        friend class EditorUIUtility;
+
+        struct SystemPtrComparer
+        {
+            bool operator()(const System* left, const System* right) const
             {
-                const Archetype* archetype = Archetype::allArchetypes[i];
-                if (archetype->Contains<TComponents...>())
-                {
-                    archetypeIDs.emplace_back(i);
-                    componentOffsets.emplace_back(archetype->MemoryMap<TComponents...>());
-                }
+                if (left->order == right->order)
+                    return left < right; //确保顺序相同时依然有大小之分，从而避免被误认为相等
+                return left->order < right->order;
             }
-            archetypeCount = static_cast<int>(archetypeIDs.size());
-            isQueried = true;
-        }
-    }
+        };
 
+        std::set<System*, SystemPtrComparer> subSystemStartQueue = {};
+        std::set<System*, SystemPtrComparer> subSystemStopQueue = {};
+        std::set<System*, SystemPtrComparer> subSystemUpdateQueue = {};
+    };
 
-    void Each(World& world, const std::function<void(TComponents&...)>& function) const
+    class SystemEvent : public System
     {
-        Each_Inner(world, function, std::make_index_sequence<sizeof...(TComponents)>());
-    }
+    public:
+        std::function<void()> onStart = nullptr;
+        std::function<void()> onStop = nullptr;
+        std::function<void()> onUpdate = nullptr;
 
-private:
-    inline static bool isQueried = false;
-    inline static std::vector<int> archetypeIDs = {};
-    inline static std::vector<std::array<int, sizeof...(TComponents)>> componentOffsets = {};
-    inline static int archetypeCount = {};
-
-    template <size_t... Indices>
-    static void Each_Inner(World& world, const std::function<void(TComponents&...)>& function, std::index_sequence<Indices...>)
-    {
-        for (int i = 0; i < archetypeCount; i++)
+        SystemEvent(SystemGroup* group, const int order)
+            : System(group, order)
         {
-            const int archetypeID = archetypeIDs[i];
-            const std::array<int, sizeof...(TComponents)>& componentOffset = componentOffsets[i];
-
-            Heap& entityHeap = world.GetEntityHeaps()[archetypeID];
-            entityHeap.ForeachElements([function,componentOffset](std::byte* item)
-            {
-                function(*reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
-            });
         }
-    }
-};
+        SystemEvent(SystemGroup* group, const int minOrder, const int maxOrder)
+            : System(group, minOrder, maxOrder)
+        {
+        }
 
-class System
-{
-public:
-    virtual ~System() = default;
-    virtual void Update(World& world) const = 0;
-};
+    private:
+        void Start() override { if (onStart) onStart(); }
+        void Stop() override { if (onStop) onStop(); }
+        void Update() override { if (onUpdate) onUpdate(); }
+    };
+}

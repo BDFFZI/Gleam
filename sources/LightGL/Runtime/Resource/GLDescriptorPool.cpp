@@ -6,7 +6,7 @@
 #include "../GL.h"
 
 
-GLDescriptorPool::GLDescriptorPool(const GLDescriptorSetLayout& descriptorSetLayout, const int descriptorSetCount)
+GLDescriptorPool::GLDescriptorPool(const GLDescriptorSetLayout& descriptorSetLayout, const int descriptorSetCount, VkDescriptorPoolCreateFlags createFlags)
 {
     //计算可分配的描述符类型及其最大数量
     std::vector<VkDescriptorPoolSize> poolSizes = {};
@@ -31,6 +31,7 @@ GLDescriptorPool::GLDescriptorPool(const GLDescriptorSetLayout& descriptorSetLay
     poolInfo.pPoolSizes = poolSizes.data();
     //描述符集数量
     poolInfo.maxSets = static_cast<uint32_t>(descriptorSetCount);
+    poolInfo.flags = createFlags;
 
     if (vkCreateDescriptorPool(GL::glDevice->device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
         throw std::runtime_error("创建描述符集池失败!");

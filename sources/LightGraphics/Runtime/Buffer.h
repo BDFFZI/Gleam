@@ -3,7 +3,7 @@
 
 #include "LightGL/Runtime/Resource/GLBuffer.h"
 
-namespace LightRuntime
+namespace Light
 {
     class Buffer
     {

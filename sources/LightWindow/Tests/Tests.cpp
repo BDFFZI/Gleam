@@ -5,55 +5,77 @@
 #include "LightWindow/Runtime/Time.h"
 #include "LightWindow/Runtime/Window.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
-//TODO：发现问题：长按检测有延迟，鼠标不支持长按
 void main()
 {
-    Window::Initialize();
+    int width = 1920 / 2;
+    int height = 1080 / 2;
+    Window::Initialize("Window", width, height, false);
+
+    int2 position;
+    glfwGetWindowPos(Window::GetGlfwWindow(), &position.x, &position.y);
 
     static float2 moveInput;
     static bool fireInput;
 
     static InputHandler inputEvent;
     inputEvent.name = "Test";
-    inputEvent.event = []
+    inputEvent.inputCallback = []
     {
+        moveInput = 0;
         if (Input::GetKey(KeyCode::W))
             moveInput.y = 1;
         else if (Input::GetKey(KeyCode::S))
             moveInput.y = -1;
-        else
-            moveInput.y = 0;
-
         if (Input::GetKey(KeyCode::A))
             moveInput.x = -1;
         else if (Input::GetKey(KeyCode::D))
             moveInput.x = 1;
-        else
-            moveInput.x = 0;
 
         fireInput = Input::GetMouseButton(MouseButton::Left);
     };
-    
-    Window::SetWindowBeginEvent([]()
+
+    Window::SetWindowStartEvent([]()
     {
         Input::PushInputHandler(inputEvent);
     });
-    Window::SetWindowEndEvent([]
+    Window::SetWindowStopEvent([]
     {
         Input::PopInputHandler(inputEvent);
     });
-    Window::SetWindowUpdateEvent([]
+    Window::SetWindowUpdateEvent([&width,&height,&position]
     {
+        if (any(moveInput))
+            std::cout << "Move:" << to_string(moveInput) << '\n';
         if (fireInput)
+            std::cout << "Fire:" << to_string(Input::GetMousePosition()) << '\n';
+        if (Input::GetKey(KeyCode::T))
+            std::cout << std::format("Time:{:f}\tDeltaTime:{:f}\n", Time::GetTime(), Time::GetDeltaTime());
+        if (Input::GetKey(KeyCode::LeftShift))
         {
-            std::cout
-                << Time::GetTime() << "\t"
-                << to_string(moveInput)
-                << '\n';
+            position += static_cast<int2>(float2(Input::GetMouseMoveDelta().x, Input::GetMouseMoveDelta().y));
+            glfwSetWindowPos(Window::GetGlfwWindow(), position.x, position.y);
         }
+        if (Input::GetMouseButtonDown(MouseButton::Right))
+            Input::SetMouseOrigin(Input::GetRealMousePosition());
+
+
+        if (Input::GetKeyDown(KeyCode::Minus))
+        {
+            width /= 2;
+            height /= 2;
+            Window::SetResolution(width, height);
+        }
+        else if (Input::GetKeyDown(KeyCode::Equals))
+        {
+            width *= 2;
+            height *= 2;
+            Window::SetResolution(width, height);
+        }
+        if (Input::GetKeyDown(KeyCode::F11))
+            Window::SetFullScreen(!Window::GetFullScreen());
     });
 
-    Window::Begin();
+    Window::Start();
 }

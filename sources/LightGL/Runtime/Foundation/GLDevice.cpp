@@ -97,7 +97,7 @@ VkSampleCountFlagBits GetMaxUsableSampleCount(const VkPhysicalDeviceProperties& 
     return VK_SAMPLE_COUNT_1_BIT;
 }
 
-GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
+GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface, const std::vector<const char*>& extensions, void* extensionFeatures)
 {
     //获取支持vulkan的所有物理显卡
     uint32_t deviceCount = 0;
@@ -105,18 +105,25 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(glInstance.instance, &deviceCount, devices.data());
 
-    //设备必须支持的功能
-    std::vector queueFlags = {VK_QUEUE_GRAPHICS_BIT}; //需支持图形管道
+    //设备必须支持的管道
+    std::vector queueFlags = {VK_QUEUE_GRAPHICS_BIT};
+    //设备必须支持的功能特征
     VkPhysicalDeviceFeatures necessaryFeatures = {};
     necessaryFeatures.samplerAnisotropy = VK_TRUE; //需支持各向异性
     necessaryFeatures.sampleRateShading = VK_TRUE; //需支持着色多重采样（改善来自纹理中的锯齿）
+    //设备必须支持的功能特征2（随着版本更新，后来添加到vulkan核心的新功能）
+    void* necessaryFeatures2;
     VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures = {};
     dynamicRenderingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
-    dynamicRenderingFeatures.dynamicRendering = VK_TRUE; //需支持动态渲染
+    dynamicRenderingFeatures.dynamicRendering = VK_TRUE; //启用动态渲染（省略创建pass的过程）
+    necessaryFeatures2 = &dynamicRenderingFeatures;
+    //设备必须支持的扩展功能
     std::vector necessaryExtensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME, //需支持交换链
-        VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME, //需支持推送描述符
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME, //为了支持交换链
     };
+    //其他用户请求的设备扩展及其功能特征
+    necessaryExtensions.insert(necessaryExtensions.end(), extensions.begin(), extensions.end());
+    dynamicRenderingFeatures.pNext = extensionFeatures;
 
     //挑选首个满足需求的显卡
     std::vector<uint32_t> queueFamilyIndices;
@@ -139,7 +146,7 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
         break;
     }
     if (physicalDevice == VK_NULL_HANDLE)
-        throw std::runtime_error("没有找到任何一个有效GPU!");
+        throw std::runtime_error("没有找到任何一个满足要求的GPU！");
 
     //准备队列创建信息
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -162,12 +169,12 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface)
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     //显卡需要启用的功能特征
     createInfo.pEnabledFeatures = &necessaryFeatures;
-    createInfo.pNext = &dynamicRenderingFeatures;
+    createInfo.pNext = necessaryFeatures2;
     //显卡需要启用的功能扩展
     createInfo.enabledExtensionCount = static_cast<uint32_t>(necessaryExtensions.size());
     createInfo.ppEnabledExtensionNames = necessaryExtensions.data();
 
-    if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
+    if (VkResult result = vkCreateDevice(physicalDevice, &createInfo, nullptr, &device); result != VK_SUCCESS)
         throw std::runtime_error("逻辑设备创建失败!");
 
     //获取创建的队列

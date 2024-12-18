@@ -1,6 +1,6 @@
 ﻿#include "Buffer.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
 Buffer::Buffer(size_t size)
 {

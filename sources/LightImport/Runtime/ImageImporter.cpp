@@ -4,7 +4,7 @@
 #include <stb_image.h>
 #include <stdexcept>
 
-using namespace LightRuntime;
+using namespace Light;
 
 RawImage ImageImporter::Import(const std::string& filePath, const int desiredChannel)
 {

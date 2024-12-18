@@ -1,39 +1,34 @@
 ﻿#pragma once
 #include <memory>
 
+#include "GraphicsPreset.h"
+#include "Mesh.h"
 #include "LightGL/Runtime/Pipeline/GLPipeline.h"
-#include "LightGL/Runtime/Pipeline/GLPipelineLayout.h"
 #include "LightGL/Runtime/Pipeline/GLShader.h"
-#include "LightGL/Runtime/Resource/GLDescriptorPool.h"
 
-namespace LightRuntime
+namespace Light
 {
-    class Shader
+    class Shader : public ShaderAsset
     {
     public:
-        Shader(
-            const std::vector<GLShader>& shaderLayout,
-            const std::vector<GLDescriptorBinding>& descriptorBindings, VkDescriptorSetLayoutCreateFlags descriptorFlags,
-            const std::vector<VkPushConstantRange>& pushConstantRanges,
-            const GLMeshLayout& meshLayout,
-            VkFormat colorFormat, VkFormat depthStencilFormat,
-            const MultisampleState& multisampleState);
-        Shader(
-            const std::vector<GLShader>& shaderLayout,
-            const std::vector<GLDescriptorBinding>& descriptorSetLayout,
-            const std::vector<VkPushConstantRange>& pushConstantRanges = {});
+        /**
+         * @param shaderLayout 必须是符合GraphicsPreset要求的着色器
+         * @param glStateLayout 
+         * @param glMeshLayout 
+         */
+        Shader(const std::vector<GLShader>& shaderLayout,
+               const GLStateLayout& glStateLayout = GraphicsPreset::DefaultStateLayout,
+               const GLMeshLayout& glMeshLayout = GraphicsPreset::DefaultMeshLayout);
+        /**
+         * @brief 自动加载文件中名为@c VertexShader 和 @c FragmentShader 的顶点和片段着色器
+         */
+        Shader(const std::string& shaderFile,
+               const GLStateLayout& glStateLayout = GraphicsPreset::DefaultStateLayout,
+               const GLMeshLayout& glMeshLayout = GraphicsPreset::DefaultMeshLayout);
         Shader(const Shader&) = delete;
-
-        const GLPipelineLayout& GetGLPipelineLayout() const;
-        const GLPipeline& GetGLPipeline() const;
-
-        const std::vector<GLDescriptorBinding>& GetDescriptorBinding() const;
-        const std::vector<VkPushConstantRange>& GetPushConstantBinding() const;
+        void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const ShaderAsset* lastShader) override;
 
     private:
-        std::unique_ptr<GLDescriptorSetLayout> glDescriptorSetLayout;
-        std::vector<VkPushConstantRange> pushConstantRanges;
-        std::unique_ptr<GLPipelineLayout> glPipelineLayout;
-        std::unique_ptr<GLPipeline> glPipeline;
+        std::unique_ptr<GLPipeline> pipeline;
     };
 }

@@ -5,9 +5,9 @@
 #include <thread>
 #include <semaphore>
 
-#include "ObjectPool.h"
+#include "ObjectPool.hpp"
 
-namespace LightRuntime
+namespace Light
 {
     class Worker
     {

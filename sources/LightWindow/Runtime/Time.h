@@ -1,15 +1,17 @@
 ﻿#pragma once
 
-namespace LightRuntime
+namespace Light
 {
     class Window;
     class Time
     {
     public:
         static float GetTimeReal();
-        static float GetTime();
-        static float GetDeltaTime();
-        static int GetFrameCount();
+        static float GetTime() { return time; }
+        static float GetDeltaTime() { return deltaTime; }
+        static int GetFrameCount() { return frameCount; }
+
+        static void SetTimeScale(const float scale) { timeScale = scale; }
 
     private:
         inline static float timeScale = 1;
@@ -19,6 +21,10 @@ namespace LightRuntime
         inline static float time;
 
         friend Window;
+        /**
+         * 去除各种初始化时间的干扰，确保从窗口正式更新前开始计时
+         */
+        static void Start();
         static void Update();
     };
 }

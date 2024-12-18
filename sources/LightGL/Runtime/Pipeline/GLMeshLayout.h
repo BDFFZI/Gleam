@@ -4,18 +4,31 @@
 
 struct GLVertexAttribute
 {
+    uint32_t location;
     uint32_t offset;
     VkFormat format;
+};
 
-    GLVertexAttribute(uint32_t offset, VkFormat format);
+struct GLVertexInput
+{
+    std::vector<VkVertexInputBindingDescription2EXT> bindingDescription2EXTs;
+    std::vector<VkVertexInputAttributeDescription2EXT> attributeDescription2EXTs;
+    std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+    std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+    VkPipelineVertexInputStateCreateInfo vertexInputState = {};
+
+    GLVertexInput(uint32_t vertexSize, const std::vector<GLVertexAttribute>& vertexAttributes);
+};
+
+struct GLInputAssembly
+{
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
+
+    GLInputAssembly(VkPrimitiveTopology primitiveTopology, bool primitiveRestartEnable);
 };
 
 struct GLMeshLayout
 {
-    VkVertexInputBindingDescription bindingDescription = {};
-    std::vector<VkVertexInputAttributeDescription> attributeDescriptions = {};
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
-    VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
-
-    GLMeshLayout(uint32_t vertexSize, const std::vector<GLVertexAttribute>& vertexAttributes, VkPrimitiveTopology primitiveTopology);
+    GLVertexInput vertexInput;
+    GLInputAssembly inputAssembly;
 };

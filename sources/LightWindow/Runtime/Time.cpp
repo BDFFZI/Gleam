@@ -2,8 +2,12 @@
 
 #include <GLFW/glfw3.h>
 
-using namespace LightRuntime;
+using namespace Light;
 
+void Time::Start()
+{
+    lastTimeReal = GetTimeReal();
+}
 void Time::Update()
 {
     const float timeReal = GetTimeReal();
@@ -19,16 +23,4 @@ void Time::Update()
 float Time::GetTimeReal()
 {
     return static_cast<float>(glfwGetTime());
-}
-float Time::GetTime()
-{
-    return time;
-}
-float Time::GetDeltaTime()
-{
-    return deltaTime;
-}
-int Time::GetFrameCount()
-{
-    return frameCount;
 }

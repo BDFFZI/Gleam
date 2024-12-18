@@ -1,6 +1,6 @@
 ﻿#include "ThreadPool.h"
 
-using namespace LightRuntime;
+using namespace Light;
 
 Worker::Worker()
     : thread([this](const std::stop_token& stopToken)
