@@ -1,51 +1,50 @@
 ﻿#include "Engine.h"
 #include <LightWindow/Runtime/Window.h>
 
-using namespace Light;
+#include "LightECS/Runtime/World.h"
+#include "LightGraphics/Runtime/Graphics.h"
+#include "LightUI/Runtime/UI.h"
 
-void Engine::AddBeginEvent(const std::function<void()>& beginEvent)
+namespace Light
 {
-    engineBeginEvents.push_back(beginEvent);
-}
-void Engine::AddEndEvent(const std::function<void()>& endEvent)
-{
-    engineEndEvents.push_back(endEvent);
-}
-void Engine::AddUpdateEvent(const std::function<void()>& updateEvent)
-{
-    engineUpdateEvents.push_back(updateEvent);
-}
-
-void Engine::Initialize()
-{
-    Window::Initialize();
-}
-
-void Engine::Begin()
-{
-    Window::SetWindowStartEvent([]()
+    void Engine::AddLaunchEvent(const std::function<void()>& launchEvent)
     {
-        for (const auto& event : engineBeginEvents)
-            event();
-        engineBeginEvents.clear();
-        engineBeginEvents.shrink_to_fit();
-    });
-    Window::SetWindowStopEvent([]()
-    {
-        for (const auto& event : engineEndEvents)
-            event();
-        engineEndEvents.clear();
-        engineEndEvents.shrink_to_fit();
-    });
-    Window::SetWindowUpdateEvent([]()
-    {
-        for (const auto& event : engineUpdateEvents)
-            event();
-    });
+        launchEvents.push_back(launchEvent);
+    }
 
-    Window::Start();
-}
-void Engine::End()
-{
-    Window::Stop();
+    void Engine::Launch()
+    {
+        //核心模块初始化
+        Window window = Window::Initialize("LightEngine", static_cast<int>(1920 * 0.7f), static_cast<int>(1080 * 0.7f), false);
+        std::vector<const char*> extensions;
+        Graphics::InitializeGLDemand(extensions);
+        GL gl = GL::Initialize(Window::GetGlfwWindow(), extensions);
+        Graphics graphics = Graphics::Initialize(gl);
+        UI::Initialize(window, graphics);
+
+        //外部自定义初始化
+        for (const auto& event : launchEvents)
+            event();
+        launchEvents = {};
+
+        //开始逻辑更新
+        Window::SetWindowStartEvent([]
+        {
+            World::Start();
+        });
+        Window::SetWindowUpdateEvent([]
+        {
+            World::Update();
+        });
+        Window::SetWindowStopEvent([]
+        {
+            World::Stop();
+        });
+        Window::Start();
+
+        //核心模块逆初始化
+        UI::UnInitialize();
+        Graphics::UnInitialize();
+        GL::UnInitialize();
+    }
 }

@@ -14,6 +14,16 @@ namespace Light
         constexpr static int32_t RightOrder = std::numeric_limits<int32_t>::max();
         constexpr static int32_t MiddleOrder = 0;
 
+        static inline std::vector<System*> allSystems;
+        
+        template <typename TSystem>
+        static TSystem Register()
+        {
+            TSystem system;
+            allSystems.push_back(&system);
+            return system;
+        }
+
         SystemGroup* const group;
         const int order;
 
@@ -39,6 +49,8 @@ namespace Light
         {
         }
     };
+#define Light_MakeSystem(systemClass) \
+    inline systemClass systemClass = Light::System::Register<class systemClass##>();\
 
     class SystemGroup : public System
     {

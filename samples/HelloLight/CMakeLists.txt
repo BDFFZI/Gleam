@@ -1,1 +1,3 @@
 addProject()
+
+linkModule(LightEngine)

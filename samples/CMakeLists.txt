@@ -11,7 +11,7 @@ macro(addProject)
 endmacro()
 
 macro(linkModule ModuleName)
-    target_link_libraries(MassSpring PUBLIC ${ModuleName})
+    target_link_libraries(${ProjectName} PRIVATE ${ModuleName})
     # # 复制模块的Assets文件夹内容到项目文件夹
     # if(EXISTS "${CMAKE_SOURCE_DIR}/sources/${ModuleName}/Assets")
     #     file(COPY "${CMAKE_SOURCE_DIR}/sources/${ModuleName}/Assets" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/../${ProjectName}")
