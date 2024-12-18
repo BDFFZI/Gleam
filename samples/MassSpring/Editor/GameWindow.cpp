@@ -6,46 +6,51 @@
 
 namespace Light
 {
-    void GameWindow::Start()
-    {
-    }
-    void GameWindow::Stop()
-    {
-        if (textureID != nullptr)
-            UI::DeleteTexture(textureID);
-    }
     void GameWindow::Update()
     {
         ImGui::Begin("GameWindow");
-
-        const float2 windowSizeF = UI::GetWindowContentRegionSize();
-        lastWindowSize[0] = windowSize[0];
-        lastWindowSize[1] = windowSize[1];
-        windowSize[0] = {static_cast<uint32_t>(windowSizeF.x)};
-        windowSize[1] = {static_cast<uint32_t>(windowSizeF.y)};
-
-        const float2 windowOrigin = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
-        Input::SetMouseOrigin(windowOrigin);
-
+        //获取窗口信息
+        windowSize[0] = windowSize[1];
+        windowSize[1] = UI::GetWindowContentRegionSize();
+        isWindowFocused[0] = isWindowFocused[1];
+        isWindowFocused[1] = ImGui::IsWindowFocused();
+        windowOrigin = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
+        //显示游戏画面
         if (textureID != nullptr)
-            ImGui::Image(textureID, windowSizeF);
+            ImGui::Image(textureID, windowSize[1]);
 
         ImGui::End();
     }
 
-    void GameWindowLogic::Update()
+    void GameWindowAssetsSystem::Update()
     {
-        if (GameWindow.lastWindowSize[0] != GameWindow.windowSize[0] || GameWindow.lastWindowSize[1] != GameWindow.windowSize[1])
+        //更新渲染目标
+        if (any(GameWindow.windowSize[0] != GameWindow.windowSize[1]) != all(GameWindow.windowSize[1]))
         {
-            renderTexture = std::make_unique<RenderTexture>(GameWindow.windowSize[0], GameWindow.windowSize[1]);
-            Graphics::SetDefaultRenderTarget(*renderTexture);
+            GameWindow.renderTexture = std::make_unique<RenderTexture>(GameWindow.windowSize[1].x, GameWindow.windowSize[1].y);
+            Graphics::SetDefaultRenderTarget(*GameWindow.renderTexture);
             if (GameWindow.textureID != nullptr)
                 UI::DeleteTexture(GameWindow.textureID);
-            GameWindow.textureID = UI::CreateTexture(*renderTexture);
+            GameWindow.textureID = UI::CreateTexture(*GameWindow.renderTexture);
         }
+
+        //更新输入系统的鼠标原点
+        Input::SetMouseOrigin(GameWindow.windowOrigin);
+
+        //更新输入处理器
+        // if (GameWindow.isWindowFocused[0] != GameWindow.isWindowFocused[1])
+        // {
+        //     if (GameWindow.isWindowFocused[1] == false)
+        //         Input::PushInputHandler(GameWindow.inputHandler);
+        //     else
+        //         Input::PopInputHandler(GameWindow.inputHandler);
+        //     std::cout << GameWindow.isWindowFocused[1] << std::endl;
+        // }
     }
-    void GameWindowLogic::Stop()
+    void GameWindowAssetsSystem::Stop()
     {
-        renderTexture.reset();
+        if (GameWindow.textureID != nullptr)
+            UI::DeleteTexture(GameWindow.textureID);
+        GameWindow.renderTexture.reset();
     }
 }

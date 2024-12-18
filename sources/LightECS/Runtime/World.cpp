@@ -55,7 +55,7 @@ namespace Light
             for (int i = 0; i < newArchetype.componentCount; ++i)
             {
                 //遍历每个新原形的组件
-                std::type_index type = newArchetype.componentTypes[i];
+                const std::type_index type = newArchetype.componentTypes[i];
                 const size_t size = newArchetype.componentSizes[i];
                 if (oldArchetype.HasComponent(type)) //若旧元组包含该组件则复制
                     memcpy(
@@ -83,7 +83,7 @@ namespace Light
         assert(entityInfos.contains(entity) && "目标实体不存在！");
 
         //取出实体信息
-        EntityInfo entityInfo = entityInfos.extract(entity).mapped();
+        const EntityInfo entityInfo = entityInfos.extract(entity).mapped();
         //运行析构函数
         const Archetype& archetype = *entityInfo.archetype;
         archetype.RunDestructor(entityInfo.components);
@@ -110,7 +110,7 @@ namespace Light
         if (system.group != nullptr)
             AddSystem(*system.group);
 
-        int count = 1 + (systems.contains(&system) ? systems[&system] : 0);
+        const int count = 1 + (systems.contains(&system) ? systems[&system] : 0);
         systems[&system] = count;
 
         if (count == 1)
@@ -142,7 +142,7 @@ namespace Light
         if (system.group != nullptr)
             RemoveSystem(*system.group);
 
-        int count = systems[&system] - 1;
+        const int count = systems[&system] - 1;
         if (count == 0)
             systems.erase(&system);
         else
@@ -163,14 +163,17 @@ namespace Light
             RemoveSystem(*system);
     }
 
+    void World::Start()
+    {
+        systemGroup.Start();
+    }
+    void World::Stop()
+    {
+        systemGroup.Stop();
+    }
     void World::Update()
     {
         systemGroup.Update();
-    }
-    void World::Close()
-    {
-        Update();
-        assert(systems.empty() && "存在尚未回收的系统！");
     }
 
     void World::RemoveHeapItem(const Archetype& archetype, const int index)
@@ -178,7 +181,7 @@ namespace Light
         Heap& heap = entities.at(&archetype);
         std::byte* element = heap.RemoveElement(index);
         //删除时末尾项会被用来替补空位，所以相关实体信息也需要更变
-        Entity movedEntity = *reinterpret_cast<Entity*>(element);
+        const Entity movedEntity = *reinterpret_cast<Entity*>(element);
         EntityInfo& movedEntityInfo = entityInfos[movedEntity];
         movedEntityInfo.components = element;
         movedEntityInfo.indexAtHeap = index;

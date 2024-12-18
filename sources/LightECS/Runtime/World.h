@@ -97,9 +97,9 @@ namespace Light
             ((*reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetOffset(typeid(TComponents))) = components), ...);
         }
 
+        static void Start();
+        static void Stop();
         static void Update();
-        static void Close();
-
     private:
         friend struct HierarchyWindow;
         inline static uint32_t nextEntity = 1;

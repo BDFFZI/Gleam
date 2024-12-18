@@ -1,4 +1,5 @@
 #pragma once
+#include "../Public/SimulationSystem.h"
 #include "../Public/UISystem.h"
 #include "LightECS/Runtime/System.h"
 #include "LightUI/Runtime/UI.h"
@@ -13,29 +14,29 @@ namespace Light
         }
 
     private:
-        friend class GameWindowLogic;
-        uint32_t lastWindowSize[2] = {0, 0};
-        uint32_t windowSize[2] = {0, 0};
+        friend class GameWindowAssetsSystem;
+        float2 windowSize[2] = {0, 0};
+        float2 windowOrigin = 0;
+        bool isWindowFocused[2] = {true, true};
+        //由GameWindowAssetsSystem处理的资源
         ImTextureID textureID = {};
+        std::unique_ptr<RenderTexture> renderTexture = nullptr;
+        InputHandler inputHandler = {"Editor"};
 
-        void Start() override;
-        void Stop() override;
         void Update() override;
     };
     inline GameWindow GameWindow = {};
 
-    class GameWindowLogic : public System
+    class GameWindowAssetsSystem : public System
     {
     public:
-        GameWindowLogic(): System(nullptr, RightOrder)
+        GameWindowAssetsSystem(): System(nullptr, LeftOrder,SimulationSystem.order)
         {
         }
 
     private:
-        std::unique_ptr<RenderTexture> renderTexture = nullptr;
-        
         void Update() override;
         void Stop() override;
     };
-    inline GameWindowLogic GameWindowLogic = {};
+    inline GameWindowAssetsSystem GameWindowAssetsSystem = {};
 }

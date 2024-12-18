@@ -35,7 +35,7 @@ namespace Light
         VkPipelineRenderingCreateInfo renderingInfo = {};
         renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
         renderingInfo.pNext = VK_NULL_HANDLE;
-        VkFormat colorFormat[] = {GraphicsPreset::DefaultColorFormat};
+        constexpr VkFormat colorFormat[] = {GraphicsPreset::DefaultColorFormat};
         renderingInfo.colorAttachmentCount = std::size(colorFormat);
         renderingInfo.pColorAttachmentFormats = colorFormat;
         renderingInfo.depthAttachmentFormat = GraphicsPreset::DefaultDepthStencilFormat;
@@ -43,7 +43,7 @@ namespace Light
 
         // Setup Platform/Renderer backends
 
-        ImGui_ImplGlfw_InitForVulkan(Window::GetGlfwWindow(), false);
+        ImGui_ImplGlfw_InitForVulkan(Window::GetGlfwWindow(), true);
         ImGui_ImplVulkan_InitInfo initInfo = {};
         initInfo.Instance = GL::glInstance->instance;
         initInfo.PhysicalDevice = GL::glDevice->physicalDevice;
@@ -60,15 +60,10 @@ namespace Light
         ImGui_ImplVulkan_Init(&initInfo);
         ImGui_ImplVulkan_CreateFontsTexture();
 
-        //注册用户输入回调
-        Input::PushInputHandler(inputHandler);
-
         return {};
     }
     void UI::UnInitialize()
     {
-        Input::PopInputHandler(inputHandler);
-
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
@@ -91,7 +86,7 @@ namespace Light
     }
     ImTextureID UI::CreateTexture(TextureAsset& texture)
     {
-        VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(
+        const VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(
             GraphicsPreset::DefaultGLImageSampler->imageSampler,
             texture.glImageView->imageView,
             VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL);

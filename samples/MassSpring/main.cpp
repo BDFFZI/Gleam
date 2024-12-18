@@ -28,28 +28,26 @@ int main()
     UI::Initialize(window, graphics);
 
     static std::initializer_list<System*> gameLogics = {&FixedPointSystem, &LineUpdateSystem, &LogicSystem};
-    static std::initializer_list<System*> editorWindows = {&GameWindow, &HierarchyWindow, &InspectorWindow};
-    static std::initializer_list<System*> editorWindowUpdates = {&GameWindowLogic};
+    static std::initializer_list<System*> editorWindows = {&GameWindow, &GameWindowAssetsSystem, &HierarchyWindow, &InspectorWindow};
 
     Window::SetWindowStartEvent([]
     {
+        //添加系统
         World::AddSystem({&PhysicsSystem, &ForceSystem, &PositionSystem, &CollisionSystem});
         World::AddSystem({&RenderingSystem,});
         World::AddSystem({&UISystem, &GameUISystem});
         World::AddSystem(gameLogics);
         World::AddSystem(editorWindows);
-        World::AddSystem(editorWindowUpdates);
-
+        //添加实体
         Entity entities[5][5];
         constexpr int length = 4;
-        float bevelLength = static_cast<float>(sqrt(pow(length, 2) + pow(length, 2)));
+        const float bevelLength = static_cast<float>(sqrt(pow(length, 2) + pow(length, 2)));
         for (int i = 0, y = -10; i < 5; i++, y += length)
             for (int j = 0, x = -10; j < 5; j++, x += length)
             {
-                Entity entity = World::AddEntity(MassPointArchetype, Point{{static_cast<float>(x), static_cast<float>(y)}});
+                const Entity entity = World::AddEntity(MassPointArchetype, Point{{static_cast<float>(x), static_cast<float>(y)}});
                 entities[i][j] = entity;
             }
-
         for (int y = 0; y < 5; y++)
             for (int x = 0; x < 5; x++)
             {
@@ -66,6 +64,8 @@ int main()
                 if (y + 2 < 5)
                     World::AddEntity(SpringArchetype, SpringPhysics{entities[y][x], entities[y + 2][x], length * 2});
             }
+
+        World::Start();
     });
     Window::SetWindowUpdateEvent([]()
     {
@@ -73,14 +73,7 @@ int main()
     });
     Window::SetWindowStopEvent([]
     {
-        World::RemoveSystem({&PhysicsSystem, &ForceSystem, &PositionSystem, &CollisionSystem});
-        World::RemoveSystem({&RenderingSystem,});
-        World::RemoveSystem({&UISystem, &GameUISystem});
-        World::RemoveSystem(gameLogics);
-        World::RemoveSystem(editorWindows);
-        World::RemoveSystem(editorWindowUpdates);
-
-        World::Close();
+        World::Stop();
     });
     Window::Start();
 

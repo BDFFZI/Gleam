@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <cassert>
+#include <functional>
 #include <ranges>
 #include <set>
 
@@ -81,5 +82,27 @@ namespace Light
         std::set<System*, SystemPtrComparer> subSystemStartQueue = {};
         std::set<System*, SystemPtrComparer> subSystemStopQueue = {};
         std::set<System*, SystemPtrComparer> subSystemUpdateQueue = {};
+    };
+
+    class SystemEvent : public System
+    {
+    public:
+        std::function<void()> onStart = nullptr;
+        std::function<void()> onStop = nullptr;
+        std::function<void()> onUpdate = nullptr;
+
+        SystemEvent(SystemGroup* group, const int order)
+            : System(group, order)
+        {
+        }
+        SystemEvent(SystemGroup* group, const int minOrder, const int maxOrder)
+            : System(group, minOrder, maxOrder)
+        {
+        }
+
+    private:
+        void Start() override { if (onStart) onStart(); }
+        void Stop() override { if (onStop) onStop(); }
+        void Update() override { if (onUpdate) onUpdate(); }
     };
 }
