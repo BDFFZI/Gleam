@@ -1,7 +1,7 @@
 #pragma once
-#include "../Public/SimulationSystem.h"
-#include "../Public/UISystem.h"
 #include "LightECS/Runtime/System.h"
+#include "LightEngine/Runtime/System/SimulationSystem.h"
+#include "LightEngine/Runtime/System/UISystem.h"
 #include "LightUI/Runtime/UI.h"
 
 namespace Light
