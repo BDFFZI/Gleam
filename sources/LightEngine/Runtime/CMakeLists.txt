@@ -1,0 +1,3 @@
+addModule()
+
+linkModule(LightECS)

@@ -237,6 +237,8 @@ TEST(ECS, System)
 
     World::AddSystem(PhysicsSystem);
 
+    World::Start();
+
     std::stringstream log;
     for (int i = 0; i < 200; i++)
     {
@@ -253,7 +255,7 @@ TEST(ECS, System)
     }
 
     World::RemoveSystem(PhysicsSystem);
-    World::Close();
+    World::Stop();
 }
 
 inline std::stringstream printResult = {};
@@ -336,6 +338,7 @@ TEST(ECS, SystemOrder)
     World::AddSystem(system3_2_2);
     World::AddSystem(system3_2_1);
 
+    World::Start();
     World::Update();
 
     World::RemoveSystem(system2);
@@ -346,7 +349,7 @@ TEST(ECS, SystemOrder)
     World::RemoveSystem(system3_2_2);
     World::RemoveSystem(system3_2_1);
 
-    World::Close();
+    World::Stop();
 
     ASSERT_EQ(printResult.str(), R"(system1->Start
 system2->Start

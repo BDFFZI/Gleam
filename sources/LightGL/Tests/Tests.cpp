@@ -1,4 +1,5 @@
 ﻿#include <chrono>
+#include <GLFW/glfw3.h>
 
 #include "LightGL/Runtime/GL.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"

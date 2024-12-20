@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <cassert>
 #include <functional>
+#include <memory>
 #include <ranges>
 #include <set>
 
@@ -14,13 +15,12 @@ namespace Light
         constexpr static int32_t RightOrder = std::numeric_limits<int32_t>::max();
         constexpr static int32_t MiddleOrder = 0;
 
-        static inline std::vector<System*> allSystems;
-        
+        static inline std::vector<std::unique_ptr<System>> allSystems;
         template <typename TSystem>
-        static TSystem Register()
+        static TSystem* MakeSystem()
         {
-            TSystem system;
-            allSystems.push_back(&system);
+            TSystem* system = new TSystem();
+            allSystems.emplace_back(system);
             return system;
         }
 
@@ -49,8 +49,6 @@ namespace Light
         {
         }
     };
-#define Light_MakeSystem(systemClass) \
-    inline systemClass systemClass = Light::System::Register<class systemClass##>();\
 
     class SystemGroup : public System
     {
@@ -117,4 +115,7 @@ namespace Light
         void Stop() override { if (onStop) onStop(); }
         void Update() override { if (onUpdate) onUpdate(); }
     };
+
+#define Light_MakeSystem(systemClass) \
+    inline systemClass* systemClass = Light::System::MakeSystem<class systemClass##>();
 }

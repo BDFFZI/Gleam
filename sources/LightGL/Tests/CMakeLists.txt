@@ -1,5 +1,5 @@
 addTests()
 
-target_link_libraries("${ModuleName}" PUBLIC LightImport)
+target_link_libraries("${ProjectName}" PRIVATE LightImport)
 
-target_link_libraries("${ModuleName}" PUBLIC LightUtility)
+target_link_libraries("${ProjectName}" PRIVATE LightUtility)

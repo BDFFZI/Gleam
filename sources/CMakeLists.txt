@@ -1,44 +1,57 @@
-macro(addModule)
-    # 获取模块名（即文件夹名）
-    cmake_path(GET CMAKE_CURRENT_SOURCE_DIR FILENAME ModuleName)
-    message("添加模块：${ModuleName}")
-
-    # 获取文件夹内所有文件，除了测试文件夹
-    file(GLOB_RECURSE ALL_FILE "*.*")
-    list(FILTER ALL_FILE EXCLUDE REGEX "Tests/.*")
-
+macro(initProject nameSuffix)
+    # 获取项目名
+    cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH TargetModulePath)
+    cmake_path(GET TargetModulePath FILENAME ModuleName)
+    set(ProjectName "${ModuleName}${nameSuffix}")
+    # 设置项目创建标记
+    set(${ProjectName} TRUE)
     # 创建项目
-    project(${ModuleName})
-    add_library(${ModuleName} STATIC "${ALL_FILE}")
-
+    project(${ProjectName})
+    # 获取项目文件
+    file(GLOB_RECURSE ProjectFiles "*.*")
+    # 禁用部分文件的误编译
+    set(ShaderFiles ${ProjectFiles})
+    list(FILTER ShaderFiles INCLUDE REGEX ".*\.(hlsl|obj)")
+    set_source_files_properties(${ShaderFiles} PROPERTIES VS_TOOL_OVERRIDE "None")
     # 创建vs筛选器
-    source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES "${ALL_FILE}")
+    source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES "${ProjectFiles}")
+
+    message("添加项目：${ProjectName}")
+endmacro()
+
+macro(addModule)
+    initProject("")
+    add_library(${ProjectName} STATIC "${ProjectFiles}")
 endmacro()
 
 macro(addTests)
-    # 获取测试名（模块名+Tests）
-    cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH TargetModulePath)
-    cmake_path(GET TargetModulePath FILENAME TargetModuleName)
-    set(ModuleName "${TargetModuleName}Tests")
-    message("添加测试：${ModuleName}")
-
-    # 获取文件夹内所有文件
-    file(GLOB_RECURSE ALL_FILE "*.*")
-
-    # 创建项目
-    project(${ModuleName})
-    add_executable(${ModuleName} "${ALL_FILE}")
-
-    # 创建vs筛选器
-    source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES "${ALL_FILE}")
+    initProject("Tests")
+    add_executable(${ProjectName} "${ProjectFiles}")
 
     # 引用测试的目标模块
-    target_link_libraries(${ModuleName} PRIVATE ${TargetModuleName})
+    target_link_libraries(${ProjectName} PRIVATE ${ModuleName})
+
     # 引用测试用的基本库（gtest和benchmark）
     find_package(GTest CONFIG REQUIRED)
-    target_link_libraries(${ModuleName} PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    target_link_libraries(${ProjectName} PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
     find_package(benchmark CONFIG REQUIRED)
-    target_link_libraries(${ModuleName} PRIVATE benchmark::benchmark)
+    target_link_libraries(${ProjectName} PRIVATE benchmark::benchmark)
+endmacro()
+
+macro(addEditor)
+    initProject("Tests")
+    add_library(${ProjectName} STATIC "${ProjectFiles}")
+
+    # 引用编辑器的目标模块
+    target_link_libraries(${ProjectName} PRIVATE ${ModuleName})
+endmacro()
+
+macro(linkModule ModuleName)
+    target_link_libraries(${ProjectName} PRIVATE "${ModuleName}")
+
+    if(${ModuleName}Editor)
+        target_link_libraries(${ProjectName} PRIVATE "${ModuleName}Editor")
+    endif()
 endmacro()
 
 # 递归添加子目录的函数
@@ -51,19 +64,24 @@ function(add_subdirectories_recursive current_dir)
             continue()
         endif()
 
-        # 如果文件夹包含CMake文件则是项目
-        if(EXISTS ${current_dir}/${child}/CMakeLists.txt)
-            add_subdirectory(${current_dir}/${child}) # 添加该子项目
+        # 计算该项目对应的解决方案文件夹分类
+        file(RELATIVE_PATH relative_path ${CMAKE_CURRENT_SOURCE_DIR} ${current_dir}) # 使用相对路径分类
+        set(SolutionFolder "LightModules/${relative_path}/${child}")
 
-            # 分类到解决方案文件夹
-            file(RELATIVE_PATH relative_path ${CMAKE_CURRENT_SOURCE_DIR} ${current_dir}) # 使用相对路径分类
-            set_target_properties(${child} PROPERTIES FOLDER "LightModules/${relative_path}")
+        if(EXISTS "${current_dir}/${child}/Runtime/CMakeLists.txt")
+            add_subdirectory(${current_dir}/${child}/Runtime)
+            set_target_properties(${child} PROPERTIES FOLDER ${SolutionFolder})
 
-            # 判断是否有测试文件夹，有则添加测试项目
-            if(EXISTS "${child}/Tests")
-                add_subdirectory("${current_dir}/${child}/Tests")
-                set_target_properties("${child}Tests" PROPERTIES FOLDER "LightTests")
+            if(EXISTS "${current_dir}/${child}/Tests/CMakeLists.txt")
+                add_subdirectory(${current_dir}/${child}/Tests)
+                set_target_properties(${child}Tests PROPERTIES FOLDER ${SolutionFolder})
             endif()
+
+            if(EXISTS "${current_dir}/${child}/Editor/CMakeLists.txt")
+                add_subdirectory(${current_dir}/${child}/Editor)
+                set_target_properties(${child}Editor PROPERTIES FOLDER ${SolutionFolder})
+            endif()
+
             continue()
         endif()
 
