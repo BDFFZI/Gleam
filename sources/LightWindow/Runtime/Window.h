@@ -2,13 +2,18 @@
 #include <functional>
 #include <GLFW/glfw3.h>
 
+#include "LightECS/Runtime/System.h"
 #include "LightMath/Runtime/Vector.hpp"
 
 namespace Light
 {
-    class Window
+    class Window : public SystemGroup
     {
     public:
+        Window(): SystemGroup(nullptr, LeftOrder, MiddleOrder)
+        {
+        }
+
         /**
          * @brief 初始化并创建窗口
          * @param name
@@ -28,28 +33,11 @@ namespace Light
         static void SetResolution(int width, int height);
         static void SetFullScreen(bool fullscreen);
 
-        /**
-         * 执行窗口更新逻辑
-         */
-        static void Start();
-        /**
-         * 尝试关闭窗口
-         */
-        static void Stop();
-
     private:
-        inline static GLFWwindow* glfwWindow;
-        inline static std::function<void()> windowStartEvent = []
-        {
-        };
-        inline static std::function<void()> windowUpdateEvent = []
-        {
-        };
-        inline static std::function<void()> windowStopEvent = []
-        {
-        };
-        inline static std::function<bool()> windowStopConfirm = [] { return true; };
+        GLFWwindow* glfwWindow;
 
-        Window() = default;
+        void Start() override;
+        void Stop() override;
+        void Update() override;
     };
 }

@@ -3,7 +3,7 @@
 #include <typeindex>
 #include <unordered_map>
 #include <utility>
-#include <uuid.h>
+#include <stduuid/uuid.h>
 
 #include "Serialization/Serializer.hpp"
 #include "Concept.hpp"

@@ -10,9 +10,10 @@ macro(initProject nameSuffix)
     # 获取项目文件
     file(GLOB_RECURSE ProjectFiles "*.*")
     # 禁用部分文件的误编译
-    set(ShaderFiles ${ProjectFiles})
-    list(FILTER ShaderFiles INCLUDE REGEX ".*\.(hlsl|obj)")
-    set_source_files_properties(${ShaderFiles} PROPERTIES VS_TOOL_OVERRIDE "None")
+    set(SpecialFiles ${ProjectFiles})
+    list(FILTER SpecialFiles INCLUDE REGEX ".*\.(hlsl|obj)")
+    message("特殊文件：${SpecialFiles}")
+    set_property(SOURCE ${SpecialFiles} PROPERTY VS_SETTINGS "ExcludedFromBuild=true")
     # 创建vs筛选器
     source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES "${ProjectFiles}")
 

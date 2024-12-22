@@ -5,7 +5,6 @@ using namespace Light;
 void main()
 {
     ShaderImporter::ImportHlsl(
-        shaderc_vertex_shader,
         R"(
 cbuffer ubo : register(b0)
 {
@@ -45,6 +44,7 @@ float4 FragmentShader(VSOutput input): SV_Target
     return tex.Sample(texSampler, input.uv) * float4(input.color,1);
 }
 )",
+        shaderc_vertex_shader,
         "VertexShader"
     );
 }

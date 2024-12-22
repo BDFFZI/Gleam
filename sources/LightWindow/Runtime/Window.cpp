@@ -4,23 +4,12 @@
 
 #include "Input.h"
 #include "Time.h"
+#include "LightEngine/Runtime/Engine.h"
 
 using namespace Light;
 
 Window Window::Initialize(const char* name, const int width, const int height, const bool fullscreen)
 {
-    if (!glfwInit())
-        throw std::exception("窗口初始化失败");
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    // glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    glfwWindow = glfwCreateWindow(width, height, name, fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
-    if (!glfwWindow)
-    {
-        glfwTerminate();
-        throw std::exception("窗口创建失败");
-    }
-
     Input::Initialize(glfwWindow);
 
     return {};
@@ -82,35 +71,34 @@ void Window::SetResolution(const int width, const int height)
 
 void Window::Start()
 {
-    Time::Start();
+    if (!glfwInit())
+        throw std::exception("窗口初始化失败");
 
-    //启动窗口
-    windowStartEvent();
-
-    do
+    const char* name = "Window";
+    constexpr int width = 1920 / 2;
+    constexpr int height = 1080 / 2;
+    constexpr bool fullscreen = false;
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); //使用vulkan，故去除glfw自带的接口
+    glfwWindow = glfwCreateWindow(width, height, name, fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
+    if (!glfwWindow)
     {
-        while (!glfwWindowShouldClose(glfwWindow))
-        {
-            Time::Update();
-            Input::Update();
-
-            //更新窗口
-            windowUpdateEvent();
-        }
-
-        //确定关闭
-        glfwSetWindowShouldClose(glfwWindow, windowStopConfirm() ? GLFW_TRUE : GLFW_FALSE);
+        glfwTerminate();
+        throw std::exception("窗口创建失败");
     }
-    while (!glfwWindowShouldClose(glfwWindow));
 
-    //关闭窗口
-    windowStopEvent();
-
-    glfwDestroyWindow(glfwWindow);
-
-    glfwTerminate();
+    SystemGroup::Start();
 }
 void Window::Stop()
 {
-    glfwSetWindowShouldClose(glfwWindow,GLFW_TRUE);
+    SystemGroup::Stop();
+    
+    glfwDestroyWindow(glfwWindow);
+    glfwTerminate();
+}
+void Window::Update()
+{
+    SystemGroup::Update();
+
+    if (glfwWindowShouldClose(glfwWindow))
+        Engine::Stop();
 }
