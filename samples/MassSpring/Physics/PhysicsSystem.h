@@ -1,6 +1,6 @@
 #pragma once
 #include "../Public/SimulationSystem.h"
-#include "LightECS/Runtime/System.h"
+#include "LightEngine/Runtime/ECS/System.h"
 #include "LightMath/Runtime/Vector.hpp"
 
 namespace Light

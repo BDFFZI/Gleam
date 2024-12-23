@@ -93,7 +93,7 @@ void Input::GlfwMonitorCallback(GLFWmonitor* monitor, const int event)
 void Input::Initialize(GLFWwindow* glfwWindow)
 {
     Input::glfwWindow = glfwWindow;
-
+    
     glfwSetWindowFocusCallback(glfwWindow, GlfwWindowFocusCallback);
     glfwSetCursorEnterCallback(glfwWindow, GlfwCursorEnterCallback);
     glfwSetCursorPosCallback(glfwWindow, GlfwCursorPosCallback);
@@ -105,6 +105,10 @@ void Input::Initialize(GLFWwindow* glfwWindow)
 
     //添加一个默认输入回调，这样后续不需要总是判断是否存在
     PushInputHandler({"default"});
+}
+void Input::Start()
+{
+    
 }
 void Input::Update()
 {

@@ -1,6 +1,9 @@
-﻿#include <deque>
+﻿#include <iostream>
+#include <thread>
+#include <LightEngine/Runtime/Engine.h>
+
+#include <deque>
 #include <fstream>
-#include <iostream>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -10,9 +13,9 @@
 
 #include "LightMath/Runtime/VectorMath.hpp"
 #include "LightMath/Runtime/Vector.hpp"
-#include "LightReflection/Runtime/Type.hpp"
-#include "LightReflection/Runtime/Serialization/BinaryReader.h"
-#include "LightReflection/Runtime/Serialization/BinaryWriter.h"
+#include "LightEngine/Runtime/Reflection/Type.hpp"
+#include "LightEngine/Runtime/Reflection/Serialization/BinaryReader.h"
+#include "LightEngine/Runtime/Reflection/Serialization/BinaryWriter.h"
 
 using namespace Light;
 
@@ -77,15 +80,15 @@ TEST(Reflection, BinaryTransferrer)
     ASSERT_EQ(newData, oldData);
 }
 
-MakeType("C4BAB34E-B145-4297-8BA3-6DD1BD05110D", Data)
+Light_MakeType("C4BAB34E-B145-4297-8BA3-6DD1BD05110D", Data)
 {
-    MakeType_AddField(boolValue);
-    MakeType_AddField(charValue);
-    MakeType_AddField(intValue);
-    MakeType_AddField(floatValue);
-    MakeType_AddField(stringValue);
-    MakeType_AddField(vectorValue);
-    MakeType_AddField(customValue);
+    Light_MakeType_AddField(boolValue);
+    Light_MakeType_AddField(charValue);
+    Light_MakeType_AddField(intValue);
+    Light_MakeType_AddField(floatValue);
+    Light_MakeType_AddField(stringValue);
+    Light_MakeType_AddField(vectorValue);
+    Light_MakeType_AddField(customValue);
 }
 
 TEST(Reflection, Type)

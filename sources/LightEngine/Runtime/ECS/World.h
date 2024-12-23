@@ -4,8 +4,8 @@
 
 #include "Heap.h"
 #include "System.h"
-#include "LightECS/Runtime/Archetype.hpp"
-#include "_Concept.hpp"
+#include "Archetype.hpp"
+#include "Entity.hpp"
 
 namespace Light
 {
@@ -43,9 +43,9 @@ namespace Light
 
         static bool HasSystem(System& system);
         static void AddSystem(System& system);
-        static void AddSystem(std::initializer_list<System*> systems);
+        static void AddSystems(std::initializer_list<System*> systems);
         static void RemoveSystem(System& system);
-        static void RemoveSystem(std::initializer_list<System*> systems);
+        static void RemoveSystems(std::initializer_list<System*> systems);
 
         static Heap& GetEntities(const Archetype& archetype)
         {

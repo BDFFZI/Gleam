@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "LightMath/Runtime/Vector.hpp"
-#include "LightReflection/Runtime/Type.hpp"
+#include "LightEngine/Runtime/Reflection/Type.hpp"
 
 namespace Light
 {
@@ -9,9 +9,9 @@ namespace Light
         float2 position;
     };
 
-    MakeType("", Point)
+    Light_MakeType("", Point)
     {
-        MakeType_AddField(position);
+        Light_MakeType_AddField(position);
     }
 
     struct Line
@@ -20,10 +20,10 @@ namespace Light
         float2 positionB;
     };
 
-    MakeType("", Line)
+    Light_MakeType("", Line)
     {
-        MakeType_AddField(positionA);
-        MakeType_AddField(positionB);
+        Light_MakeType_AddField(positionA);
+        Light_MakeType_AddField(positionB);
     }
 
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "LightECS/Runtime/System.h"
+#include "LightEngine/Runtime/ECS/System.h"
 #include "LightGraphics/Runtime/Material.h"
 #include "LightGraphics/Runtime/Mesh.h"
 #include "LightGraphics/Runtime/Shader.h"

@@ -1,9 +1,9 @@
 #include "EditorUIUtility.h"
 #include "LightUI/Runtime/UI.h"
 #include "InspectorWindow.h"
-#include "LightECS/Runtime/World.h"
-#include "LightECS/Runtime/_Concept.hpp"
-#include "LightReflection/Runtime/Type.hpp"
+#include "LightEngine/Runtime/ECS/World.h"
+#include "LightEngine/Runtime/ECS/_Concept.hpp"
+#include "LightEngine/Runtime/Reflection/Type.hpp"
 
 namespace Light
 {

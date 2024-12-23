@@ -1,9 +1,9 @@
 #pragma once
 #include <typeindex>
 
-#include "LightECS/Runtime/System.h"
-#include "LightECS/Runtime/_Concept.hpp"
-#include "LightReflection/Runtime/Serialization/Serializer.hpp"
+#include "LightEngine/Runtime/ECS/System.h"
+#include "LightEngine/Runtime/ECS/_Concept.hpp"
+#include "LightEngine/Runtime/Reflection/Serialization/Serializer.hpp"
 
 namespace Light
 {

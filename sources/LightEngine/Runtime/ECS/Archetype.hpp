@@ -6,10 +6,14 @@
 #include <vector>
 #include <unordered_map>
 #include <cassert>
-#include "_Concept.hpp"
+#include "Entity.hpp"
+#include "Component.hpp"
 
 namespace Light
 {
+    template <class TComponent, class... TComponents>
+    concept ArchetypeComponentList = std::is_same_v<TComponent, Entity>;
+    
     template <Component TComponent>
     struct ArchetypeComponentOperator
     {
@@ -34,7 +38,7 @@ namespace Light
             requires ArchetypeComponentList<TComponents...>
         static Archetype& Register(const char* name)
         {
-            std::unique_ptr<Archetype>& archetype = allArchetypes.emplace_back(new Archetype());
+            const std::unique_ptr<Archetype>& archetype = allArchetypes.emplace_back(new Archetype());
 
             archetype->name = name;
             archetype->componentCount = {sizeof...(TComponents)};

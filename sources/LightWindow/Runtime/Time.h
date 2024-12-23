@@ -1,30 +1,32 @@
 ﻿#pragma once
+#include "Window.h"
+#include "LightEngine/Runtime/ECS/System.h"
 
 namespace Light
 {
-    class Window;
-    class Time
+    class Time : public System
     {
     public:
-        static float GetTimeReal();
-        static float GetTime() { return time; }
-        static float GetDeltaTime() { return deltaTime; }
-        static int GetFrameCount() { return frameCount; }
+        Time(): System(Window, LeftOrder, MiddleOrder)
+        {
+        }
 
-        static void SetTimeScale(const float scale) { timeScale = scale; }
+        float GetTimeReal() const { return timeReal; }
+        float GetTime() const { return time; }
+        float GetDeltaTime() const { return deltaTime; }
+        int GetFrameCount() const { return frameCount; }
+
+        void SetTimeScale(const float scale) { timeScale = scale; }
 
     private:
-        inline static float timeScale = 1;
-        inline static int frameCount = -1;
-        inline static float lastTimeReal;
-        inline static float deltaTime;
-        inline static float time;
+        int frameCount = -1;
+        float timeScale = 1;
+        float timeReal = 0;
+        float time = 0;
+        float deltaTime = 0;
 
-        friend Window;
-        /**
-         * 去除各种初始化时间的干扰，确保从窗口正式更新前开始计时
-         */
-        static void Start();
-        static void Update();
+        void Start() override;
+        void Update() override;
     };
+    Light_MakeSystem(Time)
 }

@@ -1,8 +1,14 @@
 ﻿#pragma once
-#include "LightECS/Runtime/World.h"
+#include "World.h"
 
 namespace Light
 {
+    template <class TFunction, class... TComponents>
+    concept ViewIterator = requires(TFunction function, TComponents&... components) { function(components...); };
+
+    template <class TFunction, class... TComponents>
+    concept ViewIteratorWithEntity = requires(TFunction function, Entity& entity, TComponents&... components) { function(entity, components...); };
+    
     /**
      * @brief 针对实体堆的检视工具
      * 

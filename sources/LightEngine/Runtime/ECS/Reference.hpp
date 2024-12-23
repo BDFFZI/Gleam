@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "World.h"
-#include "_Concept.hpp"
+#include "Entity.hpp"
 
 namespace Light
 {

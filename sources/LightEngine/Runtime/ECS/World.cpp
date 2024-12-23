@@ -122,7 +122,7 @@ namespace Light
                 system.group->AddSubSystem(system);
         }
     }
-    void World::AddSystem(const std::initializer_list<System*> systems)
+    void World::AddSystems(const std::initializer_list<System*> systems)
     {
         for (System* system : systems)
             AddSystem(*system);
@@ -157,7 +157,7 @@ namespace Light
                 system.group->RemoveSubSystem(system);
         }
     }
-    void World::RemoveSystem(const std::initializer_list<System*> systems)
+    void World::RemoveSystems(const std::initializer_list<System*> systems)
     {
         for (System* system : systems)
             RemoveSystem(*system);

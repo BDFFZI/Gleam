@@ -6,7 +6,7 @@
 #include <stduuid/uuid.h>
 
 #include "Serialization/Serializer.hpp"
-#include "Concept.hpp"
+#include "Transferrer.hpp"
 
 namespace Light
 {
@@ -111,8 +111,8 @@ namespace Light
         static_assert(Transferrer<MemberTransferrer>);
     };
 
-#define MakeType_AddField(field) transferrer.TransferField(#field, value.field)
-#define MakeType(uuidStr,type,...)\
+#define Light_MakeType_AddField(field) transferrer.TransferField(#field, value.field)
+#define Light_MakeType(uuidStr,type,...)\
     inline const Light::Type& type##Type = Light::Type::Register<type>(uuidStr);\
     template <Light::Transferrer TTransferrer>\
     struct Light::TypeTransfer<type, TTransferrer>\

@@ -3,10 +3,10 @@
 #include <typeindex>
 #include <benchmark/benchmark.h>
 #include <gtest/gtest.h>
-#include "LightECS/Runtime/Archetype.hpp"
-#include "LightECS/Runtime/World.h"
-#include "LightECS/Runtime/Heap.h"
-#include "LightECS/Runtime/View.hpp"
+#include "LightEngine/Runtime/ECS/Archetype.hpp"
+#include "LightEngine/Runtime/ECS/World.h"
+#include "LightEngine/Runtime/ECS/Heap.h"
+#include "LightEngine/Runtime/ECS/View.hpp"
 
 using namespace Light;
 

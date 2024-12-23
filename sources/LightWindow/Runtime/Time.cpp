@@ -6,21 +6,16 @@ using namespace Light;
 
 void Time::Start()
 {
-    lastTimeReal = GetTimeReal();
+    timeReal = static_cast<float>(glfwGetTime());
 }
 void Time::Update()
 {
-    const float timeReal = GetTimeReal();
-    deltaTime = timeReal - lastTimeReal;
-    lastTimeReal = timeReal;
+    const float currentTimeReal = static_cast<float>(glfwGetTime());
+    deltaTime = currentTimeReal - timeReal;
+    timeReal = currentTimeReal;
 
     deltaTime *= timeScale;
     time += deltaTime;
 
     frameCount++;
-}
-
-float Time::GetTimeReal()
-{
-    return static_cast<float>(glfwGetTime());
 }

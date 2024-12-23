@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "LightMath/Runtime/Vector.hpp"
-#include "LightReflection/Runtime/Type.hpp"
+#include "LightEngine/Runtime/Reflection/Type.hpp"
 
 namespace Light
 {
@@ -9,8 +9,8 @@ namespace Light
         float4 color = 1;
     };
 
-    MakeType("", Renderer)
+    Light_MakeType("", Renderer)
     {
-        MakeType_AddField(color);
+        Light_MakeType_AddField(color);
     }
 }

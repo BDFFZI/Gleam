@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "LightECS/Runtime/Reference.hpp"
+#include "LightEngine/Runtime/ECS/Reference.hpp"
 #include "LightMath/Runtime/Vector.hpp"
-#include "LightReflection/Runtime/Type.hpp"
+#include "LightEngine/Runtime/Reflection/Type.hpp"
 #include "../Public/Component.hpp"
 
 namespace Light
@@ -14,12 +14,12 @@ namespace Light
         float drag = 0.99f;
     };
 
-    MakeType("", MassPointPhysics)
+    Light_MakeType("", MassPointPhysics)
     {
-        MakeType_AddField(force);
-        MakeType_AddField(velocity);
-        MakeType_AddField(mass);
-        MakeType_AddField(drag);
+        Light_MakeType_AddField(force);
+        Light_MakeType_AddField(velocity);
+        Light_MakeType_AddField(mass);
+        Light_MakeType_AddField(drag);
     }
 
     struct SpringPhysics
@@ -32,13 +32,13 @@ namespace Light
     };
 
     
-    MakeType("", SpringPhysics)
+    Light_MakeType("", SpringPhysics)
     {
-        MakeType_AddField(pointA);
-        MakeType_AddField(pointB);
-        MakeType_AddField(length);
-        MakeType_AddField(elasticity);
-        MakeType_AddField(resistance);
+        Light_MakeType_AddField(pointA);
+        Light_MakeType_AddField(pointB);
+        Light_MakeType_AddField(length);
+        Light_MakeType_AddField(elasticity);
+        Light_MakeType_AddField(resistance);
     }
 
 }

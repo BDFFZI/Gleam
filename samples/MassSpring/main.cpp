@@ -6,7 +6,7 @@
 #include "Editor/GameWindow.h"
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
-#include "LightECS/Runtime/World.h"
+#include "LightEngine/Runtime/ECS/World.h"
 #include "LightGL/Runtime/GL.h"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightUI/Runtime/UI.h"
@@ -33,11 +33,11 @@ int main()
     Window::SetWindowStartEvent([]
     {
         //添加系统
-        World::AddSystem({&PhysicsSystem, &ForceSystem, &PositionSystem, &CollisionSystem});
-        World::AddSystem({&RenderingSystem,});
-        World::AddSystem({&UISystem, &GameUISystem});
-        World::AddSystem(gameLogics);
-        World::AddSystem(editorWindows);
+        World::AddSystems({&PhysicsSystem, &ForceSystem, &PositionSystem, &CollisionSystem});
+        World::AddSystems({&RenderingSystem,});
+        World::AddSystems({&UISystem, &GameUISystem});
+        World::AddSystems(gameLogics);
+        World::AddSystems(editorWindows);
         //添加实体
         Entity entities[5][5];
         constexpr int length = 4;

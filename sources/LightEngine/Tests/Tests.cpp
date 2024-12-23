@@ -1,9 +1,8 @@
 #include <iostream>
-#include <thread>
-#include <LightEngine/Runtime/Engine.h>
+#include <gtest/gtest.h>
 
-#include "LightECS/Runtime/System.h"
-#include "LightECS/Runtime/World.h"
+#include "LightEngine/Runtime/Engine.h"
+#include "LightEngine/Runtime/ECS/System.h"
 
 using namespace Light;
 
@@ -23,7 +22,7 @@ public:
         countDown--;
         std::cout << "CountDown: " << countDown << std::endl;
         if (countDown == 0)
-            Engine::Stop();
+            Light::Engine::Stop();
     }
     void Stop() override
     {
@@ -34,10 +33,9 @@ private:
     int countDown = 3;
 };
 Light_MakeSystem(CustomSystem)
-Light_AddSystem(CustomSystem)
+Light_AddSystems(CustomSystem)
 
-int main()
+TEST(Engine, Start)
 {
     Engine::Start();
-    return 0;
 }

@@ -3,6 +3,9 @@
 #include <stack>
 #include <string>
 #include <GLFW/glfw3.h>
+
+#include "Window.h"
+#include "LightEngine/Runtime/ECS/System.h"
 #include "LightMath/Runtime/VectorMath.hpp"
 
 namespace Light
@@ -111,10 +114,16 @@ namespace Light
         }
     };
 
-    class Window;
-    class Input
+    /**
+     * 每帧将GLFW传入的用户输入解析成Light所用的输入格式
+     */
+    class Input : public System
     {
     public:
+        Input(): System(Window, MiddleOrder, RightOrder)
+        {
+        }
+
         static InputHandler& TopInputHandler() { return inputHandlers.top(); }
         static void PushInputHandler(const InputHandler& inputHandler) { inputHandlers.push(inputHandler); }
         static void PopInputHandler(const InputHandler& inputHandler)
@@ -142,9 +151,6 @@ namespace Light
         static float2 GetRealMousePosition() { return mousePosition[0] + mouseOrigin; }
 
     private:
-        inline static std::stack<InputHandler> inputHandlers;
-
-        inline static GLFWwindow* glfwWindow;
         inline static bool mouseButtonState[3][3];
         inline static bool keyboardState[349][3];
         inline static float2 mouseScrollDelta[2];
@@ -152,7 +158,7 @@ namespace Light
         inline static float2 mousePosition[2];
         inline static float2 mousePositionDelta;
 
-        static void GlfwWindowFocusCallback(GLFWwindow* window, int focused);
+         void GlfwWindowFocusCallback(GLFWwindow* window, int focused);
         static void GlfwCursorEnterCallback(GLFWwindow* window, int entered);
         static void GlfwCursorPosCallback(GLFWwindow* window, double xPos, double yPos);
         static void GlfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
@@ -160,12 +166,8 @@ namespace Light
         static void GlfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
         static void GlfwCharCallback(GLFWwindow* window, unsigned int codepoint);
         static void GlfwMonitorCallback(GLFWmonitor* monitor, int event);
-
-        friend Window;
-        static void Initialize(GLFWwindow* glfwWindow);
-        /**
-         * 每帧将GLFW传入的用户输入解析成Light所用的输入格式
-         */
-        static void Update();
+        
+         void Start() override;
+         void Update() override;
     };
 }
