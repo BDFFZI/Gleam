@@ -1,8 +1,25 @@
 ﻿#include "Window.h"
 #include <exception>
+
+#include "Input.h"
+#include "Time.h"
 #include "LightEngine/Runtime/Engine.h"
 
 using namespace Light;
+
+ModuleRegister WindowModuleRegister = {
+    {Window, Time, Input},
+    []
+    {
+        if (glfwInit() == false)
+            throw std::exception("窗口初始化失败");
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); //使用vulkan，故去除glfw自带的接口
+    },
+    []
+    {
+        glfwTerminate();
+    }
+};
 
 int2 Window::GetResolution() const
 {
@@ -14,6 +31,13 @@ bool Window::GetFullScreen() const
 {
     return glfwGetWindowMonitor(glfwWindow) != nullptr;
 }
+void Window::SetResolution(const int2 resolution) const
+{
+    if (GetFullScreen())
+        glfwSetWindowMonitor(glfwWindow, glfwGetPrimaryMonitor(), 0, 0, resolution.x, resolution.y,GLFW_DONT_CARE);
+    else
+        glfwSetWindowSize(glfwWindow, resolution.x, resolution.y);
+}
 void Window::SetFullScreen(const bool fullscreen) const
 {
     const int2 resolution = GetResolution();
@@ -22,19 +46,9 @@ void Window::SetFullScreen(const bool fullscreen) const
     else
         glfwSetWindowMonitor(glfwWindow, nullptr, 50, 50, resolution.x, resolution.y,GLFW_DONT_CARE);
 }
-void Window::SetResolution(const int width, const int height) const
-{
-    if (GetFullScreen())
-        glfwSetWindowMonitor(glfwWindow, glfwGetPrimaryMonitor(), 0, 0, width, height,GLFW_DONT_CARE);
-    else
-        glfwSetWindowSize(glfwWindow, width, height);
-}
 
 void Window::Start()
 {
-    if (!glfwInit())
-        throw std::exception("窗口初始化失败");
-
     //初始化配置
     // ReSharper disable CppLocalVariableMayBeConst
     const char* name = "Window";
@@ -43,13 +57,17 @@ void Window::Start()
     bool fullscreen = false;
     // ReSharper restore CppLocalVariableMayBeConst
 
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); //使用vulkan，故去除glfw自带的接口
     glfwWindow = glfwCreateWindow(width, height, name, fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
     if (!glfwWindow)
-    {
-        glfwTerminate();
         throw std::exception("窗口创建失败");
-    }
+
+    glfwSetWindowFocusCallback(glfwWindow, GlfwWindowFocusCallback);
+    glfwSetCursorEnterCallback(glfwWindow, GlfwCursorEnterCallback);
+    glfwSetCursorPosCallback(glfwWindow, GlfwCursorPosCallback);
+    glfwSetMouseButtonCallback(glfwWindow, GlfwMouseButtonCallback);
+    glfwSetScrollCallback(glfwWindow, GlfwScrollCallback);
+    glfwSetKeyCallback(glfwWindow, GlfwKeyCallback);
+    glfwSetCharCallback(glfwWindow, GlfwCharCallback);
 
     SystemGroup::Start();
 }
@@ -58,12 +76,43 @@ void Window::Stop()
     SystemGroup::Stop();
 
     glfwDestroyWindow(glfwWindow);
-    glfwTerminate();
 }
 void Window::Update()
 {
+    glfwPollEvents();
+    
+    bool currentMouseState = std::ranges::any_of(mouseButtonStates, [](auto item) { return item; });
+    isMouseDown = lastMouseState == false && currentMouseState == true;
+    lastMouseState = currentMouseState;
+
     SystemGroup::Update();
 
     if (glfwWindowShouldClose(glfwWindow))
         Engine::Stop();
+}
+
+void Light::GlfwWindowFocusCallback(GLFWwindow* window, int focused)
+{
+}
+void Light::GlfwCursorEnterCallback(GLFWwindow* window, int entered)
+{
+}
+void Light::GlfwCursorPosCallback(GLFWwindow* window, const double xPos, const double yPos)
+{
+    Window->mousePosition = float2{static_cast<float>(xPos), static_cast<float>(yPos)};
+}
+void Light::GlfwScrollCallback(GLFWwindow* window, const double xOffset, const double yOffset)
+{
+    Window->mouseScrollDelta = {static_cast<float>(xOffset), static_cast<float>(yOffset)};
+}
+void Light::GlfwMouseButtonCallback(GLFWwindow* window, const int button, const int action, int mods)
+{
+    Window->mouseButtonStates[button] = action != GLFW_RELEASE;
+}
+void Light::GlfwKeyCallback(GLFWwindow* window, const int key, int scancode, const int action, int mods)
+{
+    Window->keyboardStates[key] = action != GLFW_RELEASE;
+}
+void Light::GlfwCharCallback(GLFWwindow* window, unsigned int codepoint)
+{
 }

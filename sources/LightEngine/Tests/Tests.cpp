@@ -22,7 +22,7 @@ public:
         countDown--;
         std::cout << "CountDown: " << countDown << std::endl;
         if (countDown == 0)
-            Light::Engine::Stop();
+            Engine::Stop();
     }
     void Stop() override
     {

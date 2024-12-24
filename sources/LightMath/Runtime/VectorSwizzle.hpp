@@ -8,7 +8,7 @@ constexpr vector(const Type value)\
 {\
 for (int i = 0; i < (Number); i++)\
 data[i] = value;\
-}
+}\
 
 #define Light_MakeVectorMemberFunctions_Indexer(Type)\
 constexpr Type##& operator[](const int i)\

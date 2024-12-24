@@ -9,73 +9,60 @@ using namespace Light;
 
 void main()
 {
-    int width = 1920 / 2;
-    int height = 1080 / 2;
-    Window::Initialize("Window", width, height, false);
+    int2 mousePosition;
+    int2 resolution;
 
-    int2 position;
-    glfwGetWindowPos(Window::GetGlfwWindow(), &position.x, &position.y);
-
-    static float2 moveInput;
-    static bool fireInput;
-
-    static InputHandler inputEvent;
-    inputEvent.name = "Test";
-    inputEvent.inputCallback = []
+    SystemEvent systemEvent = {nullptr, Window->order, System::RightOrder};
+    systemEvent.onStart = [&]
     {
-        moveInput = 0;
-        if (Input::GetKey(KeyCode::W))
-            moveInput.y = 1;
-        else if (Input::GetKey(KeyCode::S))
-            moveInput.y = -1;
-        if (Input::GetKey(KeyCode::A))
-            moveInput.x = -1;
-        else if (Input::GetKey(KeyCode::D))
-            moveInput.x = 1;
-
-        fireInput = Input::GetMouseButton(MouseButton::Left);
+        glfwGetWindowPos(Window->GetGlfwWindow(), &mousePosition.x, &mousePosition.y);
+        resolution = Window->GetResolution();
     };
-
-    Window::SetWindowStartEvent([]()
+    systemEvent.onUpdate = [&]
     {
-        Input::PushInputHandler(inputEvent);
-    });
-    Window::SetWindowStopEvent([]
-    {
-        Input::PopInputHandler(inputEvent);
-    });
-    Window::SetWindowUpdateEvent([&width,&height,&position]
-    {
+        //检查WASD输入
+        float2 moveInput = 0;
+        if (Input->GetKey(KeyCode::W))
+            moveInput.y = 1;
+        else if (Input->GetKey(KeyCode::S))
+            moveInput.y = -1;
+        if (Input->GetKey(KeyCode::A))
+            moveInput.x = -1;
+        else if (Input->GetKey(KeyCode::D))
+            moveInput.x = 1;
         if (any(moveInput))
             std::cout << "Move:" << to_string(moveInput) << '\n';
-        if (fireInput)
-            std::cout << "Fire:" << to_string(Input::GetMousePosition()) << '\n';
-        if (Input::GetKey(KeyCode::T))
-            std::cout << std::format("Time:{:f}\tDeltaTime:{:f}\n", Time::GetTime(), Time::GetDeltaTime());
-        if (Input::GetKey(KeyCode::LeftShift))
+        //检查鼠标左键和鼠标位置输入
+        if (Input->GetMouseButton(MouseButton::Left))
+            std::cout << "Fire:" << to_string(Input->GetMousePosition()) << '\n';
+        //检查时间
+        if (Input->GetKey(KeyCode::T))
+            std::cout << std::format("Time:{:f}\tDeltaTime:{:f}\n", Time->GetTime(), Time->GetDeltaTime());
+        //检查鼠标位置增量
+        if (Input->GetKey(KeyCode::LeftShift))
         {
-            position += static_cast<int2>(float2(Input::GetMouseMoveDelta().x, Input::GetMouseMoveDelta().y));
-            glfwSetWindowPos(Window::GetGlfwWindow(), position.x, position.y);
+            mousePosition += static_cast<int2>(float2(Input->GetMouseMoveDelta().x, Input->GetMouseMoveDelta().y));
+            glfwSetWindowPos(Window->GetGlfwWindow(), mousePosition.x, mousePosition.y);
         }
-        if (Input::GetMouseButtonDown(MouseButton::Right))
-            Input::SetMouseOrigin(Input::GetRealMousePosition());
-
-
-        if (Input::GetKeyDown(KeyCode::Minus))
+        //检查输入区域功能
+        if (Input->GetMouseButtonDown(MouseButton::Right))
+            Input->SetFocusArea({Window->GetMousePosition(), float2(std::numeric_limits<float>::max())});
+        //检查窗口大小修改
+        if (Input->GetKeyDown(KeyCode::Minus))
         {
-            width /= 2;
-            height /= 2;
-            Window::SetResolution(width, height);
+            resolution /= 2;
+            Window->SetResolution(resolution);
         }
-        else if (Input::GetKeyDown(KeyCode::Equals))
+        else if (Input->GetKeyDown(KeyCode::Equals))
         {
-            width *= 2;
-            height *= 2;
-            Window::SetResolution(width, height);
+            resolution *= 2;
+            Window->SetResolution(resolution);
         }
-        if (Input::GetKeyDown(KeyCode::F11))
-            Window::SetFullScreen(!Window::GetFullScreen());
-    });
+        //检查全屏功能
+        if (Input->GetKeyDown(KeyCode::F11))
+            Window->SetFullScreen(!Window->GetFullScreen());
+    };
 
-    Window::Start();
+    World::AddSystem(systemEvent);
+    Engine::Start();
 }

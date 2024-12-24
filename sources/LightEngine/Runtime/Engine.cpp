@@ -6,12 +6,14 @@ namespace Light
     {
         initEvents.push_back(initEvent);
     }
+    void Engine::AddUnInitEvent(const std::function<void()>& unInitEvent)
+    {
+        unInitEvents.push_back(unInitEvent);
+    }
     void Engine::Start()
     {
-        //外部自定义初始化
         for (const auto& event : initEvents)
             event();
-        initEvents = {};
 
         World::Start();
         while (isStopping == false)
@@ -19,6 +21,9 @@ namespace Light
             World::Update();
         }
         World::Stop();
+
+        for (const auto& event : unInitEvents)
+            event();
     }
     void Engine::Stop()
     {
