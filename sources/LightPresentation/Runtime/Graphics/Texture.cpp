@@ -1,7 +1,7 @@
 ﻿#include "Texture.h"
 
 #include "GraphicsPreset.h"
-#include "LightImport/Runtime/ImageImporter.h"
+#include "LightUtility/Runtime/Import/ImageImporter.h"
 
 namespace Light
 {

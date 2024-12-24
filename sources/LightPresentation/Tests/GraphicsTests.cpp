@@ -3,7 +3,7 @@
 
 #include "LightPresentation/Runtime/Graphics/CommandBuffer.h"
 #include "LightPresentation/Runtime/Graphics/Graphics.h"
-#include "LightImport/Runtime/ShaderImporter.h"
+#include "LightUtility/Runtime/Import/ShaderImporter.h"
 #include "LightMath/Runtime/Matrix.hpp"
 #include "LightUtility/Runtime/Chronograph.hpp"
 #include "LightPresentation/Runtime/Graphics/Mesh.h"
@@ -84,7 +84,7 @@ void CreateAssets()
         0, 2, 3
     });
     //盒状网格
-    boxMesh = std::make_unique<Mesh>(ModelImporter::ImportObj("Assets/Cube.obj"));
+    boxMesh = std::make_unique<Mesh>(ModelImporter::ImportObj("Assets/Graphics/Cube.obj"));
     //自定义盒状网格
     const std::vector<GraphicsPreset::Vertex>& vertices = boxMesh->GetVertices();
     const std::vector<uint32_t>& indices = boxMesh->GetIndices();
@@ -102,12 +102,12 @@ void CreateAssets()
     customBoxMesh->SetIndices(indices);
 
     //标准着色器
-    shader = std::make_unique<Shader>("Assets/Shader.hlsl");
+    shader = std::make_unique<Shader>("Assets/Graphics/Shader.hlsl");
     //自定义线着色器
-    lineShader = std::make_unique<Shader>("Assets/CustomVertexShader.hlsl", GraphicsPreset::DefaultStateLayout, LineMeshLayout);
+    lineShader = std::make_unique<Shader>("Assets/Graphics/CustomVertexShader.hlsl", GraphicsPreset::DefaultStateLayout, LineMeshLayout);
 
     //图片纹理
-    imageTexture2D = std::make_unique<Texture2D>("Assets/texture.jpg");
+    imageTexture2D = std::make_unique<Texture2D>("Assets/Graphics/texture.jpg");
     //白色纹理
     whiteTexture2D = std::make_unique<Texture2D>(1);
 

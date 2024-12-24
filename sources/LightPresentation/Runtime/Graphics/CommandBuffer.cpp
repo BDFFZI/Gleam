@@ -125,6 +125,8 @@ void CommandBuffer::Draw(MeshAsset& mesh, Material& material, const float4x4& mo
 }
 void CommandBuffer::ClearRenderTarget(const std::optional<float4>& color, const std::optional<float>& depth) const
 {
+    assert(currentRenderTarget != nullptr && "渲染目标不能为空！");
+
     VkClearColorValue colorValue;
     if (color.has_value())
         std::memcpy(colorValue.float32, color.value().data, sizeof(float4));

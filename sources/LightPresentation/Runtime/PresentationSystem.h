@@ -38,4 +38,5 @@ namespace Light
         CommandBuffer* commandBuffer = nullptr;
     };
     Light_MakeSystem(PresentationSystem)
+    Light_AddSystems(PresentationSystem)
 }

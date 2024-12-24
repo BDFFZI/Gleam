@@ -2,12 +2,12 @@
 #include <memory>
 
 #include "../GL/Resource/GLBuffer.h"
-#include "LightImport/Runtime/ModelImporter.h"
 #include <cassert>
 
 #include "GraphicsAssets.h"
 #include "GraphicsPreset.h"
 #include "../GL/Pipeline/GLCommandBuffer.h"
+#include "LightUtility/Runtime/Import/ModelImporter.h"
 
 namespace Light
 {
