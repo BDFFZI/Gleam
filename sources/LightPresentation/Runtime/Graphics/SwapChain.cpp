@@ -2,8 +2,8 @@
 
 #include <stdexcept>
 
-#include "LightGL/Runtime/GL.h"
-#include "LightGL/Runtime/Pipeline/GLSwapChain.h"
+#include "../GL/GL.h"
+#include "../GL/Pipeline/GLSwapChain.h"
 
 namespace Light
 {

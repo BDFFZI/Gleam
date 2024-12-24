@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
+#include "../GL/Pipeline/GLCommandBuffer.h"
 
 namespace Light
 {

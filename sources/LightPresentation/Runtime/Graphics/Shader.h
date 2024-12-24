@@ -3,8 +3,8 @@
 
 #include "GraphicsPreset.h"
 #include "Mesh.h"
-#include "LightGL/Runtime/Pipeline/GLPipeline.h"
-#include "LightGL/Runtime/Pipeline/GLShader.h"
+#include "../GL/Pipeline/GLPipeline.h"
+#include "../GL/Pipeline/GLShader.h"
 
 namespace Light
 {

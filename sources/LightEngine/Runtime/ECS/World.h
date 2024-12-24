@@ -100,13 +100,14 @@ namespace Light
         static void Start();
         static void Stop();
         static void Update();
+
     private:
         friend struct HierarchyWindow;
         inline static uint32_t nextEntity = 1;
         inline static std::unordered_map<const Archetype*, Heap> entities = {};
         inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
         inline static std::unordered_map<System*, int> systems = {};
-        inline static SystemGroup systemGroup = {nullptr, 0};
+        inline static SystemGroup systemGroup = {nullptr, System::LeftOrder, System::RightOrder};
 
         static void RemoveHeapItem(const Archetype& archetype, int index);
     };

@@ -1,15 +1,16 @@
 ﻿#include <thread>
+#include <gtest/gtest.h>
 
-#include "LightGraphics/Runtime/CommandBuffer.h"
-#include "LightGraphics/Runtime/Graphics.h"
+#include "LightPresentation/Runtime/Graphics/CommandBuffer.h"
+#include "LightPresentation/Runtime/Graphics/Graphics.h"
 #include "LightImport/Runtime/ShaderImporter.h"
 #include "LightMath/Runtime/Matrix.hpp"
 #include "LightUtility/Runtime/Chronograph.hpp"
-#include "LightGraphics/Runtime/Mesh.h"
-#include "LightGraphics/Runtime/Shader.h"
-#include "LightGraphics/Runtime/Texture.h"
-#include "LightGraphics/Runtime/Material.h"
-#include "LightGraphics/Runtime/SwapChain.h"
+#include "LightPresentation/Runtime/Graphics/Mesh.h"
+#include "LightPresentation/Runtime/Graphics/Shader.h"
+#include "LightPresentation/Runtime/Graphics/Texture.h"
+#include "LightPresentation/Runtime/Graphics/Material.h"
+#include "LightPresentation/Runtime/Graphics/SwapChain.h"
 #include "LightMath/Runtime/MatrixMath.hpp"
 
 using namespace Light;
@@ -239,7 +240,7 @@ void Update(GLFWwindow* glfwWindow)
         Graphics::ReleaseCommandBuffer(*commandBuffers[i]);
 }
 
-int main()
+TEST(Presentation, Graphics)
 {
     constexpr uint32_t WIDTH = 1920 / 3;
     constexpr uint32_t HEIGHT = 1080 / 3;
@@ -262,6 +263,4 @@ int main()
 
     Graphics::UnInitialize();
     GL::UnInitialize();
-
-    return 0;
 }

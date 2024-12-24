@@ -3,7 +3,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "RenderTarget.h"
-#include "LightGL/Runtime/Pipeline/GLSwapChain.h"
+#include "../GL/Pipeline/GLSwapChain.h"
 
 namespace Light
 {

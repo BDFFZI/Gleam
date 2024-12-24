@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <memory>
 
-#include "LightGL/Runtime/Resource/GLBuffer.h"
+#include "../GL/Resource/GLBuffer.h"
 
 namespace Light
 {

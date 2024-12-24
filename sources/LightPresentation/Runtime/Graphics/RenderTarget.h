@@ -3,7 +3,7 @@
 
 #include "GraphicsPreset.h"
 #include "Texture.h"
-#include "LightGL/Runtime/Resource/GLImageView.h"
+#include "../GL/Resource/GLImageView.h"
 
 namespace Light
 {

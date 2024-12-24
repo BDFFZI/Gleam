@@ -3,8 +3,8 @@
 
 #include "GraphicsAssets.h"
 #include "Texture.h"
-#include "LightGL/Runtime/Pipeline/GLPipeline.h"
-#include "LightGL/Runtime/Resource/GLImageSampler.h"
+#include "../GL/Pipeline/GLPipeline.h"
+#include "../GL/Resource/GLImageSampler.h"
 #include "LightMath/Runtime/Matrix.hpp"
 
 namespace Light

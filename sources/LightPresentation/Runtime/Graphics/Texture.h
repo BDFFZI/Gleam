@@ -2,9 +2,8 @@
 #include <memory>
 
 #include "GraphicsAssets.h"
-#include "LightGL/Runtime/Resource/GLImage.h"
-#include "LightGL/Runtime/Resource/GLImageSampler.h"
-#include "LightGL/Runtime/Resource/GLImageView.h"
+#include "../GL/Resource/GLImage.h"
+#include "../GL/Resource/GLImageView.h"
 #include "LightMath/Runtime/Vector.hpp"
 
 namespace Light

@@ -1,8 +1,10 @@
-#include "LightImport/Runtime/ShaderImporter.h"
+#include <gtest/gtest.h>
+
+#include "LightUtility/Runtime/Import/ShaderImporter.h"
 
 using namespace Light;
 
-void main()
+TEST(Utility, Import)
 {
     ShaderImporter::ImportHlsl(
         R"(

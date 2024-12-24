@@ -262,8 +262,12 @@ inline std::stringstream printResult = {};
 class PrintSystem : public System
 {
 public:
-    PrintSystem(SystemGroup* group, const int order, const char* name)
-        : System(group, order), name(name)
+    PrintSystem(SystemGroup* group, const int minOrder, const int maxOrder, const char* name)
+        : System(group, minOrder, maxOrder), name(name)
+    {
+    }
+    PrintSystem(System* system, const OrderRelation orderRelation, const char* name)
+        : System(system, orderRelation), name(name)
     {
     }
 
@@ -286,8 +290,12 @@ private:
 class PrintSystemGroup : public SystemGroup
 {
 public:
-    PrintSystemGroup(SystemGroup* group, const int order, const char* name)
-        : SystemGroup(group, order), name(name)
+    PrintSystemGroup(SystemGroup* group, const int minOrder, const int maxOrder, const char* name)
+        : SystemGroup(group, minOrder, maxOrder), name(name)
+    {
+    }
+    PrintSystemGroup(System* system, const OrderRelation orderRelation, const char* name)
+        : SystemGroup(system, orderRelation), name(name)
     {
     }
 
@@ -321,14 +329,14 @@ TEST(ECS, SystemOrder)
     ///    - system3_2_1
     ///    - system3_2_2
     ///  - system3_3
-    PrintSystem system2 = {nullptr, 2, "system2"};
-    PrintSystemGroup system3 = {nullptr, 3, "system3"};
-    PrintSystemGroup system3_2 = {&system3, 2, "system3_2"};
-    PrintSystem system3_1 = {&system3, 1, "system3_1"};
-    PrintSystem system1 = {nullptr, 1, "system1"};
-    PrintSystem system3_3 = {&system3, 3, "system3_3"};
-    PrintSystem system3_2_2 = {&system3_2, 2, "system3_2_2"};
-    PrintSystem system3_2_1 = {&system3_2, 1, "system3_2_1"};
+    PrintSystem system2 = {nullptr, System::LeftOrder, System::RightOrder, "system2"};
+    PrintSystemGroup system3 = {&system2, OrderRelation::After, "system3"};
+    PrintSystemGroup system3_2 = {&system3, System::LeftOrder, System::RightOrder, "system3_2"};
+    PrintSystem system3_1 = {&system3_2, OrderRelation::Before, "system3_1"};
+    PrintSystem system1 = {&system2, OrderRelation::Before, "system1"};
+    PrintSystem system3_3 = {&system3_2, OrderRelation::After, "system3_3"};
+    PrintSystem system3_2_2 = {&system3_2, System::LeftOrder, System::RightOrder, "system3_2_2"};
+    PrintSystem system3_2_1 = {&system3_2_2, OrderRelation::Before, "system3_2_1"};
 
     World::AddSystem(system2);
     World::AddSystem(system3);

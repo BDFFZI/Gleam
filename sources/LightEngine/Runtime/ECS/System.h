@@ -7,6 +7,12 @@
 
 namespace Light
 {
+    enum class OrderRelation:uint8_t
+    {
+        Before,
+        After
+    };
+
     class SystemGroup;
     class System
     {
@@ -25,16 +31,21 @@ namespace Light
         }
 
         SystemGroup* const group;
+        const int minOrder;
+        const int maxOrder;
         const int order;
 
-        System(SystemGroup* group, const int order = MiddleOrder)
-            : group(group), order(order)
-        {
-        }
-        System(SystemGroup* group, const int minOrder, const int maxOrder)
-            : System(group, static_cast<int32_t>((static_cast<int64_t>(minOrder) + static_cast<int64_t>(maxOrder)) / 2))
+        System(SystemGroup* group, const int minOrder = LeftOrder, const int maxOrder = RightOrder)
+            : group(group), minOrder(minOrder), maxOrder(maxOrder),
+              order(static_cast<int32_t>((static_cast<int64_t>(minOrder) + static_cast<int64_t>(maxOrder)) / 2))
         {
             assert(minOrder <= maxOrder && "最大顺序不能小于最小顺序！");
+        }
+        System(System* system, const OrderRelation orderRelation)
+            : System(system->group,
+                     orderRelation == OrderRelation::Before ? system->minOrder : system->order,
+                     orderRelation == OrderRelation::Before ? system->order : system->maxOrder)
+        {
         }
         virtual ~System() = default;
         System(System& system) = delete;
@@ -53,12 +64,12 @@ namespace Light
     class SystemGroup : public System
     {
     public:
-        SystemGroup(SystemGroup* group, const int order)
-            : System(group, order)
+        SystemGroup(SystemGroup* group, const int minOrder = LeftOrder, const int maxOrder = RightOrder)
+            : System(group, minOrder, maxOrder)
         {
         }
-        SystemGroup(SystemGroup* group, const int minOrder, const int maxOrder)
-            : System(group, minOrder, maxOrder)
+        SystemGroup(System* system, const OrderRelation orderRelation)
+            : System(system, orderRelation)
         {
         }
 
@@ -101,12 +112,12 @@ namespace Light
         std::function<void()> onStop = nullptr;
         std::function<void()> onUpdate = nullptr;
 
-        SystemEvent(SystemGroup* group, const int order)
-            : System(group, order)
+        SystemEvent(SystemGroup* group, const int minOrder = LeftOrder, const int maxOrder = RightOrder)
+            : System(group, minOrder, maxOrder)
         {
         }
-        SystemEvent(SystemGroup* group, const int minOrder, const int maxOrder)
-            : System(group, minOrder, maxOrder)
+        SystemEvent(System* system, const OrderRelation orderRelation)
+            : System(system, orderRelation)
         {
         }
 

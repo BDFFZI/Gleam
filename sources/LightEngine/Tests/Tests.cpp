@@ -6,10 +6,10 @@
 
 using namespace Light;
 
-class CustomSystem : public System
+class MySystem : public System
 {
 public:
-    CustomSystem(): System(nullptr)
+    MySystem(): System(SimulationSystem)
     {
     }
 
@@ -32,8 +32,8 @@ public:
 private:
     int countDown = 3;
 };
-Light_MakeSystem(CustomSystem)
-Light_AddSystems(CustomSystem)
+Light_MakeSystem(MySystem)
+Light_AddSystems(MySystem)
 
 TEST(Engine, Start)
 {

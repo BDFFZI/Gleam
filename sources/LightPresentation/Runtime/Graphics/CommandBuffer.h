@@ -2,7 +2,7 @@
 #include <stack>
 #include "Material.h"
 #include "RenderTarget.h"
-#include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
+#include "../GL/Pipeline/GLCommandBuffer.h"
 #include "LightMath/Runtime/Matrix.hpp"
 
 namespace Light

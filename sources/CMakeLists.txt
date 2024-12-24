@@ -12,7 +12,6 @@ macro(initProject nameSuffix)
     # 禁用部分文件的误编译
     set(SpecialFiles ${ProjectFiles})
     list(FILTER SpecialFiles INCLUDE REGEX ".*\.(hlsl|obj)")
-    message("特殊文件：${SpecialFiles}")
     set_property(SOURCE ${SpecialFiles} PROPERTY VS_SETTINGS "ExcludedFromBuild=true")
     # 创建vs筛选器
     source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES "${ProjectFiles}")

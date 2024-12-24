@@ -1,13 +1,13 @@
 ﻿#pragma once
 #include <memory>
 
-#include "LightGL/Runtime/Resource/GLBuffer.h"
+#include "../GL/Resource/GLBuffer.h"
 #include "LightImport/Runtime/ModelImporter.h"
 #include <cassert>
 
 #include "GraphicsAssets.h"
 #include "GraphicsPreset.h"
-#include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
+#include "../GL/Pipeline/GLCommandBuffer.h"
 
 namespace Light
 {

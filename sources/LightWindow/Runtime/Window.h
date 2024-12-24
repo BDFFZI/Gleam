@@ -11,7 +11,7 @@ namespace Light
     class Window : public SystemGroup
     {
     public:
-        Window(): SystemGroup(nullptr, LeftOrder, MiddleOrder)
+        Window(): SystemGroup(SimulationSystem, OrderRelation::Before)
         {
         }
 
@@ -47,6 +47,7 @@ namespace Light
         friend void GlfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     };
     Light_MakeSystem(Window)
+    Light_AddSystems(Window)
 
     void GlfwWindowFocusCallback(GLFWwindow* window, int focused);
     void GlfwCursorEnterCallback(GLFWwindow* window, int entered);

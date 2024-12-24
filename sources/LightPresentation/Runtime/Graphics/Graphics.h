@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "CommandBuffer.h"
 #include "GraphicsPreset.h"
-#include "LightGL/Runtime/GL.h"
+#include "../GL/GL.h"
 #include "LightUtility/Runtime/ObjectPool.hpp"
 
 namespace Light

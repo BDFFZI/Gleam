@@ -1,9 +1,10 @@
 ﻿#include <chrono>
 #include <GLFW/glfw3.h>
+#include <gtest/gtest.h>
 
-#include "LightGL/Runtime/GL.h"
-#include "LightGL/Runtime/Pipeline/GLSwapChain.h"
-#include "LightGL/Runtime/Resource/GLImageView.h"
+#include "LightPresentation/Runtime/GL/GL.h"
+#include "LightPresentation/Runtime/GL/Pipeline/GLSwapChain.h"
+#include "LightPresentation/Runtime/GL/Resource/GLImageView.h"
 
 #include "LightImport/Runtime/ImageImporter.h"
 #include "LightImport/Runtime/ModelImporter.h"
@@ -308,8 +309,7 @@ public:
     }
 };
 
-// TEST(GLTests, ALL)
-void main()
+TEST(Presentation, GL)
 {
     constexpr uint32_t WIDTH = 800;
     constexpr uint32_t HEIGHT = 600;

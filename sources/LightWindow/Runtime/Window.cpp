@@ -1,25 +1,10 @@
 ﻿#include "Window.h"
-#include <exception>
 
-#include "Input.h"
-#include "Time.h"
+#include <algorithm>
+#include <exception>
 #include "LightEngine/Runtime/Engine.h"
 
 using namespace Light;
-
-ModuleRegister WindowModuleRegister = {
-    {Window, Time, Input},
-    []
-    {
-        if (glfwInit() == false)
-            throw std::exception("窗口初始化失败");
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); //使用vulkan，故去除glfw自带的接口
-    },
-    []
-    {
-        glfwTerminate();
-    }
-};
 
 int2 Window::GetResolution() const
 {
@@ -49,7 +34,11 @@ void Window::SetFullScreen(const bool fullscreen) const
 
 void Window::Start()
 {
-    //初始化配置
+    if (glfwInit() == false)
+        throw std::exception("窗口初始化失败");
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); //使用vulkan，故去除glfw自带的接口
+    
+    //默认窗口配置
     // ReSharper disable CppLocalVariableMayBeConst
     const char* name = "Window";
     int width = 1920 / 2;
@@ -76,6 +65,8 @@ void Window::Stop()
     SystemGroup::Stop();
 
     glfwDestroyWindow(glfwWindow);
+
+    glfwTerminate();
 }
 void Window::Update()
 {

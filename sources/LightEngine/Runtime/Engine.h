@@ -4,6 +4,15 @@
 
 namespace Light
 {
+    class SimulationSystem : public SystemGroup
+    {
+    public:
+        SimulationSystem(): SystemGroup(nullptr, LeftOrder, RightOrder)
+        {
+        }
+    };
+    Light_MakeSystem(SimulationSystem)
+
     class Engine
     {
     public:
@@ -17,7 +26,7 @@ namespace Light
         inline static std::vector<std::function<void()>> unInitEvents;
         inline static bool isStopping = false;
     };
-    
+
     class ModuleRegister
     {
     public:
