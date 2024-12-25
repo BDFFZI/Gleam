@@ -12,6 +12,7 @@ namespace Light
     {
     public:
         Texture2D(int width, int height, VkFormat format, const void* data, size_t size, bool mipChain = false);
+        Texture2D(int width, int height, VkFormat format, std::initializer_list<std::byte> data, bool mipChain = false);
         Texture2D(float4 color);
         Texture2D(const char* fileName);
 

@@ -1,58 +1,53 @@
-#include "LightGraphics/Runtime/Graphics.h"
+#include "LightMath/Runtime/Graphics/Color.hpp"
 #include "LightUI/Runtime/UI.h"
+#include "LightUI/Runtime/UISystem.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Window.h"
 
 using namespace Light;
 
-void DrawUI()
+class MySystem : public System
 {
-    ImGui::ShowDemoWindow();
-    ImGui::Image(UI::CreateImage(), float2(50));
-}
+public:
+    MySystem(): System(UISystem)
+    {
+    }
+
+private:
+    ImTextureID textureID = {};
+    std::unique_ptr<Texture2D> texture = {};
+
+    void Start() override
+    {
+        color colors[] = {
+            color::White(), color::Black(), color::Red(),
+            color::Green(), color::Blue(), color::Gray(),
+            color::Yellow(), color::Magenta(), color::LightRed(),
+        };
+        texture = std::make_unique<Texture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, colors, sizeof(colors));
+        textureID = UI::CreateTexture(*texture);
+    }
+    void Stop() override
+    {
+        UI::DeleteTexture(textureID);
+        texture.reset();
+    }
+
+    void Update() override
+    {
+        ImGui::ShowDemoWindow();
+        ImGui::Image(textureID, float2(50));
+
+        //逻辑处理
+        if (Input->GetKeyDown(KeyCode::Esc))
+            Engine::Stop();
+    }
+};
+Light_MakeSystem(MySystem)
+Light_AddSystems(MySystem)
 
 int main()
 {
-    Window window = Window::Initialize("Tests", 800, 600, false);
-    GL gl = GL::Initialize(Window::GetGlfwWindow());
-    Graphics graphics = Graphics::Initialize(gl);
-    UI::Initialize(window, graphics);
-
-    Window::SetWindowUpdateEvent([]()
-    {
-        //逻辑处理
-        if (Input::GetKeyDown(KeyCode::Esc))
-        {
-            Window::Stop();
-            return;
-        }
-
-        GLCommandBuffer* presentCommandBuffer;
-        if (Graphics::BeginPresent(&presentCommandBuffer) == false)
-            return;
-
-        CommandBuffer& commandBuffer = Graphics::ApplyCommandBuffer();
-        commandBuffer.BeginRecording();
-        commandBuffer.BeginRendering(Graphics::GetPresentRenderTarget(), true);
-
-        UI::BeginFrame();
-        DrawUI();
-        UI::EndFrame(commandBuffer.GetGLCommandBuffer());
-
-        commandBuffer.EndRendering();
-        commandBuffer.EndRecording();
-
-        presentCommandBuffer->ExecuteSubCommands(commandBuffer.GetGLCommandBuffer());
-        Graphics::EndPresent(*presentCommandBuffer);
-        Graphics::WaitPresent();
-
-        Graphics::ReleaseCommandBuffer(commandBuffer);
-    });
-    Window::Start();
-
-    UI::UnInitialize();
-    Graphics::UnInitialize();
-    GL::UnInitialize();
-
+    Engine::Start();
     return 0;
 }

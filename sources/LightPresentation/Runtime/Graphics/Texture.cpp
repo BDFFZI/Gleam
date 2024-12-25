@@ -14,6 +14,11 @@ namespace Light
         glImageView = imageView.get();
         glImageSampler = GraphicsPreset::DefaultGLImageSampler.get();
     }
+    Texture2D::Texture2D(const int width, const int height, const VkFormat format,
+                         const std::initializer_list<std::byte> data, const bool mipChain)
+        : Texture2D(width, height, format, data.begin(), data.size(), mipChain)
+    {
+    }
     Texture2D::Texture2D(const float4 color)
         : Texture2D(1, 1, VK_FORMAT_R8G8B8A8_SRGB,
                     std::initializer_list{
