@@ -40,6 +40,13 @@ namespace Light
     }
     void SwapChain::EndPresent(GLCommandBuffer& presentCommandBuffer)
     {
+        //确保呈现目标当前布局为呈现源布局
+        presentCommandBuffer.TransitionImageLayout(
+            GetPresentRenderTarget().glFinalImage,
+            VK_IMAGE_LAYOUT_UNDEFINED, GetPresentRenderTarget().glFinalLayout,
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        
         presentCommandBuffer.EndRecording();
 
         //提交命令

@@ -29,5 +29,4 @@ namespace Light
         void Update() override;
     };
     Light_MakeSystem(Time)
-    Light_AddSystems(Time)
 }

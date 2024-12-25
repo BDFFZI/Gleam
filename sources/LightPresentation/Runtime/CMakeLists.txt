@@ -1,6 +1,5 @@
 ﻿addModule()
 
-linkModule(LightEngine)
 linkModule(LightWindow)
 linkModule(LightUtility)
 

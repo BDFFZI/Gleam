@@ -8,28 +8,16 @@ operator Light::float4()const{return Light::float4{x,y,z,w};}
 #include <imgui.h>
 // ReSharper restore CppUnusedIncludeDirective
 
-#include <imgui_impl_glfw.h>
-#include "LightGraphics/Runtime/Graphics.h"
-#include "LightWindow/Runtime/Input.h"
+#include "LightPresentation/Runtime/Graphics/GraphicsAssets.h"
 
 namespace Light
 {
     class UI
     {
     public:
-        static UI Initialize(Window&, Graphics&);
-        static void UnInitialize();
-        static void BeginFrame();
-        static void EndFrame(GLCommandBuffer& commandBuffer);
-
         static ImTextureID CreateTexture(TextureAsset& texture);
         static void DeleteTexture(ImTextureID texture);
 
         static float2 GetWindowContentRegionSize();
-
-    private:
-        inline static std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = {};
-        inline static std::unique_ptr<GLDescriptorPool> descriptorPool = {};
-        UI() = default;
     };
 }
