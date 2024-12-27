@@ -30,3 +30,8 @@ namespace Light
         isStopping = true;
     }
 }
+
+int main()
+{
+    Light::Engine::Start();
+}
