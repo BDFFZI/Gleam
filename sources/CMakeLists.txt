@@ -1,8 +1,9 @@
-macro(initProject nameSuffix)
+macro(initProject)
     # 获取项目名
+    cmake_path(GET CMAKE_CURRENT_SOURCE_DIR FILENAME ModuleSuffix)
     cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH TargetModulePath)
     cmake_path(GET TargetModulePath FILENAME ModuleName)
-    set(ProjectName "${ModuleName}${nameSuffix}")
+    set(ProjectName "${ModuleName}${ModuleSuffix}")
 
     # 设置项目信息
     set(${ProjectName} TRUE CACHE BOOL "特定项目是否存在")
@@ -26,35 +27,38 @@ macro(initProject nameSuffix)
     message("添加项目：${ProjectName}")
 endmacro()
 
-# runtime静态库项目
-macro(addModule)
-    initProject("Runtime")
+# 静态库项目
+macro(addLibrary)
+    initProject()
     add_library(${ProjectName} STATIC "${ProjectFiles}")
 endmacro()
 
-# editor静态库项目
+# 静态库项目（编辑器）
 macro(addEditor)
-    initProject("Editor")
-    add_library(${ProjectName} STATIC "${ProjectFiles}")
+    addLibrary()
 
-    # 引用对应的runtime静态库
-    linkLibrary(${ModuleName} "Runtime")
+    # 引用运行时库
+    target_link_libraries(${ProjectName} PRIVATE "${ModuleName}Runtime")
 endmacro()
 
-# 测试用可执行项目
-macro(addTests)
-    initProject("Tests")
+# 可执行文件项目
+macro(addExecutable)
+    initProject()
+    add_executable(${ProjectName} "${ProjectFiles}")
 
-    # 创建初始化文件，用于初始化依赖的模块
+    # 创建初始化文件，用于初始化依赖库
     set(ProjectInitFile "${CMAKE_CURRENT_BINARY_DIR}/__Init__.cpp")
     file(WRITE ${ProjectInitFile} "// ReSharper disable CppUnusedIncludeDirective\n")
     list(APPEND ProjectFiles ${ProjectInitFile})
+endmacro()
 
-    add_executable(${ProjectName} "${ProjectFiles}")
+# 测试项目
+macro(addTests)
+    addExecutable()
 
-    # 引用对应的测试目标库
-    linkLibrary(${ModuleName} "Runtime")
-    linkLibrary(${ModuleName} "Editor")
+    # 引用测试目标库
+    string(REPLACE "Tests" "" TargetLibrary ${ProjectName})
+    target_link_libraries(${ProjectName} PRIVATE ${TargetLibrary})
 
     # 引用测试用的基本库（gtest和benchmark）
     find_package(GTest CONFIG REQUIRED)
@@ -64,30 +68,16 @@ macro(addTests)
 endmacro()
 
 # 链接目标库并添加到项目初始化文件
-macro(linkLibrary ModuleName SubFolder)
-    set(LibraryName "${ModuleName}${SubFolder}")
+macro(linkLibrary LibraryName)
+    target_link_libraries(${ProjectName} PRIVATE ${LibraryName})
 
-    # 目标库是否存在
-    if(DEFINED ${LibraryName})
-        # 存在，添加库依赖
-        target_link_libraries(${ProjectName} PRIVATE ${LibraryName})
+    # 若项目为可执行项目，还需负责编译库的初始化文件
+    get_target_property(ProjectType ${ProjectName} TYPE)
 
-        # 若项目为可执行项目，还需负责编译库的初始化文件
-        get_target_property(ProjectType ${ProjectName} TYPE)
-
-        if(${ProjectType} STREQUAL "EXECUTABLE")
-            set(LibraryInitFile "${${LibraryName}Source}/__Init__.h")
-            if(EXISTS ${LibraryInitFile})
-                file(APPEND ${ProjectInitFile} "#include \"${LibraryInitFile}\"\n")
-            endif()
-        endif()
+    if(${ProjectType} STREQUAL "EXECUTABLE")
+        set(LibraryInitFile "${${LibraryName}Source}/__Init__.h")
+        file(APPEND ${ProjectInitFile} "#include \"${LibraryInitFile}\"\n")
     endif()
-endmacro()
-
-# 添加模块对应的runtime和editor，并在需要时编写初始化文件自动初始化模块
-macro(linkModule ModuleName)
-    linkLibrary(${ModuleName} "Runtime")
-    linkLibrary(${ModuleName} "Editor")
 endmacro()
 
 # 递归添加子目录的函数

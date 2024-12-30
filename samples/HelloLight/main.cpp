@@ -17,7 +17,7 @@
 
 int main()
 {
-    Light::Engine::Launch();
+    Light::Engine::Start();
 
     return 0;
 }

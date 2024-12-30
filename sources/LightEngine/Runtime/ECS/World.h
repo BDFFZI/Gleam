@@ -102,7 +102,7 @@ namespace Light
         static void Update();
 
     private:
-        friend struct HierarchyWindow;
+        friend class HierarchyWindow;
         inline static uint32_t nextEntity = 1;
         inline static std::unordered_map<const Archetype*, Heap> entities = {};
         inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
