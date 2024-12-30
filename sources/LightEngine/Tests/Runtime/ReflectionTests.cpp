@@ -1,21 +1,17 @@
 ﻿#include <iostream>
 #include <thread>
-#include <LightEngine/Runtime/Engine.h>
 
-#include <deque>
 #include <fstream>
 #include <ostream>
-#include <sstream>
 #include <string>
 #include <typeindex>
 #include <gtest/gtest.h>
 #include <ranges>
-
-#include "LightMath/Runtime/VectorMath.hpp"
-#include "LightMath/Runtime/Vector.hpp"
 #include "LightEngine/Runtime/Reflection/Type.hpp"
 #include "LightEngine/Runtime/Reflection/Serialization/BinaryReader.h"
 #include "LightEngine/Runtime/Reflection/Serialization/BinaryWriter.h"
+#include "LightMath/Runtime/Vector.hpp"
+#include "LightMath/Runtime/VectorMath.hpp"
 
 using namespace Light;
 

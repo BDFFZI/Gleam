@@ -1,3 +1,5 @@
+#include <gtest/gtest.h>
+
 #include "LightMath/Runtime/Graphics/Color.hpp"
 #include "LightUI/Runtime/UI.h"
 #include "LightUI/Runtime/UISystem.h"
@@ -46,8 +48,7 @@ private:
 Light_MakeSystem(MySystem)
 Light_AddSystems(MySystem)
 
-int main()
+TEST(UI, Main)
 {
     Engine::Start();
-    return 0;
 }

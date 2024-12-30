@@ -1,6 +1,6 @@
-﻿addModule()
+﻿addProject()
 
-linkModule(LightMath)
+linkLibrary(LightMathRuntime)
 
 find_package(Stb REQUIRED)
 target_include_directories("${ProjectName}" PRIVATE ${Stb_INCLUDE_DIR})

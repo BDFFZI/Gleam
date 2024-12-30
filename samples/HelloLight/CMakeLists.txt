@@ -1,3 +1,3 @@
 addProject()
 
-linkModule(LightEngine)
+linkLibrary(LightEngine)

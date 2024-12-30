@@ -1,9 +1,13 @@
+function(getProjectName in_path out_projectName)
+    file(RELATIVE_PATH relative_path "${CMAKE_SOURCE_DIR}/sources" ${in_path})
+    string(REPLACE "/" "" projectName ${relative_path})
+    set(${out_projectName} ${projectName} PARENT_SCOPE)
+endfunction()
+
 macro(initProject)
     # 获取项目名
-    cmake_path(GET CMAKE_CURRENT_SOURCE_DIR FILENAME ModuleSuffix)
-    cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH TargetModulePath)
-    cmake_path(GET TargetModulePath FILENAME ModuleName)
-    set(ProjectName "${ModuleName}${ModuleSuffix}")
+    getProjectName(${CMAKE_CURRENT_SOURCE_DIR} ProjectName)
+    message("添加项目：${ProjectName}")
 
     # 设置项目信息
     set(${ProjectName} TRUE CACHE BOOL "特定项目是否存在")
@@ -23,51 +27,60 @@ macro(initProject)
 
     # 创建vs筛选器
     source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES "${ProjectFiles}")
-
-    message("添加项目：${ProjectName}")
 endmacro()
 
-# 静态库项目
-macro(addLibrary)
-    initProject()
+# 库项目
+macro(setLibrary)
     add_library(${ProjectName} STATIC "${ProjectFiles}")
 endmacro()
 
-# 静态库项目（编辑器）
-macro(addEditor)
-    addLibrary()
-
-    # 引用运行时库
-    target_link_libraries(${ProjectName} PRIVATE "${ModuleName}Runtime")
-endmacro()
-
 # 可执行文件项目
-macro(addExecutable)
-    initProject()
-    add_executable(${ProjectName} "${ProjectFiles}")
-
+macro(setExecutable)
     # 创建初始化文件，用于初始化依赖库
     set(ProjectInitFile "${CMAKE_CURRENT_BINARY_DIR}/__Init__.cpp")
     file(WRITE ${ProjectInitFile} "// ReSharper disable CppUnusedIncludeDirective\n")
     list(APPEND ProjectFiles ${ProjectInitFile})
+
+    add_executable(${ProjectName} "${ProjectFiles}")
 endmacro()
 
-# 测试项目
-macro(addTests)
-    addExecutable()
+macro(addProject)
+    initProject()
 
-    # 引用测试目标库
-    string(REPLACE "Tests" "" TargetLibrary ${ProjectName})
-    target_link_libraries(${ProjectName} PRIVATE ${TargetLibrary})
+    if(ProjectName MATCHES ".*Tests.*")
+        setExecutable()
 
-    # 引用测试用的基本库（gtest和benchmark）
-    find_package(GTest CONFIG REQUIRED)
-    target_link_libraries(${ProjectName} PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
-    find_package(benchmark CONFIG REQUIRED)
-    target_link_libraries(${ProjectName} PRIVATE benchmark::benchmark)
+        # 引用测试用的基本库（gtest和benchmark）
+        find_package(GTest CONFIG REQUIRED)
+        target_link_libraries(${ProjectName} PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+        find_package(benchmark CONFIG REQUIRED)
+        target_link_libraries(${ProjectName} PRIVATE benchmark::benchmark)
+
+        # 引用测试目标库
+        string(REPLACE "Tests" "" TargetLibrary ${ProjectName})
+        linkLibrary(${TargetLibrary})
+    else()
+        setLibrary()
+
+        if(ProjectName MATCHES ".*Editor.*")
+            # 引用运行时库
+            string(REPLACE "Editor" "Runtime" TargetLibrary ${ProjectName})
+            linkLibrary(${TargetLibrary})
+        endif()
+    endif()
+
+    # 分类到解决方案目录
+    cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH ParentPath)
+    file(RELATIVE_PATH relative_path "${CMAKE_SOURCE_DIR}/sources" ${ParentPath}) # 使用相对路径分类
+    set(SolutionFolder "LightSources/${relative_path}")
+    set_target_properties(${ProjectName} PROPERTIES FOLDER ${SolutionFolder})
+
+    # 简化项目名称（不知道为什么没有效果）
+    # cmake_path(GET CMAKE_CURRENT_SOURCE_DIR FILENAME DirectoryName)
+    # set_target_properties(${ProjectName} PROPERTIES OUTPUT_NAME ${DirectoryName})
 endmacro()
 
-# 链接目标库并添加到项目初始化文件
+# 链接目标库并在需要时自动保护库初始化文件
 macro(linkLibrary LibraryName)
     target_link_libraries(${ProjectName} PRIVATE ${LibraryName})
 
@@ -76,50 +89,34 @@ macro(linkLibrary LibraryName)
 
     if(${ProjectType} STREQUAL "EXECUTABLE")
         set(LibraryInitFile "${${LibraryName}Source}/__Init__.h")
-        file(APPEND ${ProjectInitFile} "#include \"${LibraryInitFile}\"\n")
+        if(EXISTS ${LibraryInitFile})
+            file(APPEND ${ProjectInitFile} "#include \"${LibraryInitFile}\"\n")
+        endif()
     endif()
 endmacro()
 
 # 递归添加子目录的函数
-macro(add_subdirectories_recursive current_dir)
+function(add_subdirectories_recursive current_dir)
     file(GLOB children RELATIVE ${current_dir} ${current_dir}/*) # 获取当前目录下的所有文件和文件夹的相对路径
 
     foreach(child ${children}) # 遍历所有目标
+        set(DirectoryPath "${current_dir}/${child}")
+
         # 跳过非文件夹
-        if(NOT IS_DIRECTORY ${current_dir}/${child})
+        if(NOT IS_DIRECTORY ${DirectoryPath})
             continue()
         endif()
 
-        # 计算该项目对应的解决方案文件夹分类
-        file(RELATIVE_PATH relative_path ${CMAKE_CURRENT_SOURCE_DIR} ${current_dir}) # 使用相对路径分类
-        set(SolutionFolder "LightModules/${relative_path}/${child}")
+        if(EXISTS "${DirectoryPath}/CMakeLists.txt")
+            # 添加目录
+            add_subdirectory(${DirectoryPath})
 
-        set(IsModuleFolder FALSE)
-
-        if(EXISTS "${current_dir}/${child}/Runtime/CMakeLists.txt")
-            add_subdirectory(${current_dir}/${child}/Runtime)
-            set_target_properties(${child}Runtime PROPERTIES FOLDER ${SolutionFolder})
-            set(IsModuleFolder TRUE)
-        endif()
-
-        if(EXISTS "${current_dir}/${child}/Tests/CMakeLists.txt")
-            add_subdirectory(${current_dir}/${child}/Tests)
-            set_target_properties(${child}Tests PROPERTIES FOLDER ${SolutionFolder})
-            set(IsModuleFolder TRUE)
-        endif()
-
-        if(EXISTS "${current_dir}/${child}/Editor/CMakeLists.txt")
-            add_subdirectory(${current_dir}/${child}/Editor)
-            set_target_properties(${child}Editor PROPERTIES FOLDER ${SolutionFolder})
-            set(IsModuleFolder TRUE)
-        endif()
-
-        # 对于其他文件夹需递归检查
-        if(NOT IsModuleFolder)
+        else()
+            # 递归检查目录
             add_subdirectories_recursive(${current_dir}/${child})
         endif()
     endforeach()
-endmacro()
+endfunction()
 
 # 从当前目录开始递归添加子目录
 add_subdirectories_recursive(${CMAKE_CURRENT_SOURCE_DIR})

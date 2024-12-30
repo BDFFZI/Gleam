@@ -1,0 +1,3 @@
+addProject()
+
+linkLibrary(LightMathRuntime)

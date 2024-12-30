@@ -19,7 +19,10 @@ public:
     }
     void Update() override
     {
-        myData++;
+        countDown--;
+        std::cout << "CountDown: " << countDown << std::endl;
+        if (countDown == 0)
+            Engine::Stop();
     }
     void Stop() override
     {
@@ -27,7 +30,7 @@ public:
     }
 
 private:
-    int myData = 0;
+    int countDown = 3;
 };
 Light_MakeSystem(MySystem)
 Light_AddSystems(MySystem)

@@ -1,4 +1,4 @@
-﻿addModule()
+﻿addProject()
 
-linkModule(LightPresentation)
-linkModule(LightMath)
+linkLibrary(LightPresentationRuntime)
+linkLibrary(LightMathRuntime)

@@ -10,7 +10,7 @@ macro(addProject)
     source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES "${ALL_FILE}")
 endmacro()
 
-macro(linkModule ModuleName)
+macro(linkLibrary ModuleName)
     target_link_libraries(${ProjectName} PRIVATE ${ModuleName})
     # # 复制模块的Assets文件夹内容到项目文件夹
     # if(EXISTS "${CMAKE_SOURCE_DIR}/sources/${ModuleName}/Assets")

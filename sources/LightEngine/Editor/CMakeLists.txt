@@ -1,3 +1,3 @@
-﻿addEditor()
+﻿addProject()
 
-# linkModule(LightUI)
+linkLibrary(LightUIRuntime)

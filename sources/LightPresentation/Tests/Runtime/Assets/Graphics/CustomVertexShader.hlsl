@@ -1,4 +1,4 @@
-#include "../../../Runtime/Assets/Graphics.hlsl"
+#include "../../../../Runtime/Assets/Graphics.hlsl"
 
 struct WireVertex
 {
