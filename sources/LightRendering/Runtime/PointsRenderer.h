@@ -1,0 +1,4 @@
+﻿struct my_struct
+{
+    
+};
