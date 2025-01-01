@@ -17,7 +17,6 @@ namespace Light
         MakeTransfer(std::vector<std::byte>)
         MakeTransfer(size_t)
         MakeTransfer(uint32_t)
-        MakeTransfer(uint32_t)
     #undef MakeTransfer
 
         throw std::runtime_error("不支持的传输类型！");

@@ -18,6 +18,13 @@ namespace Light
     {
     public:
         virtual ~Serializer() = default;
+        virtual void Transfer(void* value, std::type_index type) = 0;
+        virtual void PushPath(const char* name)
+        {
+        }
+        virtual void PopPath()
+        {
+        }
 
         template <class TValue>
         void TransferField(const char* name, TValue& value)
@@ -30,14 +37,6 @@ namespace Light
         void Transfer(TValue& value)
         {
             SerializerTransfer<TValue>::Invoke(*this, value);
-        }
-
-        virtual void Transfer(void* value, std::type_index type) = 0;
-        virtual void PushPath(const char* name)
-        {
-        }
-        virtual void PopPath()
-        {
         }
     };
     static_assert(Transferrer<Serializer>);

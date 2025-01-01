@@ -10,6 +10,7 @@
     "stb",
     "tinyobjloader",
     "stduuid",
+    "rapidjson",
     {
       "name": "imgui",
       "features": [

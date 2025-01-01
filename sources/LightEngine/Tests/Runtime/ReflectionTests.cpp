@@ -7,9 +7,12 @@
 #include <typeindex>
 #include <gtest/gtest.h>
 #include <ranges>
+#include <rapidjson/prettywriter.h>
 #include "LightEngine/Runtime/Reflection/Type.hpp"
 #include "LightEngine/Runtime/Reflection/Serialization/BinaryReader.h"
 #include "LightEngine/Runtime/Reflection/Serialization/BinaryWriter.h"
+#include "LightEngine/Runtime/Reflection/Serialization/JsonReader.h"
+#include "LightEngine/Runtime/Reflection/Serialization/JsonWriter.h"
 #include "LightMath/Runtime/Vector.hpp"
 #include "LightMath/Runtime/VectorMath.hpp"
 
@@ -22,7 +25,9 @@ struct Data
     int intValue;
     float floatValue;
     std::string stringValue;
-    std::vector<bool> vectorValue;
+    std::vector<int> vectorValue;
+    std::vector<bool> boolVectorValue;
+    std::vector<std::byte> bytesValue;
     float3 customValue;
 
     friend bool operator==(const Data& lhs, const Data& rhs)
@@ -35,6 +40,18 @@ struct Data
             && lhs.vectorValue == rhs.vectorValue
             && all(lhs.customValue == rhs.customValue);
     }
+    void Transfer(Serializer& serializer)
+    {
+        serializer.TransferField("boolValue", boolValue);
+        serializer.TransferField("charValue", charValue);
+        serializer.TransferField("intValue", intValue);
+        serializer.TransferField("floatValue", floatValue);
+        serializer.TransferField("stringValue", stringValue);
+        serializer.TransferField("vectorValue", vectorValue);
+        serializer.TransferField("boolVectorValue", boolVectorValue);
+        serializer.TransferField("bytesValue", bytesValue);
+        serializer.TransferField("customValue", customValue);
+    }
 };
 
 template <class Type, int Number>
@@ -46,32 +63,46 @@ struct SerializerTransfer<vector<Type, Number>>
             transferrer.Transfer(value.data[i]);
     }
 };
+Data oldData = {true,
+    'A', 1, 0.5f, "Hello World!",
+    {3, 2, 1},
+    {false, true},
+    {static_cast<std::byte>(1), static_cast<std::byte>(2), static_cast<std::byte>(3), static_cast<std::byte>(4)},
+    {1, 2, 3}};
 
-TEST(Reflection, BinaryTransferrer)
+TEST(Reflection, BinarySerializer)
 {
     std::ofstream outStream("test.bin", std::ios::binary);
     BinaryWriter binaryWriter = {outStream};
-    Data oldData = {true, 'A', 1, 0.5f, "Hello World!", {false, true}, {1, 2, 3}};
-    binaryWriter.TransferField("boolValue", oldData.boolValue);
-    binaryWriter.TransferField("charValue", oldData.charValue);
-    binaryWriter.TransferField("intValue", oldData.intValue);
-    binaryWriter.TransferField("floatValue", oldData.floatValue);
-    binaryWriter.TransferField("stringValue", oldData.stringValue);
-    binaryWriter.TransferField("vectorValue", oldData.vectorValue);
-    binaryWriter.TransferField("customValue", oldData.customValue);
+
+    oldData.Transfer(binaryWriter);
     outStream.close();
 
     std::ifstream inStream("test.bin", std::ios::binary);
     BinaryReader binaryReader = {inStream};
     Data newData = {};
-    binaryReader.TransferField("boolValue", newData.boolValue);
-    binaryReader.TransferField("charValue", newData.charValue);
-    binaryReader.TransferField("intValue", newData.intValue);
-    binaryReader.TransferField("floatValue", newData.floatValue);
-    binaryReader.TransferField("stringValue", newData.stringValue);
-    binaryReader.TransferField("vectorValue", newData.vectorValue);
-    binaryReader.TransferField("customValue", newData.customValue);
+    newData.Transfer(binaryReader);
     inStream.close();
+
+    ASSERT_EQ(newData, oldData);
+}
+
+TEST(Reflection, JsonSerializer)
+{
+    rapidjson::Document document;
+    document.Parse("{}");
+
+    JsonWriter jsonWriter = {document};
+    oldData.Transfer(jsonWriter);
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter writer(buffer);
+    document.Accept(writer);
+    std::cout << buffer.GetString() << std::endl;
+
+    JsonReader jsonReader = {document};
+    Data newData = {};
+    newData.Transfer(jsonReader);
 
     ASSERT_EQ(newData, oldData);
 }
