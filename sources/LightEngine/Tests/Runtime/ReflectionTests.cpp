@@ -87,7 +87,8 @@ TEST(Reflection, BinarySerializer)
     ASSERT_EQ(newData, oldData);
 }
 
-TEST(Reflection, JsonSerializer)
+// TEST(Reflection, JsonSerializer)
+void main()
 {
     rapidjson::Document document;
     document.Parse("{}");

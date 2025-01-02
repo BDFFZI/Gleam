@@ -2,6 +2,7 @@
 #include <typeindex>
 #include <vector>
 #include <string>
+#include <format>
 
 #include "../Transferrer.hpp"
 
@@ -18,13 +19,6 @@ namespace Light
     {
     public:
         virtual ~Serializer() = default;
-        virtual void Transfer(void* value, std::type_index type) = 0;
-        virtual void PushPath(const char* name)
-        {
-        }
-        virtual void PopPath()
-        {
-        }
 
         template <class TValue>
         void TransferField(const char* name, TValue& value)
@@ -37,6 +31,18 @@ namespace Light
         void Transfer(TValue& value)
         {
             SerializerTransfer<TValue>::Invoke(*this, value);
+        }
+
+    protected:
+        template <class TValue>
+        friend struct SerializerTransfer;
+
+        virtual void Transfer(void* value, std::type_index type) = 0;
+        virtual void PushPath(const char* name)
+        {
+        }
+        virtual void PopPath()
+        {
         }
     };
     static_assert(Transferrer<Serializer>);
@@ -58,8 +64,15 @@ namespace Light
             value.resize(size);
 
             serializer.PushPath("data");
+
+            int itemIndex = 0;
             for (auto it = std::begin(value); it != std::end(value); ++it)
+            {
+                serializer.PushPath(std::format("item{}", itemIndex++).c_str());
                 serializer.Transfer(*it);
+                serializer.PopPath();
+            }
+
             serializer.PopPath();
         }
     };
@@ -73,12 +86,17 @@ namespace Light
             value.resize(size);
 
             serializer.PushPath("data");
+
+            int itemIndex = 0;
             for (auto it : value)
             {
+                serializer.PushPath(std::format("item{}", itemIndex++).c_str());
                 bool element = it;
                 serializer.Transfer(element);
                 it = element;
+                serializer.PopPath();
             }
+
             serializer.PopPath();
         }
     };

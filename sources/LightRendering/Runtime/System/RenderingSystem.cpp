@@ -12,7 +12,7 @@ namespace Light
         SystemGroup::Start();
     }
     void RenderingSystem::Stop()
-    {
+    lit{
         SystemGroup::Stop();
     }
     void RenderingSystem::Update()

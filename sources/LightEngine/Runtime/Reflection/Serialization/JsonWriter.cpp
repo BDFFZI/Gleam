@@ -6,28 +6,18 @@ namespace Light
 {
     void JsonWriter::Transfer(void* value, const std::type_index type)
     {
-#define MakeTransfer(valueType,function)\
-        if (type == typeid(valueType))\
-        {\
-            valueType##& originalValue = *static_cast<valueType##*>(value);\
-            nodePath.top()->function;\
-            return;\
-        }
-        MakeTransfer(float, SetFloat(originalValue))
-        MakeTransfer(int, SetInt(originalValue))
-        MakeTransfer(bool, SetBool(originalValue))
-        MakeTransfer(char, SetInt(originalValue))
-        MakeTransfer(std::string, SetString(originalValue.data(), originalValue.size(), allocator))
-        MakeTransfer(size_t, SetUint64(originalValue))
-        MakeTransfer(uint32_t, SetUint(originalValue))
-#undef MakeTransfer
-        
-        if (type == typeid(std::vector<std::byte>))
-        {
-            std::vector<std::byte>& originalValue = *static_cast<std::vector<std::byte>*>(value);
-            std::string stringValue = String::EncodingBase64(originalValue);
-            nodePath.top()->SetString(stringValue.data(), static_cast<uint32_t>(stringValue.size()), allocator);
-        }
+#define MakeTransfer(valueType) if (type == typeid(valueType)){Write(*static_cast<valueType##*>(value));return;}
+        MakeTransfer(float)
+        MakeTransfer(int)
+        MakeTransfer(bool)
+        MakeTransfer(char)
+        MakeTransfer(std::string)
+        MakeTransfer(std::vector<std::byte>)
+        MakeTransfer(size_t)
+        MakeTransfer(uint32_t)
+    #undef MakeTransfer
+
+        throw std::runtime_error("不支持的传输类型！");
     }
     void JsonWriter::PushPath(const char* name)
     {
@@ -40,7 +30,7 @@ namespace Light
             name, static_cast<rapidjson::SizeType>(strlen(name)), allocator);
         //添加字段
         currentNode.AddMember(keyString, 0, allocator);
-        
+
         nodePath.push(&currentNode[name]);
     }
     void JsonWriter::PopPath()
