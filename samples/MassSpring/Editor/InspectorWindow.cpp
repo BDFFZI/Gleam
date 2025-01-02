@@ -28,11 +28,11 @@ namespace Light
 
             ImGui::Text(path.top());
         }
-        void PushPath(const char* name) override
+        void PushNode(const char* name) override
         {
             path.push(name);
         }
-        void PopPath() override
+        void PopNode() override
         {
             path.pop();
         }

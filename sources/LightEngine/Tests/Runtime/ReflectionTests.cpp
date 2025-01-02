@@ -9,10 +9,10 @@
 #include <ranges>
 #include <rapidjson/prettywriter.h>
 #include "LightEngine/Runtime/Reflection/Type.hpp"
-#include "LightEngine/Runtime/Reflection/Serialization/BinaryReader.h"
-#include "LightEngine/Runtime/Reflection/Serialization/BinaryWriter.h"
-#include "LightEngine/Runtime/Reflection/Serialization/JsonReader.h"
-#include "LightEngine/Runtime/Reflection/Serialization/JsonWriter.h"
+#include "LightEngine/Runtime/Reflection/Serialization/BinaryReader.hpp"
+#include "LightEngine/Runtime/Reflection/Serialization/BinaryWriter.hpp"
+#include "LightEngine/Runtime/Reflection/Serialization/JsonReader.hpp"
+#include "LightEngine/Runtime/Reflection/Serialization/JsonWriter.hpp"
 #include "LightMath/Runtime/Vector.hpp"
 #include "LightMath/Runtime/VectorMath.hpp"
 
@@ -55,14 +55,17 @@ struct Data
 };
 
 template <class Type, int Number>
-struct SerializerTransfer<vector<Type, Number>>
+struct Light::SerializerTransfer<vector<Type, Number>>
 {
-    static void Invoke(Serializer& transferrer, vector<Type, Number>& value)
+    static void Invoke(Serializer& serializer, const char* name, vector<Type, Number>& value)
     {
+        serializer.PushNode(name, Serializer::NodeType::Array);
         for (int i = 0; i < Number; i++)
-            transferrer.Transfer(value.data[i]);
+            serializer.Transfer(value.data[i]);
+        serializer.PopNode();
     }
 };
+
 Data oldData = {true,
     'A', 1, 0.5f, "Hello World!",
     {3, 2, 1},
@@ -87,8 +90,7 @@ TEST(Reflection, BinarySerializer)
     ASSERT_EQ(newData, oldData);
 }
 
-// TEST(Reflection, JsonSerializer)
-void main()
+TEST(Reflection, JsonSerializer)
 {
     rapidjson::Document document;
     document.Parse("{}");
@@ -104,7 +106,7 @@ void main()
     JsonReader jsonReader = {document};
     Data newData = {};
     newData.Transfer(jsonReader);
-
+    
     ASSERT_EQ(newData, oldData);
 }
 
