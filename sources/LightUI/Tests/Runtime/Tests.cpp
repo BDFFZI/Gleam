@@ -21,10 +21,10 @@ private:
 
     void Start() override
     {
-        color colors[] = {
-            color::White(), color::Black(), color::Red(),
-            color::Green(), color::Blue(), color::Gray(),
-            color::Yellow(), color::Magenta(), color::LightRed(),
+        Color colors[] = {
+            Color::White(), Color::Black(), Color::Red(),
+            Color::Green(), Color::Blue(), Color::Gray(),
+            Color::Yellow(), Color::Magenta(), Color::LightRed(),
         };
         texture = std::make_unique<Texture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, colors, sizeof(colors));
         textureID = UI::CreateTexture(*texture);

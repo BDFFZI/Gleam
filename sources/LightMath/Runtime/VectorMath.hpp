@@ -30,7 +30,7 @@ return temp;\
 }
 
 #define Light_MakeVectorFunction_SymbolV2V(Symbol,Type,Number)\
-constexpr vector<Type, Number> operator##Symbol##(vector<Type, Number>& a)\
+constexpr vector<Type, Number> operator##Symbol##(const vector<Type, Number>& a)\
 {\
 vector<Type, Number> result;\
 for (int i = 0; i < (Number); i++)\

@@ -13,7 +13,7 @@ namespace Light
     {
         static void Invoke(Serializer& serializer, const char* name, TValue& value);
     };
-
+    
     class Serializer
     {
     public:

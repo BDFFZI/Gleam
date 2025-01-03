@@ -35,9 +35,14 @@ namespace Light
             throw std::logic_error("未实现类型传输函数！");
         }
     };
+#define Light_MakeType_Friend \
+    template <typename T,Transferrer TTransferrer>\
+    friend struct TypeTransfer;
 
     struct Type
     {
+        
+
         using Construct = void (*)(void* address);
         using Serialize = void (*)(Serializer&, void*);
 
@@ -49,7 +54,7 @@ namespace Light
         static Type& Register(const char* uuidStr)
         {
             std::unique_ptr<Type>& type = allTypes.emplace_back(new Type());
-            
+
             uuids::uuid uuid = uuids::uuid::from_string(uuidStr).value_or(uuids::uuid());
             uuidToType.insert({uuid, type.get()});
             indexToType.insert({typeid(T), type.get()});

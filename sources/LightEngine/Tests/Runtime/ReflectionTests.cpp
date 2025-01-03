@@ -106,7 +106,7 @@ TEST(Reflection, JsonSerializer)
     JsonReader jsonReader = {document};
     Data newData = {};
     newData.Transfer(jsonReader);
-    
+
     ASSERT_EQ(newData, oldData);
 }
 
