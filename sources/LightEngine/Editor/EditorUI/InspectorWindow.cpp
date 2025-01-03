@@ -2,12 +2,12 @@
 
 #include "EditorUIUtility.h"
 #include "LightEngine/Runtime/Reflection/Type.hpp"
-#include "LightEngine/Runtime/Reflection/Serialization/Serializer.hpp"
+#include "LightEngine/Runtime/Reflection/Serialization/DataTransferrer.hpp"
 #include "LightUI/Runtime/UI.h"
 
 namespace Light
 {
-    class EditorUISerializer : public Serializer
+    class EditorUISerializer : public DataTransferrer
     {
     public:
         void Transfer(void* value, const std::type_index type) override

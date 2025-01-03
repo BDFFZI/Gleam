@@ -6,7 +6,7 @@
 
 namespace Light
 {
-    class EditorUISerializer : public Serializer
+    class EditorUISerializer : public DataTransferrer
     {
     public:
         void Transfer(void* value, const std::type_index type) override

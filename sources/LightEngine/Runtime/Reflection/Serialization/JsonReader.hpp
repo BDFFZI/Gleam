@@ -1,10 +1,7 @@
 #pragma once
 #include <stack>
-#include <typeindex>
 #include <rapidjson/document.h>
-
 #include "JsonSerializer.hpp"
-#include "Serializer.hpp"
 #include "LightEngine/Runtime/Utility/String.h"
 
 namespace Light
@@ -16,39 +13,75 @@ namespace Light
         {
         }
 
-        void Transfer(void* value, const std::type_index type) override
+        void PushNode(const char* name, const DataType dataType) override
         {
-            JsonSerializer::Transfer(value, type);
-            Light_Transfer_Inner(Transfer)
-            throw std::runtime_error("不支持的传输类型！");
-        }
-        void PushNode(const char* name, const NodeType nodeType) override
-        {
-            JsonSerializer::PushNode(name, nodeType);
+            DataType wrapDataType = dataTypes.top();
+            int& wrapItemIndex = itemIndices.top();
+            rapidjson::Value& wrap = *nodes.top();
 
-            nodes.push(&nodes.top()->operator[](name));
+            rapidjson::Value* currentNode;
+
+            if (name == nullptr && wrapDataType == DataType::Field) //重设旧节点类型
+                currentNode = nodes.top();
+            else //进入新节点
+            {
+                wrapItemIndex++; //当前获取的成员在容器中的索引
+                if (wrapDataType == DataType::Class) //在类中基于名称获取成员
+                {
+                    currentNode = &wrap[name];
+                }
+                else if (wrapDataType == DataType::Array) //在数组中基于索引创建成员
+                {
+                    currentNode = &wrap.GetArray()[wrapItemIndex];
+                }
+                else
+                {
+                    throw std::runtime_error("在非容器结构中获取成员！");
+                }
+            }
+
+            PushStruct(currentNode, dataType);
+        }
+        void PopNode() override
+        {
+            PopStruct();
         }
 
         template <class TValue>
-        void Transfer(TValue& value)
+        void TransferT(TValue& value)
         {
-            if (nodeTypes.top() == NodeType::Array)
+            if (dataTypes.top() == DataType::Array)
+            {
+                itemIndices.top()++;
                 value = nodes.top()->GetArray()[itemIndices.top()].Get<TValue>();
+            }
             else
                 value = nodes.top()->Get<TValue>();
         }
-        void Transfer(std::string& value)
+
+        void Transfer(double& value) override { TransferT(value); }
+        void Transfer(int64_t& value) override { TransferT(value); }
+        void Transfer(std::string& value) override
         {
-            if (nodeTypes.top() == NodeType::Array)
+            if (dataTypes.top() == DataType::Array)
+            {
+                itemIndices.top()++;
                 value = nodes.top()->GetArray()[itemIndices.top()].GetString();
+            }
             else
                 value = nodes.top()->GetString();
         }
-        void Transfer(std::vector<std::byte>& value)
+        void Transfer(std::vector<std::byte>& value) override
         {
             Transfer(buffer);
             String::DecodingBase64(buffer, value);
         }
+
+        void Transfer(float& value) override { TransferT(value); }
+        void Transfer(int32_t& value) override { TransferT(value); }
+        void Transfer(uint64_t& value) override { TransferT(value); }
+        void Transfer(uint32_t& value) override { TransferT(value); }
+        void Transfer(bool& value) override { TransferT(value); }
 
     private:
         std::string buffer = {};

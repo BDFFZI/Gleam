@@ -1,46 +1,41 @@
 #pragma once
 #include <stack>
 
-#include "Serializer.hpp"
-
 namespace Light
 {
-    class JsonSerializer : public Serializer
+    class JsonSerializer : public DataTransferrer
     {
     public:
-        JsonSerializer(JsonSerializer&) = delete;
-
-    protected:
         JsonSerializer(rapidjson::Document& document)
-            : allocator(document.GetAllocator()), nodes({&document})
+            : dataTypes({DataType::Class}),
+              itemIndices({-1}),
+              nodes({&document}),
+              allocator(&document.GetAllocator())
         {
         }
 
-        std::stack<NodeType> nodeTypes;
-        std::stack<int> itemIndices;
+    protected:
+        std::stack<DataType> dataTypes = {};
+        std::stack<int> itemIndices = {};
         std::stack<rapidjson::Value*> nodes;
-        rapidjson::Document::AllocatorType& allocator;
+        rapidjson::Document::AllocatorType* allocator;
 
         rapidjson::GenericValue<rapidjson::UTF8<>> CreateString(std::string_view string) const
         {
             return {
                 string.data(),
                 static_cast<rapidjson::SizeType>(string.size()),
-                allocator};
+                *allocator};
         }
-
-        void Transfer(void* value, std::type_index type) override
+        void PushStruct(rapidjson::Value* data, const DataType dataType)
         {
-            itemIndices.top()++;
-        }
-        void PushNode(const char* name, const NodeType nodeType) override
-        {
-            nodeTypes.push(nodeType);
+            dataTypes.push(dataType);
             itemIndices.push(-1);
+            nodes.push(data);
         }
-        void PopNode() override
+        void PopStruct()
         {
-            nodeTypes.pop();
+            dataTypes.pop();
             itemIndices.pop();
             nodes.pop();
         }

@@ -31,14 +31,14 @@ namespace Light
         std::vector<int> assetIDs;
         std::unordered_set<int> assetIDsSet;
 
-        void Transfer(Serializer& serializer);
+        void Transfer(DataTransferrer& serializer);
     };
 
 
     template <>
     struct SerializerTransfer<AssetBundle>
     {
-        static void Invoke(Serializer& serializer, const char* name, TValue& value)
+        static void Invoke(DataTransferrer& serializer, const char* name, TValue& value)
         {
         }
     };

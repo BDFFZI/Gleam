@@ -2,9 +2,7 @@
 
 #include <stack>
 #include <rapidjson/document.h>
-
 #include "JsonSerializer.hpp"
-#include "Serializer.hpp"
 #include "LightEngine/Runtime/Utility/String.h"
 
 namespace Light
@@ -16,50 +14,85 @@ namespace Light
         {
         }
 
-        void Transfer(void* value, const std::type_index type) override
+        void PushNode(const char* name, const DataType dataType) override
         {
-            JsonSerializer::Transfer(value, type);
-            Light_Transfer_Inner(Transfer)
-            throw std::runtime_error("不支持的传输类型！");
+            DataType wrapDataType = dataTypes.top();
+            int& wrapItemIndex = itemIndices.top();
+            rapidjson::Value& wrap = *nodes.top();
+
+            rapidjson::Value* currentNode;
+            if (name == nullptr && wrapDataType == DataType::Field) //重设旧节点类型
+            {
+                currentNode = nodes.top();
+            }
+            else //创建新节点 
+            {
+                wrapItemIndex++; //新节点在容器中的索引
+                if (wrapDataType == DataType::Class) //在类中基于名称创建成员
+                {
+                    rapidjson::GenericValue key = CreateString(name);
+                    wrap.AddMember(key, 0, *allocator);
+                    currentNode = &wrap[name];
+                }
+                else if (wrapDataType == DataType::Array) //在数组中基于索引创建成员
+                {
+                    wrap.PushBack(0, *allocator);
+                    currentNode = &wrap.GetArray()[wrapItemIndex];
+                }
+                else
+                {
+                    throw std::runtime_error("在非容器结构中创建成员！");
+                }
+            }
+
+            if (dataType == DataType::Array)
+                currentNode->SetArray();
+            else if (dataType == DataType::Class)
+                currentNode->SetObject();
+
+            PushStruct(currentNode, dataType);
         }
-        void PushNode(const char* name, const NodeType nodeType) override
+        void PopNode() override
         {
-            JsonSerializer::PushNode(name, nodeType);
-
-            rapidjson::Value& parentNode = *nodes.top(); //获取父节点
-            rapidjson::GenericValue<rapidjson::UTF8<>> keyString(
-                name, static_cast<rapidjson::SizeType>(strlen(name)), allocator); //创建节点名
-            parentNode.AddMember(keyString, 0, allocator); //创建节点
-
-            rapidjson::Value& currentNode = parentNode[name];
-            if (nodeType == NodeType::Array)
-                currentNode.SetArray();
-            else if (nodeType == NodeType::Class)
-                currentNode.SetObject();
-            nodes.push(&currentNode);
+            PopStruct();
         }
 
         template <class TValue>
-        void Transfer(const TValue& value)
+        void TransferT(const TValue& value)
         {
-            if (nodeTypes.top() == NodeType::Array)
-                nodes.top()->PushBack(value, allocator);
+            if (dataTypes.top() == DataType::Array)
+            {
+                itemIndices.top()++;
+                nodes.top()->PushBack(value, *allocator);
+            }
             else
                 nodes.top()->Set<TValue>(value);
         }
-        void Transfer(const std::string& value)
+
+        void Transfer(double& value) override { TransferT(value); }
+        void Transfer(int64_t& value) override { TransferT(value); }
+        void Transfer(std::string& value) override
         {
             rapidjson::GenericValue genericValue = CreateString(value);
-            if (nodeTypes.top() == NodeType::Array)
-                nodes.top()->PushBack(genericValue, allocator);
+            if (dataTypes.top() == DataType::Array)
+            {
+                itemIndices.top()++;
+                nodes.top()->PushBack(genericValue, *allocator);
+            }
             else
-                nodes.top()->SetString(value.data(), static_cast<rapidjson::SizeType>(value.size()), allocator);
+                nodes.top()->SetString(value.data(), static_cast<rapidjson::SizeType>(value.size()), *allocator);
         }
-        void Transfer(const std::vector<std::byte>& value)
+        void Transfer(std::vector<std::byte>& value) override
         {
             String::EncodingBase64(value, buffer);
             Transfer(buffer);
         }
+
+        void Transfer(float& value) override { TransferT(value); }
+        void Transfer(int32_t& value) override { TransferT(value); }
+        void Transfer(uint64_t& value) override { TransferT(value); }
+        void Transfer(uint32_t& value) override { TransferT(value); }
+        void Transfer(bool& value) override { TransferT(value); }
 
     private:
         std::string buffer = {};
