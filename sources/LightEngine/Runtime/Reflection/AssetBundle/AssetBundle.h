@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <stduuid/uuid.h>
 
 #include "../Type.hpp"
 #include "LightEngine/Runtime/Utility/Random.h"
@@ -18,6 +19,7 @@ namespace Light
     {
     public:
         static void Save(AssetBundle& assetBundle);
+        static 
         static void Load(AssetBundle& assetBundle);
 
         void AddAsset(void* asset, Type* assetType);
@@ -26,6 +28,9 @@ namespace Light
     private:
         Light_MakeType_Friend
 
+        static std::unordered_map<uuids::uuid,std::>
+
+        uuids::uuid bundleID;
         std::vector<void*> assets;
         std::vector<Type*> assetTypes;
         std::vector<int> assetIDs;
