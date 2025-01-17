@@ -1,6 +1,6 @@
 #include "InspectorWindow.h"
 #include "EditorUIUtility.h"
-#include "LightEngine/Runtime/ECS/World.h"
+#include "LightECS/Runtime/World.h"
 #include "LightEngine/Runtime/Reflection/Type.hpp"
 #include "LightUI/Runtime/UI.h"
 

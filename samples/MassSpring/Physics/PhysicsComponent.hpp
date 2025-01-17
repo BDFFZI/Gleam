@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "LightEngine/Runtime/ECS/Reference.hpp"
+#include "LightECS/Runtime/Reference.hpp"
 #include "LightMath/Runtime/Vector.hpp"
 #include "LightEngine/Runtime/Reflection/Type.hpp"
 #include "../Public/Component.hpp"

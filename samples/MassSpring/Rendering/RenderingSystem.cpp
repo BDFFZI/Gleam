@@ -1,6 +1,6 @@
 #include "RenderingSystem.h"
 #include "RenderingComponent.hpp"
-#include "LightEngine/Runtime/ECS/View.hpp"
+#include "LightECS/Runtime/View.hpp"
 #include "../Public/Component.hpp"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightGraphics/Runtime/SwapChain.h"

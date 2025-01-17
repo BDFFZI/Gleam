@@ -1,3 +1,0 @@
-﻿addProject()
-
-linkLibrary(LightUIRuntime)

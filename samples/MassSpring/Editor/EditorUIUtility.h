@@ -1,8 +1,8 @@
 #pragma once
 #include <typeindex>
 
-#include "LightEngine/Runtime/ECS/System.h"
-#include "LightEngine/Runtime/ECS/_Concept.hpp"
+#include "LightECS/Runtime/System.h"
+#include "LightECS/Runtime/_Concept.hpp"
 #include "LightEngine/Runtime/Reflection/Serialization/DataTransferrer.hpp"
 
 namespace Light

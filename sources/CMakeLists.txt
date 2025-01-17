@@ -1,24 +1,32 @@
-function(getProjectName in_path out_projectName)
+function(parseRelativeDir in_path out_dir)
     file(RELATIVE_PATH relative_path "${CMAKE_SOURCE_DIR}/sources" ${in_path})
+    set(${out_dir} ${relative_path} PARENT_SCOPE)
+endfunction()
+
+function(parseName in_path out_projectName)
+    parseRelativeDir(${in_path} relative_path)
     string(REPLACE "/" "" projectName ${relative_path})
     set(${out_projectName} ${projectName} PARENT_SCOPE)
 endfunction()
 
-macro(initProject)
-    # 获取项目名
-    getProjectName(${CMAKE_CURRENT_SOURCE_DIR} ProjectName)
+# 创建一个新项目
+macro(addProject subName)
+    # 获取路径和名称信息
+    set(ProjectSource "${PackageSource}/${subName}")
+    set(ProjectBinary "${PackageBinary}/${subName}")
+    set(ProjectName "${PackageName}${subName}")
     message("添加项目：${ProjectName}")
 
-    # 设置项目信息
+    # 存储项目信息
     set(${ProjectName} TRUE CACHE BOOL "特定项目是否存在")
-    set(${ProjectName}Source ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "特定项目的SOURCE目录")
-    set(${ProjectName}Binary ${CMAKE_CURRENT_BINARY_DIR} CACHE STRING "特定项目的BINARY目录")
+    set(${ProjectName}Source ${ProjectSource} CACHE STRING "特定项目的SOURCE目录")
+    set(${ProjectName}Binary ${ProjectBinary} CACHE STRING "特定项目的SOURCE目录")
 
     # 创建项目
     project(${ProjectName})
 
     # 获取项目文件
-    file(GLOB_RECURSE ProjectFiles "*.*")
+    file(GLOB_RECURSE ProjectFiles "${ProjectSource}/*.*")
 
     # 禁用部分文件的误编译
     set(SpecialFiles ${ProjectFiles})
@@ -26,76 +34,97 @@ macro(initProject)
     set_property(SOURCE ${SpecialFiles} PROPERTY VS_SETTINGS "ExcludedFromBuild=true")
 
     # 创建vs筛选器
-    source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES "${ProjectFiles}")
+    source_group(TREE "${ProjectSource}" FILES "${ProjectFiles}")
 endmacro()
 
-# 库项目
-macro(setLibrary)
-    add_library(${ProjectName} STATIC "${ProjectFiles}")
-endmacro()
-
-# 可执行文件项目
-macro(setExecutable)
-    # 创建初始化文件，用于初始化依赖库
-    set(ProjectInitFile "${CMAKE_CURRENT_BINARY_DIR}/__Init__.cpp")
-    file(WRITE ${ProjectInitFile} "// ReSharper disable CppUnusedIncludeDirective\n")
-    list(APPEND ProjectFiles ${ProjectInitFile})
-
-    add_executable(${ProjectName} "${ProjectFiles}")
-endmacro()
-
-macro(addProject)
-    initProject()
-
-    if(ProjectName MATCHES ".*Tests.*")
-        setExecutable()
-
-        # 引用测试用的基本库（gtest和benchmark）
-        find_package(GTest CONFIG REQUIRED)
-        target_link_libraries(${ProjectName} PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
-        find_package(benchmark CONFIG REQUIRED)
-        target_link_libraries(${ProjectName} PRIVATE benchmark::benchmark)
-
-        # 引用测试目标库
-        string(REPLACE "Tests" "" TargetLibrary ${ProjectName})
-        linkLibrary(${TargetLibrary})
-    else()
-        setLibrary()
-
-        if(ProjectName MATCHES ".*Editor.*")
-            # 引用运行时库
-            string(REPLACE "Editor" "Runtime" TargetLibrary ${ProjectName})
-            linkLibrary(${TargetLibrary})
-        endif()
-    endif()
-
-    # 分类到解决方案目录
-    cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH ParentPath)
-    file(RELATIVE_PATH relative_path "${CMAKE_SOURCE_DIR}/sources" ${ParentPath}) # 使用相对路径分类
+# 设置vs属性
+macro(setVS)
+    # 设置项目所在的解决方案目录
+    cmake_path(GET ProjectSource PARENT_PATH ParentPath)
+    parseRelativeDir(${ParentPath} relative_path) # 使用相对路径分类
     set(SolutionFolder "LightSources/${relative_path}")
     set_target_properties(${ProjectName} PROPERTIES FOLDER ${SolutionFolder})
 
-    # 简化项目名称（不知道为什么没有效果）
-    # cmake_path(GET CMAKE_CURRENT_SOURCE_DIR FILENAME DirectoryName)
-    # set_target_properties(${ProjectName} PROPERTIES OUTPUT_NAME ${DirectoryName})
+    # 设置工作目录
+    set_property(TARGET ${ProjectName} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+endmacro()
+
+# 设置项目为库
+macro(setLibrary)
+    add_library(${ProjectName} STATIC "${ProjectFiles}")
+    setVS()
+endmacro()
+
+# 设置项目为可执行文件
+macro(setExecutable)
+    # 额外生成初始化文件，用于初始化依赖库
+    set(ProjectInitFile "${ProjectSource}/__Init__.cpp")
+    file(WRITE ${ProjectInitFile} "// ReSharper disable CppUnusedIncludeDirective\n")
+    list(INSERT ProjectFiles 0 ${ProjectInitFile})
+
+    add_executable(${ProjectName} "${ProjectFiles}")
+    setVS()
+endmacro()
+
+# 设置项目为测试
+macro(setTests)
+    setExecutable()
+
+    # 引用测试用的基本库（gtest和benchmark）
+    find_package(GTest CONFIG REQUIRED)
+    target_link_libraries(${ProjectName} PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
+    find_package(benchmark CONFIG REQUIRED)
+    target_link_libraries(${ProjectName} PRIVATE benchmark::benchmark)
+
+    # 引用测试目标库
+    string(REPLACE "Tests" "" TargetLibrary ${ProjectName})
+    linkLibrary(${TargetLibrary} ${ProjectName})
+endmacro()
+
+macro(addPackage)
+    set(PackageSource ${CMAKE_CURRENT_SOURCE_DIR})
+    set(PackageBinary ${CMAKE_CURRENT_BINARY_DIR})
+    cmake_path(GET PackageSource FILENAME PackageName)
+    message("添加包：${PackageName}")
+
+    if(EXISTS "${PackageSource}/Runtime")
+        addProject("Runtime")
+        setLibrary()
+    endif()
+
+    if(EXISTS "${PackageSource}/Editor")
+        addProject("Editor")
+        setLibrary()
+    endif()
+
+    if(EXISTS "${PackageSource}/RuntimeTests")
+        addProject("RuntimeTests")
+        setTests()
+    endif()
+
+    if(EXISTS "${PackageSource}/EditorTests")
+        addProject("EditorTests")
+        setTests()
+    endif()
 endmacro()
 
 # 链接目标库并在需要时自动保护库初始化文件
-macro(linkLibrary LibraryName)
+function(linkLibrary LibraryName ProjectName)
     target_link_libraries(${ProjectName} PRIVATE ${LibraryName})
+    set(LibrarySource ${${LibraryName}Source}) # 获取库的源文件路径
+    get_target_property(ProjectType ${ProjectName} TYPE) # 获取项目类型
 
     # 若项目为可执行项目，还需负责编译库的初始化文件
-    get_target_property(ProjectType ${ProjectName} TYPE)
-
     if(${ProjectType} STREQUAL "EXECUTABLE")
-        set(LibraryInitFile "${${LibraryName}Source}/__Init__.h")
+        set(LibraryInitFile "${LibrarySource}/__Init__.h")
+
         if(EXISTS ${LibraryInitFile})
             file(APPEND ${ProjectInitFile} "#include \"${LibraryInitFile}\"\n")
         endif()
     endif()
-endmacro()
+endfunction()
 
-# 递归添加子目录的函数
+# 运行子目录中的所有CMakeLists.txt
 function(add_subdirectories_recursive current_dir)
     file(GLOB children RELATIVE ${current_dir} ${current_dir}/*) # 获取当前目录下的所有文件和文件夹的相对路径
 
@@ -118,5 +147,4 @@ function(add_subdirectories_recursive current_dir)
     endforeach()
 endfunction()
 
-# 从当前目录开始递归添加子目录
 add_subdirectories_recursive(${CMAKE_CURRENT_SOURCE_DIR})

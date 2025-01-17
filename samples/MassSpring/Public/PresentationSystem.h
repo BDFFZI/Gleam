@@ -1,5 +1,5 @@
 #pragma once
-#include "LightEngine/Runtime/ECS/System.h"
+#include "LightECS/Runtime/System.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 #include "LightGraphics/Runtime/CommandBuffer.h"
 

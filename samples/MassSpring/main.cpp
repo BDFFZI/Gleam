@@ -6,7 +6,7 @@
 #include "Editor/GameWindow.h"
 #include "Editor/HierarchyWindow.h"
 #include "Editor/InspectorWindow.h"
-#include "LightEngine/Runtime/ECS/World.h"
+#include "LightECS/Runtime/World.h"
 #include "LightGL/Runtime/GL.h"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightUI/Runtime/UI.h"
