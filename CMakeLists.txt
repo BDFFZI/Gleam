@@ -8,8 +8,7 @@ include_directories("${CMAKE_SOURCE_DIR}/sources/libraries")
 include_directories("${CMAKE_SOURCE_DIR}/sources/Modules")
 
 project(Light)
-add_subdirectory("sources")
-add_subdirectory("samples")
+include(CreateProject.cmake)
 
 # 同步所有Assets文件夹
 file(GLOB_RECURSE ResourcesPaths LIST_DIRECTORIES true "sources/[!.]" "samples/[!.]")
@@ -20,3 +19,28 @@ foreach(ResourcesPath ${ResourcesPaths})
     file(COPY ${ResourcesPath} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     message("复制资源：${ResourcesPath}")
 endforeach()
+
+# 运行子目录中的所有CMakeLists.txt
+function(add_subdirectories_recursive current_dir)
+    file(GLOB children RELATIVE ${current_dir} ${current_dir}/*) # 获取当前目录下的所有文件和文件夹的相对路径
+
+    foreach(child ${children}) # 遍历所有目标
+        set(DirectoryPath "${current_dir}/${child}")
+
+        # 跳过非文件夹
+        if(NOT IS_DIRECTORY ${DirectoryPath})
+            continue()
+        endif()
+
+        if(EXISTS "${DirectoryPath}/CMakeLists.txt")
+            # 添加目录
+            add_subdirectory(${DirectoryPath})
+
+        else()
+            # 递归检查目录
+            add_subdirectories_recursive(${current_dir}/${child})
+        endif()
+    endforeach()
+endfunction()
+
+add_subdirectories_recursive(${CMAKE_CURRENT_SOURCE_DIR})

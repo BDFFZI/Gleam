@@ -1,3 +1,3 @@
 addProject()
 
-linkLibrary(LightEngine)
+linkLibrary(LightEngineRuntime ${ProjectName})
