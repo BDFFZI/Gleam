@@ -8,7 +8,7 @@ namespace Light
 
     template <class TFunction, class... TComponents>
     concept ViewIteratorWithEntity = requires(TFunction function, Entity& entity, TComponents&... components) { function(entity, components...); };
-    
+
     /**
      * @brief 针对实体堆的检视工具
      * 
@@ -45,7 +45,7 @@ namespace Light
             {
                 for (std::unique_ptr<Archetype>& archetype : Archetype::allArchetypes)
                 {
-                    if (archetype->Contains<TComponents...>())
+                    if (archetype->IsMatched<TComponents...>())
                     {
                         targetArchetypes.emplace_back(archetype.get());
                         targetComponentOffsets.emplace_back(archetype->MemoryMap<TComponents...>());
@@ -64,13 +64,10 @@ namespace Light
             {
                 const Archetype& archetype = *targetArchetypes[i];
                 const std::array<int, sizeof...(TComponents)>& componentOffset = targetComponentOffsets[i];
-
-                Heap* entityHeap = World::GetEntityHeap(archetype);
-                if (entityHeap != nullptr)
-                    entityHeap->ForeachElements([function,componentOffset](std::byte* item)
-                    {
-                        function(*reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
-                    });
+                World::GetEntityHeap(archetype).ForeachElements([function,componentOffset](std::byte* item)
+                {
+                    function(*reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
+                });
             }
         }
         template <class TFunction, size_t... Indices> requires ViewIteratorWithEntity<TFunction, TComponents...>
@@ -81,13 +78,10 @@ namespace Light
             {
                 const Archetype& archetype = *targetArchetypes[i];
                 const std::array<int, sizeof...(TComponents)>& componentOffset = targetComponentOffsets[i];
-
-                Heap* entityHeap = World::GetEntityHeap(archetype);
-                if (entityHeap != nullptr)
-                    entityHeap->ForeachElements([function,componentOffset](std::byte* item)
-                    {
-                        function(*reinterpret_cast<Entity*>(item), *reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
-                    });
+                World::GetEntityHeap(archetype).ForeachElements([function,componentOffset](std::byte* item)
+                {
+                    function(*reinterpret_cast<Entity*>(item), *reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
+                });
             }
         }
     };

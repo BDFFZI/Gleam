@@ -22,12 +22,14 @@ namespace Light
     class World
     {
     public:
-        static Heap* GetEntityHeap(const Archetype& archetype)
+        static Heap& GetEntityHeap(const Archetype& archetype)
         {
             auto iterator = entities.find(&archetype);
-            if (iterator == entities.end())
-                return nullptr;
-            return &iterator->second;
+            if (iterator != entities.end())
+                return iterator->second;
+
+            entities.insert({&archetype, Heap(archetype.size)});
+            return entities.at(&archetype);
         }
         static EntityInfo GetEntityInfo(Entity entity);
 
@@ -40,21 +42,16 @@ namespace Light
             SetComponents(entity, components...);
             return entity;
         }
-        static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
-        static void MoveEntity(Entity entity, const Archetype& newArchetype);
         static void RemoveEntity(Entity& entity);
-        // /**
-        //  * 为实体打上特殊标记。
-        //  * 
-        //  * 1. 被标记的实体将会被隐藏，查询时必须提供对应的标记才可获取到。
-        //  * 2. 可以利用该功能轻松实现不同状态的实体管理，例如待唤醒/待回收/禁用中的实体。
-        //  */
-        // template <Component TMark>
-        // static void MarkEntity(const Entity entity)
-        // {
-        //     EntityInfo& entityInfo = entityInfos.at(entity);
-        //     entityInfo.archetype
-        // }
+        static void MoveEntity(Entity entity, const Archetype& newArchetype);
+        /**
+         * MarkEntity是一种简单的MoveEntity实现，它假定新旧原型的数据存储布局是完全一样的，从而直接进行内存复制。
+         * @param entity 
+         * @param markArchetype 
+         */
+        static void MarkEntity(Entity entity, const Archetype& markArchetype);
+
+        static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
 
         static bool HasSystem(System& system);
         static void AddSystem(System& system);
@@ -62,15 +59,6 @@ namespace Light
         static void RemoveSystem(System& system);
         static void RemoveSystems(std::initializer_list<System*> systems);
 
-        static Heap& GetEntities(const Archetype& archetype)
-        {
-            auto iterator = entities.find(&archetype);
-            if (iterator != entities.end())
-                return iterator->second;
-
-            entities.insert({&archetype, Heap(archetype.size)});
-            return entities.at(&archetype);
-        }
         template <Component TComponent>
         static TComponent& GetComponent(const Entity entity)
         {
@@ -121,9 +109,14 @@ namespace Light
         inline static uint32_t nextEntity = 1;
         inline static std::unordered_map<const Archetype*, Heap> entities = {};
         inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
-        inline static std::unordered_map<System*, int> systems = {};
-        inline static SystemGroup systemGroup = {nullptr, System::LeftOrder, System::RightOrder};
+        inline static SystemGroup systems = {nullptr, System::LeftOrder, System::RightOrder};
+        inline static std::unordered_map<System*, int> systemUsageCount = {};
 
+        /**
+         * 将实体从堆中移除并自动修正因此被迁移的实体信息
+         * @param archetype 
+         * @param index
+         */
         static void RemoveHeapItem(const Archetype& archetype, int index);
     };
 }

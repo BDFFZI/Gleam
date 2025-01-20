@@ -15,11 +15,11 @@ namespace Light
         ImGui::SeparatorText("Details");
         if (ImGui::CollapsingHeader("System"))
         {
-            EditorUIUtility::DrawSystemGroup(World::systemGroup);
+            EditorUIUtility::DrawSystemGroup(World::systems);
         }
         if (ImGui::CollapsingHeader("Archetype"))
         {
-            for (auto& [archetype,heap] : World::entities)
+            for (auto& [archetype,heap] : World::markedEntities)
             {
                 if (ImGui::TreeNode(archetype->name))
                 {

@@ -7,14 +7,18 @@ namespace Light
           elementCount(0)
     {
     }
-    
-    void Heap::AddElement(const std::function<void(std::byte* address)>& setValue)
+
+    std::byte* Heap::AddElement()
     {
         elementCount += 1;
         ResizeHeaps();
-
+        return At(elementCount - 1);
+    }
+    void Heap::AddElement(const std::function<void(std::byte* address)>& setValue)
+    {
+        std::byte* element = AddElement();
         if (setValue != nullptr)
-            setValue(At(elementCount - 1));
+            setValue(element);
     }
     void Heap::AddElements(const int count, const std::function<void(int number, std::byte* address)>& setValue)
     {
@@ -24,7 +28,7 @@ namespace Light
         if (setValue != nullptr)
             ForeachElements(elementCount - count, count, setValue);
     }
-    
+
     std::byte* Heap::RemoveElement(const int index)
     {
         std::byte* item = At(index);
@@ -46,7 +50,7 @@ namespace Light
         elementCount -= count;
         ResizeHeaps();
     }
-    
+
     void Heap::ForeachElements(const int index, int count, const std::function<void(int itemIndex, std::byte* item)>& iterator) const
     {
         int heapIndex;
@@ -90,7 +94,7 @@ namespace Light
             memcpy(destination + itemIndex * elementSize, item, elementSize);
         });
     }
-    
+
     void Heap::ResizeHeaps()
     {
         size_t occupiedChunkCount = elementCount / chunkElementCount + 1; //必须块数

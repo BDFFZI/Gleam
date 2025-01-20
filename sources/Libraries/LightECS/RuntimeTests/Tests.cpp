@@ -8,6 +8,7 @@
 #include "LightECS/Runtime/Heap.h"
 #include "LightECS/Runtime/View.hpp"
 #include "LightMath/Runtime/VectorMath.hpp"
+#include "LightUtility/Runtime/Utility.hpp"
 
 using namespace Light;
 
@@ -49,8 +50,8 @@ struct SpringPhysics
     }
 };
 
-MakeArchetype(physicsArchetype, Transform, RigidBody)
-MakeArchetype(physicsWithSpringArchetype, Transform, RigidBody, SpringPhysics)
+Light_MakeArchetype(physicsArchetype, Transform, RigidBody)
+Light_MakeArchetypeChild(physicsWithSpringArchetype, physicsArchetype, SpringPhysics)
 
 TEST(ECS, Heap)
 {
@@ -387,23 +388,38 @@ system1->Stop
 )");
 }
 
-// struct Sleep
-// {
-// };
-//
-// TEST(ECS, MarkEntity)
-// {
-//     Entity entity = World::AddEntity(physicsArchetype, Transform{3});
-//     World::MarkEntity<Sleep>(entity);
-//     View<Transform>::Each([](Transform& transform)
-//     {
-//         transform.position++;
-//     });
-//     ASSERT_TRUE(all(World::GetComponent<Transform>(entity).position == float2(3)));
-//     World::MarkEntity<void>(entity);
-//     View<Transform>::Each([](Transform& transform)
-//     {
-//         transform.position++;
-//     });
-//     ASSERT_TRUE(all(World::GetComponent<Transform>(entity).position == float2(4)));
-// }
+
+struct Sleep
+{
+};
+
+Light_MakeArchetypeMark(physicsArchetypeSleeping, physicsArchetype, Sleep);
+
+TEST(ECS, MarkEntity)
+{
+    Entity entity = World::AddEntity(physicsArchetype, Transform{3});
+    World::MarkEntity(entity, physicsArchetypeSleeping);
+    //显式指明标志，+1
+    View<Transform, Sleep>::Each([](Transform& transform, Sleep&)
+    {
+        transform.position++;
+    });
+    float2 position = World::GetComponent<Transform>(entity).position;
+
+    ASSERT_TRUE(all(position == float2(4)));
+    //不显式指明标志，==
+    View<Transform>::Each([](Transform& transform)
+    {
+        transform.position++;
+    });
+    position = World::GetComponent<Transform>(entity).position;
+    ASSERT_TRUE(all(position == float2(4)));
+    //移除标志，+1
+    World::MarkEntity(entity, physicsArchetype);
+    View<Transform>::Each([](Transform& transform)
+    {
+        transform.position++;
+    });
+    position = World::GetComponent<Transform>(entity).position;
+    ASSERT_TRUE(all(position == float2(5)));
+}

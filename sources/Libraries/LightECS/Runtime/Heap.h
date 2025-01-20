@@ -16,6 +16,7 @@ namespace Light
 
         int GetCount() const { return elementCount; }
 
+        std::byte* AddElement();
         void AddElement(const std::function<void(std::byte* item)>& setValue);
         void AddElements(int count, const std::function<void(int itemIndex, std::byte* item)>& setValue = nullptr);
 
