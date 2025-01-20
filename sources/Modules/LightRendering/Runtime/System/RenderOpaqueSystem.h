@@ -19,8 +19,8 @@ namespace Light
 
         std::unique_ptr<Shader> pointShader = nullptr;
         std::unique_ptr<Shader> lineShader = nullptr;
-        std::unique_ptr<Material> pointMaterial = nullptr;
-        std::unique_ptr<Material> lineMaterial = nullptr;
+        std::unique_ptr<GMaterial> pointMaterial = nullptr;
+        std::unique_ptr<GMaterial> lineMaterial = nullptr;
     };
     Light_MakeSystem(RenderOpaqueSystem)
 }

@@ -1,4 +1,0 @@
-﻿struct my_struct
-{
-    
-};

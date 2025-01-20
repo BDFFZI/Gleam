@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <stack>
-#include "Material.h"
+#include "GMaterial.h"
 #include "RenderTarget.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 #include "LightMath/Runtime/Matrix.hpp"
@@ -55,7 +55,7 @@ namespace Light
         void SetViewProjectionMatricesToIdentity();
 
         void Draw(MeshAsset& mesh, MaterialAsset& material);
-        void Draw(MeshAsset& mesh, Material& material, const float4x4& modelMatrix);
+        void Draw(MeshAsset& mesh, GMaterial& material, const float4x4& modelMatrix);
         void ClearRenderTarget(const std::optional<float4>& color = 0.0f, const std::optional<float>& depth = 1.0f) const;
 
     private:

@@ -4,5 +4,5 @@
 #include "Physics/PhysicsComponent.hpp"
 
 MakeArchetype(MassPointArchetype, Light::Point, Light::Renderer, Light::MassPointPhysics)
-MakeArchetype(SpringArchetype, Light::Line, Light::Renderer, Light::SpringPhysics)
-MakeArchetype(LineArchetype, Light::Line, Light::Renderer)
+MakeArchetype(SpringArchetype, Light::Segment, Light::Renderer, Light::SpringPhysics)
+MakeArchetype(LineArchetype, Light::Segment, Light::Renderer)

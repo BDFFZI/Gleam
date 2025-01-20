@@ -1,6 +1,6 @@
 #pragma once
 #include "LightECS/Runtime/System.h"
-#include "LightGraphics/Runtime/Material.h"
+#include "LightGraphics/Runtime/GMaterial.h"
 #include "LightGraphics/Runtime/Mesh.h"
 #include "LightGraphics/Runtime/Shader.h"
 #include "../Public/PresentationSystem.h"
@@ -44,8 +44,8 @@ namespace Light
         std::unique_ptr<MeshT<Vertex>> lineMesh = nullptr;
         std::unique_ptr<Shader> pointShader = nullptr;
         std::unique_ptr<Shader> lineShader = nullptr;
-        std::unique_ptr<Material> pointMaterial = nullptr;
-        std::unique_ptr<Material> lineMaterial = nullptr;
+        std::unique_ptr<GMaterial> pointMaterial = nullptr;
+        std::unique_ptr<GMaterial> lineMaterial = nullptr;
 
         void DrawObject() const;
         void Start() override;

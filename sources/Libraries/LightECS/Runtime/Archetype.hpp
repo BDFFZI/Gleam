@@ -13,7 +13,7 @@ namespace Light
 {
     template <class TComponent, class... TComponents>
     concept ArchetypeComponentList = std::is_same_v<TComponent, Entity>;
-    
+
     template <Component TComponent>
     struct ArchetypeComponentOperator
     {
@@ -64,7 +64,8 @@ namespace Light
         std::vector<ComponentConstructor> constructors;
         std::vector<ComponentDestructor> destructors;
         size_t size;
-        std::unordered_map<std::type_index, int> componentOffsetsMap;
+        std::unordered_map<std::type_index, int> componentOffsetsMap; //缓存组件偏移查询信息
+        std::vector<std::type_index> markComponents; //记号组件，查询该原型时必须带有相关组件
 
         int GetOffset(const std::type_index component) const
         {

@@ -1,10 +1,17 @@
 ﻿#include <gtest/gtest.h>
 #include "LightMath/Runtime/VectorMath.hpp"
 #include "LightMath/Runtime/MatrixMath.hpp"
+#include "LightMath/Runtime/Geometry/Segment.h"
 
 /// 验证工具：https://www.math666.com/
 
 using namespace Light;
+
+TEST(Math, Segement)
+{
+    Segment line = {0, 1};
+    ASSERT_TRUE(equal(line.GetLength(),1.7320508f));
+}
 
 TEST(Math, Vector)
 {

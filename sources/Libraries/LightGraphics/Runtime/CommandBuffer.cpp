@@ -117,7 +117,7 @@ void CommandBuffer::Draw(MeshAsset& mesh, MaterialAsset& material)
 
     glCommandBuffer.DrawIndexed(mesh.glIndexCount);
 }
-void CommandBuffer::Draw(MeshAsset& mesh, Material& material, const float4x4& modelMatrix)
+void CommandBuffer::Draw(MeshAsset& mesh, GMaterial& material, const float4x4& modelMatrix)
 {
     float4x4 matrixMVP = mul(matrixVP, modelMatrix);
     material.SetPushConstant(0, &matrixMVP);

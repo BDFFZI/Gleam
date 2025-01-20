@@ -16,6 +16,9 @@ namespace Light
         int indexAtHeap;
     };
 
+    /**
+     * 存储着所有的实体和系统
+     */
     class World
     {
     public:
@@ -40,6 +43,18 @@ namespace Light
         static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
         static void MoveEntity(Entity entity, const Archetype& newArchetype);
         static void RemoveEntity(Entity& entity);
+        // /**
+        //  * 为实体打上特殊标记。
+        //  * 
+        //  * 1. 被标记的实体将会被隐藏，查询时必须提供对应的标记才可获取到。
+        //  * 2. 可以利用该功能轻松实现不同状态的实体管理，例如待唤醒/待回收/禁用中的实体。
+        //  */
+        // template <Component TMark>
+        // static void MarkEntity(const Entity entity)
+        // {
+        //     EntityInfo& entityInfo = entityInfos.at(entity);
+        //     entityInfo.archetype
+        // }
 
         static bool HasSystem(System& system);
         static void AddSystem(System& system);

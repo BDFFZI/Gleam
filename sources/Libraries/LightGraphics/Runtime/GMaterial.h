@@ -4,12 +4,12 @@
 
 namespace Light
 {
-    class Material : public MaterialAsset
+    class GMaterial : public MaterialAsset
     {
     public:
-        Material(ShaderAsset& shader);
-        Material(const Material&) = delete;
-        ~Material() override;
+        GMaterial(ShaderAsset& shader);
+        GMaterial(const GMaterial&) = delete;
+        ~GMaterial() override;
 
         void SetBuffer(int slotIndex, const Buffer& buffer);
         void SetTexture(int slotIndex, const TextureAsset& texture);

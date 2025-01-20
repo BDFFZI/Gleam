@@ -1,16 +1,16 @@
 ﻿#pragma once
 #include "../Vector.hpp"
+#include "LightReflection/Runtime/Type.hpp"
 
 namespace Light
 {
-    struct Point : float3
+    struct Point
     {
-        Point() = default;
-        Point(float x, float y, float z): float3(x, y, z)
-        {
-        }
-        Point(const float3& v): float3(v)
-        {
-        }
+        float3 position;
     };
+
+    Light_MakeType("", Point)
+    {
+        Light_MakeType_AddField(position);
+    }
 }

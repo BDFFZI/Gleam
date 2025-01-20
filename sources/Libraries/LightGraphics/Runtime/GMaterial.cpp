@@ -1,4 +1,4 @@
-﻿#include "Material.h"
+﻿#include "GMaterial.h"
 
 #include <stdexcept>
 
@@ -6,7 +6,7 @@
 
 using namespace Light;
 
-Material::Material(ShaderAsset& shader)
+GMaterial::GMaterial(ShaderAsset& shader)
     : isDirty(true)
 {
     shaderAsset = &shader;
@@ -43,7 +43,7 @@ Material::Material(ShaderAsset& shader)
     for (size_t i = 0; i < pushConstantRanges.size(); i++)
         glPushConstants[i].resize(pushConstantRanges[i].size);
 }
-Material::~Material()
+GMaterial::~GMaterial()
 {
     for (auto& descriptor : glDescriptorSets)
     {
@@ -54,7 +54,7 @@ Material::~Material()
     }
 }
 
-void Material::SetBuffer(const int slotIndex, const Buffer& buffer)
+void GMaterial::SetBuffer(const int slotIndex, const Buffer& buffer)
 {
     VkDescriptorBufferInfo* bufferInfo = const_cast<VkDescriptorBufferInfo*>(glDescriptorSets[slotIndex].pBufferInfo);
     bufferInfo->buffer = buffer.GetGLBuffer().buffer;
@@ -62,7 +62,7 @@ void Material::SetBuffer(const int slotIndex, const Buffer& buffer)
     bufferInfo->range = buffer.GetGLBuffer().size;
     isDirty = true;
 }
-void Material::SetTexture(const int slotIndex, const TextureAsset& texture)
+void GMaterial::SetTexture(const int slotIndex, const TextureAsset& texture)
 {
     VkDescriptorImageInfo* imageInfo = const_cast<VkDescriptorImageInfo*>(glDescriptorSets[slotIndex].pImageInfo);
     imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -70,12 +70,12 @@ void Material::SetTexture(const int slotIndex, const TextureAsset& texture)
     imageInfo->sampler = texture.glImageSampler->imageSampler;
     isDirty = true;
 }
-void Material::SetPushConstant(const int slotIndex, const void* data)
+void GMaterial::SetPushConstant(const int slotIndex, const void* data)
 {
     std::memcpy(glPushConstants[slotIndex].data(), data, (*shaderAsset->glPushConstantRanges)[slotIndex].size);
     isDirty = true;
 }
-void Material::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialAsset* lastMaterial)
+void GMaterial::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialAsset* lastMaterial)
 {
     if (this != lastMaterial || isDirty)
     {

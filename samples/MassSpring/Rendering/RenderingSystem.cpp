@@ -49,7 +49,7 @@ namespace Light
         lineVertices.clear();
         lineIndices.clear();
         int lineIndex = 0;
-        View<Line, Renderer>::Each([&lineIndex,&lineVertices,&lineIndices](Line& line, Renderer& renderer)
+        View<Segment, Renderer>::Each([&lineIndex,&lineVertices,&lineIndices](Segment& line, Renderer& renderer)
         {
             lineVertices.emplace_back(line.positionA, renderer.color);
             lineIndices.emplace_back(lineIndex++);
@@ -81,8 +81,8 @@ namespace Light
         lineMesh = std::make_unique<MeshT<Vertex>>(true);
         pointShader = std::make_unique<Shader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, pointMeshLayout);
         lineShader = std::make_unique<Shader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, lineMeshLayout);
-        pointMaterial = std::make_unique<Material>(*pointShader);
-        lineMaterial = std::make_unique<Material>(*lineShader);
+        pointMaterial = std::make_unique<GMaterial>(*pointShader);
+        lineMaterial = std::make_unique<GMaterial>(*lineShader);
     }
     void RenderingSystem::Stop()
     {

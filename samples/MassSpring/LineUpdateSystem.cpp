@@ -6,7 +6,7 @@ using namespace Light;
 
 void LineUpdateSystem::Update()
 {
-    View<Line, SpringPhysics>::Each([](Line& line, SpringPhysics& springPhysics)
+    View<Segment, SpringPhysics>::Each([](Segment& line, SpringPhysics& springPhysics)
     {
         Point pointA;
         MassPointPhysics massPointPhysicsA;

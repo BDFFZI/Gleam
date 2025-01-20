@@ -40,9 +40,6 @@ macro(initProject)
     set(SpecialFiles ${ProjectFiles})
     list(FILTER SpecialFiles INCLUDE REGEX ".*\.(hlsl|obj)")
     set_property(SOURCE ${SpecialFiles} PROPERTY VS_SETTINGS "ExcludedFromBuild=true")
-
-    # 创建vs筛选器
-    source_group(TREE "${ProjectSource}" FILES "${ProjectFiles}")
 endmacro()
 
 # 设置vs属性
@@ -55,6 +52,9 @@ macro(setVS)
 
     # 设置工作目录
     set_property(TARGET ${ProjectName} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+    # 创建vs筛选器
+    source_group(TREE "${ProjectSource}" FILES "${ProjectFiles}")
 endmacro()
 
 # 设置项目为库
@@ -98,6 +98,11 @@ macro(addPackage)
     if(EXISTS "${PackageSource}/Runtime")
         initPackageProjectInfo("Runtime")
         initProject()
+
+        if(EXISTS "${PackageSource}/ReadMe.md")
+            list(APPEND ProjectFiles "${PackageSource}/ReadMe.md")
+        endif()
+
         setLibrary()
     endif()
 

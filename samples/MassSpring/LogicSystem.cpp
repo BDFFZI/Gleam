@@ -99,7 +99,7 @@ void LogicSystem::OnCreateSpring()
     if (tempLine != Entity::Null)
     {
         Point pointA = World::GetComponent<Point>(springPointA);
-        World::SetComponents(tempLine, Line{pointA.position, mousePositionWS});
+        World::SetComponents(tempLine, Segment{pointA.position, mousePositionWS});
     }
 }
 

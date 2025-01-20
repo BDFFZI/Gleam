@@ -6,8 +6,8 @@ namespace Light
     {
         pointShader = std::make_unique<Shader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, pointMeshLayout);
         lineShader = std::make_unique<Shader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, lineMeshLayout);
-        pointMaterial = std::make_unique<Material>(*pointShader);
-        lineMaterial = std::make_unique<Material>(*lineShader);
+        pointMaterial = std::make_unique<GMaterial>(*pointShader);
+        lineMaterial = std::make_unique<GMaterial>(*lineShader);
         
         SystemGroup::Start();
     }

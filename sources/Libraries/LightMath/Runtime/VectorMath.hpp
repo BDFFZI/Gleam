@@ -87,14 +87,14 @@ constexpr vector<bool, Number> operator==(const vector<Type, Number>& a, const v
 {\
 vector<bool, Number> result;\
 for (int i = 0; i < (Number); i++)\
-    result.data[i] = ::abs(a.data[i] - b.data[i]) <= std::numeric_limits<Type>::epsilon();\
+    result.data[i] = equal(a.data[i],b.data[i]);\
 return result;\
 }\
 constexpr vector<bool, Number> operator!=(const vector<Type, Number>& a, const vector<Type, Number>& b)\
 {\
 vector<bool, Number> result;\
 for (int i = 0; i < (Number); i++)\
-result.data[i] = ::abs(a.data[i] - b.data[i]) > std::numeric_limits<Type>::epsilon();\
+result.data[i] = !equal(a.data[i],b.data[i]);\
 return result;\
 }
 
@@ -282,7 +282,7 @@ str += std::format("{" Format "},", a.data[i]);\
 str.pop_back();\
 return str + ")";\
 }
-    
+
     Light_MakeVectorFunctions_Decimals(float, 2)
     Light_MakeVectorFunctions_Decimals(float, 3)
     Light_MakeVectorFunctions_Decimals(float, 4)

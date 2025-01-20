@@ -7,6 +7,7 @@
 #include "LightECS/Runtime/World.h"
 #include "LightECS/Runtime/Heap.h"
 #include "LightECS/Runtime/View.hpp"
+#include "LightMath/Runtime/VectorMath.hpp"
 
 using namespace Light;
 
@@ -385,3 +386,24 @@ system2->Stop
 system1->Stop
 )");
 }
+
+// struct Sleep
+// {
+// };
+//
+// TEST(ECS, MarkEntity)
+// {
+//     Entity entity = World::AddEntity(physicsArchetype, Transform{3});
+//     World::MarkEntity<Sleep>(entity);
+//     View<Transform>::Each([](Transform& transform)
+//     {
+//         transform.position++;
+//     });
+//     ASSERT_TRUE(all(World::GetComponent<Transform>(entity).position == float2(3)));
+//     World::MarkEntity<void>(entity);
+//     View<Transform>::Each([](Transform& transform)
+//     {
+//         transform.position++;
+//     });
+//     ASSERT_TRUE(all(World::GetComponent<Transform>(entity).position == float2(4)));
+// }

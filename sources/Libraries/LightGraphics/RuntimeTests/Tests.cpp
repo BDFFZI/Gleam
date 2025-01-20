@@ -9,7 +9,7 @@
 #include "LightGraphics/Runtime/Mesh.h"
 #include "LightGraphics/Runtime/Shader.h"
 #include "LightGraphics/Runtime/Texture.h"
-#include "LightGraphics/Runtime/Material.h"
+#include "LightGraphics/Runtime/GMaterial.h"
 #include "LightGraphics/Runtime/SwapChain.h"
 #include "LightMath/Runtime/MatrixMath.hpp"
 
@@ -58,8 +58,8 @@ std::unique_ptr<Shader> lineShader;
 std::unique_ptr<Texture2D> imageTexture2D;
 std::unique_ptr<Texture2D> whiteTexture2D;
 
-std::unique_ptr<Material> material;
-std::unique_ptr<Material> lineMaterial;
+std::unique_ptr<GMaterial> material;
+std::unique_ptr<GMaterial> lineMaterial;
 
 std::unique_ptr<RenderTexture> renderTexture;
 
@@ -112,8 +112,8 @@ void CreateAssets()
     whiteTexture2D = std::make_unique<Texture2D>(1.0f);
 
     //纹理材质球
-    material = std::make_unique<Material>(*shader);
-    lineMaterial = std::make_unique<Material>(*lineShader);
+    material = std::make_unique<GMaterial>(*shader);
+    lineMaterial = std::make_unique<GMaterial>(*lineShader);
 
     //渲染纹理
     renderTexture = std::make_unique<RenderTexture>(
