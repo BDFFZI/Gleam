@@ -79,8 +79,8 @@ namespace Light
     {
         pointMesh = std::make_unique<MeshT<Vertex>>(true);
         lineMesh = std::make_unique<MeshT<Vertex>>(true);
-        pointShader = std::make_unique<Shader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, pointMeshLayout);
-        lineShader = std::make_unique<Shader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, lineMeshLayout);
+        pointShader = std::make_unique<GShader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, pointMeshLayout);
+        lineShader = std::make_unique<GShader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, lineMeshLayout);
         pointMaterial = std::make_unique<GMaterial>(*pointShader);
         lineMaterial = std::make_unique<GMaterial>(*lineShader);
     }

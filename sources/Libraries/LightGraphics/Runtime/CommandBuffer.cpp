@@ -105,7 +105,7 @@ void CommandBuffer::SetViewProjectionMatricesToIdentity()
     SetViewProjectionMatrices(float4x4::Identity());
 }
 
-void CommandBuffer::Draw(MeshAsset& mesh, MaterialAsset& material)
+void CommandBuffer::Draw(MeshAsset& mesh, GMaterial& material)
 {
     mesh.BindToPipeline(glCommandBuffer, currentMesh);
     material.shaderAsset->BindToPipeline(glCommandBuffer, currentShader);
@@ -116,6 +116,12 @@ void CommandBuffer::Draw(MeshAsset& mesh, MaterialAsset& material)
     currentMaterial = &material;
 
     glCommandBuffer.DrawIndexed(mesh.glIndexCount);
+}
+void CommandBuffer::Draw(MeshAsset& mesh, const float4x4& modelMatrix, GMaterial& material)
+{
+    float4x4 matrixMVP = mul(matrixVP, modelMatrix);
+    material.SetPushConstant(0, &matrixMVP);
+    Draw(mesh, material);
 }
 void CommandBuffer::Draw(MeshAsset& mesh, GMaterial& material, const float4x4& modelMatrix)
 {

@@ -13,26 +13,6 @@ namespace Light
         virtual void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MeshAsset* currentMesh);
     };
 
-    struct ShaderAsset
-    {
-        const std::vector<GLDescriptorBinding>* glDescriptorBindings;
-        const std::vector<VkPushConstantRange>* glPushConstantRanges;
-        const GLPipelineLayout* glPipelineLayout;
-        const GLPipeline* glPipeline;
-
-        virtual ~ShaderAsset() = default;
-        virtual void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const ShaderAsset* currentShader);
-    };
-
-    struct MaterialAsset
-    {
-        ShaderAsset* shaderAsset;
-        std::vector<VkWriteDescriptorSet> glDescriptorSets;
-        std::vector<std::vector<std::byte>> glPushConstants;
-
-        virtual ~MaterialAsset() = default;
-        virtual void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialAsset* currentMaterial);
-    };
 
     struct TextureAsset
     {

@@ -17,8 +17,8 @@ namespace Light
 
         GLCommandBuffer& GetGLCommandBuffer() { return glCommandBuffer; }
         const MeshAsset* GetCurrentMesh() const { return currentMesh; }
-        const ShaderAsset* GetCurrentShader() const { return currentShader; }
-        const MaterialAsset* GetCurrentMaterial() const { return currentMaterial; }
+        const GShader* GetCurrentShader() const { return currentShader; }
+        const GMaterial* GetCurrentMaterial() const { return currentMaterial; }
         const RenderTargetAsset* GetCurrentRenderTarget() const { return currentRenderTarget; }
 
         void BeginRecording();
@@ -54,8 +54,9 @@ namespace Light
         void SetViewProjectionMatrices(const float4x4& matrixVP);
         void SetViewProjectionMatricesToIdentity();
 
-        void Draw(MeshAsset& mesh, MaterialAsset& material);
+        void Draw(MeshAsset& mesh, GMaterial& material);
         void Draw(MeshAsset& mesh, GMaterial& material, const float4x4& modelMatrix);
+        void Draw(MeshAsset& mesh, const float4x4& modelMatrix, GMaterial& material);
         void ClearRenderTarget(const std::optional<float4>& color = 0.0f, const std::optional<float>& depth = 1.0f) const;
 
     private:
@@ -63,8 +64,8 @@ namespace Light
 
         GLCommandBuffer glCommandBuffer;
         const MeshAsset* currentMesh = nullptr;
-        const ShaderAsset* currentShader = nullptr;
-        const MaterialAsset* currentMaterial = nullptr;
+        const GShader* currentShader = nullptr;
+        const GMaterial* currentMaterial = nullptr;
         const RenderTargetAsset* currentRenderTarget = nullptr;
         float4x4 matrixVP = float4x4::Identity();
     };

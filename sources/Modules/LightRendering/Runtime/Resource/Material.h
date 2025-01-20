@@ -3,24 +3,26 @@
 
 namespace Light
 {
-    enum class RenderQueue
+    enum RenderQueue:uint16_t
     {
-        Background = 1000,
-        Geometry = 2000,
-        AlphaTest = 2450,
-        GeometryLast = 2500,
-        Transparent = 3000,
-        Overlay = 4000,
+        RenderQueue_Shadow = 1000,
+        RenderQueue_Opaque = 2000,
+        RenderQueue_Skybox = 3000,
+        RenderQueue_Transparent = 4000,
+        RenderQueue_PostProcessing = 5000,
     };
 
     class Material : public GMaterial
     {
     public:
-        explicit Material(ShaderAsset& shader)
+        explicit Material(GShader& shader)
             : GMaterial(shader)
         {
         }
 
-        float renderQueue;
+        int GetRenderQueue() const { return renderQueue; }
+
+    private:
+        int renderQueue = RenderQueue_Opaque;
     };
 }

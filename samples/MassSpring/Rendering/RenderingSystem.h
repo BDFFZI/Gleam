@@ -2,7 +2,7 @@
 #include "LightECS/Runtime/System.h"
 #include "LightGraphics/Runtime/GMaterial.h"
 #include "LightGraphics/Runtime/Mesh.h"
-#include "LightGraphics/Runtime/Shader.h"
+#include "LightGraphics/Runtime/GShader.h"
 #include "../Public/PresentationSystem.h"
 
 namespace Light
@@ -42,8 +42,8 @@ namespace Light
         float orthoSize = 100.0f;
         std::unique_ptr<MeshT<Vertex>> pointMesh = nullptr;
         std::unique_ptr<MeshT<Vertex>> lineMesh = nullptr;
-        std::unique_ptr<Shader> pointShader = nullptr;
-        std::unique_ptr<Shader> lineShader = nullptr;
+        std::unique_ptr<GShader> pointShader = nullptr;
+        std::unique_ptr<GShader> lineShader = nullptr;
         std::unique_ptr<GMaterial> pointMaterial = nullptr;
         std::unique_ptr<GMaterial> lineMaterial = nullptr;
 

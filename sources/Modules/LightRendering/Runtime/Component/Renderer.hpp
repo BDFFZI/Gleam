@@ -1,12 +1,14 @@
 ﻿#pragma once
+#include "LightGraphics/Runtime/Mesh.h"
 #include "LightMath/Runtime/Geometry/Bounds.hpp"
-#include "LightGraphics/Runtime/GraphicsAssets.h"
+#include "LightRendering/Runtime/Resource/Material.h"
 
 namespace Light
 {
     struct Renderer
     {
-        MaterialAsset* material;
+        Material* material;
+        Mesh* mesh;
         Bounds bounds;
     };
 }

@@ -7,7 +7,7 @@
 #include "LightMath/Runtime/Matrix.hpp"
 #include "LightUtility/Runtime/Chronograph.hpp"
 #include "LightGraphics/Runtime/Mesh.h"
-#include "LightGraphics/Runtime/Shader.h"
+#include "LightGraphics/Runtime/GShader.h"
 #include "LightGraphics/Runtime/Texture.h"
 #include "LightGraphics/Runtime/GMaterial.h"
 #include "LightGraphics/Runtime/SwapChain.h"
@@ -52,8 +52,8 @@ std::unique_ptr<Mesh> fullScreenMesh;
 std::unique_ptr<Mesh> boxMesh;
 std::unique_ptr<MeshT<Point>> customBoxMesh;
 
-std::unique_ptr<Shader> shader;
-std::unique_ptr<Shader> lineShader;
+std::unique_ptr<GShader> shader;
+std::unique_ptr<GShader> lineShader;
 
 std::unique_ptr<Texture2D> imageTexture2D;
 std::unique_ptr<Texture2D> whiteTexture2D;
@@ -102,9 +102,9 @@ void CreateAssets()
     customBoxMesh->SetIndices(indices);
 
     //标准着色器
-    shader = std::make_unique<Shader>("Resources/LightGraphicsRuntimeTests/Shader.hlsl");
+    shader = std::make_unique<GShader>("Resources/LightGraphicsRuntimeTests/Shader.hlsl");
     //自定义线着色器
-    lineShader = std::make_unique<Shader>("Resources/LightGraphicsRuntimeTests/CustomVertexShader.hlsl", GraphicsPreset::DefaultStateLayout, LineMeshLayout);
+    lineShader = std::make_unique<GShader>("Resources/LightGraphicsRuntimeTests/CustomVertexShader.hlsl", GraphicsPreset::DefaultStateLayout, LineMeshLayout);
 
     //图片纹理
     imageTexture2D = std::make_unique<Texture2D>("Resources/LightGraphicsRuntimeTests/texture.jpg");

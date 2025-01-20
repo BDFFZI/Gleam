@@ -1,11 +1,11 @@
-﻿#include "Shader.h"
+﻿#include "GShader.h"
 #include "Graphics.h"
 #include "LightImport/Runtime/ShaderImporter.h"
 
 using namespace Light;
 
-Shader::Shader(const std::string& shaderFile, const GLStateLayout& glStateLayout, const GLMeshLayout& glMeshLayout)
-    : Shader(
+GShader::GShader(const std::string& shaderFile, const GLStateLayout& glStateLayout, const GLMeshLayout& glMeshLayout)
+    : GShader(
         std::vector{
             GLShader(
                 VK_SHADER_STAGE_VERTEX_BIT,
@@ -23,7 +23,7 @@ Shader::Shader(const std::string& shaderFile, const GLStateLayout& glStateLayout
     )
 {
 }
-Shader::Shader(const std::vector<GLShader>& shaderLayout, const GLStateLayout& glStateLayout, const GLMeshLayout& glMeshLayout)
+GShader::GShader(const std::vector<GLShader>& shaderLayout, const GLStateLayout& glStateLayout, const GLMeshLayout& glMeshLayout)
 {
     pipeline = std::make_unique<GLPipeline>(
         std::vector{GraphicsPreset::DefaultColorFormat}, GraphicsPreset::DefaultDepthStencilFormat,
@@ -35,8 +35,8 @@ Shader::Shader(const std::vector<GLShader>& shaderLayout, const GLStateLayout& g
     glPipelineLayout = GraphicsPreset::DefaultGLPipelineLayout.get();
     glPipeline = pipeline.get();
 }
-void Shader::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const ShaderAsset* lastShader)
+void GShader::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const GShader* lastShader) const
 {
     if (this != lastShader)
-        ShaderAsset::BindToPipeline(glCommandBuffer, lastShader);
+        glCommandBuffer.BindPipeline(*glPipeline);
 }

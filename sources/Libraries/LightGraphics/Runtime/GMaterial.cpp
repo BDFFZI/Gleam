@@ -6,7 +6,7 @@
 
 using namespace Light;
 
-GMaterial::GMaterial(ShaderAsset& shader)
+GMaterial::GMaterial(GShader& shader)
     : isDirty(true)
 {
     shaderAsset = &shader;
@@ -75,11 +75,21 @@ void GMaterial::SetPushConstant(const int slotIndex, const void* data)
     std::memcpy(glPushConstants[slotIndex].data(), data, (*shaderAsset->glPushConstantRanges)[slotIndex].size);
     isDirty = true;
 }
-void GMaterial::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialAsset* lastMaterial)
+void GMaterial::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const GMaterial* lastMaterial)
 {
     if (this != lastMaterial || isDirty)
     {
-        MaterialAsset::BindToPipeline(glCommandBuffer, lastMaterial);
+        //上传描述符
+        glCommandBuffer.PushDescriptorSetKHR(*shaderAsset->glPipelineLayout, glDescriptorSets);
+        //上传推送常量
+        const std::vector<VkPushConstantRange>& pushConstantRanges = *shaderAsset->glPushConstantRanges;
+        for (size_t i = 0; i < pushConstantRanges.size(); i++)
+        {
+            glCommandBuffer.PushConstant(
+                *shaderAsset->glPipelineLayout,
+                pushConstantRanges[i],
+                glPushConstants[i].data());
+        }
         isDirty = false;
     }
 }

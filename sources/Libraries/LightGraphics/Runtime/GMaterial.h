@@ -4,20 +4,23 @@
 
 namespace Light
 {
-    class GMaterial : public MaterialAsset
+    class GMaterial
     {
     public:
-        GMaterial(ShaderAsset& shader);
+        GMaterial(GShader& shader);
         GMaterial(const GMaterial&) = delete;
-        ~GMaterial() override;
+        virtual ~GMaterial();
 
         void SetBuffer(int slotIndex, const Buffer& buffer);
         void SetTexture(int slotIndex, const TextureAsset& texture);
         void SetPushConstant(int slotIndex, const void* data);
 
-        void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MaterialAsset* lastMaterial) override;
+        void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const GMaterial* lastMaterial) override;
 
     protected:
+        GShader* shaderAsset;
+        std::vector<VkWriteDescriptorSet> glDescriptorSets;
+        std::vector<std::vector<std::byte>> glPushConstants;
         bool isDirty;
     };
 }
