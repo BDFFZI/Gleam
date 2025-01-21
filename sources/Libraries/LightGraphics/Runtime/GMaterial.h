@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Buffer.h"
+#include "GBuffer.h"
 #include "GraphicsAssets.h"
 
 namespace Light
@@ -11,7 +11,7 @@ namespace Light
         GMaterial(const GMaterial&) = delete;
         virtual ~GMaterial();
 
-        void SetBuffer(int slotIndex, const Buffer& buffer);
+        void SetBuffer(int slotIndex, const GBuffer& buffer);
         void SetTexture(int slotIndex, const TextureAsset& texture);
         void SetPushConstant(int slotIndex, const void* data);
 

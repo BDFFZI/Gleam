@@ -1,8 +1,8 @@
-﻿#include "Buffer.h"
+﻿#include "GBuffer.h"
 
 using namespace Light;
 
-Buffer::Buffer(size_t size)
+GBuffer::GBuffer(size_t size)
 {
     glBuffer = std::make_unique<GLBuffer>(
         size,
@@ -10,14 +10,4 @@ Buffer::Buffer(size_t size)
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     );
     glBufferAddress = glBuffer->MapMemory();
-}
-
-const GLBuffer& Buffer::GetGLBuffer() const
-{
-    return *glBuffer;
-}
-
-void Buffer::SetData(const void* data) const
-{
-    memcpy(glBufferAddress, data, glBuffer->size);
 }

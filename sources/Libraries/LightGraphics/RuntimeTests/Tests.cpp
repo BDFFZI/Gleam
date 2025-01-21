@@ -55,8 +55,8 @@ std::unique_ptr<MeshT<Point>> customBoxMesh;
 std::unique_ptr<GShader> shader;
 std::unique_ptr<GShader> lineShader;
 
-std::unique_ptr<Texture2D> imageTexture2D;
-std::unique_ptr<Texture2D> whiteTexture2D;
+std::unique_ptr<GTexture2D> imageTexture2D;
+std::unique_ptr<GTexture2D> whiteTexture2D;
 
 std::unique_ptr<GMaterial> material;
 std::unique_ptr<GMaterial> lineMaterial;
@@ -107,9 +107,9 @@ void CreateAssets()
     lineShader = std::make_unique<GShader>("Resources/LightGraphicsRuntimeTests/CustomVertexShader.hlsl", GraphicsPreset::DefaultStateLayout, LineMeshLayout);
 
     //图片纹理
-    imageTexture2D = std::make_unique<Texture2D>("Resources/LightGraphicsRuntimeTests/texture.jpg");
+    imageTexture2D = std::make_unique<GTexture2D>("Resources/LightGraphicsRuntimeTests/texture.jpg");
     //白色纹理
-    whiteTexture2D = std::make_unique<Texture2D>(1.0f);
+    whiteTexture2D = std::make_unique<GTexture2D>(1.0f);
 
     //纹理材质球
     material = std::make_unique<GMaterial>(*shader);

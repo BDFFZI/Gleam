@@ -4,23 +4,32 @@
 #include "LightGL/Runtime/Resource/GLBuffer.h"
 #include <cassert>
 
-#include "GraphicsAssets.h"
-#include "GraphicsPreset.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 #include "LightImport/Runtime/ModelImporter.h"
 
 namespace Light
 {
+    class GMesh
+    {
+        virtual ~GMesh() = default;
+        /**
+         * 注意！只有在调用BindToPipeline后该函数才有效
+         * @return 
+         */
+        virtual uint32_t GetGLIndexCount() = 0;
+        virtual void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const GMesh* currentMesh) = 0;
+    };
+
     template <class TVertex>
-    class MeshT : public MeshAsset
+    class GMeshT : public GMesh
     {
     public:
         /**
          * 
          * @param readwrite 网格是否可读写。若不可读写，资源上传到GPU后，CPU内存将被清除，相关读写功能也不可用。
          */
-        MeshT(const bool readwrite = false)
-            : isDirty(true), readwrite(readwrite)
+        GMeshT(const bool readwrite = false)
+            : readwrite(readwrite)
         {
         }
 
@@ -58,17 +67,21 @@ namespace Light
         }
         void SetDirty() { isDirty = true; }
 
-        void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MeshAsset* lastMesh) override
+        uint32_t GetGLIndexCount() override { return indexCount; }
+        void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const GMesh* lastMesh) override
         {
             if (isDirty)
             {
                 UploadMeshData();
                 isDirty = false;
-                MeshAsset::BindToPipeline(glCommandBuffer, lastMesh);
+
+                glCommandBuffer.BindVertexBuffers(*vertexBuffer);
+                glCommandBuffer.BindIndexBuffer(*indexBuffer);
             }
             else if (this != lastMesh)
             {
-                MeshAsset::BindToPipeline(glCommandBuffer, lastMesh);
+                glCommandBuffer.BindVertexBuffers(*vertexBuffer);
+                glCommandBuffer.BindIndexBuffer(*indexBuffer);
             }
         }
 
@@ -77,10 +90,11 @@ namespace Light
         std::vector<uint32_t> indices;
 
     private:
-        bool isDirty;
         bool readwrite;
-        std::unique_ptr<GLBuffer> vertexBuffer;
-        std::unique_ptr<GLBuffer> indexBuffer;
+        bool isDirty = true;
+        std::unique_ptr<GLBuffer> vertexBuffer = nullptr;
+        std::unique_ptr<GLBuffer> indexBuffer = nullptr;
+        uint32_t indexCount = 0;
 
         /**
          * 将对Mesh的CPU端数据的所有改动上传到GPU端
@@ -90,8 +104,8 @@ namespace Light
             assert(!vertices.empty() && "未设置任何顶点，网格数据无效");
             assert(!indices.empty() && "未设置任何索引，网格数据无效");
 
-            glIndexCount = static_cast<uint32_t>(indices.size());//indices有可能被清空，需提前设置
-            
+            indexCount = static_cast<uint32_t>(indices.size()); //indices有可能被清空，需提前设置
+
             if (readwrite == false)
             {
                 vertexBuffer = std::make_unique<GLBuffer>(
@@ -118,9 +132,9 @@ namespace Light
                     );
                 else
                 {
-                    void* address = glVertexBuffer->MapMemory();
+                    void* address = vertexBuffer->MapMemory();
                     memcpy(address, vertices.data(), verticesSize);
-                    glVertexBuffer->UnmapMemory();
+                    vertexBuffer->UnmapMemory();
                 }
 
                 size_t indicesSize = sizeof(uint32_t) * indices.size();
@@ -132,34 +146,11 @@ namespace Light
                     );
                 else
                 {
-                    void* address = glIndexBuffer->MapMemory();
+                    void* address = indexBuffer->MapMemory();
                     memcpy(address, indices.data(), indicesSize);
-                    glIndexBuffer->UnmapMemory();
+                    indexBuffer->UnmapMemory();
                 }
             }
-
-            glVertexBuffer = vertexBuffer.get();
-            glIndexBuffer = indexBuffer.get();
         }
-    };
-
-    class Mesh : public MeshT<GraphicsPreset::Vertex>
-    {
-    public:
-        Mesh(const bool readwrite = false): MeshT(readwrite)
-        {
-        }
-        Mesh(const RawMesh& rawMesh, bool readwrite = false);
-        Mesh(const Mesh&) = delete;
-
-        void GetPositions(std::vector<float3>& buffer) const;
-        void GetNormals(std::vector<float3>& buffer) const;
-        void GetTangents(std::vector<float3>& buffer) const;
-        void GetUVs(std::vector<float2>& buffer) const;
-
-        void SetPositions(const std::vector<float3>& data);
-        void SetNormals(const std::vector<float3>& data);
-        void SetTangents(const std::vector<float3>& data);
-        void SetUVs(const std::vector<float2>& data);
     };
 }

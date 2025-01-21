@@ -1,13 +1,14 @@
 ﻿#pragma once
 #include <memory>
 
-#include "GraphicsPreset.h"
+#include "GraphicsPreset.hpp"
 #include "Mesh.h"
 #include "LightGL/Runtime/Pipeline/GLPipeline.h"
 #include "LightGL/Runtime/Pipeline/GLShader.h"
 
 namespace Light
 {
+
     class GShader
     {
     public:

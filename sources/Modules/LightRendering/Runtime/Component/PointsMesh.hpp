@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Renderer.hpp"
-#include "LightGraphics/Runtime/GraphicsPreset.h"
+#include "LightGraphics/Runtime/GraphicsPreset.hpp"
 #include "LightGraphics/Runtime/Mesh.h"
 #include "LightMath/Runtime/Geometry/Point.hpp"
 

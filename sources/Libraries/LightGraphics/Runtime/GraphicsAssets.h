@@ -3,21 +3,12 @@
 
 namespace Light
 {
-    struct MeshAsset
-    {
-        GLBuffer* glVertexBuffer;
-        GLBuffer* glIndexBuffer;
-        uint32_t glIndexCount;
 
-        virtual ~MeshAsset() = default;
-        virtual void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const MeshAsset* currentMesh);
-    };
 
 
     struct TextureAsset
     {
-        GLImageView* glImageView;
-        GLImageSampler* glImageSampler;
+
     };
 
     struct RenderTargetAsset

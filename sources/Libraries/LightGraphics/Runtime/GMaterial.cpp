@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "GraphicsPreset.h"
+#include "GraphicsPreset.hpp"
 
 using namespace Light;
 
@@ -54,7 +54,7 @@ GMaterial::~GMaterial()
     }
 }
 
-void GMaterial::SetBuffer(const int slotIndex, const Buffer& buffer)
+void GMaterial::SetBuffer(const int slotIndex, const GBuffer& buffer)
 {
     VkDescriptorBufferInfo* bufferInfo = const_cast<VkDescriptorBufferInfo*>(glDescriptorSets[slotIndex].pBufferInfo);
     bufferInfo->buffer = buffer.GetGLBuffer().buffer;

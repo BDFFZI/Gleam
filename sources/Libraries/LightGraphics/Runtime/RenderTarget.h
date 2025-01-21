@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <memory>
 
-#include "GraphicsPreset.h"
+#include "GraphicsPreset.hpp"
 #include "Texture.h"
 #include "LightGL/Runtime/Resource/GLImageView.h"
 

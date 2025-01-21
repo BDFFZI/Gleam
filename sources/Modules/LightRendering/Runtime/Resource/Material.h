@@ -12,6 +12,13 @@ namespace Light
         RenderQueue_PostProcessing = 5000,
     };
 
+    inline static const std::vector<GLDescriptorBinding> DefaultDescriptorBindings = {
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}, //反照率与透明度贴图
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}, //金属度与光泽度贴图
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT} //法线贴图
+    };
+
+
     class Material : public GMaterial
     {
     public:
