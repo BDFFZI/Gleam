@@ -1,35 +1,36 @@
 ﻿#pragma once
 #include <stack>
-#include "GMaterial.h"
-#include "RenderTarget.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
 #include "LightMath/Runtime/Matrix.hpp"
+#include "Resource/GMaterial.h"
+#include "Resource/GMesh.hpp"
 
 namespace Light
 {
-    class CommandBuffer
+    class GCommandBuffer
     {
     public:
-        CommandBuffer() : glCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY)
+        virtual ~GCommandBuffer() = default;
+        GCommandBuffer() : glCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY)
         {
         }
-        CommandBuffer(const CommandBuffer&) = delete;
+        GCommandBuffer(const GCommandBuffer&) = delete;
 
         GLCommandBuffer& GetGLCommandBuffer() { return glCommandBuffer; }
-        const MeshAsset* GetCurrentMesh() const { return currentMesh; }
+        const GMesh* GetCurrentMesh() const { return currentMesh; }
         const GShader* GetCurrentShader() const { return currentShader; }
         const GMaterial* GetCurrentMaterial() const { return currentMaterial; }
-        const RenderTargetAsset* GetCurrentRenderTarget() const { return currentRenderTarget; }
+        const GRenderTarget* GetCurrentRenderTarget() const { return currentRenderTarget; }
 
-        void BeginRecording();
-        void EndRecording();
+        virtual void BeginRecording();
+        virtual void EndRecording();
 
         /**
          * @brief 开始一段绘制操作
          * @param renderTarget 绘制到的目标帧缓冲区
          * @param clearColor 绘制前是否清除颜色（这比单独的清除操作性能更好）
          */
-        void BeginRendering(const RenderTargetAsset& renderTarget, bool clearColor = false);
+        void BeginRendering(const GRenderTarget& renderTarget, bool clearColor = false);
         void EndRendering();
 
         /**
@@ -37,7 +38,7 @@ namespace Light
          * @param renderTarget 
          * @note 若要从SetRenderTarget方式切换回Rendering，必须先调用SetRenderTargetToNull
          */
-        void SetRenderTarget(const RenderTargetAsset& renderTarget);
+        void SetRenderTarget(const GRenderTarget& renderTarget);
         void SetRenderTargetToNull();
 
         /**
@@ -50,23 +51,16 @@ namespace Light
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) const;
         void SetViewportToFullscreen() const;
 
-        void SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix);
-        void SetViewProjectionMatrices(const float4x4& matrixVP);
-        void SetViewProjectionMatricesToIdentity();
-
-        void Draw(MeshAsset& mesh, GMaterial& material);
-        void Draw(MeshAsset& mesh, GMaterial& material, const float4x4& modelMatrix);
-        void Draw(MeshAsset& mesh, const float4x4& modelMatrix, GMaterial& material);
+        void DrawMesh(GMesh& mesh, GMaterial& material, const std::string_view& shaderPass = "");
         void ClearRenderTarget(const std::optional<float4>& color = 0.0f, const std::optional<float>& depth = 1.0f) const;
 
     private:
-        inline static std::stack<CommandBuffer*> commandBufferPool = {};
+        inline static std::stack<GCommandBuffer*> commandBufferPool = {};
 
         GLCommandBuffer glCommandBuffer;
-        const MeshAsset* currentMesh = nullptr;
+        const GMesh* currentMesh = nullptr;
         const GShader* currentShader = nullptr;
         const GMaterial* currentMaterial = nullptr;
-        const RenderTargetAsset* currentRenderTarget = nullptr;
-        float4x4 matrixVP = float4x4::Identity();
+        const GRenderTarget* currentRenderTarget = nullptr;
     };
 }

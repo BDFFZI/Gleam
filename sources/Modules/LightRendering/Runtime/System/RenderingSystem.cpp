@@ -80,7 +80,7 @@ namespace Light
             rendererInfos.emplace(transform, renderer);
         });
         //渲染
-        CommandBuffer& commandBuffer = PresentationSystem->GetCommandBuffer();
+        GCommandBuffer& commandBuffer = PresentationSystem->GetCommandBuffer();
         for (const auto& cameraInfo : cameraInfos)
         {
             commandBuffer.SetRenderTarget(*cameraInfo.renderTarget);

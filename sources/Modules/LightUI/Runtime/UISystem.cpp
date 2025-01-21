@@ -84,7 +84,7 @@ namespace Light
         //生成绘制数据
         ImGui::Render();
         //提交绘制命令
-        CommandBuffer& commandBuffer = PresentationSystem->GetCommandBuffer();
+        GCommandBuffer& commandBuffer = PresentationSystem->GetCommandBuffer();
         commandBuffer.SetRenderTarget(SwapChain::GetPresentRenderTarget());
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer.GetGLCommandBuffer().commandBuffer);
     }

@@ -1,4 +1,4 @@
-﻿#include "CommandBuffer.h"
+﻿#include "GCommandBuffer.h"
 
 #include <cassert>
 
@@ -6,11 +6,11 @@
 
 using namespace Light;
 
-void CommandBuffer::BeginRecording()
+void GCommandBuffer::BeginRecording()
 {
     glCommandBuffer.BeginRecording();
 }
-void CommandBuffer::EndRecording()
+void GCommandBuffer::EndRecording()
 {
     if (currentRenderTarget != nullptr)
         EndRendering();
@@ -21,10 +21,9 @@ void CommandBuffer::EndRecording()
     currentShader = nullptr;
     currentMaterial = nullptr;
     currentRenderTarget = nullptr;
-    matrixVP = float4x4::Identity();
 }
 
-void CommandBuffer::BeginRendering(const RenderTargetAsset& renderTarget, const bool clearColor)
+void GCommandBuffer::BeginRendering(const GRenderTarget& renderTarget, const bool clearColor)
 {
     if (currentRenderTarget != &renderTarget)
     {
@@ -44,7 +43,7 @@ void CommandBuffer::BeginRendering(const RenderTargetAsset& renderTarget, const 
 
     SetViewportToFullscreen();
 }
-void CommandBuffer::EndRendering()
+void GCommandBuffer::EndRendering()
 {
     glCommandBuffer.EndRendering();
 
@@ -58,18 +57,18 @@ void CommandBuffer::EndRendering()
     currentRenderTarget = nullptr;
 }
 
-void CommandBuffer::SetRenderTarget(const RenderTargetAsset& renderTarget)
+void GCommandBuffer::SetRenderTarget(const GRenderTarget& renderTarget)
 {
     if (currentRenderTarget != &renderTarget && currentRenderTarget != nullptr)
         EndRendering();
     BeginRendering(renderTarget);
 }
-void CommandBuffer::SetRenderTargetToNull()
+void GCommandBuffer::SetRenderTargetToNull()
 {
     EndRendering();
 }
 
-void CommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t width, const uint32_t height) const
+void GCommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t width, const uint32_t height) const
 {
     assert(x >=0 && static_cast<uint32_t>(x) < currentRenderTarget->width && "x超出最大渲染范围！");
     assert(y >=0 && static_cast<uint32_t>(y) < currentRenderTarget->height && "y超出最大渲染范围！");
@@ -87,49 +86,42 @@ void CommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t
         {width, height}
     );
 }
-void CommandBuffer::SetViewportToFullscreen() const
+void GCommandBuffer::SetViewportToFullscreen() const
 {
     SetViewport(0, 0, currentRenderTarget->width, currentRenderTarget->height);
 }
 
-void CommandBuffer::SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix)
-{
-    matrixVP = mul(projMatrix, viewMatrix);
-}
-void CommandBuffer::SetViewProjectionMatrices(const float4x4& matrixVP)
-{
-    this->matrixVP = matrixVP;
-}
-void CommandBuffer::SetViewProjectionMatricesToIdentity()
-{
-    SetViewProjectionMatrices(float4x4::Identity());
-}
 
-void CommandBuffer::Draw(MeshAsset& mesh, GMaterial& material)
+void GCommandBuffer::DrawMesh(GMesh& mesh, GMaterial& material, const std::string_view& shaderPass)
 {
     mesh.BindToPipeline(glCommandBuffer, currentMesh);
-    material.shaderAsset->BindToPipeline(glCommandBuffer, currentShader);
     material.BindToPipeline(glCommandBuffer, currentMaterial);
-
     currentMesh = &mesh;
-    currentShader = material.shaderAsset;
     currentMaterial = &material;
 
-    glCommandBuffer.DrawIndexed(mesh.glIndexCount);
+    if (shaderPass.empty())
+    {
+        for (const auto& [passName,shader] : material.GetPasses())
+        {
+            shader->BindToPipeline(glCommandBuffer, currentShader);
+            glCommandBuffer.DrawIndexed(mesh.GetGLIndexCount());
+            currentShader = shader;
+        }
+    }
+    else
+    {
+        for (const auto& [passName,shader] : material.GetPasses())
+        {
+            if (passName == shaderPass)
+            {
+                shader->BindToPipeline(glCommandBuffer, currentShader);
+                glCommandBuffer.DrawIndexed(mesh.GetGLIndexCount());
+                currentShader = shader;
+            }
+        }
+    }
 }
-void CommandBuffer::Draw(MeshAsset& mesh, const float4x4& modelMatrix, GMaterial& material)
-{
-    float4x4 matrixMVP = mul(matrixVP, modelMatrix);
-    material.SetPushConstant(0, &matrixMVP);
-    Draw(mesh, material);
-}
-void CommandBuffer::Draw(MeshAsset& mesh, GMaterial& material, const float4x4& modelMatrix)
-{
-    float4x4 matrixMVP = mul(matrixVP, modelMatrix);
-    material.SetPushConstant(0, &matrixMVP);
-    Draw(mesh, material);
-}
-void CommandBuffer::ClearRenderTarget(const std::optional<float4>& color, const std::optional<float>& depth) const
+void GCommandBuffer::ClearRenderTarget(const std::optional<float4>& color, const std::optional<float>& depth) const
 {
     assert(currentRenderTarget != nullptr && "渲染目标不能为空！");
 

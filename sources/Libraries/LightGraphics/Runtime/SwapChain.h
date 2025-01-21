@@ -2,15 +2,15 @@
 #include <memory>
 #include <vulkan/vulkan_core.h>
 
-#include "RenderTarget.h"
 #include "LightGL/Runtime/Pipeline/GLSwapChain.h"
+#include "Resource/GRenderTarget/GRenderTarget.hpp"
 
 namespace Light
 {
     class SwapChain
     {
     public:
-        static RenderTargetAsset& GetPresentRenderTarget() { return presentRenderTarget; }
+        static GRenderTarget& GetPresentRenderTarget() { return presentRenderTarget; }
         static GLSwapChain& GetGLSwapChain() { return *glSwapChain; }
 
         /**
@@ -67,7 +67,7 @@ namespace Light
         inline static std::unique_ptr<GLImage> presentMultiColorImage = {};
         inline static std::unique_ptr<GLImageView> presentMultiColorImageView = {};
         //渲染目标信息
-        inline static RenderTargetAsset presentRenderTarget = {};
+        inline static GRenderTarget presentRenderTarget = {};
         //呈现资源信息
         inline static std::vector<std::unique_ptr<GLCommandBuffer>> presentCommandBuffers;
         inline static uint32_t currentImageIndex; //当前呈现用的图片索引

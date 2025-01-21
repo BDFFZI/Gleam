@@ -1,8 +1,9 @@
 ﻿#pragma once
-#include "CommandBuffer.h"
+#include "GraphicsPreset.hpp"
 #include "LightGL/Runtime/GL.h"
 #include "LightUtility/Runtime/ObjectPool.hpp"
-#include "Resource/GTexture.h"
+#include "Resource/GRenderTarget/GRenderTarget.hpp"
+#include "Resource/GTexture/GTexture2D.h"
 
 namespace Light
 {
@@ -14,23 +15,19 @@ namespace Light
         static Graphics Initialize(GL&, const GraphicsPreset& defaultPreset);
         static void UnInitialize();
 
-        static CommandBuffer& ApplyCommandBuffer(const std::string& name = "");
-        static void ReleaseCommandBuffer(CommandBuffer& commandBuffer);
-
+        static GraphicsPreset& GetDefaultGraphicsPreset() { return defaultGraphicsPreset; }
         static GLImageSampler& GetDefaultGLImageSampler() { return *defaultGLImageSampler; }
-        static RenderTargetAsset& GetDefaultRenderTarget() { return *defaultRenderTarget; }
+        static GTexture2D& getDefaultTexture2D() { return *defaultTexture2D; }
+        static GRenderTarget& GetDefaultRenderTarget() { return *defaultRenderTarget; }
 
-        static void SetDefaultRenderTarget(RenderTargetAsset& renderTarget) { defaultRenderTarget = &renderTarget; }
+        static void SetDefaultRenderTarget(GRenderTarget& renderTarget) { defaultRenderTarget = &renderTarget; }
 
     private:
-        inline static std::unique_ptr<ObjectPool<CommandBuffer>> paintCommandBufferPool = {};
         //预创建的默认资源
         inline static GraphicsPreset defaultGraphicsPreset = {};
-        inline static std::unique_ptr<GLDescriptorSetLayout> defaultGLDescriptorSetLayout = {};
-        inline static std::unique_ptr<GLPipelineLayout> defaultGLPipelineLayout = {};
         inline static std::unique_ptr<GLImageSampler> defaultGLImageSampler = {};
         inline static std::unique_ptr<GTexture2D> defaultTexture2D = {};
-        inline static RenderTargetAsset* defaultRenderTarget = nullptr;
+        inline static GRenderTarget* defaultRenderTarget = nullptr;
 
         Graphics() = default;
     };

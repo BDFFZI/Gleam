@@ -1,8 +1,8 @@
-﻿#include "RenderTarget.h"
+﻿#include "GRenderTexture.h"
 
 using namespace Light;
 
-RenderTexture::RenderTexture(
+GRenderTexture::GRenderTexture(
     const uint32_t width, const uint32_t height, // NOLINT
     const VkFormat colorFormat, const VkFormat depthStencilFormat, const VkSampleCountFlagBits sampleCount)
 {
@@ -18,15 +18,13 @@ RenderTexture::RenderTexture(
         colorResolveImage = GLImage::CreateFrameBufferColor(width, height, colorFormat, VK_SAMPLE_COUNT_1_BIT);
         colorResolveImageView = std::make_unique<GLImageView>(*colorResolveImage, VK_IMAGE_ASPECT_COLOR_BIT);
     }
+    glImageSampler = &Graphics::GetDefaultGLImageSampler();
 
     glFinalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     glFinalImage = colorResolveImage ? colorResolveImage->image : colorImage->image;
-    RenderTargetAsset::width = width;
-    RenderTargetAsset::height = height;
+    GRenderTarget::width = width;
+    GRenderTarget::height = height;
     glColorImageView = colorImageView.get();
     glDepthStencilImageView = depthStencilImageView.get();
     glColorResolveImageView = colorResolveImageView.get();
-
-    glImageView = colorImageView.get();
-    glImageSampler = GraphicsPreset::DefaultGLImageSampler.get();
 }

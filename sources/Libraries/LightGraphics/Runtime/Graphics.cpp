@@ -1,6 +1,5 @@
 ﻿#include "Graphics.h"
 #include "SwapChain.h"
-#include "Resource/GTexture.h"
 
 using namespace Light;
 
@@ -10,10 +9,7 @@ void Graphics::InitializeGLDemand(std::vector<const char*>& extensions)
 }
 Graphics Graphics::Initialize(GL&, const GraphicsPreset& defaultPreset)
 {
-    paintCommandBufferPool = std::make_unique<ObjectPool<CommandBuffer>>();
     defaultGraphicsPreset = defaultPreset;
-    defaultGLDescriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(defaultPreset.descriptorBindings, VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR);
-    defaultGLPipelineLayout = std::make_unique<GLPipelineLayout>(*defaultGLDescriptorSetLayout, PushConstantRanges);
     defaultGLImageSampler = std::make_unique<GLImageSampler>();
     defaultTexture2D = std::make_unique<GTexture2D>(1);
     SwapChain::Initialize(
@@ -27,21 +23,9 @@ Graphics Graphics::Initialize(GL&, const GraphicsPreset& defaultPreset)
 void Graphics::UnInitialize()
 {
     vkDeviceWaitIdle(GL::glDevice->device);
-    paintCommandBufferPool.reset();
     
-    defaultGLDescriptorSetLayout.reset();
-    defaultGLPipelineLayout.reset();
     defaultGLImageSampler.reset();
     defaultTexture2D.reset();
-    
-    SwapChain::UnInitialize();
-}
 
-CommandBuffer& Graphics::ApplyCommandBuffer(const std::string& name)
-{
-    return paintCommandBufferPool->Get();
-}
-void Graphics::ReleaseCommandBuffer(CommandBuffer& commandBuffer)
-{
-    paintCommandBufferPool->Release(commandBuffer);
+    SwapChain::UnInitialize();
 }

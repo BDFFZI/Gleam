@@ -1,7 +1,7 @@
 #pragma once
 #include "LightECS/Runtime/System.h"
 #include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
-#include "LightGraphics/Runtime/CommandBuffer.h"
+#include "LightGraphics/Runtime/GCommandBuffer.h"
 
 namespace Light
 {
@@ -25,7 +25,7 @@ namespace Light
          * 该缓冲区由系统自动控制录制的启用和结束，并会在呈现命令缓冲区执行前调用该缓冲区，
          * @return 
          */
-        CommandBuffer& GetCommandBuffer() const { return *commandBuffer; }
+        GCommandBuffer& GetCommandBuffer() const { return *commandBuffer; }
 
         void Start() override;
         void Stop() override;
@@ -33,7 +33,7 @@ namespace Light
 
     private:
         GLCommandBuffer* presentCommandBuffer = nullptr;
-        CommandBuffer* commandBuffer = nullptr;
+        GCommandBuffer* commandBuffer = nullptr;
     };
     inline PresentationSystem PresentationSystem = {};
 }

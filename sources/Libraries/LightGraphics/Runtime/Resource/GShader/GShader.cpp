@@ -1,11 +1,18 @@
 ﻿#include "GShader.h"
-#include "Graphics.h"
 #include "LightImport/Runtime/ShaderImporter.h"
 
 using namespace Light;
 
-GShader::GShader(const std::string& shaderFile, const GLStateLayout& glStateLayout, const GLMeshLayout& glMeshLayout)
+GShader::GShader(const GShaderLayout& shaderLayout, const std::vector<GLShader>& glShaders, const GraphicsPreset& graphicsPreset)
+{
+    glPipeline = std::make_unique<GLPipeline>(
+        std::vector{graphicsPreset.colorFormat}, graphicsPreset.depthStencilFormat,
+        glShaders, graphicsPreset.meshLayout, shaderLayout.GetGLPipelineLayout(),
+        graphicsPreset.stateLayout);
+}
+GShader::GShader(const GShaderLayout& shaderLayout, const std::string& shaderFile, const GraphicsPreset& graphicsPreset)
     : GShader(
+        shaderLayout,
         std::vector{
             GLShader(
                 VK_SHADER_STAGE_VERTEX_BIT,
@@ -19,21 +26,9 @@ GShader::GShader(const std::string& shaderFile, const GLStateLayout& glStateLayo
                     shaderFile, shaderc_fragment_shader, "FragmentShader"
                 ), "FragmentShader")
         },
-        glStateLayout, glMeshLayout
+        graphicsPreset
     )
 {
-}
-GShader::GShader(const std::vector<GLShader>& shaderLayout, const GLStateLayout& glStateLayout, const GLMeshLayout& glMeshLayout)
-{
-    pipeline = std::make_unique<GLPipeline>(
-        std::vector{GraphicsPreset::DefaultColorFormat}, GraphicsPreset::DefaultDepthStencilFormat,
-        shaderLayout, glMeshLayout, *GraphicsPreset::DefaultGLPipelineLayout,
-        glStateLayout);
-
-    glDescriptorBindings = &GraphicsPreset::DefaultDescriptorBindings;
-    glPushConstantRanges = &GraphicsPreset::DefaultPushConstantRanges;
-    glPipelineLayout = GraphicsPreset::DefaultGLPipelineLayout.get();
-    glPipeline = pipeline.get();
 }
 void GShader::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const GShader* lastShader) const
 {

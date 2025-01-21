@@ -11,6 +11,7 @@ namespace Light
 {
     class GMesh
     {
+    public:
         virtual ~GMesh() = default;
         /**
          * 注意！只有在调用BindToPipeline后该函数才有效
