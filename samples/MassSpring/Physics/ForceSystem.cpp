@@ -1,9 +1,9 @@
 ﻿#include "ForceSystem.h"
 
-#include "PhysicsComponent.hpp"
-#include "LightECS/Runtime/View.hpp"
-#include "LightMath/Runtime/VectorMath.hpp"
-#include "../Public/Component.hpp"
+#include "PhysicsComponent.h"
+#include "LightECS/Runtime/View.h"
+#include "LightMath/Runtime/VectorMath.h"
+#include "../Public/Component.h"
 
 void Light::ForceSystem::Update()
 {

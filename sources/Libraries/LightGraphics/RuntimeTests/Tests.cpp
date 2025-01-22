@@ -4,11 +4,11 @@
 #include "LightGraphics/Runtime/GCommandBuffer.h"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightImport/Runtime/ShaderImporter.h"
-#include "LightMath/Runtime/Matrix.hpp"
-#include "LightUtility/Runtime/Chronograph.hpp"
+#include "LightMath/Runtime/Matrix.h"
+#include "LightUtility/Runtime/Timer.h"
 #include "LightGraphics/Runtime/SwapChain.h"
 #include "LightGraphics/Runtime/Resource/GRenderTarget/GRenderTexture.h"
-#include "LightMath/Runtime/MatrixMath.hpp"
+#include "LightMath/Runtime/MatrixMath.h"
 
 using namespace Light;
 
@@ -26,14 +26,6 @@ GLVertexInput VertexInput = GLVertexInput{
         GLVertexAttribute{2,offsetof(Vertex, color), VK_FORMAT_R32G32B32A32_SFLOAT},
     }
 };
-GSInoutLayout TriangleGSInoutLayout = GSInoutLayout{
-    VertexInput,
-    GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false}
-};
-GSInoutLayout LineGSInoutLayout = GSInoutLayout{
-    VertexInput,
-    GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, false}
-};
 //定义网格
 using Mesh = GMeshT<Vertex>;
 
@@ -46,19 +38,15 @@ inline float3 Move[4] = {
 };
 
 //计时器，每帧置零
-Chronograph chronograph;
+Timer chronograph;
 
 std::unique_ptr<Mesh> fullScreenMesh;
 std::unique_ptr<Mesh> cubeMesh;
-
-std::unique_ptr<GSAssetLayout> shaderLayout;
 std::unique_ptr<GShader> shader;
 std::unique_ptr<GShader> lineShader;
 std::unique_ptr<GTexture2D> imageTexture2D;
-
 std::unique_ptr<GMaterial> material;
 std::unique_ptr<GMaterial> lineMaterial;
-
 std::unique_ptr<GRenderTexture> renderTexture;
 
 void CreateAssets()
@@ -87,15 +75,15 @@ void CreateAssets()
         });
     }
     cubeMesh->SetIndices(rawMesh.triangles);
-
-    shaderLayout = std::make_unique<GSAssetLayout>(
-        std::vector<GLDescriptorBinding>{{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}},
-        std::vector<VkPushConstantRange>{{VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float4x4)}}
-    );
     //标准材质
     shader = std::make_unique<GShader>(GSCodeLayout{"Resources/LightGraphicsRuntimeTests/shader.hlsl"});
     material = std::make_unique<GMaterial>(*shader);
     //自定义线材质
+    GSInoutLayout LineGSInoutLayout = GSInoutLayout{
+        GLMeshLayout{VertexInput, GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, false}},
+        Graphics::GetGraphicsConfig().defaultGSInoutLayout.colorFormat,
+        Graphics::GetGraphicsConfig().defaultGSInoutLayout.depthStencilFormat
+    };
     lineShader = std::make_unique<GShader>(
         GSCodeLayout{"Resources/LightGraphicsRuntimeTests/shader.hlsl"},
         Graphics::GetGraphicsConfig().defaultGSStateLayout, Graphics::GetGraphicsConfig().defaultGSAssetLayout, LineGSInoutLayout);
@@ -120,7 +108,6 @@ void DeleteAssets()
     shader.reset();
     lineMaterial.reset();
     material.reset();
-    shaderLayout.reset();
 
     cubeMesh.reset();
     fullScreenMesh.reset();
@@ -243,7 +230,10 @@ void main()
     GL gl = GL::Initialize(window, extensions);
 
     std::unique_ptr<GraphicsConfig> graphicsConfig = std::make_unique<GraphicsConfig>();
-    graphicsConfig->defaultGSInoutLayout = TriangleGSInoutLayout;
+    graphicsConfig->defaultGSInoutLayout = GSInoutLayout{
+        GLMeshLayout{VertexInput, GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false}},
+        graphicsConfig->presentColorFormat, graphicsConfig->presentDepthStencilFormat
+    };
     graphicsConfig->defaultGSAssetLayout = GSAssetLayout{
         std::vector<GLDescriptorBinding>{{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}},
         std::vector<VkPushConstantRange>{{VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float4x4)}}

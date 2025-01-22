@@ -3,16 +3,15 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
-#include "LightGraphics/Runtime/GraphicsConfig.hpp"
 #include "LightWindow/Runtime/Input.h"
 
 namespace Light
 {
-    ImTextureID UI::CreateTexture(TextureAsset& texture)
+    ImTextureID UI::CreateTexture(GTexture& texture)
     {
         const VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(
-            GraphicsConfig::DefaultGLImageSampler->imageSampler,
-            texture.glImageView->imageView,
+            texture.GetGLImageSampler().imageSampler,
+            texture.GetGLImageView().imageView,
             VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL);
         return descriptorSet;
     }

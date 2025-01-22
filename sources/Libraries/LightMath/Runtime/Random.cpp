@@ -2,7 +2,7 @@
 #include <random>
 #include <ctime>
 
-#include "VectorMath.hpp"
+#include "VectorMath.h"
 
 namespace Light
 {

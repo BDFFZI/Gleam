@@ -1,5 +1,5 @@
 #pragma once
-#include "../Vector.hpp"
+#include "../Vector.h"
 
 namespace Light
 {

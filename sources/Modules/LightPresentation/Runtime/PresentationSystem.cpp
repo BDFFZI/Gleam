@@ -2,15 +2,16 @@
 #include "LightGraphics/Runtime/SwapChain.h"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightWindow/Runtime/Window.h"
+#include "__Init__.h"
 
 void Light::PresentationSystem::Start()
 {
     std::vector<const char*> extensions;
     Graphics::InitializeGLDemand(extensions);
     GL gl = GL::Initialize(Window->GetGlfwWindow(), extensions);
-    Graphics::Initialize(gl);
+    Graphics::Initialize(gl, CreateGraphicsConfig());
 
-    commandBuffer = &Graphics::ApplyCommandBuffer();
+    presentGCommandBuffer = std::make_unique<GCommandBuffer>();
 
     SystemGroup::Start();
 }
@@ -18,7 +19,7 @@ void Light::PresentationSystem::Stop()
 {
     SystemGroup::Stop();
 
-    Graphics::ReleaseCommandBuffer(*commandBuffer);
+    presentGCommandBuffer.reset();
 
     Graphics::UnInitialize();
     GL::UnInitialize();
@@ -26,15 +27,15 @@ void Light::PresentationSystem::Stop()
 void Light::PresentationSystem::Update()
 {
     //开始呈现并录制呈现命令缓冲区
-    if (SwapChain::BeginPresent(&presentCommandBuffer))
+    if (SwapChain::BeginPresent(&presentGLCommandBuffer))
     {
-        commandBuffer->BeginRecording(); //开始公共命令缓冲区录制
+        presentGCommandBuffer->BeginRecording(); //开始公共命令缓冲区录制
         SystemGroup::Update();
-        commandBuffer->EndRecording(); //完成公共命令缓冲区录制
-        presentCommandBuffer->ExecuteSubCommands(commandBuffer->GetGLCommandBuffer()); //执行公共缓冲区中的命令
-        
+        presentGCommandBuffer->EndRecording(); //完成公共命令缓冲区录制
+        presentGLCommandBuffer->ExecuteSubCommands(presentGCommandBuffer->GetGLCommandBuffer()); //执行公共缓冲区中的命令
+
         //结束呈现命令缓冲区录制并提交呈现命令
-        SwapChain::EndPresent(*presentCommandBuffer);
+        SwapChain::EndPresent(*presentGLCommandBuffer);
         //等待呈现完成
         SwapChain::WaitPresent();
     }

@@ -4,8 +4,8 @@
 
 #include "Heap.h"
 #include "System.h"
-#include "Archetype.hpp"
-#include "Entity.hpp"
+#include "Archetype.h"
+#include "Entity.h"
 
 namespace Light
 {

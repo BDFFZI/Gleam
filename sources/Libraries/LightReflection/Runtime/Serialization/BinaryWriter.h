@@ -1,6 +1,6 @@
 #pragma once
 #include <ostream>
-#include "BinarySerializer.hpp"
+#include "BinarySerializer.h"
 
 namespace Light
 {

@@ -4,7 +4,7 @@
 #include <tiny_obj_loader.h>
 #include <unordered_map>
 
-#include "LightMath/Runtime/VectorMath.hpp"
+#include "LightMath/Runtime/VectorMath.h"
 
 using namespace Light;
 

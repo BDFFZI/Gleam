@@ -2,7 +2,7 @@
 #include <memory>
 
 #include "CommandBuffer.h"
-#include "LightUtility/Runtime/ObjectPool.hpp"
+#include "LightUtility/Runtime/Pool/ObjectPool.h"
 
 namespace Light
 {

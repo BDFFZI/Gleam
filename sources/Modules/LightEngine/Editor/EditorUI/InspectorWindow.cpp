@@ -1,7 +1,7 @@
 #include "InspectorWindow.h"
 
 #include "EditorUIUtility.h"
-#include "LightReflection/Runtime/Type.hpp"
+#include "LightReflection/Runtime/Type.h"
 #include "LightReflection/Runtime/Transferrer/DataTransferrer.h"
 #include "LightUI/Runtime/UI.h"
 

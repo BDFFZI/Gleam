@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "LightGraphics/Runtime/Mesh.h"
-#include "LightMath/Runtime/Geometry/Bounds.hpp"
+#include "LightMath/Runtime/Geometry/Bounds.h"
 #include "LightRendering/Runtime/Resource/Material.h"
 
 namespace Light

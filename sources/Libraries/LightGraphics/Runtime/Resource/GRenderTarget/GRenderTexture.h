@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <memory>
 
-#include "GRenderTarget.hpp"
-#include "../GTexture/GTexture.hpp"
+#include "GRenderTarget.h"
+#include "../GTexture/GTexture.h"
 #include "LightGraphics/Runtime/Graphics.h"
 
 namespace Light

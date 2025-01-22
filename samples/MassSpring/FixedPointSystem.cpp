@@ -1,8 +1,8 @@
 ﻿#include "FixedPointSystem.h"
 
 #include "LogicSystem.h"
-#include "Physics/PhysicsComponent.hpp"
-#include "Public/Component.hpp"
+#include "Physics/PhysicsComponent.h"
+#include "Public/Component.h"
 
 using namespace Light;
 

@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "MatrixSwizzle.hpp"
-#include "VectorMath.hpp"
+#include "MatrixSwizzle.h"
+#include "VectorMath.h"
 
 namespace Light
 {

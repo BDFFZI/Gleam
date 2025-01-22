@@ -12,9 +12,9 @@ void Light::UISystem::Update()
     // ImGui::ShowDemoWindow();
 
     //完成UI绘图录制并执行
-    GCommandBuffer& commandBuffer = PresentationSystem.GetCommandBuffer();
+    GCommandBuffer& commandBuffer = PresentationSystem.GetPresentGCommandBuffer();
     commandBuffer.BeginRendering(SwapChain::GetPresentRenderTarget());
     commandBuffer.ClearRenderTarget();
-    UI::EndFrame(PresentationSystem.GetCommandBuffer().GetGLCommandBuffer());
+    UI::EndFrame(PresentationSystem.GetPresentGCommandBuffer().GetGLCommandBuffer());
     commandBuffer.EndRendering();
 }

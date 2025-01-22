@@ -2,8 +2,8 @@
 #include <gtest/gtest.h>
 #include <benchmark/benchmark.h>
 
-#include "LightUtility/Runtime/Chronograph.hpp"
-#include "LightUtility/Runtime/ObjectPool.hpp"
+#include "LightUtility/Runtime/Timer.h"
+#include "LightUtility/Runtime/ObjectPool.h"
 #include "LightUtility/Runtime/ThreadPool.h"
 
 using namespace Light;
@@ -104,7 +104,7 @@ TEST(Utility, ThreadPool)
 
 TEST(Utility, Chronograph)
 {
-    Chronograph chronograph;
+    Timer chronograph;
     chronograph.Tick();
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
     std::cout << chronograph.Tick() << '\n' << std::flush;

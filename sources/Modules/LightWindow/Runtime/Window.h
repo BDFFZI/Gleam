@@ -1,10 +1,10 @@
 ﻿#pragma once
 #include <GLFW/glfw3.h>
 
-#include "InputEnum.hpp"
+#include "InputEnum.h"
 #include "LightECS/Runtime/System.h"
-#include "LightEngine/Runtime/Engine.h"
-#include "LightMath/Runtime/Vector.hpp"
+#include "LightEngine/Runtime/System.h"
+#include "LightMath/Runtime/Vector.h"
 
 namespace Light
 {

@@ -3,7 +3,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "LightGL/Runtime/GLSwapChain.h"
-#include "Resource/GRenderTarget/GRenderTarget.hpp"
+#include "Resource/GRenderTarget/GRenderTarget.h"
 
 namespace Light
 {

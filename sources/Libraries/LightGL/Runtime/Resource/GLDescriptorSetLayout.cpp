@@ -51,9 +51,9 @@ GLDescriptorSetLayout& GLDescriptorSetLayout::operator=(GLDescriptorSetLayout&& 
 {
     if (this == &other)
         return *this;
+    GLDescriptorSetLayout::~GLDescriptorSetLayout();
     descriptorSetLayout = other.descriptorSetLayout;
     descriptorBindings = std::move(other.descriptorBindings);
-        
     other.descriptorSetLayout = VK_NULL_HANDLE;
     return *this;
 }

@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include "Renderer.hpp"
-#include "LightGraphics/Runtime/GraphicsConfig.hpp"
+#include "Renderer.h"
+#include "LightGraphics/Runtime/GraphicsConfig.h"
 #include "LightGraphics/Runtime/Mesh.h"
-#include "LightMath/Runtime/Geometry/Point.hpp"
+#include "LightMath/Runtime/Geometry/Point.h"
 
 namespace Light
 {

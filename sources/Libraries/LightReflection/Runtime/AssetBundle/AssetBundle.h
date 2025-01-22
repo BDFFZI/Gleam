@@ -4,7 +4,7 @@
 // #include <vector>
 // #include <stduuid/uuid.h>
 //
-// #include "../Type.hpp"
+// #include "../Type.h"
 // #include "LightMath/Runtime/Random.h"
 //
 // namespace Light

@@ -1,6 +1,6 @@
 #include "PhysicsSystem.h"
 #include "LightWindow/Runtime/Time.h"
-#include "../Public/Component.hpp"
+#include "../Public/Component.h"
 
 void Light::PhysicsSystem::Update()
 {

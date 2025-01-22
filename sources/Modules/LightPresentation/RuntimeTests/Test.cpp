@@ -14,8 +14,8 @@ public:
 private:
     void Update() override
     {
-        Light::PresentationSystem->GetCommandBuffer().SetRenderTarget(Light::SwapChain::GetPresentRenderTarget());
-        Light::PresentationSystem->GetCommandBuffer().ClearRenderTarget(Light::float4{0, 0, 1, 1});
+        Light::PresentationSystem->GetPresentGCommandBuffer().SetRenderTarget(Light::SwapChain::GetPresentRenderTarget());
+        Light::PresentationSystem->GetPresentGCommandBuffer().ClearRenderTarget(Light::float4{0, 0, 1, 1});
     }
 };
 Light_MakeSystem(MySystem)

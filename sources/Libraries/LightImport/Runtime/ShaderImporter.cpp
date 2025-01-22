@@ -2,10 +2,10 @@
 
 #include <map>
 
-#include "LightUtility/Runtime/Utility.hpp"
-
 #include <stdexcept>
 #include <filesystem>
+
+#include "LightUtility/Runtime/File.h"
 
 
 using namespace Light;
@@ -22,12 +22,12 @@ class ShaderIncluder : public shaderc::CompileOptions::IncluderInterface
 
         std::string includedString;
         if (std::filesystem::exists(requested_source)) //程序相对位置
-            includedString = Utility::ReadFile(requested_source);
+            includedString = File::ReadAllText(requested_source);
         else //文件相对位置
         {
             std::filesystem::path requestingPath(requesting_source);
             std::filesystem::path requestedPath = requestingPath.parent_path() / requested_source;
-            includedString = Utility::ReadFile(requestedPath.string());
+            includedString = File::ReadAllText(requestedPath.string());
         }
 
         char* includedC_String = new char[includedString.length()];
@@ -80,7 +80,7 @@ std::vector<std::byte> ShaderImporter::ImportHlslFromFile(const std::string& fil
     options.SetIncluder(std::make_unique<ShaderIncluder>());
 
     //bom处理
-    std::string fileCode = Utility::ReadFile(file);
+    std::string fileCode = File::ReadAllText(file);
     char bom[] = {static_cast<char>(0xEF), static_cast<char>(0xBB), static_cast<char>(0xBF)};
     if (std::equal(std::begin(bom), std::end(bom), fileCode.data()))
         fileCode = fileCode.substr(3);

@@ -1,11 +1,10 @@
 ﻿#pragma once
 
-#include <iostream>
 #include <mutex>
 #include <thread>
 #include <semaphore>
 
-#include "ObjectPool.hpp"
+#include "ObjectPool.h"
 
 namespace Light
 {

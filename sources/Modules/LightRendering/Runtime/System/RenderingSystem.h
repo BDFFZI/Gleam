@@ -1,9 +1,9 @@
 ﻿#pragma once
-#include "LightEngine/Runtime/Component.hpp"
+#include "LightEngine/Runtime/Component.h"
 #include "LightPresentation/Runtime/PresentationSystem.h"
 #include "LightGraphics/Runtime/GShader.h"
-#include "LightRendering/Runtime/Component/Camera.hpp"
-#include "LightRendering/Runtime/Component/Renderer.hpp"
+#include "LightRendering/Runtime/Component/Camera.h"
+#include "LightRendering/Runtime/Component/Renderer.h"
 
 namespace Light
 {

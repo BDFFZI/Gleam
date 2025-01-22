@@ -1,7 +1,7 @@
 #include "RenderingSystem.h"
-#include "RenderingComponent.hpp"
-#include "LightECS/Runtime/View.hpp"
-#include "../Public/Component.hpp"
+#include "RenderingComponent.h"
+#include "LightECS/Runtime/View.h"
+#include "../Public/Component.h"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightGraphics/Runtime/SwapChain.h"
 #include "LightWindow/Runtime/Input.h"
@@ -59,7 +59,7 @@ namespace Light
         lineMesh->SetDirty();
 
 
-        auto& commandBuffer = PresentationSystem.GetCommandBuffer();
+        auto& commandBuffer = PresentationSystem.GetPresentGCommandBuffer();
         commandBuffer.BeginRendering(Graphics::GetDefaultRenderTarget(), true);
         {
             commandBuffer.SetViewProjectionMatrices(

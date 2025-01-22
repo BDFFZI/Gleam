@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <cassert>
 #include "LightGL/Runtime/GL.h"
-#include "Resource/GRenderTarget/GRenderTarget.hpp"
+#include "Resource/GRenderTarget/GRenderTarget.h"
 #include "Resource/GTexture/GTexture2D.h"
 #include "Resource/GShader/GSLayout.h"
 

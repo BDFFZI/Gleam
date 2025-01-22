@@ -1,6 +1,6 @@
 #include "CommandBuffer.h"
 
-#include "LightMath/Runtime/MatrixMath.hpp"
+#include "LightMath/Runtime/MatrixMath.h"
 
 namespace Light
 {
@@ -26,6 +26,6 @@ namespace Light
     {
         float4x4 matrixMVP = mul(matrixVP, modelMatrix);
         material.SetPushConstant(0, &matrixMVP);
-        GCommandBuffer::DrawMesh(mesh, material);
+        DrawMesh(mesh, material);
     }
 }

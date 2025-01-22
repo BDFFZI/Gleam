@@ -18,7 +18,7 @@ public:
     ~GLPipelineLayout();
 
     GLPipelineLayout(const GLPipelineLayout& other) = delete;
-    GLPipelineLayout(GLPipelineLayout&& other) noexcept;
     GLPipelineLayout& operator=(const GLPipelineLayout& other) = delete;
+    GLPipelineLayout(GLPipelineLayout&& other) noexcept;
     GLPipelineLayout& operator=(GLPipelineLayout&& other) noexcept;
 };

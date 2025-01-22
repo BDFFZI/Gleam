@@ -1,13 +1,13 @@
 #include "LogicSystem.h"
 
-#include "Archetype.hpp"
+#include "Archetype.h"
 #include "Editor/InspectorWindow.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Window.h"
-#include "LightECS/Runtime/View.hpp"
+#include "LightECS/Runtime/View.h"
 #include "LightWindow/Runtime/Time.h"
 
-#include "Public/Component.hpp"
+#include "Public/Component.h"
 #include "Rendering/RenderingSystem.h"
 
 using namespace Light;

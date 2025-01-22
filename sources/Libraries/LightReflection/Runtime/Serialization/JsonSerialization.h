@@ -2,7 +2,7 @@
 #include <string>
 #include <rapidjson/document.h>
 
-#include "../Type.hpp"
+#include "../Type.h"
 
 namespace Light
 {

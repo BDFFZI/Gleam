@@ -4,8 +4,8 @@
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 
-#include "JsonReader.hpp"
-#include "JsonWriter.hpp"
+#include "JsonReader.h"
+#include "JsonWriter.h"
 
 namespace Light
 {

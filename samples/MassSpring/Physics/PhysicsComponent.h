@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include "LightECS/Runtime/Reference.hpp"
-#include "LightMath/Runtime/Vector.hpp"
-#include "LightEngine/Runtime/Reflection/Type.hpp"
-#include "../Public/Component.hpp"
+#include "LightECS/Runtime/Reference.h"
+#include "LightMath/Runtime/Vector.h"
+#include "LightEngine/Runtime/Reflection/Type.h"
+#include "../Public/Component.h"
 
 namespace Light
 {

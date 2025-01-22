@@ -4,10 +4,10 @@
 namespace Light
 {
     template <class TUnit = std::chrono::milliseconds>
-    class Chronograph
+    class Timer
     {
     public:
-        Chronograph()
+        Timer()
         {
             Tick();
         }

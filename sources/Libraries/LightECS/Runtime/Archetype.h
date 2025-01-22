@@ -8,8 +8,8 @@
 #include <cassert>
 #include <unordered_set>
 
-#include "Entity.hpp"
-#include "Component.hpp"
+#include "Entity.h"
+#include "Component.h"
 
 namespace Light
 {

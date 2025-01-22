@@ -1,15 +1,16 @@
 #pragma once
+
 #include <stack>
 #include <rapidjson/document.h>
-#include "JsonSerializer.hpp"
+#include "JsonSerializer.h"
 #include "LightUtility/Runtime/String.h"
 
 namespace Light
 {
-    class JsonReader : public JsonSerializer
+    class JsonWriter : public JsonSerializer
     {
     public:
-        JsonReader(rapidjson::Document& document): JsonSerializer(document)
+        JsonWriter(rapidjson::Document& document): JsonSerializer(document)
         {
         }
 
@@ -20,25 +21,34 @@ namespace Light
             rapidjson::Value& wrap = *nodes.top();
 
             rapidjson::Value* currentNode;
-
             if (name == nullptr && wrapDataType == DataType::Field) //重设旧节点类型
-                currentNode = nodes.top();
-            else //进入新节点
             {
-                wrapItemIndex++; //当前获取的成员在容器中的索引
-                if (wrapDataType == DataType::Class) //在类中基于名称获取成员
+                currentNode = nodes.top();
+            }
+            else //创建新节点 
+            {
+                wrapItemIndex++; //新节点在容器中的索引
+                if (wrapDataType == DataType::Class) //在类中基于名称创建成员
                 {
+                    rapidjson::GenericValue key = CreateString(name);
+                    wrap.AddMember(key, 0, *allocator);
                     currentNode = &wrap[name];
                 }
                 else if (wrapDataType == DataType::Array) //在数组中基于索引创建成员
                 {
+                    wrap.PushBack(0, *allocator);
                     currentNode = &wrap.GetArray()[wrapItemIndex];
                 }
                 else
                 {
-                    throw std::runtime_error("在非容器结构中获取成员！");
+                    throw std::runtime_error("在非容器结构中创建成员！");
                 }
             }
+
+            if (dataType == DataType::Array)
+                currentNode->SetArray();
+            else if (dataType == DataType::Class)
+                currentNode->SetObject();
 
             PushStruct(currentNode, dataType);
         }
@@ -48,33 +58,34 @@ namespace Light
         }
 
         template <class TValue>
-        void TransferT(TValue& value)
+        void TransferT(const TValue& value)
         {
             if (dataTypes.top() == DataType::Array)
             {
                 itemIndices.top()++;
-                value = nodes.top()->GetArray()[itemIndices.top()].Get<TValue>();
+                nodes.top()->PushBack(value, *allocator);
             }
             else
-                value = nodes.top()->Get<TValue>();
+                nodes.top()->Set<TValue>(value);
         }
 
         void Transfer(double& value) override { TransferT(value); }
         void Transfer(int64_t& value) override { TransferT(value); }
         void Transfer(std::string& value) override
         {
+            rapidjson::GenericValue genericValue = CreateString(value);
             if (dataTypes.top() == DataType::Array)
             {
                 itemIndices.top()++;
-                value = nodes.top()->GetArray()[itemIndices.top()].GetString();
+                nodes.top()->PushBack(genericValue, *allocator);
             }
             else
-                value = nodes.top()->GetString();
+                nodes.top()->SetString(value.data(), static_cast<rapidjson::SizeType>(value.size()), *allocator);
         }
         void Transfer(std::vector<std::byte>& value) override
         {
+            String::EncodingBase64(value, buffer);
             Transfer(buffer);
-            String::DecodingBase64(buffer, value);
         }
 
         void Transfer(float& value) override { TransferT(value); }

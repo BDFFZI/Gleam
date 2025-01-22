@@ -4,7 +4,7 @@
 
 #include "Window.h"
 #include "LightECS/Runtime/System.h"
-#include "LightMath/Runtime/VectorMath.hpp"
+#include "LightMath/Runtime/VectorMath.h"
 #include "LightMath/Runtime/Geometry/Rect.h"
 
 namespace Light

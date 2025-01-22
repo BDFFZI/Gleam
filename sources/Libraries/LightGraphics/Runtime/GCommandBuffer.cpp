@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "LightMath/Runtime/MatrixMath.hpp"
+#include "LightMath/Runtime/MatrixMath.h"
 
 using namespace Light;
 

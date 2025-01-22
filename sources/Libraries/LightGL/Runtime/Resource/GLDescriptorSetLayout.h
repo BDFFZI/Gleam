@@ -23,7 +23,7 @@ public:
     ~GLDescriptorSetLayout();
 
     GLDescriptorSetLayout(const GLDescriptorSetLayout& other) = delete;
-    GLDescriptorSetLayout(GLDescriptorSetLayout&& other) noexcept;
     GLDescriptorSetLayout& operator=(const GLDescriptorSetLayout& other) = delete;
+    GLDescriptorSetLayout(GLDescriptorSetLayout&& other) noexcept;
     GLDescriptorSetLayout& operator=(GLDescriptorSetLayout&& other) noexcept;
 };

@@ -1,6 +1,6 @@
 #pragma once
 #include "LightECS/Runtime/System.h"
-#include "LightECS/Runtime/_Concept.hpp"
+#include "LightECS/Runtime/_Concept.h"
 #include "LightWindow/Runtime/Input.h"
 #include "Physics/PhysicsSystem.h"
 #include "Public/SimulationSystem.h"

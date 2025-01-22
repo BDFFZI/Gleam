@@ -88,7 +88,7 @@ namespace Light
         }
         return (in_count + 2) / 3 * 4;
     }
-    int String::DecodingBase64(const unsigned char* in_base64, int in_charcount, unsigned char* out_data)
+    int String::DecodingBase64(const unsigned char* in_base64, int in_count, unsigned char* out_data)
     {
         static const unsigned char pm[] = {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0 
@@ -106,7 +106,7 @@ namespace Light
             49, 50, 51, 0, 0, 0, 0, 0 // 120 
         };
 
-        const int cnt = in_charcount - 4;
+        const int cnt = in_count - 4;
         for (int i = 0; i < cnt; i += 4, out_data += 3)
         {
             const unsigned char a0 = pm[in_base64[i]];
@@ -147,5 +147,23 @@ namespace Light
             out_cnt += 3;
         }
         return out_cnt;
+    }
+    void String::EncodingBase64(const std::vector<std::byte>& input, std::string& output)
+    {
+        output.resize((input.size() + 2) / 3 * 4); //每3个普通字节转为4个base64字节储存，所以数量必须为3的倍数
+        output.resize(EncodingBase64(
+            reinterpret_cast<const unsigned char*>(input.data()),
+            static_cast<int>(input.size()),
+            reinterpret_cast<unsigned char*>(output.data())
+        ));
+    }
+    void String::DecodingBase64(const std::string& input, std::vector<std::byte>& output)
+    {
+        output.resize(input.size() / 4 * 3); //base64字节数量一定是4的倍数，4个base64字节还原成3个普通字节
+        output.resize(DecodingBase64(
+            reinterpret_cast<const unsigned char*>(input.data()),
+            static_cast<int>(input.size()),
+            reinterpret_cast<unsigned char*>(output.data())
+        ));//存在为凑3字节的空字节，故需二次重置大小来确定
     }
 }

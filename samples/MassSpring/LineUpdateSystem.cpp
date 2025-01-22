@@ -1,6 +1,6 @@
 ﻿#include "LineUpdateSystem.h"
-#include "LightECS/Runtime/View.hpp"
-#include "Physics/PhysicsComponent.hpp"
+#include "LightECS/Runtime/View.h"
+#include "Physics/PhysicsComponent.h"
 
 using namespace Light;
 

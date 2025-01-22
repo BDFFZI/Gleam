@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "VectorMath.hpp"
-#include "Matrix.hpp"
+#include "VectorMath.h"
+#include "Matrix.h"
 
 namespace Light
 {

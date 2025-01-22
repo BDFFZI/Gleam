@@ -1,11 +1,11 @@
-#pragma once
-#include <fstream>
-#include <string>
+#include "File.h"
 
-class Utility
+#include <stdexcept>
+#include <fstream>
+
+namespace Light
 {
-public:
-    static std::string ReadFile(const std::string& filename)
+    std::string File::ReadAllText(const std::string& filename)
     {
         //通过ate标志初始就将读取位置设在流末尾
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -24,11 +24,4 @@ public:
 
         return content;
     }
-
-#define Light_MakeInitEvent_Inner2(id) \
-    void InitEvent##id();\
-    inline int InitEvent##id##Executor = (InitEvent##id(),0);\
-    inline void InitEvent##id()
-#define Light_MakeInitEvent_Inner(id) Light_MakeInitEvent_Inner2(id)
-#define Light_MakeInitEvent() Light_MakeInitEvent_Inner(__COUNTER__)
-};
+}

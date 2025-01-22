@@ -1,7 +1,7 @@
 ﻿#include "PositionSystem.h"
-#include "PhysicsComponent.hpp"
-#include "LightMath/Runtime/VectorMath.hpp"
-#include "LightECS/Runtime/View.hpp"
+#include "PhysicsComponent.h"
+#include "LightMath/Runtime/VectorMath.h"
+#include "LightECS/Runtime/View.h"
 
 void Light::PositionSystem::Update()
 {

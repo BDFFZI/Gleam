@@ -1,6 +1,6 @@
 ﻿#include <gtest/gtest.h>
-#include "LightMath/Runtime/VectorMath.hpp"
-#include "LightMath/Runtime/MatrixMath.hpp"
+#include "LightMath/Runtime/VectorMath.h"
+#include "LightMath/Runtime/MatrixMath.h"
 #include "LightMath/Runtime/Geometry/Segment.h"
 
 /// 验证工具：https://www.math666.com/

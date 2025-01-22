@@ -3,8 +3,8 @@
 #include <cmath>
 #include <format>
 
-#include "Math.hpp"
-#include "Vector.hpp"
+#include "Math.h"
+#include "Vector.h"
 
 //模板没法触发自动类型转换，且有候选优先级较低的问题，因此只能利用宏来大批量定义函数
 //VV1V：表示两个向量参与计算，并将结果存在第一个向量后返回

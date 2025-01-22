@@ -1,5 +1,5 @@
 #pragma once
-#include "LightGraphics/Runtime/GMaterial.h"
+#include "LightGraphics/Runtime/Resource/GMaterial.h"
 
 namespace Light
 {

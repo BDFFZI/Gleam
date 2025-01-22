@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "LightMath/Runtime/VectorMath.hpp"
+#include "LightMath/Runtime/VectorMath.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Time.h"
 #include "LightWindow/Runtime/Window.h"

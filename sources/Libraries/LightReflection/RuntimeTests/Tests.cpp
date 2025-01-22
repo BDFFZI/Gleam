@@ -8,13 +8,13 @@
 #include <gtest/gtest.h>
 #include <ranges>
 #include <rapidjson/prettywriter.h>
-#include "LightReflection/Runtime/Type.hpp"
-#include "LightReflection/Runtime/Serialization/BinaryReader.hpp"
-#include "LightReflection/Runtime/Serialization/BinaryWriter.hpp"
-#include "LightReflection/Runtime/Serialization/JsonReader.hpp"
-#include "LightReflection/Runtime/Serialization/JsonWriter.hpp"
-#include "LightMath/Runtime/Vector.hpp"
-#include "LightMath/Runtime/VectorMath.hpp"
+#include "LightReflection/Runtime/Type.h"
+#include "LightReflection/Runtime/Serialization/BinaryReader.h"
+#include "LightReflection/Runtime/Serialization/BinaryWriter.h"
+#include "LightReflection/Runtime/Serialization/JsonReader.h"
+#include "LightReflection/Runtime/Serialization/JsonWriter.h"
+#include "LightMath/Runtime/Vector.h"
+#include "LightMath/Runtime/VectorMath.h"
 
 using namespace Light;
 

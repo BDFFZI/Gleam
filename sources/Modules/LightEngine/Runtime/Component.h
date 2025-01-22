@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "LightMath/Runtime/Vector.hpp"
+#include "LightMath/Runtime/Vector.h"
 
 namespace Light
 {

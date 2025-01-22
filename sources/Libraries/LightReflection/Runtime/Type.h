@@ -7,7 +7,7 @@
 
 #include "Transferrer/DataTransferrer.h"
 #include "Transferrer/MemberTransferrer.h"
-#include "Transferrer/Transferrer.hpp"
+#include "Transferrer/Transferrer.h"
 
 namespace Light
 {

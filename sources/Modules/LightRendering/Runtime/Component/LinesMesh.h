@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Renderer.hpp"
+#include "Renderer.h"
 #include "LightGraphics/Runtime/Mesh.h"
 #include "LightMath/Runtime/Geometry/Segment.h"
 

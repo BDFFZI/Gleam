@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "../VectorMath.hpp"
-#include "LightReflection/Runtime/Type.hpp"
+#include "../VectorMath.h"
+#include "LightReflection/Runtime/Type.h"
 
 namespace Light
 {

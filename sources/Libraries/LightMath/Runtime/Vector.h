@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "VectorSwizzle.hpp"
+#include "VectorSwizzle.h"
 
 namespace Light
 {
@@ -11,7 +11,7 @@ namespace Light
     using float3 = vector<float, 3>;
     using float4 = vector<float, 4>;
 
-    //由于头文件依赖的原因，vector模板原型放在了VectorSwizzle.hpp文件中
+    //由于头文件依赖的原因，vector模板原型放在了VectorSwizzle.h文件中
 
 #define xi 0
 #define yi 1

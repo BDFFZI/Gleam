@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-#include "Entity.hpp"
+#include "Entity.h"
 #include "System.h"
 
 namespace Light

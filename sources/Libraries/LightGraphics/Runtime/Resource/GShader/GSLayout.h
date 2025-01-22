@@ -42,7 +42,6 @@ namespace Light
         VkFormat depthStencilFormat;
 
         GSInoutLayout(GLMeshLayout meshLayout, VkFormat colorFormat, VkFormat depthStencilFormat);
-        explicit GSInoutLayout(const GLVertexInput& vertexInput, const GLInputAssembly& inputAssembly);
     };
     using GSStateLayout = GLStateLayout;
 }

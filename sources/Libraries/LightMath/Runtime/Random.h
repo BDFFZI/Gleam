@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "Vector.hpp"
-#include "Graphics/Color.hpp"
+#include "Vector.h"
+#include "Graphics/Color.h"
 
 namespace Light
 {

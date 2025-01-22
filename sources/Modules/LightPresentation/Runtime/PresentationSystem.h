@@ -3,7 +3,7 @@
 #include "LightECS/Runtime/System.h"
 #include "LightGL/Runtime/GLCommandBuffer.h"
 #include "LightGraphics/Runtime/GCommandBuffer.h"
-#include "LightEngine/Runtime/Engine.h"
+#include "LightEngine/Runtime/System.h"
 
 namespace Light
 {
@@ -20,22 +20,22 @@ namespace Light
          * 该缓冲区由系统自动控制录制的启用和结束。
          * @return 
          */
-        GLCommandBuffer& GetPresentCommandBuffer() const { return *presentCommandBuffer; }
+        GLCommandBuffer& GetPresentGLCommandBuffer() const { return *presentGLCommandBuffer; }
         /**
          * 默认分配的公共子命令缓冲区，以方便用户快速绘制。
          *
          * 该缓冲区由系统自动控制录制的启用和结束，并会在呈现命令缓冲区执行前调用该缓冲区，
          * @return 
          */
-        GCommandBuffer& GetCommandBuffer() const { return *commandBuffer; }
+        GCommandBuffer& GetPresentGCommandBuffer() const { return *presentGCommandBuffer; }
 
         void Start() override;
         void Stop() override;
         void Update() override;
 
     private:
-        GLCommandBuffer* presentCommandBuffer = nullptr;
-        GCommandBuffer* commandBuffer = nullptr;
+        GLCommandBuffer* presentGLCommandBuffer = nullptr;
+        std::unique_ptr<GCommandBuffer> presentGCommandBuffer = nullptr;
     };
     Light_MakeSystem(PresentationSystem)
 }

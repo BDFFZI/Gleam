@@ -1,7 +1,7 @@
 ﻿#include "GameUISystem.h"
 
 #include <imgui.h>
-#include <magic_enum.hpp>
+#include <magic_enum.h>
 
 #include "LogicSystem.h"
 #include "Editor/EditorUIUtility.h"

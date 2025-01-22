@@ -2,8 +2,8 @@
 #include <typeindex>
 
 #include "LightECS/Runtime/System.h"
-#include "LightECS/Runtime/_Concept.hpp"
-#include "LightEngine/Runtime/Reflection/Serialization/DataTransferrer.hpp"
+#include "LightECS/Runtime/_Concept.h"
+#include "LightEngine/Runtime/Reflection/Serialization/DataTransferrer.h"
 
 namespace Light
 {

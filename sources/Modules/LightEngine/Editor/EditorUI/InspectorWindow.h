@@ -1,6 +1,6 @@
 #pragma once
 #include "EditorUISystem.h"
-#include "LightECS/Runtime/Entity.hpp"
+#include "LightECS/Runtime/Entity.h"
 #include "LightECS/Runtime/System.h"
 
 namespace Light

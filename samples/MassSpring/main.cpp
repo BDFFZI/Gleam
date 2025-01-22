@@ -1,4 +1,4 @@
-#include "Archetype.hpp"
+#include "Archetype.h"
 #include "FixedPointSystem.h"
 #include "GameUISystem.h"
 #include "LineUpdateSystem.h"

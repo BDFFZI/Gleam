@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "VectorSwizzle.hpp"
+#include "VectorSwizzle.h"
 
 namespace Light
 {

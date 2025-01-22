@@ -19,7 +19,7 @@ namespace Light
         }
         if (ImGui::CollapsingHeader("Archetype"))
         {
-            for (auto& [archetype,heap] : World::markedEntities)
+            for (auto& [archetype,heap] : World::entities)
             {
                 if (ImGui::TreeNode(archetype->name))
                 {

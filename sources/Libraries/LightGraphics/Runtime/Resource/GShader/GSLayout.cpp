@@ -52,8 +52,4 @@ namespace Light
         : meshLayout(std::move(meshLayout)), colorFormat(colorFormat), depthStencilFormat(depthStencilFormat)
     {
     }
-    GSInoutLayout::GSInoutLayout(const GLVertexInput& vertexInput, const GLInputAssembly& inputAssembly):
-        GSInoutLayout({vertexInput, inputAssembly}, Graphics::GetGraphicsConfig().presentColorFormat, Graphics::GetGraphicsConfig().presentDepthStencilFormat)
-    {
-    }
 }

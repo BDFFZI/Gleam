@@ -35,11 +35,11 @@ namespace Light
         VkPipelineRenderingCreateInfo renderingInfo = {};
         renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
         renderingInfo.pNext = VK_NULL_HANDLE;
-        constexpr VkFormat colorFormat[] = {GraphicsPreset::DefaultColorFormat};
+        VkFormat colorFormat[] = {Graphics::GetGraphicsConfig().presentColorFormat};
         renderingInfo.colorAttachmentCount = std::size(colorFormat);
         renderingInfo.pColorAttachmentFormats = colorFormat;
-        renderingInfo.depthAttachmentFormat = GraphicsPreset::DefaultDepthStencilFormat;
-        renderingInfo.stencilAttachmentFormat = GraphicsPreset::DefaultDepthStencilFormat;
+        renderingInfo.depthAttachmentFormat = Graphics::GetGraphicsConfig().presentDepthStencilFormat;
+        renderingInfo.stencilAttachmentFormat = Graphics::GetGraphicsConfig().presentDepthStencilFormat;
 
         // Setup Platform/Renderer backends
 
@@ -53,7 +53,7 @@ namespace Light
         initInfo.DescriptorPool = descriptorPool->descriptorPool; // See requirements in note above
         initInfo.MinImageCount = SwapChain::GetGLSwapChain().minImageCount; // >= 2
         initInfo.ImageCount = SwapChain::GetGLSwapChain().imageCount; // >= MinImageCount
-        initInfo.MSAASamples = GraphicsPreset::DefaultStateLayout.multisample.rasterizationSamples; // 0 defaults to VK_SAMPLE_COUNT_1_BIT
+        initInfo.MSAASamples = Graphics::GetGraphicsConfig().presentSampleCount; // 0 defaults to VK_SAMPLE_COUNT_1_BIT
         initInfo.UseDynamicRendering = true;
         initInfo.PipelineRenderingCreateInfo = renderingInfo;
         initInfo.CheckVkResultFn = CheckVKResult;
@@ -84,7 +84,7 @@ namespace Light
         //生成绘制数据
         ImGui::Render();
         //提交绘制命令
-        GCommandBuffer& commandBuffer = PresentationSystem->GetCommandBuffer();
+        GCommandBuffer& commandBuffer = PresentationSystem->GetPresentGCommandBuffer();
         commandBuffer.SetRenderTarget(SwapChain::GetPresentRenderTarget());
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer.GetGLCommandBuffer().commandBuffer);
     }

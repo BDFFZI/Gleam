@@ -5,30 +5,30 @@
 
 void Light::PresentationSystem::Start()
 {
-    commandBuffer = &Graphics::ApplyCommandBuffer();
+    presentGCommandBuffer = &Graphics::ApplyCommandBuffer();
     SystemGroup::Start();
 }
 void Light::PresentationSystem::Stop()
 {
     SystemGroup::Stop();
-    Graphics::ReleaseCommandBuffer(*commandBuffer);
+    Graphics::ReleaseCommandBuffer(*presentGCommandBuffer);
 }
 void Light::PresentationSystem::Update()
 {
     //开始呈现并录制呈现命令缓冲区
-    if (SwapChain::BeginPresent(&presentCommandBuffer))
+    if (SwapChain::BeginPresent(&presentGLCommandBuffer))
     {
         //开始公共命令缓冲区录制
-        commandBuffer->BeginRecording();
+        presentGCommandBuffer->BeginRecording();
 
         SystemGroup::Update();
 
         //完成公共命令缓冲区录制
-        commandBuffer->EndRecording();
+        presentGCommandBuffer->EndRecording();
         //执行公共缓冲区中的命令
-        presentCommandBuffer->ExecuteSubCommands(commandBuffer->GetGLCommandBuffer());
+        presentGLCommandBuffer->ExecuteSubCommands(presentGCommandBuffer->GetGLCommandBuffer());
         //结束呈现命令缓冲区录制并提交呈现命令
-        SwapChain::EndPresent(*presentCommandBuffer);
+        SwapChain::EndPresent(*presentGLCommandBuffer);
         //等待呈现完成
         SwapChain::WaitPresent();
     }

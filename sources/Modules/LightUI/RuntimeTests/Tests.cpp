@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "LightMath/Runtime/Graphics/Color.hpp"
+#include "LightMath/Runtime/Graphics/Color.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightUI/Runtime/UISystem.h"
 #include "LightWindow/Runtime/Input.h"
@@ -17,7 +17,7 @@ public:
 
 private:
     ImTextureID textureID = {};
-    std::unique_ptr<Texture2D> texture = {};
+    std::unique_ptr<GTexture2D> texture = {};
 
     void Start() override
     {
@@ -26,7 +26,7 @@ private:
             Color::Green(), Color::Blue(), Color::Gray(),
             Color::Yellow(), Color::Magenta(), Color::LightRed(),
         };
-        texture = std::make_unique<Texture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, colors, sizeof(colors));
+        texture = std::make_unique<GTexture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, colors, sizeof(colors));
         textureID = UI::CreateTexture(*texture);
     }
     void Stop() override

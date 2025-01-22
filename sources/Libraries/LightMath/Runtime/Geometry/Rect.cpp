@@ -1,6 +1,6 @@
 ﻿#include "Rect.h"
 
-#include "../MatrixMath.hpp"
+#include "../MatrixMath.h"
 
 namespace Light
 {

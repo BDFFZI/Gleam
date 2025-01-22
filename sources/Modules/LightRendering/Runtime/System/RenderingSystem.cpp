@@ -1,10 +1,10 @@
 ﻿#include "RenderingSystem.h"
 
-#include "LightECS/Runtime/View.hpp"
-#include "LightMath/Runtime/MatrixMath.hpp"
-#include "LightRendering/Runtime/Component/Camera.hpp"
-#include "LightRendering/Runtime/Component/LinesMesh.hpp"
-#include "LightRendering/Runtime/Component/PointsMesh.hpp"
+#include "LightECS/Runtime/View.h"
+#include "LightMath/Runtime/MatrixMath.h"
+#include "LightRendering/Runtime/Component/Camera.h"
+#include "LightRendering/Runtime/Component/LinesMesh.h"
+#include "LightRendering/Runtime/Component/PointsMesh.h"
 
 namespace Light
 {
@@ -80,7 +80,7 @@ namespace Light
             rendererInfos.emplace(transform, renderer);
         });
         //渲染
-        GCommandBuffer& commandBuffer = PresentationSystem->GetCommandBuffer();
+        GCommandBuffer& commandBuffer = PresentationSystem->GetPresentGCommandBuffer();
         for (const auto& cameraInfo : cameraInfos)
         {
             commandBuffer.SetRenderTarget(*cameraInfo.renderTarget);
