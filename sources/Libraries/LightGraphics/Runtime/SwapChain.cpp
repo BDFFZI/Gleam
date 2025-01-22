@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 #include "LightGL/Runtime/GL.h"
-#include "LightGL/Runtime/Pipeline/GLSwapChain.h"
+#include "LightGL/Runtime/GLSwapChain.h"
 
 namespace Light
 {

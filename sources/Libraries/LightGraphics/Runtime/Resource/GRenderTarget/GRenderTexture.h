@@ -12,10 +12,9 @@ namespace Light
     public:
         GRenderTexture(
             uint32_t width, uint32_t height,
-            VkFormat colorFormat = Graphics::GetDefaultGraphicsPreset().colorFormat,
-            VkFormat depthStencilFormat = Graphics::GetDefaultGraphicsPreset().depthStencilFormat,
-            VkSampleCountFlagBits sampleCount = Graphics::GetDefaultGraphicsPreset().stateLayout.multisample.rasterizationSamples);
-        GRenderTexture(const GRenderTexture&) = delete;
+            VkFormat colorFormat = Graphics::GetGraphicsConfig().presentColorFormat,
+            VkFormat depthStencilFormat = Graphics::GetGraphicsConfig().presentDepthStencilFormat,
+            VkSampleCountFlagBits sampleCount = Graphics::GetGraphicsConfig().presentSampleCount);
 
         GLImageView& GetGLImageView() const override { return *colorImageView; }
         GLImageSampler& GetGLImageSampler() const override { return *glImageSampler; }

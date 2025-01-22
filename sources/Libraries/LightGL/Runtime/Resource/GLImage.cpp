@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 #include "GLBuffer.h"
-#include "../Pipeline/GLCommandBuffer.h"
+#include "../GLCommandBuffer.h"
 #include "../GL.h"
 
 void CmdTransitionImageLayout(

@@ -1,9 +1,8 @@
 ﻿#pragma once
 #include <functional>
 #include "GLFramebuffer.h"
-#include "GLPipeline.h"
-#include "../Resource/GLBuffer.h"
-#include  "../Resource/GLDescriptorSet.h"
+#include "Pipeline/GLPipeline.h"
+#include "Resource/GLDescriptorSet.h"
 
 /**
  * 带有KHR和EXT后缀的是扩展命令，目前不是vulkan的核心命令，需要一定前置要求来开启。

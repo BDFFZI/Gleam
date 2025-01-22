@@ -18,3 +18,13 @@ struct GLShader
      */
     GLShader(VkShaderStageFlagBits shaderStage, std::vector<std::byte> shaderBytecode, std::string shaderEntrance);
 };
+
+class GLShaderLayout
+{
+public:
+    std::vector<GLShader> shaders;
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+
+    explicit GLShaderLayout(const std::vector<GLShader>& shaders);
+    ~GLShaderLayout();
+};

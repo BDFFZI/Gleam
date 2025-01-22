@@ -6,35 +6,12 @@
 #include "../GL.h"
 
 VkPipeline CreatePipeline(
-    const std::vector<GLShader>& glShaderLayout,
+    const GLShaderLayout& glShaderLayout,
     const GLMeshLayout& glMeshLayout,
     const GLPipelineLayout& glPipelineLayout,
     const GLStateLayout& glStateLayout,
     const std::function<void(VkGraphicsPipelineCreateInfo& pipelineCreateInfo)>& modifyPipelineCreateInfo)
 {
-    //着色器状态
-    std::vector<VkPipelineShaderStageCreateInfo> shaderStages(glShaderLayout.size());
-    {
-        for (size_t i = 0; i < glShaderLayout.size(); ++i)
-        {
-            VkShaderModule shaderModule;
-            VkShaderModuleCreateInfo createInfo{};
-            createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-            createInfo.codeSize = glShaderLayout[i].shaderBytecode.size();
-            createInfo.pCode = reinterpret_cast<const uint32_t*>(glShaderLayout[i].shaderBytecode.data());
-            if (vkCreateShaderModule(GL::glDevice->device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
-                throw std::runtime_error("创建着色器模型失败!");
-
-            VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-            vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-            vertShaderStageInfo.stage = glShaderLayout[i].shaderStage;
-            vertShaderStageInfo.pName = glShaderLayout[i].shaderEntrance.c_str();
-            vertShaderStageInfo.module = shaderModule;
-
-            shaderStages[i] = vertShaderStageInfo;
-        }
-    }
-
     //颜色混合操作状态信息？？？啥玩意
     VkPipelineColorBlendStateCreateInfo colorBlending{};
     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -56,8 +33,8 @@ VkPipeline CreatePipeline(
     VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
     pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     //着色器阶段信息
-    pipelineCreateInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
-    pipelineCreateInfo.pStages = shaderStages.data();
+    pipelineCreateInfo.stageCount = static_cast<uint32_t>(glShaderLayout.shaderStages.size());
+    pipelineCreateInfo.pStages = glShaderLayout.shaderStages.data();
     //顶点输入装配信息
     pipelineCreateInfo.pVertexInputState = &glMeshLayout.vertexInput.vertexInputState; //顶点布局状态
     pipelineCreateInfo.pInputAssemblyState = &glMeshLayout.inputAssembly.inputAssemblyState;//基元装配状态
@@ -79,10 +56,6 @@ VkPipeline CreatePipeline(
     VkPipeline pipeline;
     VkResult result = vkCreateGraphicsPipelines(GL::glDevice->device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &pipeline);
 
-    //回收着色器的包装器内存
-    for (auto& shaderStage : shaderStages)
-        vkDestroyShaderModule(GL::glDevice->device, shaderStage.module, nullptr);
-
     /// VK_ERROR_UNKNOWN的原因
     /// 1. 描述符集布局与着色器所使用的不一致
     if (result != VK_SUCCESS)
@@ -93,7 +66,7 @@ VkPipeline CreatePipeline(
 
 GLPipeline::GLPipeline(
     const GLRenderPass& glRenderPass, const int subpassIndex,
-    const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
+    const GLShaderLayout& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
     const GLStateLayout& glStateLayout)
 {
     pipeline = CreatePipeline(
@@ -106,7 +79,7 @@ GLPipeline::GLPipeline(
 }
 GLPipeline::GLPipeline(
     const std::vector<VkFormat>& colorAttachments, const VkFormat depthStencilAttachment,
-    const std::vector<GLShader>& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
+    const GLShaderLayout& glShaderLayout, const GLMeshLayout& glMeshLayout, const GLPipelineLayout& glPipelineLayout,
     const GLStateLayout& glStateLayout)
 {
     VkPipelineRenderingCreateInfo pipelineRenderingCreate = {};

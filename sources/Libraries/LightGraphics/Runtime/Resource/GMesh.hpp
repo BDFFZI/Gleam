@@ -4,7 +4,7 @@
 #include "LightGL/Runtime/Resource/GLBuffer.h"
 #include <cassert>
 
-#include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
+#include "LightGL/Runtime/GLCommandBuffer.h"
 #include "LightImport/Runtime/ModelImporter.h"
 
 namespace Light

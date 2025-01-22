@@ -1,16 +1,21 @@
 ﻿#pragma once
 #include "GBuffer.h"
 #include "GShader/GShader.h"
-#include "GShader/GShaderLayout.h"
+#include "GShader/GSLayout.h"
 
 namespace Light
 {
     class GMaterial
     {
     public:
-        GMaterial(GShaderLayout& shaderLayout, GShader* shader = nullptr);
-        GMaterial(const GMaterial&) = delete;
+        GMaterial(GSAssetLayout& assetLayout = Graphics::GetGraphicsConfig().defaultGSAssetLayout);
+        GMaterial(GShader& pass);
         virtual ~GMaterial();
+
+        GMaterial(const GMaterial&) = delete;
+        GMaterial& operator=(const GMaterial&) = delete;
+        GMaterial(GMaterial&&) = default;
+        GMaterial& operator=(GMaterial&&) = default;
 
         void SetBuffer(int slotIndex, const GBuffer& buffer);
         void SetTexture(int slotIndex, const GTexture& texture);
@@ -21,10 +26,10 @@ namespace Light
         const std::vector<std::tuple<std::string, GShader*>>& GetPasses();
 
     protected:
-        GShaderLayout* shaderLayout;
+        GSAssetLayout* assetLayout;
         std::vector<VkWriteDescriptorSet> descriptorSetsUpload;
         std::vector<std::vector<std::byte>> pushConstantsUpload;
-        std::vector<std::tuple<std::string, GShader*>> shaderPasses;
+        std::vector<std::tuple<std::string, GShader*>> passes;
         bool isDirty;
     };
 }

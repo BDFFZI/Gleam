@@ -26,22 +26,16 @@ GLVertexInput VertexInput = GLVertexInput{
         GLVertexAttribute{2,offsetof(Vertex, color), VK_FORMAT_R32G32B32A32_SFLOAT},
     }
 };
-//三角面网格布局
-GLMeshLayout TriangleMeshLayout = {
+GSInoutLayout TriangleGSInoutLayout = GSInoutLayout{
     VertexInput,
     GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, false}
 };
-//线框条带网格布局
-GLMeshLayout LineMeshLayout = {
+GSInoutLayout LineGSInoutLayout = GSInoutLayout{
     VertexInput,
     GLInputAssembly{VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, false}
 };
 //定义网格
 using Mesh = GMeshT<Vertex>;
-
-
-GraphicsPreset TriangleGraphicsPreset = GraphicsPreset(TriangleMeshLayout);
-GraphicsPreset LineGraphicsPreset = GraphicsPreset(LineMeshLayout);
 
 //变换测试用的移动方向
 inline float3 Move[4] = {
@@ -55,14 +49,12 @@ inline float3 Move[4] = {
 Chronograph chronograph;
 
 std::unique_ptr<Mesh> fullScreenMesh;
-std::unique_ptr<Mesh> boxMesh;
+std::unique_ptr<Mesh> cubeMesh;
 
-std::unique_ptr<GShaderLayout> shaderLayout;
+std::unique_ptr<GSAssetLayout> shaderLayout;
 std::unique_ptr<GShader> shader;
 std::unique_ptr<GShader> lineShader;
-
 std::unique_ptr<GTexture2D> imageTexture2D;
-std::unique_ptr<GTexture2D> whiteTexture2D;
 
 std::unique_ptr<GMaterial> material;
 std::unique_ptr<GMaterial> lineMaterial;
@@ -85,32 +77,31 @@ void CreateAssets()
     });
     //盒状网格
     RawMesh rawMesh = ModelImporter::ImportObj("Resources/LightGraphicsRuntimeTests/Cube.obj");
-    boxMesh = std::make_unique<Mesh>();
+    cubeMesh = std::make_unique<Mesh>();
     for (size_t i = 0; i < rawMesh.positions.size(); ++i)
     {
-        boxMesh->GetVertices().push_back({
+        cubeMesh->GetVertices().push_back({
             rawMesh.positions[i],
             rawMesh.uvs[i],
             float4(rawMesh.positions[i], 1),
         });
     }
-    boxMesh->SetIndices(rawMesh.triangles);
+    cubeMesh->SetIndices(rawMesh.triangles);
 
-    shaderLayout = std::make_unique<GShaderLayout>(
+    shaderLayout = std::make_unique<GSAssetLayout>(
         std::vector<GLDescriptorBinding>{{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}},
         std::vector<VkPushConstantRange>{{VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float4x4)}}
     );
     //标准材质
-    shader = std::make_unique<GShader>(*shaderLayout, "Resources/LightGraphicsRuntimeTests/Shader.hlsl");
-    material = std::make_unique<GMaterial>(*shaderLayout, shader.get());
+    shader = std::make_unique<GShader>(GSCodeLayout{"Resources/LightGraphicsRuntimeTests/shader.hlsl"});
+    material = std::make_unique<GMaterial>(*shader);
     //自定义线材质
-    lineShader = std::make_unique<GShader>(*shaderLayout, "Resources/LightGraphicsRuntimeTests/CustomVertexShader.hlsl", LineGraphicsPreset);
-    lineMaterial = std::make_unique<GMaterial>(*shaderLayout, lineShader.get());
-
+    lineShader = std::make_unique<GShader>(
+        GSCodeLayout{"Resources/LightGraphicsRuntimeTests/shader.hlsl"},
+        Graphics::GetGraphicsConfig().defaultGSStateLayout, Graphics::GetGraphicsConfig().defaultGSAssetLayout, LineGSInoutLayout);
+    lineMaterial = std::make_unique<GMaterial>(*lineShader);
     //图片纹理
     imageTexture2D = std::make_unique<GTexture2D>("Resources/LightGraphicsRuntimeTests/texture.jpg");
-    //白色纹理
-    whiteTexture2D = std::make_unique<GTexture2D>(1.0f);
 
     //渲染纹理
     renderTexture = std::make_unique<GRenderTexture>(
@@ -123,59 +114,67 @@ void DeleteAssets()
 {
     renderTexture.reset();
 
-    lineMaterial.reset();
-    material.reset();
-
-    whiteTexture2D.reset();
     imageTexture2D.reset();
 
     lineShader.reset();
     shader.reset();
+    lineMaterial.reset();
+    material.reset();
+    shaderLayout.reset();
 
-    boxMesh.reset();
+    cubeMesh.reset();
     fullScreenMesh.reset();
 }
 
-void Draw(GCommandBuffer& commandBuffer, float4x4 matrixVP, float4 background = float4(0.5, 0.5, 0.5, 1))
+void TestBackground(GCommandBuffer& commandBuffer)
 {
     //绘制背景色
-    commandBuffer.ClearRenderTarget(background);
-
-    //测试变换，纹理
+    commandBuffer.ClearRenderTarget(float4(0.5, 0.5, 0.5, 1));
+}
+void TestViewport(GCommandBuffer& commandBuffer)
+{
+    commandBuffer.SetViewport(50, 50, 100, 50);
+    commandBuffer.ClearRenderTarget(float4(0.5, 0, 0, 1));
+    commandBuffer.SetViewportToFullscreen();
+}
+void TestMaterialAndCubeMesh(GCommandBuffer& commandBuffer, float4x4 matrixVP)
+{
+    for (int i = 0; i < 4; ++i)
     {
+        float4x4 matrixM = float4x4::TRS(
+            float3{0, 0, static_cast<float>(i) * 0.1f} + Move[i] * fmod(static_cast<float>(chronograph.Time()) / 6000, 1.0f),
+            {-90, 0, 0},
+            static_cast<float>(i + 1) / 4.0f
+        );
+
+        float4x4 matrixMVP = mul(matrixVP, matrixM);
         material->SetTexture(0, *imageTexture2D);
-        for (int i = 0; i < 4; ++i)
-        {
-            float4x4 objectToWorld = float4x4::TRS(
-                float3{0, 0, static_cast<float>(i) * 0.1f} + Move[i] * fmod(static_cast<float>(chronograph.Time()) / 6000, 1.0f),
-                {-90, 0, 0},
-                static_cast<float>(i + 1) / 4.0f
-            );
-            float4x4 matrixMVP = matrixVP * objectToWorld;
-            material->SetPushConstant(0, &matrixMVP);
-
-            commandBuffer.DrawMesh(*boxMesh, *material);
-        }
-    }
-
-    //测试线框材质
-    {
-        lineMaterial->SetTexture(0, *whiteTexture2D);
-        float4x4 matrixMVP = matrixVP * float4x4::TRS(0, 0, 2);
         material->SetPushConstant(0, &matrixMVP);
-        commandBuffer.DrawMesh(*boxMesh, *lineMaterial);
+        commandBuffer.DrawMesh(*cubeMesh, *material);
+        material->SetTexture(0, Graphics::GetDefaultTexture2D());
     }
+}
+void TestWireCubeMesh(GCommandBuffer& commandBuffer, float4x4 matrixVP)
+{
+    float4x4 matrixMVP = mul(matrixVP, float4x4::TRS(0, 0, 2));
+    lineMaterial->SetPushConstant(0, &matrixMVP);
+    commandBuffer.DrawMesh(*cubeMesh, *lineMaterial);
+}
+void TestRenderTarget(GCommandBuffer& commandBuffer, float4x4 matrixVP)
+{
+    commandBuffer.SetRenderTarget(*renderTexture);
+    TestMaterialAndCubeMesh(commandBuffer, matrixVP);
 
-    //测试视口和NDC
-    {
-        uint32_t halfWidth = commandBuffer.GetCurrentRenderTarget()->width / 2;
-        uint32_t halfHeight = commandBuffer.GetCurrentRenderTarget()->height / 2;
-        commandBuffer.SetViewport(static_cast<int32_t>(halfWidth), static_cast<int32_t>(halfHeight), halfWidth / 2, halfHeight / 2);
-        material->SetTexture(0, *whiteTexture2D);
-        float4x4 matrixMVP = float4x4::Identity();
-        material->SetPushConstant(0, &matrixMVP);
-        commandBuffer.DrawMesh(*fullScreenMesh, *material);
-    }
+    commandBuffer.SetRenderTarget(Graphics::GetDefaultRenderTarget());
+    commandBuffer.SetViewport(50, 110, 100, 50);
+    material->SetTexture(0, *renderTexture);
+
+    float4x4 matrixMVP = float4x4::Identity();
+    material->SetPushConstant(0, &matrixMVP);
+    commandBuffer.DrawMesh(*fullScreenMesh, *material);
+
+    material->SetTexture(0, Graphics::GetDefaultTexture2D());
+    commandBuffer.SetViewportToFullscreen();
 }
 
 void Update(GLFWwindow* glfwWindow)
@@ -203,25 +202,16 @@ void Update(GLFWwindow* glfwWindow)
         GCommandBuffer& commandBuffer = *commandBuffers[SwapChain::GetGLSwapChain().GetCurrentBufferIndex()];
         commandBuffer.BeginRecording();
 
-        //绘制相机1到自定义渲染目标
-        commandBuffer.SetRenderTarget(*renderTexture); //设置渲染目标
-        Draw(commandBuffer, inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1})) *
-             float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f),
-             0);
-        commandBuffer.SetRenderTargetToNull();
+        float4x4 matrixP = float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f);
+        float4x4 matrixV = inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1}));
+        float4x4 matrixVP = mul(matrixP, matrixV);
 
-        //绘制相机2到屏幕
-        commandBuffer.SetRenderTarget(Graphics::GetDefaultRenderTarget()); //设置渲染目标
-        commandBuffer.ClearRenderTarget();
-        Draw(commandBuffer, inverse(float4x4::TRS({0, 2, 3}, {30, -180, 0}, {1, 1, 1})) *
-             float4x4::Perspective(60, 16.0f / 9.0f, 0.3f, 1000.0f));
-
-        //绘制相机1画面到屏幕
-        commandBuffer.SetViewport(50, 50, 160, 90);
-        material->SetTexture(0, *renderTexture);
-        float4x4 matrixMVP = float4x4::Identity();
-        material->SetPushConstant(0, &matrixMVP);
-        commandBuffer.DrawMesh(*fullScreenMesh, *material);
+        commandBuffer.SetRenderTarget(Graphics::GetDefaultRenderTarget());
+        TestBackground(commandBuffer);
+        TestMaterialAndCubeMesh(commandBuffer, matrixVP);
+        TestWireCubeMesh(commandBuffer, matrixVP);
+        TestViewport(commandBuffer);
+        TestRenderTarget(commandBuffer, matrixVP);
 
         //结束绘制命令录制
         commandBuffer.EndRecording();
@@ -251,7 +241,14 @@ void main()
     Graphics::InitializeGLDemand(extensions);
 
     GL gl = GL::Initialize(window, extensions);
-    Graphics::Initialize(gl, TriangleGraphicsPreset);
+
+    std::unique_ptr<GraphicsConfig> graphicsConfig = std::make_unique<GraphicsConfig>();
+    graphicsConfig->defaultGSInoutLayout = TriangleGSInoutLayout;
+    graphicsConfig->defaultGSAssetLayout = GSAssetLayout{
+        std::vector<GLDescriptorBinding>{{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}},
+        std::vector<VkPushConstantRange>{{VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float4x4)}}
+    };
+    Graphics::Initialize(gl, std::move(graphicsConfig));
 
     CreateAssets();
 

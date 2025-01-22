@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 #include "../GL.h"
-#include "../Pipeline/GLCommandBuffer.h"
+#include "../GLCommandBuffer.h"
 
 GLBuffer* GLBuffer::CreateTransmitter(const void* data, const size_t size)
 {

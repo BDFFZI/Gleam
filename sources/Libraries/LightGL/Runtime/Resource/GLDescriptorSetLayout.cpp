@@ -37,5 +37,23 @@ GLDescriptorSetLayout::GLDescriptorSetLayout(const std::vector<GLDescriptorBindi
 }
 GLDescriptorSetLayout::~GLDescriptorSetLayout()
 {
-    vkDestroyDescriptorSetLayout(GL::glDevice->device, descriptorSetLayout, nullptr);
+    if (descriptorSetLayout != VK_NULL_HANDLE)
+        vkDestroyDescriptorSetLayout(GL::glDevice->device, descriptorSetLayout, nullptr);
+}
+
+GLDescriptorSetLayout::GLDescriptorSetLayout(GLDescriptorSetLayout&& other) noexcept
+    : descriptorSetLayout(other.descriptorSetLayout),
+      descriptorBindings(std::move(other.descriptorBindings))
+{
+    other.descriptorSetLayout = VK_NULL_HANDLE;
+}
+GLDescriptorSetLayout& GLDescriptorSetLayout::operator=(GLDescriptorSetLayout&& other) noexcept
+{
+    if (this == &other)
+        return *this;
+    descriptorSetLayout = other.descriptorSetLayout;
+    descriptorBindings = std::move(other.descriptorBindings);
+        
+    other.descriptorSetLayout = VK_NULL_HANDLE;
+    return *this;
 }

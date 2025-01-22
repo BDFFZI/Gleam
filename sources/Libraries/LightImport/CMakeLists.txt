@@ -1,6 +1,7 @@
 addPackage()
 
 linkLibrary(LightMathRuntime "${PackageName}Runtime")
+linkLibrary(LightUtilityRuntime "${PackageName}RuntimeTests")
 
 find_package(Stb REQUIRED)
 target_include_directories("${PackageName}Runtime" PRIVATE ${Stb_INCLUDE_DIR})

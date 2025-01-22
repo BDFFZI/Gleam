@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "../GL.h"
+#include "GL.h"
 
 GLFramebuffer::GLFramebuffer(
     const GLRenderPass& glRenderPass,

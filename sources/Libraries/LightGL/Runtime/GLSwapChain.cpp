@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include "../GL.h"
+#include "GL.h"
 
 VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window)
 {

@@ -23,5 +23,18 @@ GLPipelineLayout::GLPipelineLayout(const GLDescriptorSetLayout& glDescriptorSetL
 }
 GLPipelineLayout::~GLPipelineLayout()
 {
-    vkDestroyPipelineLayout(GL::glDevice->device, pipelineLayout, nullptr);
+    if (pipelineLayout != VK_NULL_HANDLE)
+        vkDestroyPipelineLayout(GL::glDevice->device, pipelineLayout, nullptr);
+}
+GLPipelineLayout::GLPipelineLayout(GLPipelineLayout&& other) noexcept: pipelineLayout(other.pipelineLayout)
+{
+    other.pipelineLayout = VK_NULL_HANDLE;
+}
+GLPipelineLayout& GLPipelineLayout::operator=(GLPipelineLayout&& other) noexcept
+{
+    if (this == &other)
+        return *this;
+    pipelineLayout = other.pipelineLayout;
+    other.pipelineLayout = VK_NULL_HANDLE;
+    return *this;
 }

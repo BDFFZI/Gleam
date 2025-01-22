@@ -3,8 +3,8 @@
 #include <array>
 #include <cassert>
 #include <stdexcept>
+#include "GL.h"
 
-#include "../GL.h"
 
 void GLCommandBuffer::ExecuteSingleTimeCommands(const std::function<void(const GLCommandBuffer&)>& setCommands)
 {

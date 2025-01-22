@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LightECS/Runtime/System.h"
-#include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
+#include "LightGL/Runtime/GLCommandBuffer.h"
 #include "LightGraphics/Runtime/GCommandBuffer.h"
 #include "LightEngine/Runtime/Engine.h"
 

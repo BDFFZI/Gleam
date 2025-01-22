@@ -2,7 +2,7 @@
 #include <memory>
 #include <vulkan/vulkan_core.h>
 
-#include "LightGL/Runtime/Pipeline/GLSwapChain.h"
+#include "LightGL/Runtime/GLSwapChain.h"
 #include "Resource/GRenderTarget/GRenderTarget.hpp"
 
 namespace Light

@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <vulkan/vulkan_core.h>
-#include "GLRenderPass.h"
+#include "Pipeline/GLRenderPass.h"
 
 /**
  * 存储了渲染管道中的最终输出缓冲区对应的实际物体，而关于这些缓冲区的描述则由GLRenderPass描述。

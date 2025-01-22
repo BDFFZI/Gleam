@@ -4,11 +4,11 @@
 
 namespace Light
 {
-    GMaterial::GMaterial(GShaderLayout& shaderLayout, GShader* shader)
-        : shaderLayout(&shaderLayout), isDirty(true)
+    GMaterial::GMaterial(GSAssetLayout& assetLayout)
+        : assetLayout(&assetLayout), isDirty(true)
     {
         //创建描述符上传结构
-        const std::vector<GLDescriptorBinding>& descriptorBindings = shaderLayout.GetDescriptorBindings();
+        const std::vector<GLDescriptorBinding>& descriptorBindings = assetLayout.GetDescriptorBindings();
         descriptorSetsUpload.resize(descriptorBindings.size());
         for (size_t i = 0; i < descriptorBindings.size(); i++)
         {
@@ -33,7 +33,7 @@ namespace Light
         }
 
         //创建推送常量上传结构
-        const std::vector<VkPushConstantRange>& pushConstantRanges = shaderLayout.GetPushConstantRanges();
+        const std::vector<VkPushConstantRange>& pushConstantRanges = assetLayout.GetPushConstantRanges();
         pushConstantsUpload.resize(pushConstantRanges.size());
         for (size_t i = 0; i < pushConstantRanges.size(); i++)
             pushConstantsUpload[i].resize(pushConstantRanges[i].size);
@@ -42,11 +42,13 @@ namespace Light
         for (size_t i = 0; i < descriptorSetsUpload.size(); i++)
         {
             if (descriptorSetsUpload[i].descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
-                SetTexture(static_cast<int>(i), Graphics::getDefaultTexture2D());
+                SetTexture(static_cast<int>(i), Graphics::GetDefaultTexture2D());
         }
-
-        if (shader != nullptr)
-            AddPass("", *shader);
+    }
+    GMaterial::GMaterial(GShader& pass)
+        : GMaterial()
+    {
+        AddPass("", pass);
     }
 
     GMaterial::~GMaterial()
@@ -78,7 +80,7 @@ namespace Light
     }
     void GMaterial::SetPushConstant(const int slotIndex, const void* data)
     {
-        std::memcpy(pushConstantsUpload[slotIndex].data(), data, shaderLayout->GetPushConstantRanges()[slotIndex].size);
+        std::memcpy(pushConstantsUpload[slotIndex].data(), data, assetLayout->GetPushConstantRanges()[slotIndex].size);
         isDirty = true;
     }
     void GMaterial::BindToPipeline(const GLCommandBuffer& glCommandBuffer, const GMaterial* lastMaterial)
@@ -86,13 +88,13 @@ namespace Light
         if (this != lastMaterial || isDirty)
         {
             //上传描述符
-            glCommandBuffer.PushDescriptorSetKHR(shaderLayout->GetGLPipelineLayout(), descriptorSetsUpload);
+            glCommandBuffer.PushDescriptorSetKHR(assetLayout->GetGLPipelineLayout(), descriptorSetsUpload);
             //上传推送常量
-            const std::vector<VkPushConstantRange>& pushConstantRanges = shaderLayout->GetPushConstantRanges();
+            const std::vector<VkPushConstantRange>& pushConstantRanges = assetLayout->GetPushConstantRanges();
             for (size_t i = 0; i < pushConstantRanges.size(); i++)
             {
                 glCommandBuffer.PushConstant(
-                    shaderLayout->GetGLPipelineLayout(),
+                    assetLayout->GetGLPipelineLayout(),
                     pushConstantRanges[i],
                     pushConstantsUpload[i].data());
             }
@@ -101,10 +103,10 @@ namespace Light
     }
     void GMaterial::AddPass(const std::string& passName, GShader& shader)
     {
-        shaderPasses.emplace_back(passName, &shader);
+        passes.emplace_back(passName, &shader);
     }
     const std::vector<std::tuple<std::string, GShader*>>& GMaterial::GetPasses()
     {
-        return shaderPasses;
+        return passes;
     }
 }

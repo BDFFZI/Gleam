@@ -1,4 +1,7 @@
 #include "GTexture2D.h"
+
+#include <stdexcept>
+
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightImport/Runtime/ImageImporter.h"
 

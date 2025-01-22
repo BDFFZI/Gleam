@@ -20,6 +20,10 @@ public:
     std::vector<GLDescriptorBinding> descriptorBindings;
 
     explicit GLDescriptorSetLayout(const std::vector<GLDescriptorBinding>& descriptorBindings, VkDescriptorSetLayoutCreateFlags createFlags = 0);
-    GLDescriptorSetLayout(const GLDescriptorSetLayout&) = delete;
     ~GLDescriptorSetLayout();
+
+    GLDescriptorSetLayout(const GLDescriptorSetLayout& other) = delete;
+    GLDescriptorSetLayout(GLDescriptorSetLayout&& other) noexcept;
+    GLDescriptorSetLayout& operator=(const GLDescriptorSetLayout& other) = delete;
+    GLDescriptorSetLayout& operator=(GLDescriptorSetLayout&& other) noexcept;
 };

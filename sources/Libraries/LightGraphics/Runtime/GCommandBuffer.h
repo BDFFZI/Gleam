@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include <stack>
-#include "LightGL/Runtime/Pipeline/GLCommandBuffer.h"
+#include "LightGL/Runtime/GLCommandBuffer.h"
 #include "LightMath/Runtime/Matrix.hpp"
+#include "LightMath/Runtime/Geometry/Rect.h"
 #include "Resource/GMaterial.h"
 #include "Resource/GMesh.hpp"
 
@@ -42,14 +43,14 @@ namespace Light
         void SetRenderTargetToNull();
 
         /**
-         * 采用左手坐标系，左下为0，右上为渲染目标最大分辨率
+         * 采用右手坐标系，左上为0，右下为渲染目标最大分辨率
          * @param x 
          * @param y 
          * @param width 
          * @param height 
          */
-        void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height) const;
-        void SetViewportToFullscreen() const;
+        void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height);
+        void SetViewportToFullscreen();
 
         void DrawMesh(GMesh& mesh, GMaterial& material, const std::string_view& shaderPass = "");
         void ClearRenderTarget(const std::optional<float4>& color = 0.0f, const std::optional<float>& depth = 1.0f) const;
@@ -62,5 +63,6 @@ namespace Light
         const GShader* currentShader = nullptr;
         const GMaterial* currentMaterial = nullptr;
         const GRenderTarget* currentRenderTarget = nullptr;
+        VkRect2D currentViewport;
     };
 }

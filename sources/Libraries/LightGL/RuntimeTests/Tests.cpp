@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "LightGL/Runtime/GL.h"
-#include "LightGL/Runtime/Pipeline/GLSwapChain.h"
+#include "LightGL/Runtime/GLSwapChain.h"
 #include "LightGL/Runtime/Resource/GLImageView.h"
 
 #include "LightMath/Runtime/Matrix.hpp"
@@ -43,8 +43,8 @@ class GLTester
     std::vector<std::unique_ptr<GLFramebuffer>> glFramebuffers;
 
     std::unique_ptr<GLRenderPass> glRenderPass;
-    // descriptorSetLayout;
     std::unique_ptr<GLPipelineLayout> glPipelineLayout;
+    std::unique_ptr<GLShaderLayout> glShaderLayout;
     std::unique_ptr<GLPipeline> glPipeline;
 
     std::unique_ptr<GLBuffer> vertexBuffer;
@@ -123,14 +123,14 @@ public:
         glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout, std::vector<VkPushConstantRange>{});
         //着色器布局
         std::string code = Utility::ReadFile("Resources/LightGLRuntimeTests/shader.hlsl");
-        std::vector glShaderLayout{
+        glShaderLayout = std::make_unique<GLShaderLayout>(std::vector{
             GLShader(VK_SHADER_STAGE_VERTEX_BIT,
                      ShaderImporter::ImportHlsl(code, shaderc_vertex_shader, "VertexShader"),
                      "VertexShader"),
             GLShader(VK_SHADER_STAGE_FRAGMENT_BIT,
                      ShaderImporter::ImportHlsl(code, shaderc_fragment_shader, "FragmentShader"),
                      "FragmentShader"),
-        };
+        });
         //创建渲染管线
         GLStateLayout stateLayout = {};
         stateLayout.SetRasterizationSamples(GL::glDevice->maxUsableSampleCount);
@@ -142,7 +142,7 @@ public:
             });
         glPipeline = std::make_unique<GLPipeline>(
             *glRenderPass, 0,
-            glShaderLayout, glMeshLayout, *glPipelineLayout,
+            *glShaderLayout, glMeshLayout, *glPipelineLayout,
             stateLayout
         );
 

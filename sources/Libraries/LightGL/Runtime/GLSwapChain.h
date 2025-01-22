@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "../Pipeline/GLCommandBuffer.h"
-#include "../Resource/GLImageView.h"
+#include "GLCommandBuffer.h"
+#include "Resource/GLImageView.h"
 
 class GLSwapChain
 {

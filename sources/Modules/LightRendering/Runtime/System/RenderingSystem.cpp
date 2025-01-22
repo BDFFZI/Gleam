@@ -28,8 +28,8 @@ namespace Light
 
     void RenderingSystem::Start()
     {
-        defaultPointShader = std::make_unique<GShader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, pointMeshLayout);
-        defaultLineShader = std::make_unique<GShader>("Assets/VertexColor.hlsl", GraphicsPreset::DefaultStateLayout, lineMeshLayout);
+        defaultPointShader = std::make_unique<GShader>("Assets/VertexColor.hlsl", GraphicsConfig::DefaultStateLayout, pointMeshLayout);
+        defaultLineShader = std::make_unique<GShader>("Assets/VertexColor.hlsl", GraphicsConfig::DefaultStateLayout, lineMeshLayout);
         defaultPointMaterial = std::make_unique<GMaterial>(*defaultPointShader);
         defaultLineMaterial = std::make_unique<GMaterial>(*defaultLineShader);
 

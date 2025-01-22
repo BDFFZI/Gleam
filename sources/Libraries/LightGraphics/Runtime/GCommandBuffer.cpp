@@ -68,25 +68,27 @@ void GCommandBuffer::SetRenderTargetToNull()
     EndRendering();
 }
 
-void GCommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t width, const uint32_t height) const
+void GCommandBuffer::SetViewport(const int32_t x, const int32_t y, const uint32_t width, const uint32_t height)
 {
     assert(x >=0 && static_cast<uint32_t>(x) < currentRenderTarget->width && "x超出最大渲染范围！");
     assert(y >=0 && static_cast<uint32_t>(y) < currentRenderTarget->height && "y超出最大渲染范围！");
     assert(x + width <= currentRenderTarget->width && "width超出最大渲染范围！");
     assert(y + height <= currentRenderTarget->height && "height超出最大渲染范围！");
 
-    int32_t rightY = static_cast<int32_t>(currentRenderTarget->height - (y + height)); //转换到右手坐标系
-
+    currentViewport = {
+        VkOffset2D{x, y},
+        VkExtent2D{width, height}
+    };
     glCommandBuffer.SetViewport(
-        static_cast<float>(x), static_cast<float>(rightY + height),
+        static_cast<float>(x), static_cast<float>(y + height),
         static_cast<float>(width), -static_cast<float>(height)
     ); //利用-height的特性，实现剪辑空间的上下反转。这样传入左手坐标系的顶点后就可以负负得正了。
     glCommandBuffer.SetScissor(
-        {x, rightY},
-        {width, height}
+        currentViewport.offset,
+        currentViewport.extent
     );
 }
-void GCommandBuffer::SetViewportToFullscreen() const
+void GCommandBuffer::SetViewportToFullscreen()
 {
     SetViewport(0, 0, currentRenderTarget->width, currentRenderTarget->height);
 }
@@ -136,7 +138,7 @@ void GCommandBuffer::ClearRenderTarget(const std::optional<float4>& color, const
     }
 
     glCommandBuffer.ClearAttachments(
-        VkRect2D{{0, 0}, {currentRenderTarget->width, currentRenderTarget->height}},
+        currentViewport,
         color.has_value() ? std::optional(colorValue) : std::nullopt,
         // ReSharper disable once CppLocalVariableMightNotBeInitialized
         depth.has_value() ? std::optional(depthStencilValue) : std::nullopt

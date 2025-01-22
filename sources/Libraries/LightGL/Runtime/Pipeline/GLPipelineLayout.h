@@ -15,6 +15,10 @@ public:
     VkPipelineLayout pipelineLayout;
 
     explicit GLPipelineLayout(const GLDescriptorSetLayout& glDescriptorSetLayout, const std::vector<VkPushConstantRange>& pushConstantRanges = {});
-    GLPipelineLayout(const GLPipelineLayout&) = delete;
     ~GLPipelineLayout();
+
+    GLPipelineLayout(const GLPipelineLayout& other) = delete;
+    GLPipelineLayout(GLPipelineLayout&& other) noexcept;
+    GLPipelineLayout& operator=(const GLPipelineLayout& other) = delete;
+    GLPipelineLayout& operator=(GLPipelineLayout&& other) noexcept;
 };
