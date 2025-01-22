@@ -6,6 +6,7 @@
 #include "System.h"
 #include "Archetype.h"
 #include "Entity.h"
+#include "Scene.h"
 
 namespace Light
 {
@@ -22,36 +23,10 @@ namespace Light
     class World
     {
     public:
-        static Heap& GetEntityHeap(const Archetype& archetype)
-        {
-            auto iterator = entities.find(&archetype);
-            if (iterator != entities.end())
-                return iterator->second;
-
-            entities.insert({&archetype, Heap(archetype.size)});
-            return entities.at(&archetype);
-        }
+        static Entity CreateEntity();
         static EntityInfo GetEntityInfo(Entity entity);
+        bool HasEntity(Entity entity);
 
-        static bool HasEntity(Entity entity);
-        static Entity AddEntity(const Archetype& archetype);
-        template <Component... TComponents>
-        static Entity AddEntity(const Archetype& archetype, const TComponents&... components)
-        {
-            Entity entity = AddEntity(archetype);
-            SetComponents(entity, components...);
-            return entity;
-        }
-        static void RemoveEntity(Entity& entity);
-        static void MoveEntity(Entity entity, const Archetype& newArchetype);
-        /**
-         * MarkEntity是一种简单的MoveEntity实现，它假定新旧原型的数据存储布局是完全一样的，从而直接进行内存复制。
-         * @param entity 
-         * @param markArchetype 
-         */
-        static void MarkEntity(Entity entity, const Archetype& markArchetype);
-
-        static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
 
         static bool HasSystem(System& system);
         static void AddSystem(System& system);
@@ -106,10 +81,17 @@ namespace Light
 
     private:
         friend class HierarchyWindow;
+
+        //实体信息
         inline static uint32_t nextEntity = 1;
-        inline static std::unordered_map<const Archetype*, Heap> entities = {};
         inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
-        inline static SystemGroup systems = {nullptr, System::LeftOrder, System::RightOrder};
+
+        //场景信息（实体的存储容器）
+        inline static std::vector<std::unique_ptr<Scene>> allScenes;
+        inline static std::vector<Scene*> activeScenes;
+        inline static Scene* defaultScenes;
+        //系统信息
+        inline static SystemGroup allSystems = {nullptr, System::LeftOrder, System::RightOrder};
         inline static std::unordered_map<System*, int> systemUsageCount = {};
 
         /**

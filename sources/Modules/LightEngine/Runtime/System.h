@@ -15,4 +15,4 @@ namespace Light
 
 #include "LightUtility/Runtime/Program.h"
 #include "LightECS/Runtime/World.h"
-#define Light_AddSystems(...) Light_MakeInitEvent(){Light::World::AddSystems({__VA_ARGS__});}
+#define Light_AddSystems(...) Light_MakeInitEvent(){::Light::World::AddSystems({__VA_ARGS__});}

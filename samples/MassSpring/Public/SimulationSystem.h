@@ -10,5 +10,5 @@ namespace Light
         {
         }
     };
-    inline SimulationSystem SimulationSystem = {};
+    Light_MakeSystem(SimulationSystem)
 }

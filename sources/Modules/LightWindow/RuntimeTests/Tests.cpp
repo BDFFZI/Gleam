@@ -1,5 +1,7 @@
 #include <iostream>
+#include <gtest/gtest.h>
 
+#include "LightEngine/Runtime/Engine.h"
 #include "LightMath/Runtime/VectorMath.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Time.h"
@@ -7,7 +9,7 @@
 
 using namespace Light;
 
-void main()
+TEST(Window, Main)
 {
     int2 mousePosition;
     int2 resolution;

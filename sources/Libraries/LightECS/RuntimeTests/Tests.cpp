@@ -8,7 +8,6 @@
 #include "LightECS/Runtime/Heap.h"
 #include "LightECS/Runtime/View.h"
 #include "LightMath/Runtime/VectorMath.h"
-#include "LightUtility/Runtime/Utility.h"
 
 using namespace Light;
 

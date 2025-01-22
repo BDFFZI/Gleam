@@ -44,7 +44,11 @@ namespace Light
         }
         static GLImageSampler& GetDefaultGLImageSampler() { return *defaultGLImageSampler; }
         static GTexture2D& GetDefaultTexture2D() { return *defaultTexture2D; }
-        static GRenderTarget& GetDefaultRenderTarget() { return *defaultRenderTarget; }
+        static GRenderTarget& GetDefaultRenderTarget()
+        {
+            assert(defaultRenderTarget != nullptr && "Graphics模块尚未初始化！");
+            return *defaultRenderTarget;
+        }
 
         static void SetDefaultRenderTarget(GRenderTarget& renderTarget) { defaultRenderTarget = &renderTarget; }
 

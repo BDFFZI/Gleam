@@ -1,25 +1,20 @@
 ﻿#pragma once
 #include "LightEngine/Runtime/Component.h"
 #include "LightPresentation/Runtime/PresentationSystem.h"
-#include "LightGraphics/Runtime/GShader.h"
 #include "LightRendering/Runtime/Component/Camera.h"
 #include "LightRendering/Runtime/Component/Renderer.h"
+#include "LightRendering/Runtime/Resource/Mesh.h"
 
 namespace Light
 {
     struct CameraInfo
     {
+        Camera* camera;
         float4x4 matrixVP;
-        float depth;
-        RenderTargetAsset* renderTarget;
 
         CameraInfo() = default;
         CameraInfo(Transform& transform, Camera& camera);
-
-        bool operator<(CameraInfo& other) const
-        {
-            return depth > other.depth;
-        }
+        bool operator<(const CameraInfo& other) const;
     };
 
     struct RendererInfo
@@ -32,7 +27,7 @@ namespace Light
         RendererInfo() = default;
         RendererInfo(Transform& transform, Renderer& renderer);
 
-        bool operator<(RendererInfo& other) const
+        bool operator<(const RendererInfo& other) const
         {
             return renderQueue < other.renderQueue;
         }
@@ -49,6 +44,9 @@ namespace Light
         std::multiset<CameraInfo> cameraInfos;
         std::multiset<RendererInfo> rendererInfos;
 
+        std::unique_ptr<GSCodeLayout> vertexColorGSCodeLayout;
+        std::unique_ptr<GSInoutLayout> pointGSInoutLayout;
+        std::unique_ptr<GSInoutLayout> lineGSInoutLayout;
         std::unique_ptr<GShader> defaultPointShader = nullptr;
         std::unique_ptr<GShader> defaultLineShader = nullptr;
         std::unique_ptr<GMaterial> defaultPointMaterial = nullptr;

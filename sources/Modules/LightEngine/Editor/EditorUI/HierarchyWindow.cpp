@@ -15,7 +15,7 @@ namespace Light
         ImGui::SeparatorText("Details");
         if (ImGui::CollapsingHeader("System"))
         {
-            EditorUIUtility::DrawSystemGroup(World::systems);
+            EditorUIUtility::DrawSystemGroup(World::allSystems);
         }
         if (ImGui::CollapsingHeader("Archetype"))
         {

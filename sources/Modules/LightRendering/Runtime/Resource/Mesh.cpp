@@ -1,7 +1,10 @@
-﻿#include "GMesh.h"
+﻿#include "Mesh.h"
 
 namespace Light
 {
+    Mesh::Mesh(const bool readwrite): GMeshT(readwrite)
+    {
+    }
     Mesh::Mesh(const RawMesh& rawMesh, const bool readwrite): Mesh(readwrite)
     {
         SetPositions(rawMesh.positions);
@@ -22,6 +25,7 @@ buffer[index] = vertices[index].propertyName; \
 }
 
     GetProperty(Positions, float3, position)
+    GetProperty(Colors, float4, color)
     GetProperty(Normals, float3, normal)
     GetProperty(Tangents, float3, tangent)
     GetProperty(UVs, float2, uv)
@@ -38,6 +42,7 @@ SetDirty();\
 }
 
     SetProperty(Positions, float3, position)
+    SetProperty(Colors, float4, color)
     SetProperty(Normals, float3, normal)
     SetProperty(Tangents, float3, tangent)
     SetProperty(UVs, float2, uv)
