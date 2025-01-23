@@ -4,28 +4,53 @@
 
 namespace Light
 {
-    EntityInfo Scene::GetEntityInfo(const Entity entity)
-    {
-        return entityInfos.at(entity);
-    }
-
-    bool Scene::HasEntity(const Entity entity)
+    bool World::HasEntity(const Entity entity)
     {
         return entityInfos.contains(entity);
     }
-
-    Entity World::CreateEntity()
+    Entity World::GetNextEntity()
     {
         return static_cast<Entity>(nextEntity++);
     }
-    /**
-     * @brief 添加系统
-     *
-     * 1. 会自动递归添加依赖的系统组
-     * 2. 允许重复添加，会自动记录使用计数以供移除时使用
-     * 
-     * @param system 
-     */
+    EntityInfo& World::GetEntityInfo(const Entity entity)
+    {
+        return entityInfos.at(entity);
+    }
+    void World::SetEntityInfo(const Entity entity, const std::optional<EntityInfo>& info)
+    {
+        if (info.has_value())
+            entityInfos[entity] = info.value();
+        else
+            entityInfos.erase(entity);
+    }
+
+    Scene& World::CreateScene(const std::string_view name)
+    {
+        return *allScenes.emplace_back(new Scene(name));
+    }
+    Scene& World::GetOrCreateScene(const std::string_view name)
+    {
+        auto result = std::ranges::find_if(
+            allScenes,
+            [name](const std::unique_ptr<Scene>& scene) { return scene->GetName() == name; }
+        );
+        if (result == allScenes.end())
+            return CreateScene(name);
+        return **result;
+    }
+    Scene& World::GetDefaultScene()
+    {
+        return defaultScene;
+    }
+    std::vector<std::reference_wrapper<Scene>>& World::GetVisibleScenes()
+    {
+        return visibleScenes;
+    }
+
+    bool World::HasSystem(System& system)
+    {
+        return systemUsageCount.contains(&system);
+    }
     void World::AddSystem(System& system)
     {
         if (system.group != nullptr)
@@ -48,14 +73,6 @@ namespace Light
         for (System* system : systems)
             AddSystem(*system);
     }
-    /**
-     * @brief 移除系统
-     *
-     * 1. 会自动递归移除依赖的系统组
-     * 2. 重复添加后需重复移除，当使用计数为0时才会真正移除系统
-     * 
-     * @param system 
-     */
     void World::RemoveSystem(System& system)
     {
         assert(systemUsageCount.contains(&system) && "无法移除未添加过的系统！");
@@ -95,16 +112,5 @@ namespace Light
     void World::Update()
     {
         allSystems.Update();
-    }
-
-    void World::RemoveHeapItem(const Archetype& archetype, const int index)
-    {
-        Heap& heap = GetEntityHeap(archetype);
-        std::byte* element = heap.RemoveElement(index);
-        //删除时末尾项会被用来替补空位，所以相关实体信息也需要更变
-        const Entity movedEntity = *reinterpret_cast<Entity*>(element);
-        EntityInfo& movedEntityInfo = entityInfos[movedEntity];
-        movedEntityInfo.components = element;
-        movedEntityInfo.indexAtHeap = index;
     }
 }

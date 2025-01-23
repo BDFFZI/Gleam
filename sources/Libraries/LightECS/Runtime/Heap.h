@@ -12,7 +12,7 @@ namespace Light
     {
     public:
         Heap() = default;
-        Heap(size_t elementSize, int chunkElementCount = 64, int spareChunkCount = 1);
+        explicit Heap(size_t elementSize, int chunkElementCount = 64, int spareChunkCount = 1);
 
         int GetCount() const { return elementCount; }
 

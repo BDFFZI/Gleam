@@ -39,16 +39,20 @@ namespace Light
         inline static std::vector<std::array<int, sizeof...(TComponents)>> targetComponentOffsets = {};
         inline static int targetArchetypeCount = {};
 
+        /**
+         * 查询符合的原型并缓存查询结果以加速后续查询。
+         */
         static void Query()
         {
             if (isQueried == false)
             {
-                for (std::unique_ptr<Archetype>& archetype : Archetype::allArchetypes)
+                for (auto item : Archetype::GetAllArchetypes())
                 {
-                    if (archetype->IsMatched<TComponents...>())
+                    Archetype& archetype = item;
+                    if (archetype.IsMatched<TComponents...>())
                     {
-                        targetArchetypes.emplace_back(archetype.get());
-                        targetComponentOffsets.emplace_back(archetype->MemoryMap<TComponents...>());
+                        targetArchetypes.emplace_back(&archetype);
+                        targetComponentOffsets.emplace_back(archetype.MemoryMap<TComponents...>());
                     }
                 }
 
@@ -56,10 +60,23 @@ namespace Light
                 isQueried = true;
             }
         }
+
         template <class TFunction, size_t... Indices> requires ViewIterator<TFunction, TComponents...>
-        static void Each_Inner(TFunction function, std::index_sequence<Indices...>)
+        static void Each_Inner(const std::string_view sceneName, TFunction function, std::index_sequence<Indices...>)
         {
             Query();
+
+            std::initializer_list<std::reference_wrapper<Scene>> targetScenes;
+            auto a  =std::initializer_list(World::GetVisibleScenes().begin(), World::GetVisibleScenes().end);
+            if (sceneName.empty())
+                targetScenes = ;
+            =
+            {
+            };
+            targetScenes.
+
+
+            
             for (int i = 0; i < targetArchetypeCount; i++)
             {
                 const Archetype& archetype = *targetArchetypes[i];

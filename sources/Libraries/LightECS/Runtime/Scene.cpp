@@ -4,113 +4,158 @@
 
 namespace Light
 {
+    Scene::Scene(const std::string_view name)
+        : name(name)
+    {
+    }
+    const std::string& Scene::GetName()
+    {
+        return name;
+    }
+
     Heap& Scene::GetEntityHeap(const Archetype& archetype)
     {
         auto iterator = entities.find(&archetype);
         if (iterator != entities.end())
             return iterator->second;
 
-        entities.insert({&archetype, Heap(archetype.size)});
+        entities.insert({&archetype, Heap(archetype.GetArchetypeSize())});
         return entities.at(&archetype);
     }
 
-    std::pair<Entity, EntityInfo> Scene::AddEntity(const Archetype& archetype)
+    Entity Scene::AddEntity(const Archetype& archetype)
     {
         //创建实体
-        Entity entity = World::CreateEntity();
+        Entity entity = World::GetNextEntity();
         //申请堆内存
         Heap& heap = GetEntityHeap(archetype);
-        int heapIndex = heap.GetCount();
+        int heapOrigin = heap.GetCount();
         std::byte* heapAddress = heap.AddElement();
         //内存赋值
         archetype.RunConstructor(heapAddress);
         *reinterpret_cast<Entity*>(heapAddress) = entity;
         //返回实体信息
-        return {entity, {&archetype, heapAddress, heapIndex}};
+        World::SetEntityInfo(entity, std::make_optional<EntityInfo>(&archetype, heapAddress, heapOrigin));
+        return entity;
     }
-
-    void Scene::MoveEntity(const Entity entity, const Archetype& newArchetype)
+    void Scene::AddEntities(const Archetype& archetype, const int count, Entity* outEntities)
     {
-        assert(entity != Entity::Null && "目标实体为空！");
-        assert(entityInfos.contains(entity) && "目标实体不存在！");
-
-        //获取旧实体信息
-        EntityInfo entityInfo = entityInfos[entity];
-        const Archetype& oldArchetype = *entityInfo.archetype;
-        //分配新内存并复制原数据
-        Heap& newHeap = GetEntityHeap(newArchetype);
-        newHeap.AddElement([&entityInfo,oldArchetype,newArchetype](std::byte* address)
+        //申请堆内存
+        Heap& heap = GetEntityHeap(archetype);
+        int heapOrigin = heap.GetCount();
+        heap.AddElements(count, [&archetype,outEntities,heapOrigin](const int itemIndex, std::byte* item)
         {
-            for (int i = 0; i < newArchetype.componentCount; ++i)
-            {
-                //遍历每个新原形的组件
-                const std::type_index type = newArchetype.componentTypes[i];
-                const size_t size = newArchetype.componentSizes[i];
-                if (oldArchetype.HasComponent(type)) //若旧元组包含该组件则复制
-                    memcpy(
-                        address + newArchetype.GetOffset(type),
-                        entityInfo.components + oldArchetype.GetOffset(type),
-                        size);
-                else //否则通过构造函数初始化
-                    newArchetype.constructors[i](address + newArchetype.GetOffset(type));
-            }
-
-            //使用新实体地址
-            entityInfo.components = address;
+            //创建实体
+            Entity entity = World::GetNextEntity();
+            //内存赋值
+            archetype.RunConstructor(item);
+            *reinterpret_cast<Entity*>(item) = entity;
+            //返回实体信息
+            World::SetEntityInfo(entity, std::make_optional<EntityInfo>(&archetype, item, heapOrigin + itemIndex));
+            if (outEntities != nullptr)outEntities[itemIndex] = entity;
         });
-        //从旧内存中移除
-        RemoveHeapItem(oldArchetype, entityInfo.indexAtHeap);
-        //更新剩余的实体信息
-        entityInfo.archetype = &newArchetype;
-        entityInfo.indexAtHeap = newHeap.GetCount() - 1;
-        //写回新实体信息
-        entityInfos[entity] = entityInfo;
     }
-    void Scene::MoveEntitySimply(const Entity entity, const Archetype& markArchetype)
-    {
-        //添加到新堆
-        EntityInfo& entityInfo = entityInfos[entity];
-        Heap& newHeap = GetEntityHeap(markArchetype);
-        std::byte* newAddress = newHeap.AddElement();
-        memcpy(newAddress, entityInfo.components, entityInfo.archetype->size);
-        //从旧堆中移除
-        RemoveHeapItem(*entityInfo.archetype, entityInfo.indexAtHeap);
-        //修改实体信息
-        entityInfo.components = newAddress;
-        entityInfo.indexAtHeap = newHeap.GetCount() - 1;
-        entityInfo.archetype = &markArchetype;
-    }
+
     void Scene::RemoveEntity(Entity& entity)
     {
-        assert(entity != Entity::Null && "目标实体为空！");
-        assert(entityInfos.contains(entity) && "目标实体不存在！");
+        assert(entity != Entity::Null && "实体参数不能为空！");
+        assert(World::HasEntity(entity) && "实体必须存在！");
 
-        //取出实体信息
-        const EntityInfo entityInfo = entityInfos.extract(entity).mapped();
+        //去除实体信息
+        const EntityInfo entityInfo = World::GetEntityInfo(entity);
+        World::SetEntityInfo(entity, std::nullopt);
         //运行析构函数
         const Archetype& archetype = *entityInfo.archetype;
         archetype.RunDestructor(entityInfo.components);
         //从内存中移除
         RemoveHeapItem(archetype, entityInfo.indexAtHeap);
-
+        //设置实体引用为空
         entity = Entity::Null;
     }
-    bool Scene::HasSystem(System& system)
+
+    void Scene::MoveEntity(const Entity entity, const Archetype& newArchetype)
     {
-        return systemUsageCount.contains(&system);
+        assert(entity != Entity::Null && "实体参数不能为空！");
+        assert(World::HasEntity(entity) && "实体必须存在！");
+
+        //获取旧实体信息
+        EntityInfo oldEntityInfo = World::GetEntityInfo(entity);
+        const Archetype& oldArchetype = *oldEntityInfo.archetype;
+        //分配新内存
+        Heap& newHeap = GetEntityHeap(newArchetype);
+        std::byte* address = newHeap.AddElement();
+        //迁移内存数据
+        for (int i = 0; i < newArchetype.GetComponentCount(); ++i)
+        {
+            //遍历每个新原形的组件
+
+            //获取组件信息
+            const ComponentInfo& componentInfo = newArchetype.GetComponentInfo(i);
+            const std::type_index type = componentInfo.type;
+            const int size = componentInfo.size;
+            std::byte* componentAddress = address + newArchetype.GetComponentOffset(i);
+            //赋值组件内存
+            if (oldArchetype.HasComponent(type)) //若旧元组包含该组件则复制数据
+                memcpy(componentAddress, oldEntityInfo.components + oldArchetype.GetComponentOffset(type), size);
+            else //否则通过构造函数初始化
+                componentInfo.constructor(componentAddress);
+        }
+        //从旧内存中移除
+        RemoveHeapItem(oldArchetype, oldEntityInfo.indexAtHeap);
+        //设置新实体信息
+        EntityInfo newEntityInfo;
+        newEntityInfo.components = address;
+        newEntityInfo.archetype = &newArchetype;
+        newEntityInfo.indexAtHeap = newHeap.GetCount() - 1;
+        World::SetEntityInfo(entity, newEntityInfo);
+    }
+    void Scene::MoveEntitySimply(const Entity entity, const Archetype& newArchetype)
+    {
+        //获取旧实体信息
+        EntityInfo oldEntityInfo = World::GetEntityInfo(entity);
+        //分配新内存
+        Heap& newHeap = GetEntityHeap(newArchetype);
+        std::byte* newAddress = newHeap.AddElement();
+        //将旧数据复制到新内存
+        memcpy(newAddress, oldEntityInfo.components, oldEntityInfo.archetype->GetArchetypeSize());
+        //将旧数据从内存中移除
+        RemoveHeapItem(*oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
+        //设置新实体信息
+        EntityInfo newEntityInfo;
+        newEntityInfo.components = newAddress;
+        newEntityInfo.indexAtHeap = newHeap.GetCount() - 1;
+        newEntityInfo.archetype = &newArchetype;
+        World::SetEntityInfo(entity, newEntityInfo);
+    }
+    void Scene::MoveEntity(const Entity entity, Scene* newScene)
+    {
+        //获取旧实体信息
+        EntityInfo oldEntityInfo = World::GetEntityInfo(entity);
+        //分配新内存
+        Heap& newHeap = newScene->GetEntityHeap(*oldEntityInfo.archetype);
+        std::byte* newAddress = newHeap.AddElement();
+        //将旧数据复制到新内存
+        memcpy(newAddress, oldEntityInfo.components, oldEntityInfo.archetype->GetArchetypeSize());
+        //将旧数据从内存中移除
+        RemoveHeapItem(*oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
+        //设置新实体信息
+        EntityInfo newEntityInfo;
+        newEntityInfo.components = newAddress;
+        newEntityInfo.indexAtHeap = newHeap.GetCount() - 1;
+        newEntityInfo.archetype = oldEntityInfo.archetype;
+        World::SetEntityInfo(entity, newEntityInfo);
     }
 
-    void Scene::AddEntities(const Archetype& archetype, const int count, Entity* outEntities)
+    void Scene::RemoveHeapItem(const Archetype& heapIndex, const int elementIndex)
     {
-        Heap& heap = GetEntityHeap(archetype);
-        int startIndex = heap.GetCount();
-        heap.AddElements(count, [&archetype,outEntities,startIndex](const int itemIndex, std::byte* item)
-        {
-            Entity entity = static_cast<Entity>(nextEntity++);
-            archetype.RunConstructor(item);
-            *reinterpret_cast<Entity*>(item) = entity;
-            entityInfos.insert({entity, {&archetype, item, startIndex + itemIndex}});
-            if (outEntities != nullptr)outEntities[itemIndex] = entity;
-        });
+        //移除旧实体
+        Heap& heap = GetEntityHeap(heapIndex);
+        std::byte* element = heap.RemoveElement(elementIndex);
+        //获取因此被移动的实体
+        const Entity movedEntity = *reinterpret_cast<Entity*>(element);
+        //重设实体信息
+        EntityInfo& movedEntityInfo = World::GetEntityInfo(movedEntity);
+        movedEntityInfo.components = element;
+        movedEntityInfo.indexAtHeap = elementIndex;
     }
 }
