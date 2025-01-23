@@ -17,8 +17,18 @@ namespace Light
     };
 
     template <Component TComponent>
-    struct ComponentInfoMeta
+    class ComponentInfoMeta
     {
+    public:
+        static ComponentInfo GetInfo()
+        {
+            return {
+                typeid(TComponent),
+                sizeof(TComponent),
+                Constructor,
+                Destructor,
+            };
+        }
         static void Constructor(std::byte* ptr)
         {
             new(ptr) TComponent();
@@ -27,12 +37,5 @@ namespace Light
         {
             reinterpret_cast<TComponent*>(ptr)->~TComponent();
         }
-
-        ComponentInfo info = {
-            typeid(TComponent),
-            sizeof(TComponent),
-            Constructor,
-            Destructor,
-        };
     };
 }

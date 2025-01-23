@@ -24,27 +24,37 @@ namespace Light
             entityInfos.erase(entity);
     }
 
+    const std::vector<std::unique_ptr<Scene>>& World::GetAllScenes()
+    {
+        return allScenes;
+    }
     Scene& World::CreateScene(const std::string_view name)
     {
         return *allScenes.emplace_back(new Scene(name));
     }
-    Scene& World::GetOrCreateScene(const std::string_view name)
+    Scene& World::GetMainScene()
     {
-        auto result = std::ranges::find_if(
-            allScenes,
-            [name](const std::unique_ptr<Scene>& scene) { return scene->GetName() == name; }
-        );
-        if (result == allScenes.end())
-            return CreateScene(name);
-        return **result;
+        return *mainScene;
     }
-    Scene& World::GetDefaultScene()
+    Entity World::AddEntity(const Archetype& archetype, Scene& scene)
     {
-        return defaultScene;
+        return scene.AddEntity(archetype);
     }
-    std::vector<std::reference_wrapper<Scene>>& World::GetVisibleScenes()
+    void World::AddEntities(const Archetype& archetype, const int count, Entity* outEntities, Scene& scene)
     {
-        return visibleScenes;
+        scene.AddEntities(archetype, count, outEntities);
+    }
+    void World::RemoveEntity(Entity& entity, Scene& scene)
+    {
+        scene.RemoveEntity(entity);
+    }
+    void World::MoveEntity(const Entity entity, const Archetype& newArchetype, Scene& scene)
+    {
+        scene.MoveEntity(entity, newArchetype);
+    }
+    void World::MoveEntitySimply(const Entity entity, const Archetype& newArchetype, Scene& scene)
+    {
+        scene.MoveEntitySimply(entity, newArchetype);
     }
 
     bool World::HasSystem(System& system)

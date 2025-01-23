@@ -50,7 +50,7 @@ struct SpringPhysics
 };
 
 Light_MakeArchetype(physicsArchetype, Transform, RigidBody)
-Light_MakeArchetypeChild(physicsWithSpringArchetype, physicsArchetype, SpringPhysics)
+Light_MakeArchetype(physicsWithSpringArchetype, Transform, RigidBody, SpringPhysics)
 
 TEST(ECS, Heap)
 {
@@ -149,17 +149,17 @@ TEST(ECS, HeapBenchmark)
 
 TEST(ECS, Archetype)
 {
-    for (auto& archetype : Archetype::allArchetypes)
+    for (auto& archetype : Archetype::GetAllArchetypes())
     {
         std::cout << archetype->ToString() << "\n";
-        std::cout << archetype->size << "\n";
+        std::cout << archetype->GetArchetypeSize() << "\n";
     }
 
-    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype.size));
+    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype.GetArchetypeSize()));
     physicsWithSpringArchetype.RunConstructor(data);
-    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype.componentOffsets[1]);
-    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype.componentOffsets[2]);
-    SpringPhysics& spring = *reinterpret_cast<SpringPhysics*>(data + physicsWithSpringArchetype.componentOffsets[3]);
+    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype.GetComponentOffset(1));
+    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype.GetComponentOffset(2));
+    SpringPhysics& spring = *reinterpret_cast<SpringPhysics*>(data + physicsWithSpringArchetype.GetComponentOffset(3));
     ASSERT_EQ(transform, Transform());
     ASSERT_EQ(rigidBody, RigidBody());
     ASSERT_EQ(spring, SpringPhysics());
@@ -190,7 +190,8 @@ TEST(ECS, World)
     ASSERT_EQ(outRigidBody, inRigidBody);
     ASSERT_EQ(outSpring, inSpring);
 
-    entities[0] = World::AddEntity(physicsArchetype, Transform{3});
+    entities[0] = World::AddEntity(physicsArchetype);
+    World::SetComponents(entities[0], Transform{3});
     ASSERT_EQ(World::GetComponent<Transform>(entities[0]), Transform{3});
 }
 
@@ -388,33 +389,31 @@ system1->Stop
 }
 
 
-struct Sleep
+TEST(ECS, SceneVisibility)
 {
-};
+    Scene& sleepScene = World::CreateScene("Sleep");
+    sleepScene.SetVisibility(false);
+    Entity entity = World::AddEntity(physicsArchetype, sleepScene);
+    World::SetComponents(entity, Transform{3});
 
-Light_MakeArchetypeMark(physicsArchetypeSleeping, physicsArchetype, Sleep);
-
-TEST(ECS, MarkEntity)
-{
-    Entity entity = World::AddEntity(physicsArchetype, Transform{3});
-    World::MarkEntity(entity, physicsArchetypeSleeping);
-    //显式指明标志，+1
-    View<Transform, Sleep>::Each([](Transform& transform, Sleep&)
+    //显式指明场景，+1
+    View<Transform>::Each(sleepScene, [](Transform& transform)
     {
         transform.position++;
     });
     float2 position = World::GetComponent<Transform>(entity).position;
-
     ASSERT_TRUE(all(position == float2(4)));
-    //不显式指明标志，==
+
+    //不显式指明场景，==
     View<Transform>::Each([](Transform& transform)
     {
         transform.position++;
     });
     position = World::GetComponent<Transform>(entity).position;
     ASSERT_TRUE(all(position == float2(4)));
-    //移除标志，+1
-    World::MarkEntity(entity, physicsArchetype);
+
+    //恢复到默认场景，+1
+    sleepScene.MoveEntity(entity,World::GetMainScene());
     View<Transform>::Each([](Transform& transform)
     {
         transform.position++;

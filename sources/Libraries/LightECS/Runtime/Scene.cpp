@@ -5,12 +5,20 @@
 namespace Light
 {
     Scene::Scene(const std::string_view name)
-        : name(name)
+        : name(name), visibility(true)
     {
     }
     const std::string& Scene::GetName()
     {
         return name;
+    }
+    bool Scene::GetVisibility() const
+    {
+        return visibility;
+    }
+    void Scene::SetVisibility(const bool visibility)
+    {
+        this->visibility = visibility;
     }
 
     Heap& Scene::GetEntityHeap(const Archetype& archetype)
@@ -127,12 +135,12 @@ namespace Light
         newEntityInfo.archetype = &newArchetype;
         World::SetEntityInfo(entity, newEntityInfo);
     }
-    void Scene::MoveEntity(const Entity entity, Scene* newScene)
+    void Scene::MoveEntity(const Entity entity, Scene& newScene)
     {
         //获取旧实体信息
         EntityInfo oldEntityInfo = World::GetEntityInfo(entity);
         //分配新内存
-        Heap& newHeap = newScene->GetEntityHeap(*oldEntityInfo.archetype);
+        Heap& newHeap = newScene.GetEntityHeap(*oldEntityInfo.archetype);
         std::byte* newAddress = newHeap.AddElement();
         //将旧数据复制到新内存
         memcpy(newAddress, oldEntityInfo.components, oldEntityInfo.archetype->GetArchetypeSize());

@@ -4,7 +4,7 @@
 
 namespace Light
 {
-    const std::vector<std::reference_wrapper<Archetype>>& Archetype::GetAllArchetypes()
+    const std::vector<std::unique_ptr<Archetype>>& Archetype::GetAllArchetypes()
     {
         return allArchetypes;
     }
@@ -35,19 +35,19 @@ namespace Light
         return archetypeSize;
     }
 
-    Archetype::Archetype(std::string name, const std::vector<ComponentInfo>& componentInfos)
-        : name(std::move(name)),
+    Archetype::Archetype(const std::string_view name, const std::initializer_list<ComponentInfo> componentInfos)
+        : name(name),
           componentInfos(componentInfos)
     {
         componentCount = static_cast<int>(componentInfos.size());
 
         componentOffsets.resize(componentCount);
         for (int i = 1; i < componentCount; ++i)
-            componentOffsets[i] = componentOffsets[i - 1] + componentInfos[i - 1].size;
+            componentOffsets[i] = componentOffsets[i - 1] + this->componentInfos[i - 1].size;
 
-        archetypeSize = componentOffsets[componentCount - 1] + componentInfos[componentCount - 1].size;
+        archetypeSize = componentOffsets[componentCount - 1] + this->componentInfos[componentCount - 1].size;
 
         for (int i = 0; i < componentCount; i++)
-            componentOffsetsMap.insert({componentInfos[i].type, componentOffsets[i]});
+            componentOffsetsMap.insert({this->componentInfos[i].type, componentOffsets[i]});
     }
 }

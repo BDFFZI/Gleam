@@ -29,10 +29,18 @@ namespace Light
         static EntityInfo& GetEntityInfo(Entity entity);
         static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
 
-        static Scene& CreateScene(std::string_view name);
-        static Scene& GetOrCreateScene(std::string_view name);
-        static Scene& GetDefaultScene();
-        static std::vector<std::reference_wrapper<Scene>>& GetVisibleScenes();
+        static const std::vector<std::unique_ptr<Scene>>& GetAllScenes();
+        static Scene& GetMainScene();
+        static Scene& CreateScene(std::string_view name = "");
+
+        static Entity AddEntity(const Archetype& archetype, Scene& scene = GetMainScene());
+        static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr, Scene& scene = GetMainScene());
+        static void RemoveEntity(Entity& entity, Scene& scene = GetMainScene());
+        static void MoveEntity(Entity entity, const Archetype& newArchetype, Scene& scene = GetMainScene());
+        /**
+         * 一种快速简单的实体移动，它假定新旧原型的数据存储布局是完全一样的，从而直接进行内存复制。
+         */
+        static void MoveEntitySimply(Entity entity, const Archetype& newArchetype, Scene& scene = GetMainScene());
 
         static bool HasSystem(System& system);
         /**
@@ -108,9 +116,13 @@ namespace Light
         inline static uint32_t nextEntity = 1;
         inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
         //场景信息（实体的存储容器）
-        inline static std::vector<std::unique_ptr<Scene>> allScenes = {std::make_unique<Scene>("Default")};
-        inline static std::vector<std::reference_wrapper<Scene>> visibleScenes = {*allScenes[0]}; //无需显式指定就可以查询到的场景
-        inline static std::reference_wrapper<Scene> defaultScene = *allScenes[0]; //操作实体时的默认的场景
+        inline static std::vector<std::unique_ptr<Scene>> allScenes = []
+        {
+            std::vector<std::unique_ptr<Scene>> result;
+            result.emplace_back(std::make_unique<Scene>("Main"));
+            return result;
+        }();
+        inline static Scene* mainScene = allScenes[0].get(); //预制的默认场景
         //系统信息
         inline static SystemGroup allSystems = {nullptr, System::LeftOrder, System::RightOrder};
         inline static std::unordered_map<System*, int> systemUsageCount = {};

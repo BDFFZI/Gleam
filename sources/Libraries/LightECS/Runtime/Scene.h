@@ -2,15 +2,18 @@
 
 #include "Archetype.h"
 #include "Heap.h"
-#include "World.h"
 
 namespace Light
 {
     class Scene
     {
     public:
-        explicit Scene(std::string_view name);
+        explicit Scene(std::string_view name = "");
+
+        //场景属性
         const std::string& GetName();
+        bool GetVisibility() const;
+        void SetVisibility(bool visibility);
 
         //查询实体
         Heap& GetEntityHeap(const Archetype& archetype);
@@ -27,10 +30,11 @@ namespace Light
          * @param newArchetype 
          */
         void MoveEntitySimply(Entity entity, const Archetype& newArchetype);
-        void MoveEntity(Entity entity, Scene* newScene);
+        void MoveEntity(Entity entity, Scene& newScene);
 
     private:
         std::string name;
+        bool visibility; //是否支持隐式查询
         std::unordered_map<const Archetype*, Heap> entities;
 
         /**

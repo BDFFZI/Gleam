@@ -18,18 +18,17 @@ namespace Light
     class Archetype
     {
     public:
-        static const std::vector<std::reference_wrapper<Archetype>>& GetAllArchetypes();
+        static const std::vector<std::unique_ptr<Archetype>>& GetAllArchetypes();
 
         template <Component... TComponents>
             requires ArchetypeComponentList<TComponents...>
-        static Archetype Register(const char* name)
+        static Archetype& Register(const char* name)
         {
-            Archetype archetype = {
+            std::unique_ptr<Archetype>& archetype = allArchetypes.emplace_back(new Archetype(
                 name,
-                {ComponentInfoMeta<TComponents>::info...}
-            };
-            allArchetypes.emplace_back(archetype);
-            return archetype;
+                std::initializer_list<ComponentInfo>{ComponentInfoMeta<TComponents>::GetInfo()...}
+            ));
+            return *archetype;
         }
 
         int GetComponentCount() const;
@@ -81,7 +80,7 @@ namespace Light
         }
 
     private:
-        inline static std::vector<std::reference_wrapper<Archetype>> allArchetypes = {};
+        inline static std::vector<std::unique_ptr<Archetype>> allArchetypes = {};
 
         std::string name;
         std::vector<ComponentInfo> componentInfos;
@@ -90,9 +89,9 @@ namespace Light
         int archetypeSize;
         std::unordered_map<std::type_index, int> componentOffsetsMap; //缓存组件偏移查询信息
 
-        Archetype(std::string name, const std::vector<ComponentInfo>& componentInfos);
+        Archetype(std::string_view name, std::initializer_list<ComponentInfo> componentInfos);
     };
 
 #define Light_MakeArchetype(name,...)\
-inline const Light::Archetype name = Light::Archetype::Register<Light::Entity,__VA_ARGS__>(#name);
+inline const Light::Archetype& name = Light::Archetype::Register<Light::Entity,__VA_ARGS__>(#name);
 }
