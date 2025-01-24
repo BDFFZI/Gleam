@@ -4,6 +4,15 @@
 
 namespace Light
 {
+    EntityInfo::EntityInfo(Scene* scene, const Archetype* archetype, const int indexAtHeap, std::byte* components)
+        : scene(scene), archetype(archetype), indexAtHeap(indexAtHeap), components(components)
+    {
+    }
+    EntityInfo::EntityInfo(Scene* scene, const Archetype* archetype, const int indexAtHeap)
+        : scene(scene), archetype(archetype), indexAtHeap(indexAtHeap),
+          components(scene->GetEntityHeap(archetype).At(indexAtHeap))
+    {
+    }
     bool World::HasEntity(const Entity entity)
     {
         return entityInfos.contains(entity);
@@ -44,17 +53,25 @@ namespace Light
     {
         scene->AddEntities(archetype, count, outEntities);
     }
-    void World::RemoveEntity(Entity& entity, Scene* scene)
+    void World::RemoveEntity(Entity& entity)
     {
-        scene->RemoveEntity(entity);
+        EntityInfo& entityInfo = GetEntityInfo(entity);
+        entityInfo.scene->RemoveEntity(entity);
     }
-    void World::MoveEntity(const Entity entity, const Archetype* newArchetype, Scene* scene)
+    void World::MoveEntity(const Entity entity, const Archetype* newArchetype)
     {
-        scene->MoveEntity(entity, newArchetype);
+        EntityInfo& entityInfo = GetEntityInfo(entity);
+        entityInfo.scene->MoveEntity(entity, newArchetype);
     }
-    void World::MoveEntitySimply(const Entity entity, const Archetype* newArchetype, Scene* scene)
+    void World::MoveEntitySimply(const Entity entity, const Archetype* newArchetype)
     {
-        scene->MoveEntitySimply(entity, newArchetype);
+        EntityInfo& entityInfo = GetEntityInfo(entity);
+        entityInfo.scene->MoveEntitySimply(entity, newArchetype);
+    }
+    void World::MoveEntity(const Entity entity, Scene* newScene)
+    {
+        EntityInfo& entityInfo = GetEntityInfo(entity);
+        entityInfo.scene->MoveEntity(entity, newScene);
     }
 
     bool World::HasSystem(System& system)

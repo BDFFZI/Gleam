@@ -47,7 +47,7 @@ namespace Light
         archetype->RunConstructor(heapAddress);
         *reinterpret_cast<Entity*>(heapAddress) = entity;
         //返回实体信息
-        World::SetEntityInfo(entity, std::make_optional<EntityInfo>(archetype, heapAddress, heapOrigin));
+        World::SetEntityInfo(entity, std::make_optional<EntityInfo>(this, archetype, heapOrigin, heapAddress));
         return entity;
     }
     void Scene::AddEntities(const Archetype* archetype, const int count, Entity* outEntities)
@@ -63,7 +63,7 @@ namespace Light
             archetype->RunConstructor(item);
             *reinterpret_cast<Entity*>(item) = entity;
             //返回实体信息
-            World::SetEntityInfo(entity, std::make_optional<EntityInfo>(archetype, item, heapOrigin + itemIndex));
+            World::SetEntityInfo(entity, std::make_optional<EntityInfo>(this, archetype, heapOrigin + itemIndex, item));
             if (outEntities != nullptr)outEntities[itemIndex] = entity;
         });
     }
@@ -111,7 +111,7 @@ namespace Light
         const Archetype* oldArchetype = oldEntityInfo.archetype;
         //分配新内存
         Heap& newHeap = GetEntityHeap(newArchetype);
-        std::byte* address = newHeap.AddElement();
+        std::byte* newAddress = newHeap.AddElement();
         //迁移内存数据
         for (int i = 0; i < newArchetype->GetComponentCount(); ++i)
         {
@@ -121,7 +121,7 @@ namespace Light
             const ComponentInfo& componentInfo = newArchetype->GetComponentInfo(i);
             const std::type_index type = componentInfo.type;
             const int size = componentInfo.size;
-            std::byte* componentAddress = address + newArchetype->GetComponentOffset(i);
+            std::byte* componentAddress = newAddress + newArchetype->GetComponentOffset(i);
             //赋值组件内存
             if (oldArchetype->HasComponent(type)) //若旧元组包含该组件则复制数据
                 memcpy(componentAddress, oldEntityInfo.components + oldArchetype->GetComponentOffset(type), size);
@@ -131,11 +131,8 @@ namespace Light
         //从旧内存中移除
         RemoveHeapItem(oldArchetype, oldEntityInfo.indexAtHeap);
         //设置新实体信息
-        EntityInfo newEntityInfo;
-        newEntityInfo.components = address;
-        newEntityInfo.archetype = newArchetype;
-        newEntityInfo.indexAtHeap = newHeap.GetCount() - 1;
-        World::SetEntityInfo(entity, newEntityInfo);
+        EntityInfo entityInfo = {this, newArchetype, newHeap.GetCount() - 1, newAddress};
+        World::SetEntityInfo(entity, entityInfo);
     }
     void Scene::MoveEntitySimply(const Entity entity, const Archetype* newArchetype)
     {
@@ -149,11 +146,8 @@ namespace Light
         //将旧数据从内存中移除
         RemoveHeapItem(oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
         //设置新实体信息
-        EntityInfo newEntityInfo;
-        newEntityInfo.components = newAddress;
-        newEntityInfo.indexAtHeap = newHeap.GetCount() - 1;
-        newEntityInfo.archetype = newArchetype;
-        World::SetEntityInfo(entity, newEntityInfo);
+        EntityInfo entityInfo = {this, newArchetype, newHeap.GetCount() - 1, newAddress};
+        World::SetEntityInfo(entity, entityInfo);
     }
     void Scene::MoveEntity(const Entity entity, Scene* newScene)
     {
@@ -167,10 +161,7 @@ namespace Light
         //将旧数据从内存中移除
         RemoveHeapItem(oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
         //设置新实体信息
-        EntityInfo newEntityInfo;
-        newEntityInfo.components = newAddress;
-        newEntityInfo.indexAtHeap = newHeap.GetCount() - 1;
-        newEntityInfo.archetype = oldEntityInfo.archetype;
+        EntityInfo newEntityInfo = {newScene, oldEntityInfo.archetype, newHeap.GetCount() - 1, newAddress};
         World::SetEntityInfo(entity, newEntityInfo);
     }
     void Scene::MoveAllEntities(Scene* newScene)
@@ -178,11 +169,11 @@ namespace Light
         for (auto& [archetype, oldHeap] : allEntities)
         {
             Heap& newHeap = newScene->GetEntityHeap(archetype);
-            oldHeap.ForeachElements([archetype,&newHeap](std::byte* oldAddress)
+            oldHeap.ForeachElements([newScene,archetype,&newHeap](std::byte* oldAddress)
             {
                 std::byte* newAddress = newHeap.AddElement();
                 memcpy(newAddress, oldAddress, archetype->GetArchetypeSize());
-                EntityInfo entityInfo = {archetype, newAddress, newHeap.GetCount() - 1,};
+                EntityInfo entityInfo = {newScene, archetype, newHeap.GetCount() - 1, newAddress,};
                 World::SetEntityInfo(*reinterpret_cast<Entity*>(oldAddress), entityInfo);
             });
             oldHeap.Clear();

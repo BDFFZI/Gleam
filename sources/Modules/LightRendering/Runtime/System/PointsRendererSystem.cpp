@@ -1,20 +1,23 @@
 ﻿#include "PointsRendererSystem.h"
 
 #include "LightECS/Runtime/View.h"
-#include "LightRendering/Runtime/Component/PointsRenderer.h"
+#include "LightRendering/Runtime/Component/PointsMesh.h"
 
 namespace Light
 {
     void PointsRendererSystem::Update()
     {
-        View<PointsRenderer>::Each(Awake, [](PointsRenderer& pointsRenderer)
+        View<PointsMesh>::Each(Awake, [](PointsMesh& pointsRenderer)
         {
             pointsRenderer.pointsMesh = std::make_unique<Mesh>(true);
-            pointsRenderer.mesh = pointsRenderer.pointsMesh.get();
-            if (pointsRenderer.material == nullptr)
-                pointsRenderer.material = RenderingSystem->GetDefaultPointMaterial().get();
         });
-        View<PointsRenderer>::Each([](PointsRenderer& pointsRenderer)
+        View<PointsMesh, Renderer>::Each(Awake, [](PointsMesh& pointsRenderer, Renderer& renderer)
+        {
+            renderer.mesh = pointsRenderer.pointsMesh.get();
+            if (renderer.material == nullptr)
+                renderer.material = RenderingSystem->GetDefaultPointMaterial().get();
+        });
+        View<PointsMesh>::Each([](PointsMesh& pointsRenderer)
         {
             Mesh* pointMesh = pointsRenderer.pointsMesh.get();
             std::vector<Vertex>& pointVertices = pointMesh->GetVertices();

@@ -4,7 +4,7 @@
 
 namespace Light
 {
-    struct LinesRenderer : Renderer
+    struct LinesMesh
     {
         std::vector<Segment> lines;
 

@@ -15,14 +15,13 @@ namespace Light
         ImGui::SeparatorText("Details");
         if (ImGui::CollapsingHeader("System"))
         {
-            EditorUIUtility::DrawSystemGroup(World::allSystems);
+            EditorUIUtility::DrawSystemGroup(&World::allSystems);
         }
         if (ImGui::CollapsingHeader("Scene"))
         {
-     
             for (auto& scene : World::GetAllScenes())
             {
-              
+                EditorUIUtility::DrawScene(scene.get());
             }
         }
 

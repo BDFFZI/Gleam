@@ -3,8 +3,8 @@
 #include "LightECS/Runtime/View.h"
 #include "LightMath/Runtime/MatrixMath.h"
 #include "LightRendering/Runtime/Component/Camera.h"
-#include "LightRendering/Runtime/Component/LinesRenderer.h"
-#include "LightRendering/Runtime/Component/PointsRenderer.h"
+#include "LightRendering/Runtime/Component/LinesMesh.h"
+#include "LightRendering/Runtime/Component/PointsMesh.h"
 #include "LightRendering/Runtime/Resource/CommandBufferPool.h"
 
 namespace Light

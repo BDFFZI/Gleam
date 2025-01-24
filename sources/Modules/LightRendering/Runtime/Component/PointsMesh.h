@@ -4,7 +4,7 @@
 
 namespace Light
 {
-    struct PointsRenderer : Renderer
+    struct PointsMesh
     {
         std::vector<Point> points;
 

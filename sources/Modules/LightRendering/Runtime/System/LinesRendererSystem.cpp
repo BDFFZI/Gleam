@@ -1,20 +1,24 @@
 ﻿#include "LinesRendererSystem.h"
 
 #include "LightECS/Runtime/View.h"
-#include "LightRendering/Runtime/Component/LinesRenderer.h"
+#include "LightRendering/Runtime/Component/LinesMesh.h"
 
 namespace Light
 {
     void LinesRendererSystem::Update()
     {
-        View<LinesRenderer>::Each(Awake, [](LinesRenderer& linesRenderer)
+        View<LinesMesh>::Each(Awake, [](LinesMesh& linesRenderer)
         {
             linesRenderer.linesMesh = std::make_unique<Mesh>(true);
-            linesRenderer.mesh = linesRenderer.linesMesh.get();
-            if (linesRenderer.material == nullptr)
-                linesRenderer.material = RenderingSystem->GetDefaultLineMaterial().get();
         });
-        View<LinesRenderer>::Each([](LinesRenderer& linesRenderer)
+        View<LinesMesh, Renderer>::Each(Awake, [](LinesMesh& linesRenderer, Renderer& renderer)
+        {
+            linesRenderer.linesMesh = std::make_unique<Mesh>(true);
+            renderer.mesh = linesRenderer.linesMesh.get();
+            if (renderer.material == nullptr)
+                renderer.material = RenderingSystem->GetDefaultLineMaterial().get();
+        });
+        View<LinesMesh>::Each([](LinesMesh& linesRenderer)
         {
             Mesh* lineMesh = linesRenderer.linesMesh.get();
             std::vector<Vertex>& lineVertices = lineMesh->GetVertices();

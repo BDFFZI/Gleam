@@ -5,14 +5,14 @@
 #include "LightEngine/Runtime/System.h"
 #include "LightEngine/Runtime/Component.h"
 #include "LightRendering/Runtime/Component/Camera.h"
-#include "LightRendering/Runtime/Component/LinesRenderer.h"
-#include "LightRendering/Runtime/Component/PointsRenderer.h"
+#include "LightRendering/Runtime/Component/LinesMesh.h"
+#include "LightRendering/Runtime/Component/PointsMesh.h"
 
 using namespace Light;
 
 Light_MakeArchetype(CameraArchetype, Transform, Camera)
-Light_MakeArchetype(PointsArchetype, Transform, PointsRenderer)
-Light_MakeArchetype(LinesArchetype, Transform, LinesRenderer)
+Light_MakeArchetype(PointsArchetype, Transform, PointsMesh)
+Light_MakeArchetype(LinesArchetype, Transform, LinesMesh)
 
 // TEST(Rendering, Main)
 void main()
@@ -56,9 +56,9 @@ void main()
             }
 
         Entity pointsRendererEntity = Awake->AddEntity(PointsArchetype);
-        World::GetComponent<PointsRenderer>(pointsRendererEntity).points = points;
+        World::GetComponent<PointsMesh>(pointsRendererEntity).points = points;
         Entity linesRendererEntity = Awake->AddEntity(LinesArchetype);
-        World::GetComponent<LinesRenderer>(linesRendererEntity).lines = lines;
+        World::GetComponent<LinesMesh>(linesRendererEntity).lines = lines;
     };
     World::AddSystem(&systemEvent);
 

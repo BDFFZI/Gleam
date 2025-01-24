@@ -13,9 +13,14 @@ namespace Light
 {
     struct EntityInfo
     {
+        Scene* scene;
         const Archetype* archetype;
-        std::byte* components;
         int indexAtHeap;
+        std::byte* components;
+
+        EntityInfo(Scene* scene, const Archetype* archetype, int indexAtHeap, std::byte* components);
+        EntityInfo(Scene* scene, const Archetype* archetype, int indexAtHeap);
+        EntityInfo() = default;
     };
 
     /**
@@ -35,12 +40,13 @@ namespace Light
 
         static Entity AddEntity(const Archetype* archetype, Scene* scene = GetMainScene());
         static void AddEntities(const Archetype* archetype, int count, Entity* outEntities = nullptr, Scene* scene = GetMainScene());
-        static void RemoveEntity(Entity& entity, Scene* scene = GetMainScene());
-        static void MoveEntity(Entity entity, const Archetype* newArchetype, Scene* scene = GetMainScene());
+        static void RemoveEntity(Entity& entity);
+        static void MoveEntity(Entity entity, const Archetype* newArchetype);
         /**
          * 一种快速简单的实体移动，它假定新旧原型的数据存储布局是完全一样的，从而直接进行内存复制。
          */
-        static void MoveEntitySimply(Entity entity, const Archetype* newArchetype, Scene* scene = GetMainScene());
+        static void MoveEntitySimply(Entity entity, const Archetype* newArchetype);
+        static void MoveEntity(Entity entity, Scene* newScene);
 
         static bool HasSystem(System& system);
         /**
