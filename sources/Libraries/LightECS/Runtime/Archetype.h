@@ -22,15 +22,16 @@ namespace Light
 
         template <Component... TComponents>
             requires ArchetypeComponentList<TComponents...>
-        static Archetype& Register(const char* name)
+        static Archetype* Register(const char* name)
         {
             std::unique_ptr<Archetype>& archetype = allArchetypes.emplace_back(new Archetype(
                 name,
                 std::initializer_list<ComponentInfo>{ComponentInfoMeta<TComponents>::GetInfo()...}
             ));
-            return *archetype;
+            return archetype.get();
         }
 
+        const std::string& GetName() const;
         int GetComponentCount() const;
         const ComponentInfo& GetComponentInfo(int index) const;
         int GetComponentOffset(int index) const;
@@ -93,5 +94,5 @@ namespace Light
     };
 
 #define Light_MakeArchetype(name,...)\
-inline const Light::Archetype& name = Light::Archetype::Register<Light::Entity,__VA_ARGS__>(#name);
+inline const Light::Archetype* name = Light::Archetype::Register<Light::Entity,__VA_ARGS__>(#name);
 }

@@ -32,7 +32,7 @@ namespace Light
         }
         template <class TFunction> requires
             ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
-        static void Each(Scene& scene, TFunction function)
+        static void Each(Scene* scene, TFunction function)
         {
             Query();
             Each_Inner(scene, function, std::make_index_sequence<sizeof...(TComponents)>());
@@ -68,13 +68,12 @@ namespace Light
 
         template <class TFunction, size_t... Indices>
             requires ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
-        static void Each_Inner(Scene& scene, TFunction function, std::index_sequence<Indices...>)
+        static void Each_Inner(Scene* scene, TFunction function, std::index_sequence<Indices...>)
         {
             for (int i = 0; i < targetArchetypeCount; i++)
             {
-                const Archetype& archetype = *targetArchetypes[i];
                 const std::array<int, sizeof...(TComponents)>& componentOffset = targetComponentOffsets[i];
-                scene.GetEntityHeap(archetype).ForeachElements([function,componentOffset](std::byte* item)
+                scene->GetEntityHeap(targetArchetypes[i]).ForeachElements([function,componentOffset](std::byte* item)
                 {
                     if constexpr (ViewIterator<TFunction, TComponents...>)
                         function(*reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
@@ -91,7 +90,7 @@ namespace Light
             for (auto& element : World::GetAllScenes())
             {
                 if (element->GetVisibility())
-                    Each_Inner(*element, function, std::index_sequence<Indices...>());
+                    Each_Inner(element.get(), function, std::index_sequence<Indices...>());
             }
         }
     };

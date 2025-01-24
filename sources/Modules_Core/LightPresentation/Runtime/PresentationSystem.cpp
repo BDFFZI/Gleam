@@ -11,7 +11,7 @@ void Light::PresentationSystem::Start()
     GL gl = GL::Initialize(Window->GetGlfwWindow(), extensions);
     Graphics::Initialize(gl, CreateGraphicsConfig());
 
-    presentGCommandBuffer = std::make_unique<GCommandBuffer>();
+    presentGCommandBuffer = std::make_unique<GCommandBuffer>("PresentGCommandBuffer");
 
     SystemGroup::Start();
 }

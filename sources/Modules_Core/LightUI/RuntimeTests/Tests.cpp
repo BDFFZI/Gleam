@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "LightEngine/Runtime/Engine.h"
 #include "LightMath/Runtime/Graphics/Color.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightUI/Runtime/UISystem.h"

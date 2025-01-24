@@ -16,11 +16,15 @@ public:
     VkCommandBuffer commandBuffer;
 
     GLCommandBuffer(VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-    GLCommandBuffer(const GLCommandBuffer&) = delete;
     ~GLCommandBuffer();
+    GLCommandBuffer(const GLCommandBuffer&) = delete;
+    GLCommandBuffer& operator=(const GLCommandBuffer&) = delete;
+    GLCommandBuffer(GLCommandBuffer&&) = delete;
+    GLCommandBuffer& operator=(GLCommandBuffer&&) = delete;
 
     void BeginRecording(VkCommandBufferUsageFlags flags = 0);
-    void EndRecording() const;
+    void EndRecording();
+    bool IsRecording() const;
 
     void CopyBuffer(const GLBuffer& source, const GLBuffer& buffer) const;
     void CopyBufferToImage(const GLBuffer& source, const GLImage& image) const;
@@ -129,4 +133,5 @@ private:
     VkCommandBufferLevel level;
     VkFence submissionFence;
     bool isSubmitting;
+    bool isRecording;
 };

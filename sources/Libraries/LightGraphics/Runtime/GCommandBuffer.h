@@ -11,11 +11,13 @@ namespace Light
     class GCommandBuffer
     {
     public:
+        GCommandBuffer(std::string_view name = "");
         virtual ~GCommandBuffer() = default;
-        GCommandBuffer() : glCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY)
-        {
-        }
         GCommandBuffer(const GCommandBuffer&) = delete;
+        GCommandBuffer& operator=(const GCommandBuffer&) = delete;
+        GCommandBuffer(GCommandBuffer&&) = delete;
+        GCommandBuffer& operator=(GCommandBuffer&&) = delete;
+        operator GLCommandBuffer&();
 
         GLCommandBuffer& GetGLCommandBuffer() { return glCommandBuffer; }
         const GMesh* GetCurrentMesh() const { return currentMesh; }
@@ -58,11 +60,12 @@ namespace Light
     private:
         inline static std::stack<GCommandBuffer*> commandBufferPool = {};
 
+        std::string name;
         GLCommandBuffer glCommandBuffer;
+        VkRect2D currentViewport = {};
+        const GRenderTarget* currentRenderTarget = nullptr;
         const GMesh* currentMesh = nullptr;
         const GShader* currentShader = nullptr;
         const GMaterial* currentMaterial = nullptr;
-        const GRenderTarget* currentRenderTarget = nullptr;
-        VkRect2D currentViewport;
     };
 }

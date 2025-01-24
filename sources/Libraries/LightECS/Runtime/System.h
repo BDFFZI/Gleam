@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include <cassert>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <ranges>
 #include <set>
 
@@ -21,88 +21,32 @@ namespace Light
         constexpr static int32_t RightOrder = std::numeric_limits<int32_t>::max();
         constexpr static int32_t MiddleOrder = 0;
 
-        static inline std::vector<std::unique_ptr<System>> allSystems;
         template <typename TSystem>
-        static TSystem* MakeSystem()
+        static TSystem* Register()
         {
             TSystem* system = new TSystem();
             allSystems.emplace_back(system);
             return system;
         }
 
-        SystemGroup* const group;
-        const int minOrder;
-        const int maxOrder;
-        const int order;
-
-        System(SystemGroup* group, const int minOrder = LeftOrder, const int maxOrder = RightOrder)
-            : group(group), minOrder(minOrder), maxOrder(maxOrder),
-              order(static_cast<int32_t>((static_cast<int64_t>(minOrder) + static_cast<int64_t>(maxOrder)) / 2))
-        {
-            assert(minOrder <= maxOrder && "最大顺序不能小于最小顺序！");
-        }
-        System(System* system, const OrderRelation orderRelation)
-            : System(system->group,
-                     orderRelation == OrderRelation::Before ? system->minOrder : system->order,
-                     orderRelation == OrderRelation::Before ? system->order : system->maxOrder)
-        {
-        }
+        explicit System(std::optional<SystemGroup*> group, int minOrder = LeftOrder, int maxOrder = RightOrder);
+        System(System* system, OrderRelation orderRelation);
         virtual ~System() = default;
-        System(System& system) = delete;
 
-        virtual void Start()
-        {
-        }
-        virtual void Stop()
-        {
-        }
-        virtual void Update()
-        {
-        }
-    };
+        std::optional<SystemGroup*> GetGroup() const;
+        int GetOrder() const;
 
-    class SystemGroup : public System
-    {
-    public:
-        SystemGroup(SystemGroup* group, const int minOrder = LeftOrder, const int maxOrder = RightOrder)
-            : System(group, minOrder, maxOrder)
-        {
-        }
-        SystemGroup(System* system, const OrderRelation orderRelation)
-            : System(system, orderRelation)
-        {
-        }
-
-        void AddSubSystem(System& system)
-        {
-            subSystemStartQueue.insert(&system);
-        }
-        void RemoveSubSystem(System& system)
-        {
-            subSystemUpdateQueue.erase(&system);
-            subSystemStopQueue.insert(&system);
-        }
-
-        void Start() override;
-        void Stop() override;
-        void Update() override;
+        virtual void Start();
+        virtual void Stop();
+        virtual void Update();
 
     private:
-        friend class EditorUIUtility;
+        static inline std::vector<std::unique_ptr<System>> allSystems;
 
-        struct SystemPtrComparer
-        {
-            bool operator()(const System* left, const System* right) const
-            {
-                if (left->order == right->order)
-                    return left < right; //确保顺序相同时依然有大小之分，从而避免被误认为相等
-                return left->order < right->order;
-            }
-        };
-
-        std::set<System*, SystemPtrComparer> subSystemStartQueue = {};
-        std::set<System*, SystemPtrComparer> subSystemStopQueue = {};
-        std::set<System*, SystemPtrComparer> subSystemUpdateQueue = {};
+        std::optional<SystemGroup*> group;
+        int minOrder;
+        int maxOrder;
+        int order;
     };
 
     class SystemEvent : public System
@@ -112,21 +56,46 @@ namespace Light
         std::function<void()> onStop = nullptr;
         std::function<void()> onUpdate = nullptr;
 
-        SystemEvent(SystemGroup* group, const int minOrder = LeftOrder, const int maxOrder = RightOrder)
-            : System(group, minOrder, maxOrder)
-        {
-        }
-        SystemEvent(System* system, const OrderRelation orderRelation)
-            : System(system, orderRelation)
-        {
-        }
+        SystemEvent(std::optional<SystemGroup*> group, int minOrder = LeftOrder, int maxOrder = RightOrder);
+        SystemEvent(System* system, OrderRelation orderRelation);
 
     private:
-        void Start() override { if (onStart) onStart(); }
-        void Stop() override { if (onStop) onStop(); }
-        void Update() override { if (onUpdate) onUpdate(); }
+        void Start() override;
+        void Stop() override;
+        void Update() override;
+    };
+
+    struct SystemPtrComparer
+    {
+        bool operator()(const System* left, const System* right) const
+        {
+            if (left->GetOrder() == right->GetOrder())
+                return left < right; //确保顺序相同时依然有大小之分，从而避免被误认为相等
+            return left->GetOrder() < right->GetOrder();
+        }
+    };
+
+    class SystemGroup : public System
+    {
+    public:
+        SystemGroup(std::optional<SystemGroup*> group, int minOrder = LeftOrder, int maxOrder = RightOrder);
+        SystemGroup(System* system, OrderRelation orderRelation);
+
+        void AddSubSystem(System* system);
+        void RemoveSubSystem(System* system);
+
+        void Start() override;
+        void Stop() override;
+        void Update() override;
+
+    private:
+        friend class EditorUIUtility;
+
+        std::set<System*, SystemPtrComparer> subSystemStartQueue = {};
+        std::set<System*, SystemPtrComparer> subSystemStopQueue = {};
+        std::set<System*, SystemPtrComparer> subSystemUpdateQueue = {};
     };
 
 #define Light_MakeSystem(systemClass) \
-    inline systemClass* systemClass = Light::System::MakeSystem<class systemClass##>();
+    inline systemClass* systemClass = Light::System::Register<class systemClass##>();
 }

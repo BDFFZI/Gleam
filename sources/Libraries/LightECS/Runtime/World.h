@@ -30,17 +30,17 @@ namespace Light
         static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
 
         static const std::vector<std::unique_ptr<Scene>>& GetAllScenes();
-        static Scene& GetMainScene();
-        static Scene& CreateScene(std::string_view name = "");
+        static Scene* GetMainScene();
+        static Scene* CreateScene(std::string_view name = "");
 
-        static Entity AddEntity(const Archetype& archetype, Scene& scene = GetMainScene());
-        static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr, Scene& scene = GetMainScene());
-        static void RemoveEntity(Entity& entity, Scene& scene = GetMainScene());
-        static void MoveEntity(Entity entity, const Archetype& newArchetype, Scene& scene = GetMainScene());
+        static Entity AddEntity(const Archetype* archetype, Scene* scene = GetMainScene());
+        static void AddEntities(const Archetype* archetype, int count, Entity* outEntities = nullptr, Scene* scene = GetMainScene());
+        static void RemoveEntity(Entity& entity, Scene* scene = GetMainScene());
+        static void MoveEntity(Entity entity, const Archetype* newArchetype, Scene* scene = GetMainScene());
         /**
          * 一种快速简单的实体移动，它假定新旧原型的数据存储布局是完全一样的，从而直接进行内存复制。
          */
-        static void MoveEntitySimply(Entity entity, const Archetype& newArchetype, Scene& scene = GetMainScene());
+        static void MoveEntitySimply(Entity entity, const Archetype* newArchetype, Scene* scene = GetMainScene());
 
         static bool HasSystem(System& system);
         /**
@@ -51,7 +51,7 @@ namespace Light
          * 
          * @param system 
          */
-        static void AddSystem(System& system);
+        static void AddSystem(System* system);
         static void AddSystems(std::initializer_list<System*> systems);
         /**
          * @brief 移除系统
@@ -61,7 +61,7 @@ namespace Light
          * 
          * @param system 
          */
-        static void RemoveSystem(System& system);
+        static void RemoveSystem(System* system);
         static void RemoveSystems(std::initializer_list<System*> systems);
 
         template <Component TComponent>
@@ -124,7 +124,7 @@ namespace Light
         }();
         inline static Scene* mainScene = allScenes[0].get(); //预制的默认场景
         //系统信息
-        inline static SystemGroup allSystems = {nullptr, System::LeftOrder, System::RightOrder};
+        inline static SystemGroup allSystems = {std::nullopt, System::LeftOrder, System::RightOrder};
         inline static std::unordered_map<System*, int> systemUsageCount = {};
     };
 }

@@ -21,12 +21,13 @@ namespace Light
         void AddElements(int count, const std::function<void(int itemIndex, std::byte* item)>& setValue = nullptr);
 
         /**
-     * 删除目标位置的元素并移动末尾的元素来填补空缺
-     * @param index 
-     * @return 目标位置指针，即被移动的末尾元素的新地址
-     */
+         * 删除目标位置的元素并移动末尾的元素来填补空缺
+         * @param index 
+         * @return 目标位置指针，即被移动的末尾元素的新地址
+         */
         std::byte* RemoveElement(int index);
         void RemoveElements(int index, int count);
+        void Clear();
 
         void ForeachElements(int index, int count, const std::function<void(int itemIndex, std::byte* item)>& iterator) const;
         template <typename TIterator> requires requires(TIterator iterator, std::byte* ptr) { iterator(ptr); }

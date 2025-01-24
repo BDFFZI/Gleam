@@ -14,7 +14,7 @@ TEST(Window, Main)
     int2 mousePosition;
     int2 resolution;
 
-    SystemEvent systemEvent = {nullptr, Window->order, System::RightOrder};
+    SystemEvent systemEvent = {std::nullopt, Window->GetOrder(), System::RightOrder};
     systemEvent.onStart = [&]
     {
         glfwGetWindowPos(Window->GetGlfwWindow(), &mousePosition.x, &mousePosition.y);
@@ -65,6 +65,6 @@ TEST(Window, Main)
             Window->SetFullScreen(!Window->GetFullScreen());
     };
 
-    World::AddSystem(systemEvent);
+    World::AddSystem(&systemEvent);
     Engine::Start();
 }

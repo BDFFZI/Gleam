@@ -33,12 +33,15 @@ namespace Light
         }
     };
 
-    class RenderingSystem : public SystemGroup
+    class RenderingSystem : public System
     {
     public:
-        RenderingSystem(): SystemGroup(PresentationSystem, LeftOrder, MiddleOrder)
+        RenderingSystem(): System(PresentationSystem, LeftOrder, MiddleOrder)
         {
         }
+
+        const std::unique_ptr<Material>& GetDefaultPointMaterial() const;
+        const std::unique_ptr<Material>& GetDefaultLineMaterial() const;
 
     private:
         std::multiset<CameraInfo> cameraInfos;
@@ -49,8 +52,8 @@ namespace Light
         std::unique_ptr<GSInoutLayout> lineGSInoutLayout;
         std::unique_ptr<GShader> defaultPointShader = nullptr;
         std::unique_ptr<GShader> defaultLineShader = nullptr;
-        std::unique_ptr<GMaterial> defaultPointMaterial = nullptr;
-        std::unique_ptr<GMaterial> defaultLineMaterial = nullptr;
+        std::unique_ptr<Material> defaultPointMaterial = nullptr;
+        std::unique_ptr<Material> defaultLineMaterial = nullptr;
 
         void Start() override;
         void Stop() override;

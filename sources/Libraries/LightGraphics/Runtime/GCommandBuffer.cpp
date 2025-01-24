@@ -6,6 +6,15 @@
 
 using namespace Light;
 
+GCommandBuffer::GCommandBuffer(const std::string_view name)
+    : name(name), glCommandBuffer(VK_COMMAND_BUFFER_LEVEL_SECONDARY)
+{
+}
+GCommandBuffer::operator GLCommandBuffer&()
+{
+    return GetGLCommandBuffer();
+}
+
 void GCommandBuffer::BeginRecording()
 {
     glCommandBuffer.BeginRecording();

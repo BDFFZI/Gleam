@@ -9,6 +9,10 @@ namespace Light
         return allArchetypes;
     }
 
+    const std::string& Archetype::GetName() const
+    {
+        return name;
+    }
     int Archetype::GetComponentCount() const
     {
         return componentCount;

@@ -7,6 +7,9 @@ namespace Light
     struct PointsRenderer : Renderer
     {
         std::vector<Point> points;
-        std::unique_ptr<Mesh> mesh;
+
+    private:
+        friend class PointsRendererSystem;
+        std::unique_ptr<Mesh> pointsMesh;
     };
 }

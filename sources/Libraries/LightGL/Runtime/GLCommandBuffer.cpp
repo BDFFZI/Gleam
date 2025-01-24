@@ -55,12 +55,20 @@ void GLCommandBuffer::BeginRecording(const VkCommandBufferUsageFlags flags)
 
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
         throw std::runtime_error("开始命令录制失败!");
+
+    isRecording = true;
 }
-void GLCommandBuffer::EndRecording() const
+void GLCommandBuffer::EndRecording()
 {
     //真正提交命令，并检查命令是否错误
     if (const auto result = vkEndCommandBuffer(commandBuffer); result != VK_SUCCESS)
         throw std::runtime_error("命令录制失败!");
+
+    isRecording = false;
+}
+bool GLCommandBuffer::IsRecording() const
+{
+    return isRecording;
 }
 
 void GLCommandBuffer::CopyBuffer(const GLBuffer& source, const GLBuffer& buffer) const

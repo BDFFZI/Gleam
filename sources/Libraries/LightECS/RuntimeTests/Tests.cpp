@@ -155,11 +155,11 @@ TEST(ECS, Archetype)
         std::cout << archetype->GetArchetypeSize() << "\n";
     }
 
-    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype.GetArchetypeSize()));
-    physicsWithSpringArchetype.RunConstructor(data);
-    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype.GetComponentOffset(1));
-    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype.GetComponentOffset(2));
-    SpringPhysics& spring = *reinterpret_cast<SpringPhysics*>(data + physicsWithSpringArchetype.GetComponentOffset(3));
+    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype->GetArchetypeSize()));
+    physicsWithSpringArchetype->RunConstructor(data);
+    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype->GetComponentOffset(1));
+    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype->GetComponentOffset(2));
+    SpringPhysics& spring = *reinterpret_cast<SpringPhysics*>(data + physicsWithSpringArchetype->GetComponentOffset(3));
     ASSERT_EQ(transform, Transform());
     ASSERT_EQ(rigidBody, RigidBody());
     ASSERT_EQ(spring, SpringPhysics());
@@ -203,7 +203,7 @@ class PhysicsSystem : public System
 public:
     constexpr static float DeltaTime = 0.02f;
 
-    PhysicsSystem(): System(nullptr, 0)
+    PhysicsSystem(): System(std::nullopt, 0)
     {
     }
 
@@ -230,7 +230,7 @@ private:
         });
     }
 };
-inline PhysicsSystem PhysicsSystem;
+Light_MakeSystem(PhysicsSystem)
 
 TEST(ECS, System)
 {
@@ -264,7 +264,7 @@ inline std::stringstream printResult = {};
 class PrintSystem : public System
 {
 public:
-    PrintSystem(SystemGroup* group, const int minOrder, const int maxOrder, const char* name)
+    PrintSystem(const std::optional<SystemGroup*> group, const int minOrder, const int maxOrder, const char* name)
         : System(group, minOrder, maxOrder), name(name)
     {
     }
@@ -274,7 +274,7 @@ public:
     }
 
 private:
-    const char* const name;
+    const char* name;
 
     void Start() override
     {
@@ -292,7 +292,7 @@ private:
 class PrintSystemGroup : public SystemGroup
 {
 public:
-    PrintSystemGroup(SystemGroup* group, const int minOrder, const int maxOrder, const char* name)
+    PrintSystemGroup(const std::optional<SystemGroup*> group, const int minOrder, const int maxOrder, const char* name)
         : SystemGroup(group, minOrder, maxOrder), name(name)
     {
     }
@@ -302,7 +302,7 @@ public:
     }
 
 private:
-    const char* const name;
+    const char* name;
 
     void Start() override
     {
@@ -331,7 +331,7 @@ TEST(ECS, SystemOrder)
     ///    - system3_2_1
     ///    - system3_2_2
     ///  - system3_3
-    PrintSystem system2 = {nullptr, System::LeftOrder, System::RightOrder, "system2"};
+    PrintSystem system2 = {std::nullopt, System::LeftOrder, System::RightOrder, "system2"};
     PrintSystemGroup system3 = {&system2, OrderRelation::After, "system3"};
     PrintSystemGroup system3_2 = {&system3, System::LeftOrder, System::RightOrder, "system3_2"};
     PrintSystem system3_1 = {&system3_2, OrderRelation::Before, "system3_1"};
@@ -340,24 +340,24 @@ TEST(ECS, SystemOrder)
     PrintSystem system3_2_2 = {&system3_2, System::LeftOrder, System::RightOrder, "system3_2_2"};
     PrintSystem system3_2_1 = {&system3_2_2, OrderRelation::Before, "system3_2_1"};
 
-    World::AddSystem(system2);
-    World::AddSystem(system3);
-    World::AddSystem(system3_1);
-    World::AddSystem(system1);
-    World::AddSystem(system3_3);
-    World::AddSystem(system3_2_2);
-    World::AddSystem(system3_2_1);
+    World::AddSystem(&system2);
+    World::AddSystem(&system3);
+    World::AddSystem(&system3_1);
+    World::AddSystem(&system1);
+    World::AddSystem(&system3_3);
+    World::AddSystem(&system3_2_2);
+    World::AddSystem(&system3_2_1);
 
     World::Start();
     World::Update();
 
-    World::RemoveSystem(system2);
-    World::RemoveSystem(system3);
-    World::RemoveSystem(system3_1);
-    World::RemoveSystem(system1);
-    World::RemoveSystem(system3_3);
-    World::RemoveSystem(system3_2_2);
-    World::RemoveSystem(system3_2_1);
+    World::RemoveSystem(&system2);
+    World::RemoveSystem(&system3);
+    World::RemoveSystem(&system3_1);
+    World::RemoveSystem(&system1);
+    World::RemoveSystem(&system3_3);
+    World::RemoveSystem(&system3_2_2);
+    World::RemoveSystem(&system3_2_1);
 
     World::Stop();
 
@@ -391,8 +391,8 @@ system1->Stop
 
 TEST(ECS, SceneVisibility)
 {
-    Scene& sleepScene = World::CreateScene("Sleep");
-    sleepScene.SetVisibility(false);
+    Scene* sleepScene = World::CreateScene("Sleep");
+    sleepScene->SetVisibility(false);
     Entity entity = World::AddEntity(physicsArchetype, sleepScene);
     World::SetComponents(entity, Transform{3});
 
@@ -413,7 +413,7 @@ TEST(ECS, SceneVisibility)
     ASSERT_TRUE(all(position == float2(4)));
 
     //恢复到默认场景，+1
-    sleepScene.MoveEntity(entity,World::GetMainScene());
+    sleepScene->MoveEntity(entity, World::GetMainScene());
     View<Transform>::Each([](Transform& transform)
     {
         transform.position++;

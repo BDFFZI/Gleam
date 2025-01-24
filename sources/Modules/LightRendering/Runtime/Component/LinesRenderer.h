@@ -7,6 +7,9 @@ namespace Light
     struct LinesRenderer : Renderer
     {
         std::vector<Segment> lines;
-        std::unique_ptr<Mesh> mesh;
+
+    private:
+        friend class LinesRendererSystem;
+        std::unique_ptr<Mesh> linesMesh;
     };
 }

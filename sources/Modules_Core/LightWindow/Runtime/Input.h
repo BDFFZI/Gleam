@@ -1,6 +1,4 @@
 ﻿#pragma once
-#include <string>
-#include <GLFW/glfw3.h>
 
 #include "Window.h"
 #include "LightECS/Runtime/System.h"

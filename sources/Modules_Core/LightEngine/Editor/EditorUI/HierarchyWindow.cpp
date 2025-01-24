@@ -17,20 +17,12 @@ namespace Light
         {
             EditorUIUtility::DrawSystemGroup(World::allSystems);
         }
-        if (ImGui::CollapsingHeader("Archetype"))
+        if (ImGui::CollapsingHeader("Scene"))
         {
-            for (auto& [archetype,heap] : World::entities)
+     
+            for (auto& scene : World::GetAllScenes())
             {
-                if (ImGui::TreeNode(archetype->name))
-                {
-                    heap.ForeachElements([](std::byte* item)
-                    {
-                        Entity& entity = *reinterpret_cast<Entity*>(item);
-                        EditorUIUtility::DrawEntityButton(entity);
-                    });
-
-                    ImGui::TreePop();
-                }
+              
             }
         }
 

@@ -64,11 +64,13 @@ namespace Light
             //绘制实体信息
             ImGui::Text("Entity:%i", static_cast<int>(target));
             //绘制组件
-            for (int i = 1; i < archetype.componentCount; ++i)
+            for (int i = 1; i < archetype.GetComponentCount(); ++i)
             {
-                const char* componentName = archetype.componentTypes[i].name();
-                int componentOffset = archetype.componentOffsets[i];
-                std::type_index componentType = archetype.componentTypes[i];
+                const ComponentInfo& componentInfo = archetype.GetComponentInfo(i);
+
+                std::type_index componentType = componentInfo.type;
+                const char* componentName = componentInfo.type.name();
+                int componentOffset = archetype.GetComponentOffset(i);
                 void* component = entityInfo.components + componentOffset;
                 //绘制组件标题
                 ImGui::SeparatorText(componentName);

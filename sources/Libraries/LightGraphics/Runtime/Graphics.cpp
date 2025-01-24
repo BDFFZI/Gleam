@@ -11,7 +11,7 @@ Graphics Graphics::Initialize(GL&, std::unique_ptr<GraphicsConfig>&& defaultPres
 {
     graphicsConfig = std::move(defaultPreset);
     defaultGLImageSampler = std::make_unique<GLImageSampler>();
-    defaultTexture2D = std::make_unique<GTexture2D>(1);
+    defaultTexture2D = std::make_unique<GTexture2D>(1.0f);
     SwapChain::Initialize(
         graphicsConfig->presentColorFormat,
         graphicsConfig->presentDepthStencilFormat,

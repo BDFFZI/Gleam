@@ -50,6 +50,11 @@ namespace Light
         elementCount -= count;
         ResizeHeaps();
     }
+    void Heap::Clear()
+    {
+        elementCount = 0;
+        ResizeHeaps();
+    }
 
     void Heap::ForeachElements(const int index, int count, const std::function<void(int itemIndex, std::byte* item)>& iterator) const
     {

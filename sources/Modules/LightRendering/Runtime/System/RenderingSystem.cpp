@@ -3,8 +3,8 @@
 #include "LightECS/Runtime/View.h"
 #include "LightMath/Runtime/MatrixMath.h"
 #include "LightRendering/Runtime/Component/Camera.h"
-#include "LightRendering/Runtime/Component/LinesMesh.h"
-#include "LightRendering/Runtime/Component/PointsMesh.h"
+#include "LightRendering/Runtime/Component/LinesRenderer.h"
+#include "LightRendering/Runtime/Component/PointsRenderer.h"
 #include "LightRendering/Runtime/Resource/CommandBufferPool.h"
 
 namespace Light
@@ -29,6 +29,14 @@ namespace Light
         material = renderer.material;
         mesh = renderer.mesh;
     }
+    const std::unique_ptr<Material>& RenderingSystem::GetDefaultPointMaterial() const
+    {
+        return defaultPointMaterial;
+    }
+    const std::unique_ptr<Material>& RenderingSystem::GetDefaultLineMaterial() const
+    {
+        return defaultLineMaterial;
+    }
 
 
     void RenderingSystem::Start()
@@ -40,15 +48,11 @@ namespace Light
             RenderingConfig::LineMeshLayout, RenderingConfig::ColorFormat, RenderingConfig::DepthStencilFormat);
         defaultPointShader = std::make_unique<GShader>(*vertexColorGSCodeLayout, *pointGSInoutLayout);
         defaultLineShader = std::make_unique<GShader>(*vertexColorGSCodeLayout, *lineGSInoutLayout);
-        defaultPointMaterial = std::make_unique<GMaterial>(*defaultPointShader);
-        defaultLineMaterial = std::make_unique<GMaterial>(*defaultLineShader);
-
-        SystemGroup::Start();
+        defaultPointMaterial = std::make_unique<Material>(*defaultPointShader);
+        defaultLineMaterial = std::make_unique<Material>(*defaultLineShader);
     }
     void RenderingSystem::Stop()
     {
-        SystemGroup::Stop();
-
         vertexColorGSCodeLayout.reset();
         pointGSInoutLayout.reset();
         lineGSInoutLayout.reset();
@@ -59,57 +63,9 @@ namespace Light
 
         CommandBufferPool::Clear();
     }
-
-
-    void BuildMesh()
-    {
-        View<PointsRenderer>::Each([](auto& pointsRenderer)
-        {
-            if (pointsRenderer.mesh == nullptr)
-                pointsRenderer.mesh = std::make_unique<Mesh>(true);
-
-            Mesh* pointMesh = pointsRenderer.mesh.get();
-            std::vector<Vertex>& pointVertices = pointMesh->GetVertices();
-            std::vector<uint32_t>& pointIndices = pointMesh->GetIndices();
-
-            pointVertices.clear();
-            pointIndices.clear();
-            int pointIndex = 0;
-            for (auto point : pointsRenderer.points)
-            {
-                pointVertices.emplace_back(point.position, 1.0f);
-                pointIndices.emplace_back(pointIndex++);
-            }
-
-            pointMesh->SetDirty();
-        });
-        View<LinesRenderer>::Each([](auto& linesRenderer)
-        {
-            if (linesRenderer.mesh == nullptr)
-                linesRenderer.mesh = std::make_unique<Mesh>(true);
-
-            Mesh* lineMesh = linesRenderer.mesh.get();
-            std::vector<Vertex>& lineVertices = lineMesh->GetVertices();
-            std::vector<uint32_t>& lineIndices = lineMesh->GetIndices();
-
-            lineVertices.clear();
-            lineIndices.clear();
-            int lineIndex = 0;
-            for (auto line : linesRenderer.lines)
-            {
-                lineVertices.emplace_back(line.positionA, 1.0f);
-                lineIndices.emplace_back(lineIndex++);
-                lineVertices.emplace_back(line.positionB, 1.0f);
-                lineIndices.emplace_back(lineIndex++);
-            }
-
-            lineMesh->SetDirty();
-        });
-    }
-
+    
     void RenderingSystem::Update()
     {
-        BuildMesh();
         //统计渲染对象
         cameraInfos.clear();
         View<Transform, Camera>::Each([this](auto& transform, auto& camera)
@@ -123,18 +79,22 @@ namespace Light
         });
         //渲染
         CommandBuffer& commandBuffer = CommandBufferPool::Apply();
+        commandBuffer.BeginRecording();
         for (const auto& cameraInfo : cameraInfos)
         {
-            commandBuffer.SetRenderTarget(*cameraInfo.camera->renderTarget);
+            //设置相机参数
+            GRenderTarget* renderTarget = cameraInfo.camera->renderTarget.value_or(&Graphics::GetDefaultRenderTarget());
+            commandBuffer.SetRenderTarget(*renderTarget);
             commandBuffer.ClearRenderTarget(cameraInfo.camera->background);
             commandBuffer.SetViewProjectionMatrices(cameraInfo.matrixVP);
+            //绘制每个渲染器
             for (const auto& rendererInfo : rendererInfos)
             {
                 commandBuffer.Draw(*rendererInfo.mesh, rendererInfo.matrixM, *rendererInfo.material);
             }
         }
+        commandBuffer.EndRecording();
+        PresentationSystem->GetPresentGLCommandBuffer().ExecuteSubCommands(commandBuffer);
         CommandBufferPool::Release(commandBuffer);
-
-        SystemGroup::Update();
     }
 }

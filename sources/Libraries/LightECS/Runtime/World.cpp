@@ -28,87 +28,81 @@ namespace Light
     {
         return allScenes;
     }
-    Scene& World::CreateScene(const std::string_view name)
+    Scene* World::CreateScene(const std::string_view name)
     {
-        return *allScenes.emplace_back(new Scene(name));
+        return allScenes.emplace_back(new Scene(name)).get();
     }
-    Scene& World::GetMainScene()
+    Scene* World::GetMainScene()
     {
-        return *mainScene;
+        return mainScene;
     }
-    Entity World::AddEntity(const Archetype& archetype, Scene& scene)
+    Entity World::AddEntity(const Archetype* archetype, Scene* scene)
     {
-        return scene.AddEntity(archetype);
+        return scene->AddEntity(archetype);
     }
-    void World::AddEntities(const Archetype& archetype, const int count, Entity* outEntities, Scene& scene)
+    void World::AddEntities(const Archetype* archetype, const int count, Entity* outEntities, Scene* scene)
     {
-        scene.AddEntities(archetype, count, outEntities);
+        scene->AddEntities(archetype, count, outEntities);
     }
-    void World::RemoveEntity(Entity& entity, Scene& scene)
+    void World::RemoveEntity(Entity& entity, Scene* scene)
     {
-        scene.RemoveEntity(entity);
+        scene->RemoveEntity(entity);
     }
-    void World::MoveEntity(const Entity entity, const Archetype& newArchetype, Scene& scene)
+    void World::MoveEntity(const Entity entity, const Archetype* newArchetype, Scene* scene)
     {
-        scene.MoveEntity(entity, newArchetype);
+        scene->MoveEntity(entity, newArchetype);
     }
-    void World::MoveEntitySimply(const Entity entity, const Archetype& newArchetype, Scene& scene)
+    void World::MoveEntitySimply(const Entity entity, const Archetype* newArchetype, Scene* scene)
     {
-        scene.MoveEntitySimply(entity, newArchetype);
+        scene->MoveEntitySimply(entity, newArchetype);
     }
 
     bool World::HasSystem(System& system)
     {
         return systemUsageCount.contains(&system);
     }
-    void World::AddSystem(System& system)
+    void World::AddSystem(System* system)
     {
-        if (system.group != nullptr)
-            AddSystem(*system.group);
+        if (system->GetGroup().has_value())
+            AddSystem(system->GetGroup().value());
 
-        const int count = 1 + (systemUsageCount.contains(&system) ? systemUsageCount[&system] : 0);
-        systemUsageCount[&system] = count;
+        const int count = 1 + (systemUsageCount.contains(system) ? systemUsageCount[system] : 0);
+        systemUsageCount[system] = count;
 
         if (count == 1)
         {
             //首次添加，需实际注册到系统组接收事件。
-            if (system.group == nullptr)
-                allSystems.AddSubSystem(system);
-            else
-                system.group->AddSubSystem(system);
+            system->GetGroup().value_or(&allSystems)->AddSubSystem(system);
         }
     }
     void World::AddSystems(const std::initializer_list<System*> systems)
     {
-        for (System* system : systems)
-            AddSystem(*system);
+        for (auto system : systems)
+            AddSystem(system);
     }
-    void World::RemoveSystem(System& system)
+    void World::RemoveSystem(System* system)
     {
-        assert(systemUsageCount.contains(&system) && "无法移除未添加过的系统！");
+        assert(systemUsageCount.contains(system) && "无法移除未添加过的系统！");
 
-        if (system.group != nullptr)
-            RemoveSystem(*system.group);
+        if (system->GetGroup().has_value())
+            RemoveSystem(system->GetGroup().value());
 
-        const int count = systemUsageCount[&system] - 1;
+        const int count = systemUsageCount[system] - 1;
         if (count == 0)
-            systemUsageCount.erase(&system);
+            systemUsageCount.erase(system);
         else
-            systemUsageCount[&system] = count;
+            systemUsageCount[system] = count;
 
         if (count == 0)
         {
             //最后一次移除，需实际从系统组移除。
-            if (system.group == nullptr)
-                allSystems.RemoveSubSystem(system);
-            else
-                system.group->RemoveSubSystem(system);
+            system->GetGroup().value_or(&allSystems)->RemoveSubSystem(system);
         }
     }
     void World::RemoveSystems(const std::initializer_list<System*> systems)
     {
-        for (System* system : systems)
-            RemoveSystem(*system);
+        for (auto system : systems)
+            RemoveSystem(system);
     }
 
     void World::Start()

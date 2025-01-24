@@ -15,7 +15,7 @@ namespace Light
         float farClipPlane = 1000.0f;
         //渲染参数
         float depth = 0;
-        GRenderTarget* renderTarget = nullptr;
+        std::optional<GRenderTarget*> renderTarget = std::nullopt;
         float4 background = 0;
     };
 }
