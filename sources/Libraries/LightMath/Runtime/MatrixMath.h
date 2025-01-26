@@ -181,6 +181,15 @@ MakeMatrixFunction_Adjoint(Type,Row,Column)
         return matrix;
     }
     template <class Type>
+    constexpr vector<Type, 3> mul(const matrix<Type, 3, 3>& left, const vector<Type, 3>& right)
+    {
+        return {
+            left._m00 * right.x + left._m01 * right.y + left._m02 * right.z,
+            left._m10 * right.x + left._m11 * right.y + left._m12 * right.z,
+            left._m20 * right.x + left._m21 * right.y + left._m22 * right.z,
+        };
+    }
+    template <class Type>
     matrix<Type, 4, 4> mul(const matrix<Type, 4, 4>& left, const matrix<Type, 4, 4>& right)
     {
         matrix<Type, 4, 4> matrix;

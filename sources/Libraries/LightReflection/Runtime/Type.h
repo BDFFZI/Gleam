@@ -80,17 +80,17 @@ namespace Light
         inline static std::unordered_map<uuids::uuid, Type*> uuidToType = {};
         inline static std::unordered_map<std::type_index, Type*> indexToType = {};
     };
+}
 
 #define Light_MakeType_Friend \
-    template <typename T,Transferrer TTransferrer>\
-    friend struct Type_Transfer;
+template <typename T,Transferrer TTransferrer>\
+friend struct ::Light::Type_Transfer;
 #define Light_MakeType_AddField(field)\
-    transferrer.TransferField(#field, value.field)
-#define Light_MakeType(uuidStr,type,...)\
-    inline const Light::Type* type##Type = Light::Type::Register<type>(uuidStr);\
-    template <Light::Transferrer TTransferrer>\
-    struct Light::Type_Transfer<type, TTransferrer>\
-    {static void Invoke(TTransferrer& transferrer, type& value);};\
-    template <Light::Transferrer TTransferrer>\
-    void Light::Type_Transfer<type,TTransferrer>::Invoke(TTransferrer& transferrer, type& value)
-}
+transferrer.TransferField(#field, value.field)
+#define Light_MakeType(type,uuidStr,...)\
+inline const ::Light::Type* type##Type = ::Light::Type::Register<type>(uuidStr);\
+template <Light::Transferrer TTransferrer>\
+struct ::Light::Type_Transfer<type, TTransferrer>\
+{static void Invoke(TTransferrer& transferrer, type& value);};\
+template <Light::Transferrer TTransferrer>\
+void ::Light::Type_Transfer<type,TTransferrer>::Invoke(TTransferrer& transferrer, type& value)

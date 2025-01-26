@@ -14,7 +14,7 @@ int main()
     int2 mousePosition;
     int2 resolution;
 
-    SystemEvent systemEvent = {std::nullopt, Window->GetOrder(), System::RightOrder};
+    SystemEvent systemEvent = {"WindowTest", SimulationSystem};
     systemEvent.onStart = [&]
     {
         glfwGetWindowPos(Window->GetGlfwWindow(), &mousePosition.x, &mousePosition.y);

@@ -1,6 +1,7 @@
 ﻿#include "LinesRendererSystem.h"
 
 #include "LightECS/Runtime/View.h"
+#include "LightEngine/Runtime/Engine.h"
 #include "LightRendering/Runtime/Component/LinesMesh.h"
 
 namespace Light

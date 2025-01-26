@@ -1,5 +1,8 @@
 ﻿#pragma once
-#include "System.h"
+#include "Engine.h"
+#include "System/AwakeSystem.h"
+#include "System/DestroySystem.h"
+#include "System/SimulationSystem.h"
 
 namespace Light
 {

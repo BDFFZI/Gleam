@@ -29,10 +29,11 @@ namespace Light
         material.SetPushConstant(0, &matrixMVP);
         DrawMesh(mesh, material);
     }
-    void CommandBuffer::Blit(GTexture& source, GRenderTarget& destination)
+    void CommandBuffer::Blit(GTexture* source, GRenderTarget* destination)
     {
-        SetRenderTarget(destination);
+        SetRenderTarget(*destination);
         SetViewProjectionMatricesToIdentity();
-        Draw(RenderingSystem->GetFullScreenMesh(),float4x4::Identity(),)
+        RenderingSystem->GetBlitMaterial()->SetTexture(0, *source);
+        Draw(*RenderingSystem->GetFullScreenMesh(), float4x4::Identity(), *RenderingSystem->GetBlitMaterial());
     }
 }

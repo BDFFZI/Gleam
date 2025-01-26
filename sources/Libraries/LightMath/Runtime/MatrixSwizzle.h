@@ -60,7 +60,7 @@ namespace Light
 
         Type& operator[](const int i)
         {
-            return reinterpret_cast<Type*>(this)[static_cast<uint32_t>(i * 3)];
+            return reinterpret_cast<Type*>(this)[i * 3];
         }
     };
 
@@ -112,7 +112,7 @@ namespace Light
 
         Type& operator[](const int i)
         {
-            return reinterpret_cast<Type*>(this)[static_cast<uint32_t>(i * 4)];
+            return reinterpret_cast<Type*>(this)[i * 4];
         }
     };
 }

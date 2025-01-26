@@ -1,6 +1,4 @@
 ﻿#include "Engine.h"
-
-#include "System.h"
 #include "LightECS/Runtime/World.h"
 
 namespace Light

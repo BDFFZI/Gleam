@@ -1,6 +1,7 @@
 ﻿#include "RenderingSystem.h"
 
 #include "LightECS/Runtime/View.h"
+#include "LightGraphics/Runtime/SwapChain.h"
 #include "LightMath/Runtime/MatrixMath.h"
 #include "LightRendering/Runtime/Component/Camera.h"
 #include "LightRendering/Runtime/Resource/CommandBufferPool.h"
@@ -11,11 +12,17 @@ namespace Light
     std::unique_ptr<Mesh> CreateFullScreenMesh()
     {
         std::unique_ptr<Mesh> fullScreenMesh = std::make_unique<Mesh>();
-        fullScreenMesh->SetVertices({
-            Vertex{float3(-1, -1, 1), 1, float2(0, 1)},
-            Vertex{float3(-1, 1, 1), 1, float2(0, 0)},
-            Vertex{float3(1, 1, 1), 1, float2(1, 0)},
-            Vertex{float3(1, -1, 1), 1, float2(1, 1)},
+        fullScreenMesh->SetPositions(std::vector{
+            float3(-1, -1, 1),
+            float3(-1, 1, 1),
+            float3(1, 1, 1),
+            float3(1, -1, 1),
+        });
+        fullScreenMesh->SetUVs({
+            float2(0, 1),
+            float2(0, 0),
+            float2(1, 0),
+            float2(1, 1)
         });
         fullScreenMesh->SetIndices({
             0, 1, 2,
@@ -26,11 +33,11 @@ namespace Light
 
     CameraInfo::CameraInfo(Transform& transform, Camera& camera)
     {
-        float4x4 matrixV = inverse(float4x4::TRS(transform.localPosition, transform.localRotation, transform.localScale));
+        float4x4 matrixV = transform.GetWorldToLocalMatrix();
         float4x4 matrixP = camera.orthographic
                                ? float4x4::Ortho(camera.halfHeight * camera.aspect, camera.halfHeight, camera.nearClipPlane, camera.farClipPlane)
                                : float4x4::Perspective(camera.fieldOfView, camera.aspect, camera.nearClipPlane, camera.farClipPlane);
-        matrixVP = matrixP * matrixV;
+        matrixVP = mul(matrixP, matrixV);
         this->camera = &camera;
     }
     bool CameraInfo::operator<(const CameraInfo& other) const
@@ -39,7 +46,7 @@ namespace Light
     }
     RendererInfo::RendererInfo(Transform& transform, Renderer& renderer)
     {
-        matrixM = float4x4::TRS(transform.localPosition, transform.localRotation, transform.localScale);
+        matrixM = transform.GetLocalToWorldMatrix();
         renderQueue = renderer.material->GetRenderQueue();
         material = renderer.material;
         mesh = renderer.mesh;
@@ -56,6 +63,10 @@ namespace Light
     const std::unique_ptr<Mesh>& RenderingSystem::GetFullScreenMesh() const
     {
         return fullScreenMesh;
+    }
+    const std::unique_ptr<Material>& RenderingSystem::GetBlitMaterial() const
+    {
+        return blitMaterial;
     }
     const std::unique_ptr<GRenderTexture>& RenderingSystem::GetDefaultRenderTarget() const
     {
@@ -88,6 +99,8 @@ namespace Light
         defaultPointMaterial.reset();
         defaultLineMaterial.reset();
         fullScreenMesh.reset();
+        blitShader.reset();
+        blitMaterial.reset();
 
         CommandBufferPool::Clear();
     }
@@ -125,7 +138,7 @@ namespace Light
             }
         }
         //将画面复制到呈现缓冲区
-        commandBuffer.GetGLCommandBuffer().BlitImage()
+        commandBuffer.Blit(defaultRenderTarget.get(), &SwapChain::GetPresentRenderTarget());
 
         commandBuffer.EndRecording();
         PresentationSystem->GetPresentGLCommandBuffer().ExecuteSubCommands(commandBuffer);

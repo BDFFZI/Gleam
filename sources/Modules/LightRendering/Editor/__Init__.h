@@ -1,11 +1,12 @@
 ﻿#pragma once
+#include "LightRendering/Runtime/__Init__.h"
+#include "LightEngine/Editor/__Init__.h"
+
 #include "GameWindow.h"
-#include "LightEngine/Runtime/System.h"
+#include "SceneWindow.h"
 
 namespace Light
 {
-    Light_AddSystems(GameWindow)
+    // Light_AddSystems(GameWindow)
+    Light_AddSystems(SceneWindow)
 }
-
-#include "LightRendering/Runtime/__Init__.h"
-#include "LightEngine/Editor/__Init__.h"

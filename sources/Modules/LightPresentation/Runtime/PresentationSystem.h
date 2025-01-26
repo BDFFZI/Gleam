@@ -3,7 +3,7 @@
 #include "LightECS/Runtime/System.h"
 #include "LightGL/Runtime/GLCommandBuffer.h"
 #include "LightGraphics/Runtime/GCommandBuffer.h"
-#include "LightEngine/Runtime/System.h"
+#include "LightEngine/Runtime/System/SimulationSystem.h"
 
 namespace Light
 {

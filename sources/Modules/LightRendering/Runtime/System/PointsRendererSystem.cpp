@@ -1,6 +1,7 @@
 ﻿#include "PointsRendererSystem.h"
 
 #include "LightECS/Runtime/View.h"
+#include "LightEngine/Runtime/Engine.h"
 #include "LightRendering/Runtime/Component/PointsMesh.h"
 
 namespace Light

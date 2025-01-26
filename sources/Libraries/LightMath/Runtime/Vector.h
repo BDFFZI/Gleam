@@ -1,17 +1,18 @@
 ﻿#pragma once
 
 #include "VectorSwizzle.h"
+#include "LightReflection/Runtime/Transferrer/DataTransferrer.h"
 
 namespace Light
 {
+    //由于头文件依赖的原因，vector模板原型放在了VectorSwizzle.h文件中
+
     using int2 = vector<int, 2>;
     using int3 = vector<int, 3>;
     using int4 = vector<int, 4>;
     using float2 = vector<float, 2>;
     using float3 = vector<float, 3>;
     using float4 = vector<float, 4>;
-
-    //由于头文件依赖的原因，vector模板原型放在了VectorSwizzle.h文件中
 
 #define xi 0
 #define yi 1
@@ -134,8 +135,8 @@ namespace Light
                 Type a;
             };
 
-            Light_MakeVectorSwizzleGroup4(vector, x, y, z, w)
-            Light_MakeVectorSwizzleGroup4(vector, r, g, b, a)
+            Light_MakeVectorSwizzleGroup4(Type, x, y, z, w)
+            Light_MakeVectorSwizzleGroup4(Type, r, g, b, a)
         };
 
         constexpr vector(Type x, Type y, Type z, Type w)
@@ -202,5 +203,17 @@ struct std::hash<Light::vector<Type, Number>> // NOLINT(cert-dcl58-cpp)
         for (int i = 0; i < Number; i++)
             Light::CombineVectorHash(&seed, hasher(value[i]));
         return seed;
+    }
+};
+
+template <class Type, int Number>
+struct Light::DataTransferrer_Transfer<Light::vector<Type, Number>>
+{
+    static void Invoke(DataTransferrer& serializer, vector<Type, Number>& value)
+    {
+        serializer.PushNode(nullptr, DataType::Array);
+        for (int i = 0; i < Number; i++)
+            serializer.Transfer(value.data[i]);
+        serializer.PopNode();
     }
 };

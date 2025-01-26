@@ -84,10 +84,7 @@ namespace Light
 
         virtual void PushNode(const char* name, DataType dataType) =0;
         virtual void PopNode() =0;
-        virtual void Transfer(void* value, const std::type_index type)
-        {
-            throw std::runtime_error("不支持的传输类型！");
-        }
+        virtual void Transfer(void* value, std::type_index typeIndex);
         virtual void Transfer(double& value) = 0;
         virtual void Transfer(float& value);
         virtual void Transfer(int64_t& value) = 0;

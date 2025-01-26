@@ -8,7 +8,7 @@ namespace Light
     class GameWindow : public System
     {
     public:
-        GameWindow(): System(UISystem, LeftOrder, LeftOrder)
+        GameWindow(): System(EditorUISystem)
         {
         }
 

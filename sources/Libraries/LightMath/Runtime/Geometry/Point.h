@@ -9,7 +9,7 @@ namespace Light
         float3 position;
     };
 
-    Light_MakeType("", Point)
+    Light_MakeType(Point, "")
     {
         Light_MakeType_AddField(position);
     }

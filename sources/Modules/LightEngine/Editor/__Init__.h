@@ -1,6 +1,7 @@
 #pragma once
 #include "EditorUI/HierarchyWindow.h"
 #include "EditorUI/InspectorWindow.h"
+#include "LightEngine/Runtime/Engine.h"
 
 namespace Light
 {

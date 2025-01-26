@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "LightEngine/Runtime/Component.h"
+#include "LightEngine/Runtime/Component/Transform.h"
 #include "LightGraphics/Runtime/Resource/GRenderTarget/GRenderTexture.h"
 #include "LightPresentation/Runtime/PresentationSystem.h"
 #include "LightRendering/Runtime/Component/Camera.h"
@@ -41,10 +41,11 @@ namespace Light
         {
         }
 
+        const std::unique_ptr<GRenderTexture>& GetDefaultRenderTarget() const;
         const std::unique_ptr<Material>& GetDefaultPointMaterial() const;
         const std::unique_ptr<Material>& GetDefaultLineMaterial() const;
         const std::unique_ptr<Mesh>& GetFullScreenMesh() const;
-        const std::unique_ptr<GRenderTexture>& GetDefaultRenderTarget() const;
+        const std::unique_ptr<Material>& GetBlitMaterial() const;
 
     private:
         std::multiset<CameraInfo> cameraInfos;

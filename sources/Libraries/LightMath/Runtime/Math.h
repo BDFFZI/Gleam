@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <algorithm>
 #include <numbers>
-#include <rapidjson/rapidjson.h>
 
 namespace Light
 {

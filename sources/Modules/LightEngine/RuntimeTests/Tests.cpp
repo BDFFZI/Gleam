@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "LightEngine/Runtime/Engine.h"
-#include "LightEngine/Runtime/System.h"
+#include "LightEngine/Runtime/System/SimulationSystem.h"
 
 using namespace Light;
 

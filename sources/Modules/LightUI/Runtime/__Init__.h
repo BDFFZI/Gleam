@@ -1,5 +1,6 @@
 #pragma once
 #include "UISystem.h"
+#include "LightEngine/Runtime/Engine.h"
 
 namespace Light
 {

@@ -12,7 +12,7 @@ namespace Light
         float GetLength() const;
     };
 
-    Light_MakeType("", Segment)
+    Light_MakeType(Segment, "")
     {
         Light_MakeType_AddField(positionA);
         Light_MakeType_AddField(positionB);

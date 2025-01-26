@@ -79,19 +79,6 @@ Data oldData = {true,
     {float3{1, 0, 0}, float3{0, 2, 0}, float3{0, 0, 3}}
 };
 
-template <class Type, int Number>
-struct Light::DataTransferrer_Transfer<vector<Type, Number>>
-{
-    static void Invoke(DataTransferrer& serializer, vector<Type, Number>& value)
-    {
-        serializer.PushNode(nullptr, DataType::Array);
-        for (int i = 0; i < Number; i++)
-            serializer.Transfer(value.data[i]);
-        serializer.PopNode();
-    }
-};
-
-
 TEST(Reflection, BinarySerializer)
 {
     std::ofstream outStream("test.bin", std::ios::binary);
@@ -129,7 +116,7 @@ TEST(Reflection, JsonSerializer)
     ASSERT_EQ(newData, oldData);
 }
 
-Light_MakeType("C4BAB34E-B145-4297-8BA3-6DD1BD05110D", Data)
+Light_MakeType(Data, "C4BAB34E-B145-4297-8BA3-6DD1BD05110D")
 {
     Light_MakeType_AddField(boolValue);
     Light_MakeType_AddField(charValue);

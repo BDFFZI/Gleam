@@ -1,5 +1,7 @@
 #include "DataTransferrer.h"
 
+#include "LightReflection/Runtime/Type.h"
+
 namespace Light
 {
     void DataTransferrer::TransferField(const char* name, std::vector<bool>& value)
@@ -21,6 +23,17 @@ namespace Light
             PopNode();
         }
         PopNode();
+    }
+    void DataTransferrer::Transfer(void* value, const std::type_index typeIndex)
+    {
+        Type* type = Type::GetType(typeIndex);
+        if (type != nullptr)
+        {
+            type->serialize(*this, value);
+            return;
+        }
+
+        throw std::runtime_error("不支持的传输类型！");
     }
     void DataTransferrer::Transfer(float& value)
     {

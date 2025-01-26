@@ -145,13 +145,12 @@ namespace Light
               _m02(m02), _m12(m12), _m22(m22)
         {
         }
-
-        Light_MakeVectorMemberFunctions(Type, 3*3)
-
         Matrix3x3Row<Type>& operator[](const int i)
         {
             return *reinterpret_cast<Matrix3x3Row<Type>*>(&data[i]);
         }
+
+        Light_MakeVectorMemberFunctions(Type, 3*3)
     };
 
     template <class Type>
@@ -361,12 +360,19 @@ namespace Light
               _m03(0), _m13(0), _m23(0), _m33(1)
         {
         }
-
-        Light_MakeVectorMemberFunctions(Type, 4*4)
-
         Matrix4x4Row<Type>& operator[](const int i)
         {
             return *reinterpret_cast<Matrix4x4Row<Type>*>(&data[i]);
         }
+        explicit operator vector<Type, 3 * 3>() const
+        {
+            return vector<Type, 3 * 3>(
+                _m00, _m01, _m02,
+                _m10, _m11, _m12,
+                _m20, _m21, _m22
+            );
+        }
+
+        Light_MakeVectorMemberFunctions(Type, 4*4)
     };
 }
