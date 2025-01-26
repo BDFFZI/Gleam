@@ -15,9 +15,16 @@ namespace Light
             VkFormat colorFormat = Graphics::GetGraphicsConfig().presentColorFormat,
             VkFormat depthStencilFormat = Graphics::GetGraphicsConfig().presentDepthStencilFormat,
             VkSampleCountFlagBits sampleCount = Graphics::GetGraphicsConfig().presentSampleCount);
+        GRenderTexture(
+            int2 size,
+            VkFormat colorFormat = Graphics::GetGraphicsConfig().presentColorFormat,
+            VkFormat depthStencilFormat = Graphics::GetGraphicsConfig().presentDepthStencilFormat,
+            VkSampleCountFlagBits sampleCount = Graphics::GetGraphicsConfig().presentSampleCount);
 
-        GLImageView& GetGLImageView() const override { return *colorImageView; }
-        GLImageSampler& GetGLImageSampler() const override { return *glImageSampler; }
+        GLImage& GetGLImage() const override;
+        GLImageView& GetGLImageView() const override;
+        GLImageSampler& GetGLImageSampler() const override;
+        void SetGLFinalLayout(VkImageLayout imageLayout);
 
     private:
         std::unique_ptr<GLImage> colorImage;

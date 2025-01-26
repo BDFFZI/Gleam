@@ -12,7 +12,7 @@ namespace Light
 
         Rect();
         Rect(float x, float y, float width, float height);
-        Rect(float2 min, float2 max);
+        Rect(float2 position, float2 size);
         explicit operator float4() const;
         bool operator==(Rect rect) const;
 

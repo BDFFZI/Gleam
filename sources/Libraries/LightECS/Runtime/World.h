@@ -132,5 +132,9 @@ namespace Light
         //系统信息
         inline static SystemGroup allSystems = {std::nullopt, System::LeftOrder, System::RightOrder};
         inline static std::unordered_map<System*, int> systemUsageCount = {};
+        //在遍历系统的时候是不能修改容器结构的，但提供的游戏事件都是遍历容器的时候运行的，所以如果用户有增删系统的需求，必须先缓存然后再执行
+        inline static std::vector<System*> removingSystem = {};
+        inline static std::vector<System*> addingSystem = {};
+        static void FlushSystemQueue();
     };
 }

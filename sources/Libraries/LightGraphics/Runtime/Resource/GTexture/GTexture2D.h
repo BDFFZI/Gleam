@@ -12,8 +12,9 @@ namespace Light
         GTexture2D(float4 color);
         GTexture2D(const char* fileName);
 
-        GLImageView& GetGLImageView() const override { return *imageView; }
-        GLImageSampler& GetGLImageSampler() const override { return *glImageSampler; }
+        GLImage& GetGLImage() const override;
+        GLImageView& GetGLImageView() const override;
+        GLImageSampler& GetGLImageSampler() const override;
 
     private:
         std::unique_ptr<GLImage> image;

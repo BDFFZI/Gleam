@@ -29,13 +29,13 @@ public:
         std::cout << "Engine Stop" << std::endl;
     }
 
-private:
     int countDown = 3;
 };
 Light_MakeSystem(MySystem)
 Light_AddSystems(MySystem)
 
-TEST(Engine, Start)
+int main()
 {
     Engine::Start();
+    return 0;
 }

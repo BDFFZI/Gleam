@@ -12,7 +12,7 @@ namespace Light
         const VkDescriptorSet descriptorSet = ImGui_ImplVulkan_AddTexture(
             texture.GetGLImageSampler().imageSampler,
             texture.GetGLImageView().imageView,
-            VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL);
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         return descriptorSet;
     }
     void UI::DeleteTexture(const ImTextureID texture)

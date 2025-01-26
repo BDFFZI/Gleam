@@ -16,7 +16,6 @@ Graphics Graphics::Initialize(GL&, std::unique_ptr<GraphicsConfig>&& defaultPres
         graphicsConfig->presentColorFormat,
         graphicsConfig->presentDepthStencilFormat,
         graphicsConfig->presentSampleCount);
-    defaultRenderTarget = &SwapChain::GetPresentRenderTarget();
 
     return {};
 }

@@ -202,7 +202,10 @@ Light_MakeVectorFunction_SymbolVV1V(/=, Type, Number);\
 Light_MakeVectorFunction_SymbolVV2V(+, Type, Number);\
 Light_MakeVectorFunction_SymbolVV2V(-, Type, Number);\
 Light_MakeVectorFunction_SymbolVV2V(*, Type, Number);\
-Light_MakeVectorFunction_SymbolVV2V(/, Type, Number);
+Light_MakeVectorFunction_SymbolVV2V(/, Type, Number);\
+Light_MakeVectorFunction_Equal(Type, Number);\
+Light_MakeVectorFunction_All(Type, Number);\
+Light_MakeVectorFunction_Any(Type, Number);
 
 #define Light_MakeVectorFunctions_Decimals(Type,Number)\
 Light_MakeVectorFunctions_Integer(Type,Number)\
@@ -226,9 +229,6 @@ Light_MakeVectorFunction_FunctionVV2V(pow, Type, Number);\
 Light_MakeVectorFunction_FunctionVV2V(max, Type, Number);\
 Light_MakeVectorFunction_FunctionVV2V(min, Type, Number);\
 Light_MakeVectorFunction_FunctionVVV2V(clamp, Type, Number);\
-Light_MakeVectorFunction_Equal(Type, Number);\
-Light_MakeVectorFunction_All(Type, Number);\
-Light_MakeVectorFunction_Any(Type, Number);\
 Light_MakeVectorFunction_Dot(Type, Number);\
 Light_MakeVectorFunction_Length(Type, Number);\
 Light_MakeVectorFunction_Normalize(Type, Number);\

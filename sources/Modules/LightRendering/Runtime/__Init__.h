@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "LightPresentation/Runtime/__Init__.h"
 #include "RenderingConfig.h"
 #include "System/LinesRendererSystem.h"
 #include "System/PointsRendererSystem.h"
@@ -12,7 +11,12 @@ namespace Light
         PointsRendererSystem,
         LinesRendererSystem
     )
+}
 
+#include "LightPresentation/Runtime/__Init__.h"
+
+namespace Light
+{
     Light_MakeInitEvent()
     {
         CreateGraphicsConfig = RenderingConfig::CreateGraphicsConfig;

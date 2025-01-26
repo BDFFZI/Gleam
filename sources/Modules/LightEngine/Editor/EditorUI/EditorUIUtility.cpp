@@ -21,14 +21,14 @@ namespace Light
     }
     void EditorUIUtility::DrawSystemGroup(SystemGroup* systemGroup)
     {
-        if (ImGui::TreeNode(typeid(*systemGroup).name()))
+        if (ImGui::TreeNode(systemGroup->GetName().c_str()))
         {
             for (const auto subSystem : systemGroup->subSystemUpdateQueue)
             {
                 if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
                     DrawSystemGroup(subSystemGroup);
                 else
-                    ImGui::Text(typeid(*subSystem).name());
+                    ImGui::Text(subSystem->GetName().c_str());
             }
 
             ImGui::TreePop();

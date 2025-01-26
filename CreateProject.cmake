@@ -110,6 +110,13 @@ macro(addPackage)
         initPackageProjectInfo("Editor")
         initProject()
         setLibrary()
+
+        string(REPLACE "Editor" "Runtime" TargetLibrary ${ProjectName})
+        linkLibrary(${TargetLibrary} ${ProjectName})
+
+        if(NOT ${PackageName} STREQUAL "LightEngine")
+            linkLibrary("LightEngineEditor" ${ProjectName})
+        endif()
     endif()
 
     if(EXISTS "${PackageSource}/RuntimeTests")
@@ -131,18 +138,18 @@ macro(addProject)
     setExecutable()
 endmacro()
 
-# 链接目标库并在需要时自动保护库初始化文件
+# 链接目标库并自动创建库初始化文件
 function(linkLibrary LibraryName ProjectName)
     target_link_libraries(${ProjectName} PUBLIC ${LibraryName})
-    set(LibrarySource ${${LibraryName}Source}) # 获取库的源文件路径
     get_target_property(ProjectType ${ProjectName} TYPE) # 获取项目类型
 
     # 若项目为可执行项目，还需负责编译库的初始化文件
     if(${ProjectType} STREQUAL "EXECUTABLE")
-        set(LibraryInitFile "${LibrarySource}/__Init__.h")
+        set(ProjectInitFile "${${ProjectName}Source}/__Init__.cpp") # 项目初始化文件
+        set(LibraryInitFile "${${LibraryName}Source}/__Init__.h") # 库初始化文件
 
         if(EXISTS ${LibraryInitFile})
-            file(RELATIVE_PATH relative_path "${LibrarySource}/../.." ${LibraryInitFile})
+            file(RELATIVE_PATH relative_path "${${LibraryName}Source}/../.." ${LibraryInitFile})
             file(APPEND ${ProjectInitFile} "#include \"${relative_path}\"\n")
         endif()
     endif()

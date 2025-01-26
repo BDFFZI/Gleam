@@ -12,11 +12,11 @@ namespace Light
     {
         float3 position;
         float4 color;
+        //纹理采样
+        float2 uv;
         //构建法线空间
         float3 normal;
         float3 tangent;
-        //纹理采样
-        float2 uv;
     };
 
     struct PushConstant
@@ -35,9 +35,9 @@ namespace Light
             sizeof(Vertex), {
                 GLVertexAttribute{0,offsetof(Vertex, position), VK_FORMAT_R32G32B32_SFLOAT},
                 GLVertexAttribute{1,offsetof(Vertex, color), VK_FORMAT_R32G32B32A32_SFLOAT},
+                GLVertexAttribute{4,offsetof(Vertex, uv), VK_FORMAT_R32G32_SFLOAT},
                 GLVertexAttribute{2,offsetof(Vertex, normal), VK_FORMAT_R32G32B32_SFLOAT},
                 GLVertexAttribute{3,offsetof(Vertex, tangent), VK_FORMAT_R32G32B32_SFLOAT},
-                GLVertexAttribute{4,offsetof(Vertex, uv), VK_FORMAT_R32G32_SFLOAT},
             }
         };
         inline static const GLMeshLayout TriangleMeshLayout = {

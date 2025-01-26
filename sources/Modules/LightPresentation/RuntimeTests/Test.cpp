@@ -21,8 +21,8 @@ private:
 Light_MakeSystem(MySystem)
 Light_AddSystems(MySystem)
 
-// TEST(Presentation, Presentation)
-void main()
+int main()
 {
     Light::Engine::Start();
+    return 0;
 }

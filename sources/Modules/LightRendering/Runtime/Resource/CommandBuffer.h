@@ -13,6 +13,7 @@ namespace Light
         void SetViewProjectionMatricesToIdentity();
 
         void Draw(GMesh& mesh, const float4x4& modelMatrix, GMaterial& material);
+        void Blit(GTexture& source, GRenderTarget& destination);
 
     private:
         float4x4 matrixVP = float4x4::Identity();

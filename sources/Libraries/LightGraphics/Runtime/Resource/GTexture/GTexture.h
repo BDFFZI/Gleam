@@ -9,6 +9,7 @@ namespace Light
     {
     public:
         virtual ~GTexture() = default;
+        virtual GLImage& GetGLImage() const = 0;
         virtual GLImageView& GetGLImageView() const =0;
         virtual GLImageSampler& GetGLImageSampler() const =0;
     };

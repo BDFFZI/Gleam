@@ -17,6 +17,12 @@ namespace Light
                  orderRelation == OrderRelation::Before ? system->order : system->maxOrder)
     {
     }
+    const std::string& System::GetName()
+    {
+        if (name.empty())
+            name = typeid(*this).name();
+        return name;
+    }
     std::optional<SystemGroup*> System::GetGroup() const
     {
         return group;
@@ -35,13 +41,15 @@ namespace Light
     {
     }
 
-    SystemEvent::SystemEvent(const std::optional<SystemGroup*> group, const int minOrder, const int maxOrder)
+    SystemEvent::SystemEvent(const std::string_view name, const std::optional<SystemGroup*> group, const int minOrder, const int maxOrder)
         : System(group, minOrder, maxOrder)
     {
+        this->name = name;
     }
-    SystemEvent::SystemEvent(System* system, const OrderRelation orderRelation)
+    SystemEvent::SystemEvent(const std::string_view name, System* system, const OrderRelation orderRelation)
         : System(system, orderRelation)
     {
+        this->name = name;
     }
     void SystemEvent::Start()
     {

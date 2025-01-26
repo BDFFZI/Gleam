@@ -1,5 +1,6 @@
 ﻿#include "World.h"
 
+#include <iostream>
 #include <ranges>
 
 namespace Light
@@ -82,56 +83,70 @@ namespace Light
     {
         if (system->GetGroup().has_value())
             AddSystem(system->GetGroup().value());
-
-        const int count = 1 + (systemUsageCount.contains(system) ? systemUsageCount[system] : 0);
-        systemUsageCount[system] = count;
-
-        if (count == 1)
-        {
-            //首次添加，需实际注册到系统组接收事件。
-            system->GetGroup().value_or(&allSystems)->AddSubSystem(system);
-        }
+        addingSystem.push_back(system);
     }
     void World::AddSystems(const std::initializer_list<System*> systems)
     {
-        for (auto system : systems)
+        for (System* system : systems)
             AddSystem(system);
     }
     void World::RemoveSystem(System* system)
     {
-        assert(systemUsageCount.contains(system) && "无法移除未添加过的系统！");
-
         if (system->GetGroup().has_value())
             RemoveSystem(system->GetGroup().value());
-
-        const int count = systemUsageCount[system] - 1;
-        if (count == 0)
-            systemUsageCount.erase(system);
-        else
-            systemUsageCount[system] = count;
-
-        if (count == 0)
-        {
-            //最后一次移除，需实际从系统组移除。
-            system->GetGroup().value_or(&allSystems)->RemoveSubSystem(system);
-        }
+        removingSystem.push_back(system);
     }
     void World::RemoveSystems(const std::initializer_list<System*> systems)
     {
-        for (auto system : systems)
+        for (System* system : systems)
             RemoveSystem(system);
     }
 
     void World::Start()
     {
         allSystems.Start();
+        FlushSystemQueue();
     }
     void World::Stop()
     {
         allSystems.Stop();
+        //所有事件均停止并移除，不能再次触发FlushSystemQueue，不然可能导致重复移除
     }
     void World::Update()
     {
         allSystems.Update();
+        FlushSystemQueue();
+    }
+    void World::FlushSystemQueue()
+    {
+        for (auto system : removingSystem)
+        {
+            assert(systemUsageCount.contains(system) && "无法移除未添加过的系统！");
+            
+            const int count = systemUsageCount[system] - 1;
+            if (count == 0)
+                systemUsageCount.erase(system);
+            else
+                systemUsageCount[system] = count;
+
+            if (count == 0)
+            {
+                //最后一次移除，需实际从系统组移除。
+                system->GetGroup().value_or(&allSystems)->RemoveSubSystem(system);
+            }
+        }
+        removingSystem.clear();
+        for (auto system : addingSystem)
+        {
+            const int count = 1 + (systemUsageCount.contains(system) ? systemUsageCount[system] : 0);
+            systemUsageCount[system] = count;
+
+            if (count == 1)
+            {
+                //首次添加，需实际注册到系统组接收事件。
+                system->GetGroup().value_or(&allSystems)->AddSubSystem(system);
+            }
+        }
+        addingSystem.clear();
     }
 }

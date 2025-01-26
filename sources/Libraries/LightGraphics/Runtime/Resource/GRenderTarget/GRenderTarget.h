@@ -2,12 +2,16 @@
 #include <memory>
 
 #include "LightGL/Runtime/Resource/GLImageView.h"
+#include "LightMath/Runtime/Vector.h"
 
 namespace Light
 {
     class GRenderTarget
     {
     public:
+        VkImage GetFinalImage() const { return glFinalImage; }
+        int2 GetSize() const { return int2{static_cast<int>(width), static_cast<int>(height)}; }
+
         uint32_t width, height; //渲染区域
         GLImageView* glColorImageView; //颜色附件
         GLImageView* glDepthStencilImageView; //深度模板附件

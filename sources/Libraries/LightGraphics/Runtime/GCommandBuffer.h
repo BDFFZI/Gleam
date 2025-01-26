@@ -5,6 +5,7 @@
 #include "LightMath/Runtime/Geometry/Rect.h"
 #include "Resource/GMaterial.h"
 #include "Resource/GMesh.h"
+#include "Resource/GRenderTarget/GRenderTexture.h"
 
 namespace Light
 {

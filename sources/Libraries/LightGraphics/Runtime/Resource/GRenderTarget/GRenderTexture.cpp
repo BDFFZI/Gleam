@@ -28,3 +28,23 @@ GRenderTexture::GRenderTexture(
     glDepthStencilImageView = depthStencilImageView.get();
     glColorResolveImageView = colorResolveImageView.get();
 }
+GRenderTexture::GRenderTexture(const int2 size, const VkFormat colorFormat, const VkFormat depthStencilFormat, const VkSampleCountFlagBits sampleCount)
+    : GRenderTexture(size.x, size.y, colorFormat, depthStencilFormat, sampleCount)
+{
+}
+GLImage& GRenderTexture::GetGLImage() const
+{
+    return *colorImage;
+}
+GLImageView& GRenderTexture::GetGLImageView() const
+{
+    return *colorImageView;
+}
+GLImageSampler& GRenderTexture::GetGLImageSampler() const
+{
+    return *glImageSampler;
+}
+void GRenderTexture::SetGLFinalLayout(const VkImageLayout imageLayout)
+{
+    glFinalLayout = imageLayout;
+}

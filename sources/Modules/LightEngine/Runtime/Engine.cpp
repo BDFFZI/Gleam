@@ -1,5 +1,6 @@
 ﻿#include "Engine.h"
 
+#include "System.h"
 #include "LightECS/Runtime/World.h"
 
 namespace Light
@@ -11,6 +12,15 @@ namespace Light
         {
             World::Update();
         }
+
+        //删除所有实体
+        for (auto& scene : World::GetAllScenes())
+        {
+            if (scene.get() != Destroy)
+                scene->MoveAllEntities(Destroy);
+        }
+        World::Update();
+
         World::Stop();
     }
     void Engine::Stop()

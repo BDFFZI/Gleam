@@ -7,25 +7,16 @@ namespace Light
     Rect Rect::Zero = {};
 
     Rect::Rect()
+        : x(0), y(0), width(0), height(0)
     {
-        x = 0;
-        y = 0;
-        width = 0;
-        height = 0;
     }
     Rect::Rect(const float x, const float y, const float width, const float height)
+        : x(x), y(y), width(width), height(height)
     {
-        this->x = x;
-        this->y = y;
-        this->width = width;
-        this->height = height;
     }
-    Rect::Rect(const float2 min, const float2 max)
+    Rect::Rect(const float2 position, const float2 size)
+        : x(position.x), y(position.y), width(size.x), height(size.y)
     {
-        x = min.x;
-        y = min.y;
-        width = max.x - min.x;
-        height = max.y - min.y;
     }
     Rect::operator float4() const
     {

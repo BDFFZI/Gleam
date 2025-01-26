@@ -50,4 +50,17 @@ namespace Light
             rawImage.width, rawImage.height, format,
             rawImage.pixels.data(), rawImage.pixels.size(), true);
     }
+
+    GLImage& GTexture2D::GetGLImage() const
+    {
+        return *image;
+    }
+    GLImageView& GTexture2D::GetGLImageView() const
+    {
+        return *imageView;
+    }
+    GLImageSampler& GTexture2D::GetGLImageSampler() const
+    {
+        return *glImageSampler;
+    }
 }

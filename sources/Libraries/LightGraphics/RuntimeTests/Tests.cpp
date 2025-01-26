@@ -93,8 +93,8 @@ void CreateAssets()
 
     //渲染纹理
     renderTexture = std::make_unique<GRenderTexture>(
-        Graphics::GetDefaultRenderTarget().width,
-        Graphics::GetDefaultRenderTarget().height
+        SwapChain::GetPresentRenderTarget().width,
+        SwapChain::GetPresentRenderTarget().height
     );
 }
 
@@ -152,7 +152,7 @@ void TestRenderTarget(GCommandBuffer& commandBuffer, float4x4 matrixVP)
     commandBuffer.SetRenderTarget(*renderTexture);
     TestMaterialAndCubeMesh(commandBuffer, matrixVP);
 
-    commandBuffer.SetRenderTarget(Graphics::GetDefaultRenderTarget());
+    commandBuffer.SetRenderTarget(SwapChain::GetPresentRenderTarget());
     commandBuffer.SetViewport(50, 110, 100, 50);
     material->SetTexture(0, *renderTexture);
 
@@ -193,7 +193,7 @@ void Update(GLFWwindow* glfwWindow)
         float4x4 matrixV = inverse(float4x4::TRS({1, 2, -3}, {30, -20, 0}, {1, 1, 1}));
         float4x4 matrixVP = mul(matrixP, matrixV);
 
-        commandBuffer.SetRenderTarget(Graphics::GetDefaultRenderTarget());
+        commandBuffer.SetRenderTarget(SwapChain::GetPresentRenderTarget());
         TestBackground(commandBuffer);
         TestMaterialAndCubeMesh(commandBuffer, matrixVP);
         TestWireCubeMesh(commandBuffer, matrixVP);

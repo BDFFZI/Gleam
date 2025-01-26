@@ -1,6 +1,7 @@
 #include "CommandBuffer.h"
 
 #include "LightMath/Runtime/MatrixMath.h"
+#include "LightRendering/Runtime/System/RenderingSystem.h"
 
 namespace Light
 {
@@ -27,5 +28,11 @@ namespace Light
         float4x4 matrixMVP = mul(matrixVP, modelMatrix);
         material.SetPushConstant(0, &matrixMVP);
         DrawMesh(mesh, material);
+    }
+    void CommandBuffer::Blit(GTexture& source, GRenderTarget& destination)
+    {
+        SetRenderTarget(destination);
+        SetViewProjectionMatricesToIdentity();
+        Draw(RenderingSystem->GetFullScreenMesh(),float4x4::Identity(),)
     }
 }

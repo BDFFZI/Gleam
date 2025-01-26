@@ -4,6 +4,7 @@
 #include <optional>
 #include <ranges>
 #include <set>
+#include <string>
 
 namespace Light
 {
@@ -33,6 +34,7 @@ namespace Light
         System(System* system, OrderRelation orderRelation);
         virtual ~System() = default;
 
+        const std::string& GetName() ;
         std::optional<SystemGroup*> GetGroup() const;
         int GetOrder() const;
 
@@ -41,8 +43,11 @@ namespace Light
         virtual void Update();
 
     private:
+        friend class SystemEvent;
+
         static inline std::vector<std::unique_ptr<System>> allSystems;
 
+        std::string name;
         std::optional<SystemGroup*> group;
         int minOrder;
         int maxOrder;
@@ -56,8 +61,8 @@ namespace Light
         std::function<void()> onStop = nullptr;
         std::function<void()> onUpdate = nullptr;
 
-        SystemEvent(std::optional<SystemGroup*> group, int minOrder = LeftOrder, int maxOrder = RightOrder);
-        SystemEvent(System* system, OrderRelation orderRelation);
+        SystemEvent(std::string_view name, std::optional<SystemGroup*> group, int minOrder = LeftOrder, int maxOrder = RightOrder);
+        SystemEvent(std::string_view name, System* system, OrderRelation orderRelation);
 
     private:
         void Start() override;

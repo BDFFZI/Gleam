@@ -41,8 +41,8 @@ void Window::Start()
     //默认窗口配置
     // ReSharper disable CppLocalVariableMayBeConst
     const char* name = "Window";
-    int width = 1920 / 2;
-    int height = 1080 / 2;
+    int width = 1920 / 4;
+    int height = 1080 / 4;
     bool fullscreen = false;
     // ReSharper restore CppLocalVariableMayBeConst
 

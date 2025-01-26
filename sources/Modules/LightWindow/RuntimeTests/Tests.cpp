@@ -9,7 +9,7 @@
 
 using namespace Light;
 
-TEST(Window, Main)
+int main()
 {
     int2 mousePosition;
     int2 resolution;
@@ -67,4 +67,5 @@ TEST(Window, Main)
 
     World::AddSystem(&systemEvent);
     Engine::Start();
+    return 0;
 }

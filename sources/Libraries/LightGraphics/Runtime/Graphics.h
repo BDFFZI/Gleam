@@ -44,20 +44,12 @@ namespace Light
         }
         static GLImageSampler& GetDefaultGLImageSampler() { return *defaultGLImageSampler; }
         static GTexture2D& GetDefaultTexture2D() { return *defaultTexture2D; }
-        static GRenderTarget& GetDefaultRenderTarget()
-        {
-            assert(defaultRenderTarget != nullptr && "Graphics模块尚未初始化！");
-            return *defaultRenderTarget;
-        }
-
-        static void SetDefaultRenderTarget(GRenderTarget& renderTarget) { defaultRenderTarget = &renderTarget; }
 
     private:
         //预创建的默认资源
         inline static std::unique_ptr<GraphicsConfig> graphicsConfig = {};
         inline static std::unique_ptr<GLImageSampler> defaultGLImageSampler = {};
         inline static std::unique_ptr<GTexture2D> defaultTexture2D = {};
-        inline static GRenderTarget* defaultRenderTarget = nullptr;
 
         Graphics() = default;
     };
