@@ -31,7 +31,7 @@ namespace Light
     public:
         static bool HasEntity(Entity entity);
         static Entity GetNextEntity();
-        static EntityInfo& GetEntityInfo(Entity entity);
+        static const EntityInfo& GetEntityInfo(Entity entity);
         static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
 
         static const std::vector<std::unique_ptr<Scene>>& GetAllScenes();

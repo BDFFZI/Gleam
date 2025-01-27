@@ -5,7 +5,6 @@
 #include <utility>
 #include <stduuid/uuid.h>
 
-#include "Transferrer/DataTransferrer.h"
 #include "Transferrer/MemberTransferrer.h"
 #include "Transferrer/Transferrer.h"
 
@@ -27,6 +26,7 @@ namespace Light
             throw std::logic_error("未实现类型传输函数！");
         }
     };
+    class DataTransferrer;
     class Type
     {
         using Construct = void (*)(void* address);
@@ -81,6 +81,8 @@ namespace Light
         inline static std::unordered_map<std::type_index, Type*> indexToType = {};
     };
 }
+
+#include "Transferrer/DataTransferrer.h"
 
 #define Light_MakeType_Friend \
 template <typename T,Transferrer TTransferrer>\

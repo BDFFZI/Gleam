@@ -8,101 +8,43 @@
 #include <gtest/gtest.h>
 #include <ranges>
 #include <rapidjson/prettywriter.h>
+
+#include "Test.h"
 #include "LightReflection/Runtime/Type.h"
 #include "LightReflection/Runtime/Serialization/BinaryReader.h"
 #include "LightReflection/Runtime/Serialization/BinaryWriter.h"
 #include "LightReflection/Runtime/Serialization/JsonReader.h"
 #include "LightReflection/Runtime/Serialization/JsonWriter.h"
-#include "LightMath/Runtime/Vector.h"
-#include "LightMath/Runtime/VectorMath.h"
 
-using namespace Light;
-
-struct Data
-{
-    bool boolValue;
-    char charValue;
-    int intValue;
-    float floatValue;
-    std::vector<int> vectorValue;
-    std::vector<bool> boolVectorValue;
-    std::string stringValue;
-    std::vector<std::string> stringVectorValue;
-    std::vector<std::byte> bytesValue;
-    float3 customValue;
-    std::vector<float3> customVectorValue;
-
-    friend bool operator==(const Data& lhs, const Data& rhs)
-    {
-        return lhs.boolValue == rhs.boolValue
-            && lhs.charValue == rhs.charValue
-            && lhs.intValue == rhs.intValue
-            && abs(lhs.floatValue - rhs.floatValue) < std::numeric_limits<float>::epsilon()
-            && lhs.vectorValue == rhs.vectorValue
-            && lhs.boolVectorValue == rhs.boolVectorValue
-            && lhs.stringValue == rhs.stringValue
-            && lhs.stringVectorValue == rhs.stringVectorValue
-            && lhs.bytesValue == rhs.bytesValue
-            && all(lhs.customValue == rhs.customValue)
-            && std::ranges::equal(
-                lhs.customVectorValue,
-                rhs.customVectorValue,
-                [](const float3 l, const float3 r)
-                {
-                    return all(l == r);
-                }
-            );
-    }
-    void Transfer(DataTransferrer& serializer)
-    {
-        serializer.TransferField("boolValue", boolValue);
-        serializer.TransferField("charValue", charValue);
-        serializer.TransferField("intValue", intValue);
-        serializer.TransferField("floatValue", floatValue);
-        serializer.TransferField("vectorValue", vectorValue);
-        serializer.TransferField("stringValue", stringValue);
-        serializer.TransferField("stringVectorValue", stringVectorValue);
-        serializer.TransferField("boolVectorValue", boolVectorValue);
-        serializer.TransferField("bytesValue", bytesValue);
-        serializer.TransferField("customValue", customValue);
-        serializer.TransferField("customVectorValue", customVectorValue);
-    }
-};
-
-Data oldData = {true,
-    'A', 1, 0.5f, {3, 2, 1},
-    {false, true},
-    "Hello World!",
-    {"Hello 1", "Hello 2", "Hello 3",},
-    {static_cast<std::byte>(1), static_cast<std::byte>(2), static_cast<std::byte>(3), static_cast<std::byte>(4)},
-    float3{1, 2, 3},
-    {float3{1, 0, 0}, float3{0, 2, 0}, float3{0, 0, 3}}
-};
 
 TEST(Reflection, BinarySerializer)
 {
+    Type* type = Type::GetType(typeid(TestData));
+
     std::ofstream outStream("test.bin", std::ios::binary);
     BinaryWriter binaryWriter = {outStream};
 
-    oldData.Transfer(binaryWriter);
+    type->serialize(binaryWriter, &data);
     outStream.close();
 
     std::ifstream inStream("test.bin", std::ios::binary);
     BinaryReader binaryReader = {inStream};
-    Data newData = {};
-    newData.Transfer(binaryReader);
+    TestData newData = {};
+    type->deserialize(binaryReader, &newData);
     inStream.close();
 
-    ASSERT_EQ(newData, oldData);
+    ASSERT_EQ(newData, data);
 }
 
 TEST(Reflection, JsonSerializer)
 {
+    Type* type = Type::GetType(typeid(TestData));
+
     rapidjson::Document document;
     document.Parse("{}");
 
     JsonWriter jsonWriter = {document};
-    oldData.Transfer(jsonWriter);
+    type->serialize(jsonWriter, &data);
 
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter writer(buffer);
@@ -110,22 +52,12 @@ TEST(Reflection, JsonSerializer)
     std::cout << buffer.GetString() << std::endl;
 
     JsonReader jsonReader = {document};
-    Data newData = {};
-    newData.Transfer(jsonReader);
+    TestData newData = {};
+    type->serialize(jsonReader, &newData);
 
-    ASSERT_EQ(newData, oldData);
+    ASSERT_EQ(newData, data);
 }
 
-Light_MakeType(Data, "C4BAB34E-B145-4297-8BA3-6DD1BD05110D")
-{
-    Light_MakeType_AddField(boolValue);
-    Light_MakeType_AddField(charValue);
-    Light_MakeType_AddField(intValue);
-    Light_MakeType_AddField(floatValue);
-    Light_MakeType_AddField(stringValue);
-    Light_MakeType_AddField(vectorValue);
-    Light_MakeType_AddField(customValue);
-}
 
 TEST(Reflection, Type)
 {
@@ -138,4 +70,50 @@ TEST(Reflection, Type)
         std::cout << fieldInfo.offset << '\t';
         std::cout << fieldInfo.size << '\n';
     }
+}
+
+class ResizeTester : public DataTransferrer
+{
+    void Transfer(double& value) override
+    {
+    }
+    void Transfer(int64_t& value) override
+    {
+        value = 4;
+    }
+    void Transfer(std::string& value) override
+    {
+    }
+    void Transfer(std::vector<std::byte>& value) override
+    {
+    }
+    void PushNode(const char* name, Light::DataType dataType) override
+    {
+    }
+    void PopNode() override
+    {
+    }
+};
+
+struct Vector
+{
+    std::vector<int64_t> data = {1, 2, 3};
+};
+
+Light_MakeType(Vector, "")
+{
+    Light_MakeType_AddField(data);
+}
+
+void main()
+{
+    ResizeTester tester;
+    Vector data;
+
+    std::cout << data.data.size() << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    VectorType->serialize(tester, &data);
+    std::cout << data.data.size() << std::endl;
+    ASSERT_EQ(data.data.size(), 4);
 }

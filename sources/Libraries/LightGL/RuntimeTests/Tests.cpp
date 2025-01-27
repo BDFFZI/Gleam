@@ -9,7 +9,7 @@
 
 #include "LightMath/Runtime/Matrix.h"
 #include "LightMath/Runtime/MatrixMath.h"
-#include "LightUtility/Runtime/Utility.h"
+#include "LightUtility/Runtime/File.h"
 #include "LightImport/Runtime/ImageImporter.h"
 #include "LightImport/Runtime/ModelImporter.h"
 #include "LightImport/Runtime/ShaderImporter.h"
@@ -122,7 +122,7 @@ public:
             });
         glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout, std::vector<VkPushConstantRange>{});
         //着色器布局
-        std::string code = Utility::ReadFile("Resources/LightGLRuntimeTests/shader.hlsl");
+        std::string code = File::ReadAllText("Resources/LightGLRuntimeTests/shader.hlsl");
         glShaderLayout = std::make_unique<GLShaderLayout>(std::vector{
             GLShader(VK_SHADER_STAGE_VERTEX_BIT,
                      ShaderImporter::ImportHlsl(code, shaderc_vertex_shader, "VertexShader"),

@@ -61,27 +61,48 @@ namespace Light
 
     void SceneWindow::Start()
     {
-        World::AddSystem(&input);
+        preProcessSystem.onUpdate = [this]
+        {
+            //相机控制
+            ControlCamera(inputSystem, World::GetComponent<Transform>(sceneCamera));
+            //重建渲染目标和纹理
+            if (isDirty && all(lastWindowSize))
+            {
+                if (sceneCameraCanvasImID != nullptr)
+                    UI::DeleteTexture(sceneCameraCanvasImID);
+                sceneCameraCanvas = std::make_unique<GRenderTexture>(static_cast<int2>(lastWindowSize));
+                World::GetComponent<Camera>(sceneCamera).renderTarget = sceneCameraCanvas.get();
+                sceneCameraCanvasImID = UI::CreateTexture(*sceneCameraCanvas);
+                isDirty = false;
+            }
+        };
+        World::AddSystem(&preProcessSystem);
+        World::AddSystem(&inputSystem);
+
         sceneCamera = Awake->AddEntity(CameraArchetype);
     }
     void SceneWindow::Stop()
     {
-        World::RemoveSystem(&input);
+        World::RemoveSystem(&preProcessSystem);
+        World::RemoveSystem(&inputSystem);
         sceneCameraCanvas.reset();
+
         UI::DeleteTexture(sceneCameraCanvasImID);
     }
     void SceneWindow::Update()
     {
-        if (all(lastWindowSize != UI::GetWindowContentRegionSize()))
+        ImGui::Begin("SceneWindow");
+
+        //绘制相机画面
+        if (sceneCameraCanvasImID != nullptr)
+            ImGui::Image(sceneCameraCanvasImID, lastWindowSize);
+
+        if (any(lastWindowSize != UI::GetWindowContentRegionSize()))
         {
             lastWindowSize = UI::GetWindowContentRegionSize();
-            sceneCameraCanvas = std::make_unique<GRenderTexture>(static_cast<int2>(lastWindowSize));
-            World::GetComponent<Camera>(sceneCamera).renderTarget = sceneCameraCanvas.get();
-            sceneCameraCanvasImID = UI::CreateTexture(*sceneCameraCanvas);
+            isDirty = true;
         }
 
-        ImGui::Image(sceneCameraCanvasImID, lastWindowSize);
-
-        ControlCamera(input, World::GetComponent<Transform>(sceneCamera));
+        ImGui::End();
     }
 }

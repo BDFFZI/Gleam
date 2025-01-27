@@ -1,10 +1,10 @@
 #pragma once
-#include <stdexcept>
 #include <vector>
 #include <string>
 #include <typeindex>
 
 #include "Transferrer.h"
+#include "LightReflection/Runtime/Type.h"
 
 namespace Light
 {
@@ -64,7 +64,7 @@ namespace Light
             {
                 size_t size = std::size(value);
                 TransferField("size", size);
-                if (requires() { value.resize(size); })
+                if constexpr (requires() { value.resize(size); })
                     value.resize(size);
             }
             {
@@ -106,6 +106,10 @@ namespace Light
     template <typename TValue>
     void DataTransferrer_Transfer<TValue>::Invoke(DataTransferrer& serializer, TValue& value)
     {
-        serializer.Transfer(&value, typeid(TValue));
+        Type* type = Type::GetType(typeid(TValue));
+        if (type != nullptr)
+            type->serialize(serializer, &value);
+        else
+            serializer.Transfer(&value, typeid(TValue));
     }
 }

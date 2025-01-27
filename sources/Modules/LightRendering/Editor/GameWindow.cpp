@@ -27,7 +27,7 @@ namespace Light
     }
     void GameWindow::Update()
     {
-        //重建渲染目标和纹理
+        //重建纹理
         if (lastRenderTexture != RenderingSystem->GetDefaultRenderTarget().get())
         {
             lastRenderTexture = RenderingSystem->GetDefaultRenderTarget().get();

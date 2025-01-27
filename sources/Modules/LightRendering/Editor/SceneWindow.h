@@ -16,11 +16,15 @@ namespace Light
         }
 
     private:
-        class Input input = {};
-        float2 lastWindowSize;
+        SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", PresentationSystem, OrderRelation::Before);
+        class Input inputSystem = {};
         Entity sceneCamera = Entity::Null;
+
         std::unique_ptr<GRenderTexture> sceneCameraCanvas;
         ImTextureID sceneCameraCanvasImID = nullptr;
+        float2 lastWindowSize;
+        bool isDirty = false;
+
 
         void Start() override;
         void Stop() override;

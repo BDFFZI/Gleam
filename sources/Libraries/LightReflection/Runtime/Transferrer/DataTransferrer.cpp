@@ -26,13 +26,6 @@ namespace Light
     }
     void DataTransferrer::Transfer(void* value, const std::type_index typeIndex)
     {
-        Type* type = Type::GetType(typeIndex);
-        if (type != nullptr)
-        {
-            type->serialize(*this, value);
-            return;
-        }
-
         throw std::runtime_error("不支持的传输类型！");
     }
     void DataTransferrer::Transfer(float& value)
@@ -61,13 +54,13 @@ namespace Light
     }
     void DataTransferrer::Transfer(bool& value)
     {
-        int32_t wrap = value;
+        int64_t wrap = value;
         Transfer(wrap);
         value = static_cast<bool>(wrap);
     }
     void DataTransferrer::Transfer(char& value)
     {
-        int32_t wrap = value; // NOLINT(bugprone-signed-char-misuse)
+        int64_t wrap = value; // NOLINT(bugprone-signed-char-misuse)
         Transfer(wrap);
         value = static_cast<char>(wrap);
     }

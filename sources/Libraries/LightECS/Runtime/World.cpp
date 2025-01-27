@@ -22,7 +22,7 @@ namespace Light
     {
         return static_cast<Entity>(nextEntity++);
     }
-    EntityInfo& World::GetEntityInfo(const Entity entity)
+    const EntityInfo& World::GetEntityInfo(const Entity entity)
     {
         return entityInfos.at(entity);
     }
@@ -56,22 +56,22 @@ namespace Light
     }
     void World::RemoveEntity(Entity& entity)
     {
-        EntityInfo& entityInfo = GetEntityInfo(entity);
+        const EntityInfo& entityInfo = GetEntityInfo(entity);
         entityInfo.scene->RemoveEntity(entity);
     }
     void World::MoveEntity(const Entity entity, const Archetype* newArchetype)
     {
-        EntityInfo& entityInfo = GetEntityInfo(entity);
+        const EntityInfo& entityInfo = GetEntityInfo(entity);
         entityInfo.scene->MoveEntity(entity, newArchetype);
     }
     void World::MoveEntitySimply(const Entity entity, const Archetype* newArchetype)
     {
-        EntityInfo& entityInfo = GetEntityInfo(entity);
+        const EntityInfo& entityInfo = GetEntityInfo(entity);
         entityInfo.scene->MoveEntitySimply(entity, newArchetype);
     }
     void World::MoveEntity(const Entity entity, Scene* newScene)
     {
-        EntityInfo& entityInfo = GetEntityInfo(entity);
+        const EntityInfo& entityInfo = GetEntityInfo(entity);
         entityInfo.scene->MoveEntity(entity, newScene);
     }
 
@@ -122,7 +122,7 @@ namespace Light
         for (auto system : removingSystem)
         {
             assert(systemUsageCount.contains(system) && "无法移除未添加过的系统！");
-            
+
             const int count = systemUsageCount[system] - 1;
             if (count == 0)
                 systemUsageCount.erase(system);

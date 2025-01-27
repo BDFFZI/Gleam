@@ -188,8 +188,9 @@ namespace Light
         //获取因此被移动的实体
         const Entity movedEntity = *reinterpret_cast<Entity*>(element);
         //重设实体信息
-        EntityInfo& movedEntityInfo = World::GetEntityInfo(movedEntity);
+        EntityInfo movedEntityInfo = World::GetEntityInfo(movedEntity);
         movedEntityInfo.components = element;
         movedEntityInfo.indexAtHeap = elementIndex;
+        World::SetComponents(movedEntity, movedEntityInfo);
     }
 }
