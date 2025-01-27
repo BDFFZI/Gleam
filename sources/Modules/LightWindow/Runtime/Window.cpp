@@ -37,12 +37,12 @@ void Window::Start()
     if (glfwInit() == false)
         throw std::exception("窗口初始化失败");
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); //使用vulkan，故去除glfw自带的接口
-    
+
     //默认窗口配置
     // ReSharper disable CppLocalVariableMayBeConst
     const char* name = "Window";
-    int width = 1920 / 4;
-    int height = 1080 / 4;
+    int width = 1920 / 2;
+    int height = 1080 / 2;
     bool fullscreen = false;
     // ReSharper restore CppLocalVariableMayBeConst
 
@@ -71,7 +71,7 @@ void Window::Stop()
 void Window::Update()
 {
     glfwPollEvents();
-    
+
     bool currentMouseState = std::ranges::any_of(mouseButtonStates, [](auto item) { return item; });
     isMouseDown = lastMouseState == false && currentMouseState == true;
     lastMouseState = currentMouseState;

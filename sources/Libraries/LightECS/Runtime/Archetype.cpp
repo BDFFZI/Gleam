@@ -38,6 +38,35 @@ namespace Light
     {
         return archetypeSize;
     }
+    void Archetype::RunConstructor(std::byte* ptr) const
+    {
+        for (int i = 0; i < componentCount; ++i)
+            componentInfos[i].constructor(ptr + componentOffsets[i]);
+    }
+    void Archetype::RunDestructor(std::byte* ptr) const
+    {
+        for (int i = 0; i < componentCount; ++i)
+            componentInfos[i].destructor(ptr + componentOffsets[i]);
+    }
+    void Archetype::RunMoveConstructor(std::byte* source, std::byte* destination) const
+    {
+        for (int i = 0; i < componentCount; ++i)
+            componentInfos[i].moveConstructor(source + componentOffsets[i], destination + componentOffsets[i]);
+    }
+    std::string Archetype::ToString() const
+    {
+        std::string result = {name};
+        for (int i = 0; i < componentCount; ++i)
+        {
+            result += std::format(
+                "\n{:20} {:5} {:5}",
+                componentInfos[i].type.name(),
+                componentOffsets[i],
+                componentInfos[i].size
+            );
+        }
+        return result;
+    }
 
     Archetype::Archetype(const std::string_view name, const std::initializer_list<ComponentInfo> componentInfos)
         : name(name),

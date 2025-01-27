@@ -120,11 +120,10 @@ namespace Light
             //获取组件信息
             const ComponentInfo& componentInfo = newArchetype->GetComponentInfo(i);
             const std::type_index type = componentInfo.type;
-            const int size = componentInfo.size;
             std::byte* componentAddress = newAddress + newArchetype->GetComponentOffset(i);
             //赋值组件内存
-            if (oldArchetype->HasComponent(type)) //若旧元组包含该组件则复制数据
-                memcpy(componentAddress, oldEntityInfo.components + oldArchetype->GetComponentOffset(type), size);
+            if (oldArchetype->HasComponent(type)) //若旧元组包含该组件则移动数据
+                componentInfo.moveConstructor(oldEntityInfo.components + oldArchetype->GetComponentOffset(type), componentAddress);
             else //否则通过构造函数初始化
                 componentInfo.constructor(componentAddress);
         }
@@ -142,7 +141,7 @@ namespace Light
         Heap& newHeap = GetEntityHeap(newArchetype);
         std::byte* newAddress = newHeap.AddElement();
         //将旧数据复制到新内存
-        memcpy(newAddress, oldEntityInfo.components, oldEntityInfo.archetype->GetArchetypeSize());
+        oldEntityInfo.archetype->RunMoveConstructor(oldEntityInfo.components, newAddress);
         //将旧数据从内存中移除
         RemoveHeapItem(oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
         //设置新实体信息
@@ -157,7 +156,7 @@ namespace Light
         Heap& newHeap = newScene->GetEntityHeap(oldEntityInfo.archetype);
         std::byte* newAddress = newHeap.AddElement();
         //将旧数据复制到新内存
-        memcpy(newAddress, oldEntityInfo.components, oldEntityInfo.archetype->GetArchetypeSize());
+        oldEntityInfo.archetype->RunMoveConstructor(oldEntityInfo.components, newAddress);
         //将旧数据从内存中移除
         RemoveHeapItem(oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
         //设置新实体信息
@@ -172,7 +171,7 @@ namespace Light
             oldHeap.ForeachElements([newScene,archetype,&newHeap](std::byte* oldAddress)
             {
                 std::byte* newAddress = newHeap.AddElement();
-                memcpy(newAddress, oldAddress, archetype->GetArchetypeSize());
+                archetype->RunMoveConstructor(oldAddress, newAddress);
                 EntityInfo entityInfo = {newScene, archetype, newHeap.GetCount() - 1, newAddress,};
                 World::SetEntityInfo(*reinterpret_cast<Entity*>(oldAddress), entityInfo);
             });
@@ -191,6 +190,6 @@ namespace Light
         EntityInfo movedEntityInfo = World::GetEntityInfo(movedEntity);
         movedEntityInfo.components = element;
         movedEntityInfo.indexAtHeap = elementIndex;
-        World::SetComponents(movedEntity, movedEntityInfo);
+        World::SetEntityInfo(movedEntity, movedEntityInfo);
     }
 }

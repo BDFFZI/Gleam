@@ -1,7 +1,26 @@
 ﻿#pragma once
-#include "LightMath/Runtime/VectorMath.h"
+#include "LightMath/Runtime/Matrix.h"
+#include "LightMath/Runtime/MatrixMath.h"
 
 using namespace Light;
+
+struct TestClass
+{
+    std::string name;
+    float4x4 data;
+
+    bool operator==(const TestClass& other) const
+    {
+        return name == other.name && all(data == other.data);
+    }
+};
+
+Light_MakeType(TestClass, "")
+{
+    Light_MakeType_AddField(name);
+    Light_MakeType_AddField(data);
+}
+
 
 struct TestData
 {
@@ -16,6 +35,7 @@ struct TestData
     std::vector<bool> boolVectorValue;
     std::vector<std::string> stringVectorValue;
     std::vector<float3> customVectorValue;
+    std::vector<TestClass> customClassVectorValue;
 
     friend bool operator==(const TestData& lhs, const TestData& rhs)
     {
@@ -36,9 +56,11 @@ struct TestData
                 {
                     return all(l == r);
                 }
-            );
+            )
+            && lhs.customClassVectorValue == rhs.customClassVectorValue;
     }
 };
+
 
 Light_MakeType(TestData, "C4BAB34E-B145-4297-8BA3-6DD1BD05110D")
 {
@@ -53,6 +75,7 @@ Light_MakeType(TestData, "C4BAB34E-B145-4297-8BA3-6DD1BD05110D")
     Light_MakeType_AddField(boolVectorValue);
     Light_MakeType_AddField(stringVectorValue);
     Light_MakeType_AddField(customVectorValue);
+    Light_MakeType_AddField(customClassVectorValue);
 }
 
 inline TestData data = {
@@ -62,5 +85,6 @@ inline TestData data = {
     float3{1, 2, 3},
     //向量类型
     {3, 2, 1}, {false, true}, {"Hello 1", "Hello 2", "Hello 3",},
-    {float3{1, 0, 0}, float3{0, 2, 0}, float3{0, 0, 3}}
+    {float3{1, 0, 0}, float3{0, 2, 0}, float3{0, 0, 3}},
+    {{"one matrix", 2}}
 };

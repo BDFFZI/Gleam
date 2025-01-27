@@ -6,6 +6,7 @@ operator Light::float2()const{return Light::float2{x,y};}
 operator Light::float4()const{return Light::float4{x,y,z,w};}
 #include "LightMath/Runtime/Vector.h"
 #include <imgui.h>
+#include <magic_enum.hpp>
 // ReSharper restore CppUnusedIncludeDirective
 
 #include "LightGraphics/Runtime/Resource/GTexture/GTexture.h"

@@ -108,7 +108,11 @@ namespace Light
     {
         Type* type = Type::GetType(typeid(TValue));
         if (type != nullptr)
+        {
+            serializer.PushNode(nullptr, DataType::Class);
             type->serialize(serializer, &value);
+            serializer.PopNode();
+        }
         else
             serializer.Transfer(&value, typeid(TValue));
     }

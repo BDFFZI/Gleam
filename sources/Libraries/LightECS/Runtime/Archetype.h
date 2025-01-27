@@ -39,16 +39,9 @@ namespace Light
         bool HasComponent(std::type_index component) const;
         int GetComponentOffset(std::type_index component) const;
         int GetArchetypeSize() const;
-        void RunConstructor(std::byte* ptr) const
-        {
-            for (int i = 0; i < componentCount; ++i)
-                componentInfos[i].constructor(ptr + componentOffsets[i]);
-        }
-        void RunDestructor(std::byte* ptr) const
-        {
-            for (int i = 0; i < componentCount; ++i)
-                componentInfos[i].destructor(ptr + componentOffsets[i]);
-        }
+        void RunConstructor(std::byte* ptr) const;
+        void RunDestructor(std::byte* ptr) const;
+        void RunMoveConstructor(std::byte* source, std::byte* destination) const;
 
         template <class... TComponents>
         bool IsMatched() const
@@ -65,20 +58,7 @@ namespace Light
             return {componentOffsetsMap.at(typeid(TComponents))...};
         }
 
-        std::string ToString() const
-        {
-            std::string result = {name};
-            for (int i = 0; i < componentCount; ++i)
-            {
-                result += std::format(
-                    "\n{:20} {:5} {:5}",
-                    componentInfos[i].type.name(),
-                    componentOffsets[i],
-                    componentInfos[i].size
-                );
-            }
-            return result;
-        }
+        std::string ToString() const;
 
     private:
         inline static std::vector<std::unique_ptr<Archetype>> allArchetypes = {};
