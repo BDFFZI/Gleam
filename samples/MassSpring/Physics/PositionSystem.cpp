@@ -1,6 +1,6 @@
 ﻿#include "PositionSystem.h"
 #include "PhysicsComponent.h"
-#include "LightMath/Runtime/VectorMath.h"
+#include "LightMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "LightECS/Runtime/View.h"
 
 void Light::PositionSystem::Update()

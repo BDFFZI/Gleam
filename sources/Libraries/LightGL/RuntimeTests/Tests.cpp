@@ -7,8 +7,8 @@
 #include "LightGL/Runtime/GLSwapChain.h"
 #include "LightGL/Runtime/Resource/GLImageView.h"
 
-#include "LightMath/Runtime/Matrix.h"
-#include "LightMath/Runtime/MatrixMath.h"
+#include "LightMath/Runtime/LinearAlgebra/Matrix.h"
+#include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "LightUtility/Runtime/File.h"
 #include "LightImport/Runtime/ImageImporter.h"
 #include "LightImport/Runtime/ModelImporter.h"

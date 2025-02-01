@@ -19,10 +19,12 @@ namespace Light
         }
         if (ImGui::CollapsingHeader("Scene"))
         {
+            ImGui::TreePush("Scene");
             for (auto& scene : World::GetAllScenes())
             {
                 EditorUIUtility::DrawScene(scene.get());
             }
+            ImGui::TreePop();
         }
 
 

@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-#include "LightMath/Runtime/Vector.h"
+#include "LightMath/Runtime/LinearAlgebra/Vector.h"
 
 namespace Light
 {

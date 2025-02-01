@@ -2,7 +2,7 @@
 
 #include "PhysicsComponent.h"
 #include "LightECS/Runtime/View.h"
-#include "LightMath/Runtime/VectorMath.h"
+#include "LightMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "../Public/Component.h"
 
 void Light::ForceSystem::Update()

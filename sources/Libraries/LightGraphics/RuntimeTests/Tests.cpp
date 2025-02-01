@@ -4,11 +4,11 @@
 #include "LightGraphics/Runtime/GCommandBuffer.h"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightImport/Runtime/ShaderImporter.h"
-#include "LightMath/Runtime/Matrix.h"
+#include "LightMath/Runtime/LinearAlgebra/Matrix.h"
 #include "LightUtility/Runtime/Timer.h"
 #include "LightGraphics/Runtime/SwapChain.h"
 #include "LightGraphics/Runtime/Resource/GRenderTarget/GRenderTexture.h"
-#include "LightMath/Runtime/MatrixMath.h"
+#include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
 
 using namespace Light;
 

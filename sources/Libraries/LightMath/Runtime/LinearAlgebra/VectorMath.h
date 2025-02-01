@@ -3,7 +3,7 @@
 #include <cmath>
 #include <format>
 
-#include "Math.h"
+#include "../Math.h"
 #include "Vector.h"
 
 //模板没法触发自动类型转换，且有候选优先级较低的问题，因此只能利用宏来大批量定义函数
@@ -298,10 +298,10 @@ return str + ")";\
     Light_MakeVectorFunction_Any(bool, 3)
     Light_MakeVectorFunction_Any(bool, 4)
 
-    Light_MakeVectorFunctions_Integer(int, 2)
-    Light_MakeVectorFunctions_Integer(int, 3)
-    Light_MakeVectorFunctions_Integer(int, 4)
-    Light_MakeVectorFunction_ToString(int, 2, "")
-    Light_MakeVectorFunction_ToString(int, 3, "")
-    Light_MakeVectorFunction_ToString(int, 4, "")
+    // Light_MakeVectorFunctions_Integer(int, 2)
+    // Light_MakeVectorFunctions_Integer(int, 3)
+    // Light_MakeVectorFunctions_Integer(int, 4)
+    // Light_MakeVectorFunction_ToString(int, 2, "")
+    // Light_MakeVectorFunction_ToString(int, 3, "")
+    // Light_MakeVectorFunction_ToString(int, 4, "")
 }

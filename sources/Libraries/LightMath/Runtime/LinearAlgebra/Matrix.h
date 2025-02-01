@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿// ReSharper disable CppClangTidyClangDiagnosticNestedAnonTypes
+#pragma once
 #include "MatrixSwizzle.h"
 #include "VectorMath.h"
 
@@ -20,32 +21,18 @@ namespace Light
         constexpr static vector Rotate(vector<Type, 3> degree)
         {
             vector<Type, 3> rad = radians(degree);
-
-            float cosX = ::cos(rad.x);
-            float sinX = ::sin(rad.x);
-            vector xRotate = {
-                1, 0, 0,
-                0, cosX, -sinX,
-                0, sinX, cosX,
-            };
-
             float cosY = ::cos(rad.y);
             float sinY = ::sin(rad.y);
-            vector yRotate = {
-                cosY, 0, sinY,
-                0, 1, 0,
-                -sinY, 0, cosY,
-            };
-
+            float cosX = cos(rad.x);
+            float sinX = sin(rad.x);
             float cosZ = ::cos(rad.z);
             float sinZ = ::sin(rad.z);
-            vector zRotate = {
-                cosZ, -sinZ, 0,
-                sinZ, cosZ, 0,
-                0, 0, 1,
-            };
 
-            return mul(yRotate, mul(xRotate, zRotate));
+            return vector(
+                cosY * cosZ + sinY * sinX * sinZ, -cosY * sinZ + sinY * sinX * cosZ, sinY * cosX,
+                cosX * sinZ, cosX * cosZ, -sinX,
+                -sinY * cosX + cosY * sinX * sinZ, sinY * sinZ + cosY * sinX * cosZ, cosY * cosX
+            );
         }
         /**
          * 创建一个缩放矩阵
@@ -59,6 +46,44 @@ namespace Light
                 0, scale.y, 0,
                 0, 0, scale.z,
             };
+        }
+        /**
+         * 拆解旋转矩阵
+         * @param rotation 
+         * @return 
+         */
+        constexpr static vector<Type, 3> DecomposeRotation(vector rotation)
+        {
+            Type z;
+            Type y;
+            Type x;
+
+            Type sinX = -rotation._m12;
+            if (equal(::abs(rotation._m12), 1.0f) == false)
+            {
+                z = atan2(rotation._m10, rotation._m11);
+                y = atan2(rotation._m02, rotation._m22);
+                Type cosX = !equal(rotation._m10, Type(0))
+                                ? rotation._m10 / sin(z)
+                                : rotation._m11 / cos(z);
+                x = atan2(sinX, cosX);
+            }
+            else
+            {
+                z = 0;
+                if (sinX > 0)
+                {
+                    y = atan2(rotation._m01, rotation._m00);
+                    x = std::numbers::pi_v<Type> / 2;
+                }
+                else
+                {
+                    y = atan2(-rotation._m01, rotation._m00);
+                    x = -std::numbers::pi_v<Type> / 2;
+                }
+            }
+
+            return degrees(vector<Type, 3>{x, y, z});
         }
 
         //为了与图像接口兼容故采用按列存储
@@ -191,6 +216,10 @@ namespace Light
         {
             return mul(Translate(position), mul(Rotate(rotation), Scale(scale)));
         }
+        constexpr static vector TRS(vector<Type, 3> position, matrix<Type, 3, 3> rotation, vector<Type, 3> scale)
+        {
+            return mul(Translate(position), matrix<Type, 4, 4>(mul(rotation, matrix<Type, 3, 3>::Scale(scale))));
+        }
         /**
          * 创建一个正交投影矩阵，其剪辑空间遵从从右到左、从下到上都为[-1,1]，深度从近到远为[0-1]的约定。
          * @param right 视野范围半宽
@@ -210,7 +239,6 @@ namespace Light
                 0, 0, 0, 1
             };
         }
-
         /**
          * 创建一个透视投影矩阵，其剪辑空间遵从从右到左、从下到上都为[-1,1]，深度从近到远为[0-1]的约定。
          * @param fieldOfView 视锥体上下夹角
@@ -353,16 +381,12 @@ namespace Light
               _m03(m03), _m13(m13), _m23(m23), _m33(m33)
         {
         }
-        constexpr vector(const vector<Type, 3 * 3>& matrix)
+        explicit constexpr vector(const vector<Type, 3 * 3>& matrix)
             : _m00(matrix._m00), _m10(matrix._m10), _m20(matrix._m20), _m30(0),
               _m01(matrix._m01), _m11(matrix._m11), _m21(matrix._m21), _m31(0),
               _m02(matrix._m02), _m12(matrix._m12), _m22(matrix._m22), _m32(0),
               _m03(0), _m13(0), _m23(0), _m33(1)
         {
-        }
-        Matrix4x4Row<Type>& operator[](const int i)
-        {
-            return *reinterpret_cast<Matrix4x4Row<Type>*>(&data[i]);
         }
         explicit operator vector<Type, 3 * 3>() const
         {
@@ -371,6 +395,10 @@ namespace Light
                 _m10, _m11, _m12,
                 _m20, _m21, _m22
             );
+        }
+        Matrix4x4Row<Type>& operator[](const int i)
+        {
+            return *reinterpret_cast<Matrix4x4Row<Type>*>(&data[i]);
         }
 
         Light_MakeVectorMemberFunctions(Type, 4*4)

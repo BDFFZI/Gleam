@@ -2,7 +2,6 @@
 
 #include "LightECS/Runtime/View.h"
 #include "LightGraphics/Runtime/SwapChain.h"
-#include "LightMath/Runtime/MatrixMath.h"
 #include "LightRendering/Runtime/Component/Camera.h"
 #include "LightRendering/Runtime/Resource/CommandBufferPool.h"
 #include "LightWindow/Runtime/Window.h"
@@ -31,25 +30,24 @@ namespace Light
         return fullScreenMesh;
     }
 
-    CameraInfo::CameraInfo(Transform& transform, Camera& camera)
+    CameraInfo::CameraInfo(Camera& camera, CameraTransform& cameraTransform)
+        : camera(&camera), cameraTransform(&cameraTransform)
     {
-        float4x4 matrixV = transform.GetWorldToLocalMatrix();
-        float4x4 matrixP = camera.orthographic
-                               ? float4x4::Ortho(camera.halfHeight * camera.aspect, camera.halfHeight, camera.nearClipPlane, camera.farClipPlane)
-                               : float4x4::Perspective(camera.fieldOfView, camera.aspect, camera.nearClipPlane, camera.farClipPlane);
-        matrixVP = mul(matrixP, matrixV);
-        this->camera = &camera;
     }
     bool CameraInfo::operator<(const CameraInfo& other) const
     {
         return other.camera->depth > other.camera->depth;
     }
-    RendererInfo::RendererInfo(Transform& transform, Renderer& renderer)
+    RendererInfo::RendererInfo(const float4x4& localToWorld, Renderer& renderer)
+        : localToWorld(localToWorld)
     {
-        matrixM = transform.GetLocalToWorldMatrix();
         renderQueue = renderer.material->GetRenderQueue();
         material = renderer.material;
         mesh = renderer.mesh;
+    }
+    bool RendererInfo::operator<(const RendererInfo& other) const
+    {
+        return renderQueue < other.renderQueue;
     }
 
     const std::unique_ptr<Material>& RenderingSystem::GetDefaultPointMaterial() const
@@ -68,14 +66,19 @@ namespace Light
     {
         return blitMaterial;
     }
-    const std::unique_ptr<GRenderTexture>& RenderingSystem::GetDefaultRenderTarget() const
+    GRenderTarget* RenderingSystem::GetDefaultRenderTarget() const
     {
         return defaultRenderTarget;
     }
 
+    void RenderingSystem::SetDefaultRenderTarget(GRenderTarget* renderTarget)
+    {
+        defaultRenderTarget = renderTarget;
+    }
+
     void RenderingSystem::Start()
     {
-        defaultRenderTarget = std::make_unique<GRenderTexture>(Window->GetResolution());
+        defaultRenderTarget = &SwapChain::GetPresentRenderTarget();
         //顶点绘制
         GSCodeLayout vertexColorGSCodeLayout = GSCodeLayout("Resources/LightRenderingRuntime/VertexColor.hlsl");
         GSInoutLayout pointGSInoutLayout = GSInoutLayout(
@@ -93,7 +96,6 @@ namespace Light
     }
     void RenderingSystem::Stop()
     {
-        defaultRenderTarget.reset();
         defaultPointShader.reset();
         defaultLineShader.reset();
         defaultPointMaterial.reset();
@@ -106,20 +108,16 @@ namespace Light
     }
     void RenderingSystem::Update()
     {
-        //更新默认渲染目标
-        if (any(defaultRenderTarget->GetSize() != Window->GetResolution()))
-            defaultRenderTarget = std::make_unique<GRenderTexture>(Window->GetResolution());
-
         //统计渲染对象
         cameraInfos.clear();
-        View<Transform, Camera>::Each([this](auto& transform, auto& camera)
+        View<Camera, CameraTransform>::Each([this](auto& camera, auto& cameraTransform)
         {
-            cameraInfos.emplace(transform, camera);
+            cameraInfos.emplace(camera, cameraTransform);
         });
         rendererInfos.clear();
-        View<Transform, Renderer>::Each([this](auto& transform, auto& renderer)
+        View<LocalToWorld, Renderer>::Each([this](auto& localToWorld, auto& renderer)
         {
-            rendererInfos.emplace(transform, renderer);
+            rendererInfos.emplace(localToWorld.value, renderer);
         });
         //渲染
         CommandBuffer& commandBuffer = CommandBufferPool::Apply();
@@ -127,20 +125,18 @@ namespace Light
         for (const auto& cameraInfo : cameraInfos)
         {
             //设置相机参数
-            GRenderTarget* renderTarget = cameraInfo.camera->renderTarget.value_or(defaultRenderTarget.get());
+            GRenderTarget* renderTarget = cameraInfo.camera->renderTarget.value_or(defaultRenderTarget);
             commandBuffer.SetRenderTarget(*renderTarget);
             commandBuffer.ClearRenderTarget(cameraInfo.camera->background);
-            commandBuffer.SetViewProjectionMatrices(cameraInfo.matrixVP);
+            commandBuffer.SetViewProjectionMatrices(cameraInfo.cameraTransform->worldToClip);
             //绘制每个渲染器
             for (const auto& rendererInfo : rendererInfos)
             {
-                commandBuffer.Draw(*rendererInfo.mesh, rendererInfo.matrixM, *rendererInfo.material);
+                commandBuffer.Draw(*rendererInfo.mesh, rendererInfo.localToWorld, *rendererInfo.material);
             }
         }
-        //将画面复制到呈现缓冲区
-        commandBuffer.Blit(defaultRenderTarget.get(), &SwapChain::GetPresentRenderTarget());
-
         commandBuffer.EndRecording();
+        //执行渲染命令
         PresentationSystem->GetPresentGLCommandBuffer().ExecuteSubCommands(commandBuffer);
         CommandBufferPool::Release(commandBuffer);
     }

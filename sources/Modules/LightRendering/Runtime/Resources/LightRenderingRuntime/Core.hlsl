@@ -22,5 +22,8 @@ SamplerState NormalTexSampler : register(s1);
 
 float4 TransformObjectToClip(float3 positionOS)
 {
+    float3x3 a = 0;
+    float4x4 b = 0;
+    float3x3 c = (float3x3)b;
     return mul(MatrixMVP, float4(positionOS, 1));
 }

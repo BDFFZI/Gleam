@@ -18,6 +18,7 @@
         "vulkan-binding",
         "glfw-binding"
       ]
-    }
+    },
+    "imguizmo"
   ]
 }

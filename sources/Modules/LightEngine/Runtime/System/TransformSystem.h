@@ -7,11 +7,12 @@ namespace Light
     class TransformSystem : public System
     {
     public:
-        TransformSystem(): System(SimulationSystem, OrderRelation::Before)
+        TransformSystem(): System(SimulationSystem)
         {
         }
 
     private:
         void Update() override;
     };
+    Light_MakeSystem(TransformSystem)
 }

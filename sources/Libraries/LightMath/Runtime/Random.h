@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "Vector.h"
-#include "Graphics/Color.h"
+#include "LinearAlgebra/Vector.h"
+
 
 namespace Light
 {
@@ -19,7 +19,7 @@ namespace Light
          * @param alphaMax 
          * @return 
          */
-        static Color ColorHSV(float alphaMin = 1, float alphaMax = 1);
+        static float4 ColorHSV(float alphaMin = 1, float alphaMax = 1);
         /**
          * 返回一个半径为1的球的表面坐标
          */

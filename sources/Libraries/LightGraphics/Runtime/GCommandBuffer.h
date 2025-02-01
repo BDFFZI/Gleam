@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <stack>
 #include "LightGL/Runtime/GLCommandBuffer.h"
-#include "LightMath/Runtime/Matrix.h"
+#include "LightMath/Runtime/LinearAlgebra/Matrix.h"
 #include "LightMath/Runtime/Geometry/Rect.h"
 #include "Resource/GMaterial.h"
 #include "Resource/GMesh.h"

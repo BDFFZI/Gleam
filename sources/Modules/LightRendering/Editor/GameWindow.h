@@ -15,9 +15,10 @@ namespace Light
     private:
         float2 windowSize = 0;
         float2 windowPosition = 0;
-        ImTextureID textureID = {};
-        GRenderTexture* lastRenderTexture = {};
-        SystemEvent systemEvent = SystemEvent("GameWindow_PreProcess", SimulationSystem, OrderRelation::Before);
+        std::unique_ptr<GRenderTexture> renderTexture;
+        ImTextureID renderTextureID = {};
+        bool isDirty = false;
+        SystemEvent systemEvent = SystemEvent("GameWindow_PreProcess", SimulationSystem);
 
         void Start() override;
         void Stop() override;

@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "LightMath/Runtime/Matrix.h"
-#include "LightMath/Runtime/MatrixMath.h"
+#include "LightMath/Runtime/LinearAlgebra/Matrix.h"
+#include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
 
 using namespace Light;
 

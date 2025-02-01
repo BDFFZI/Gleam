@@ -2,7 +2,7 @@
 #include <random>
 #include <ctime>
 
-#include "VectorMath.h"
+#include "LinearAlgebra/VectorMath.h"
 
 namespace Light
 {
@@ -22,9 +22,9 @@ namespace Light
         std::uniform_int_distribution random(min, max);
         return random(engine);
     }
-    Color Random::ColorHSV(const float alphaMin, const float alphaMax)
+    float4 Random::ColorHSV(const float alphaMin, const float alphaMax)
     {
-        return Color{
+        return float4{
             Value(),
             Value(),
             Value(),

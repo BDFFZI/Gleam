@@ -44,15 +44,6 @@ namespace Light
         void RunMoveConstructor(std::byte* source, std::byte* destination) const;
 
         template <class... TComponents>
-        bool IsMatched() const
-        {
-            std::type_index components[] = {typeid(TComponents)...};
-            for (int i = 0; i < sizeof...(TComponents); ++i)
-                if (componentOffsetsMap.contains(components[i]) == false)
-                    return false;
-            return true;
-        }
-        template <class... TComponents>
         std::array<int, sizeof...(TComponents)> MemoryMap() const
         {
             return {componentOffsetsMap.at(typeid(TComponents))...};

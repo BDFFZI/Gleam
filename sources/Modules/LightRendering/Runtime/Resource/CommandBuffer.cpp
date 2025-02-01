@@ -1,6 +1,6 @@
 #include "CommandBuffer.h"
 
-#include "LightMath/Runtime/MatrixMath.h"
+#include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "LightRendering/Runtime/System/RenderingSystem.h"
 
 namespace Light

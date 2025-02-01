@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "LightECS/Runtime/Reference.h"
-#include "LightMath/Runtime/Vector.h"
+#include "LightMath/Runtime/LinearAlgebra/Vector.h"
 #include "LightEngine/Runtime/Reflection/Type.h"
 #include "../Public/Component.h"
 

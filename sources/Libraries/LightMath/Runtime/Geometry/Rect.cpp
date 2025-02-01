@@ -1,6 +1,7 @@
 ﻿#include "Rect.h"
 
-#include "../MatrixMath.h"
+#include "LightMath/Runtime/LinearAlgebra/VectorMath.h"
+
 
 namespace Light
 {

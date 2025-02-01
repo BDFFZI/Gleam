@@ -4,7 +4,7 @@
 operator Light::float2()const{return Light::float2{x,y};}
 #define IM_VEC4_CLASS_EXTRA ImVec4(Light::float4 value){x=value.x;y=value.y;z=value.z;w=value.w;} \
 operator Light::float4()const{return Light::float4{x,y,z,w};}
-#include "LightMath/Runtime/Vector.h"
+#include "LightMath/Runtime/LinearAlgebra/Vector.h"
 #include <imgui.h>
 #include <magic_enum.hpp>
 // ReSharper restore CppUnusedIncludeDirective

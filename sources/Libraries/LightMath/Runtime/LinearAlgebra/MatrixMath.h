@@ -255,5 +255,5 @@ MakeMatrixFunction_Adjoint(Type,Row,Column)
     Light_MakeVectorFunction_All(bool, 3*3)
     Light_MakeVectorFunction_All(bool, 4*4)
     Light_MakeVectorFunction_Any(bool, 3*3)
-    Light_MakeVectorFunction_Any(bool, 4*4)
+    Light_MakeVectorFunction_Any(bool, 4*4) 
 }

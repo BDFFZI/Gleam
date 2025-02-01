@@ -7,7 +7,7 @@
 #include "LightECS/Runtime/World.h"
 #include "LightECS/Runtime/Heap.h"
 #include "LightECS/Runtime/View.h"
-#include "LightMath/Runtime/VectorMath.h"
+#include "LightMath/Runtime/LinearAlgebra/VectorMath.h"
 
 using namespace Light;
 
@@ -388,7 +388,6 @@ system1->Stop
 )");
 }
 
-
 TEST(ECS, SceneVisibility)
 {
     Scene* sleepScene = World::CreateScene("Sleep");
@@ -420,4 +419,23 @@ TEST(ECS, SceneVisibility)
     });
     position = World::GetComponent<Transform>(entity).position;
     ASSERT_TRUE(all(position == float2(5)));
+}
+
+TEST(ECS, View)
+{
+    Entity physicsEntity = World::AddEntity(physicsArchetype);
+    Entity physicsWithSpring = World::AddEntity(physicsWithSpringArchetype);
+    View<Transform, RigidBody>::Each([](auto& transform, auto&)
+    {
+        ++transform.position;
+    });
+    ASSERT_EQ(World::GetComponent<Transform>(physicsEntity).position, 1);
+    ASSERT_EQ(World::GetComponent<Transform>(physicsWithSpring).position, 1);
+
+    View<ViewExclusion<SpringPhysics>, Transform, RigidBody>::Each([](auto& transform, auto&)
+    {
+        ++transform.position;
+    });
+    ASSERT_EQ(World::GetComponent<Transform>(physicsEntity).position, 2);
+    ASSERT_EQ(World::GetComponent<Transform>(physicsWithSpring).position, 1);
 }

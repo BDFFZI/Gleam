@@ -6,7 +6,7 @@ namespace Light
     class SimulationSystem : public SystemGroup
     {
     public:
-        SimulationSystem(): SystemGroup(std::nullopt, LeftOrder, RightOrder)
+        SimulationSystem(): SystemGroup(std::nullopt, MiddleOrder, RightOrder)
         {
         }
     };

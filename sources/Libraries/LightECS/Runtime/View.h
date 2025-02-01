@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "World.h"
-#include "LightMath/Runtime/Matrix.h"
+#include "LightMath/Runtime/LinearAlgebra/Matrix.h"
 
 namespace Light
 {
@@ -10,6 +10,54 @@ namespace Light
     template <class TFunction, class... TComponents>
     concept ViewIteratorWithEntity = requires(TFunction function, Entity& entity, TComponents&... components) { function(entity, components...); };
 
+    template <class TViewFilter>
+    concept ViewFilter = requires(Archetype* archetype, bool isMatched)
+    {
+        isMatched = TViewFilter::IsMatched(archetype);
+    };
+    class ViewAlways
+    {
+    public:
+        static bool IsMatched(Archetype* archetype)
+        {
+            return true;
+        }
+    };
+    static_assert(ViewFilter<ViewAlways>);
+    template <Component... TComponents>
+    class ViewNecessary
+    {
+    public:
+        static bool IsMatched(Archetype* archetype)
+        {
+            std::type_index components[] = {typeid(TComponents)...};
+            for (int i = 0; i < sizeof...(TComponents); ++i)
+                if (archetype->HasComponent(components[i]) == false)
+                    return false;
+            return true;
+        }
+    };
+    static_assert(ViewFilter<ViewNecessary<>>);
+    template <Component... TComponents>
+    class ViewExclusion
+    {
+    public:
+        static bool IsMatched(Archetype* archetype)
+        {
+            std::type_index components[] = {typeid(TComponents)...};
+            for (int i = 0; i < sizeof...(TComponents); ++i)
+                if (archetype->HasComponent(components[i]))
+                    return false;
+            return true;
+        }
+    };
+    static_assert(ViewFilter<ViewExclusion<>>);
+
+    template <class...>
+    class View
+    {
+    };
+
     /**
      * @brief 针对实体堆的检视工具
      * 
@@ -18,9 +66,9 @@ namespace Light
      * 
      * @tparam TComponents 
      */
-    template <Component... TComponents>
+    template <ViewFilter TFilter,Component... TComponents>
         requires (sizeof...(TComponents) != 0)
-    class View
+    class View<TFilter, TComponents...>
     {
     public:
         template <class TFunction> requires
@@ -51,13 +99,13 @@ namespace Light
         {
             if (isQueried == false)
             {
-                for (auto& item : Archetype::GetAllArchetypes())
+                for (auto& archetype : Archetype::GetAllArchetypes())
                 {
-                    Archetype& archetype = *item;
-                    if (archetype.IsMatched<TComponents...>())
+                    if (ViewNecessary<TComponents...>::IsMatched(archetype.get())
+                        && TFilter::IsMatched(archetype.get()))
                     {
-                        targetArchetypes.emplace_back(&archetype);
-                        targetComponentOffsets.emplace_back(archetype.MemoryMap<TComponents...>());
+                        targetArchetypes.emplace_back(archetype.get());
+                        targetComponentOffsets.emplace_back(archetype->MemoryMap<TComponents...>());
                     }
                 }
 
@@ -93,5 +141,11 @@ namespace Light
                     Each_Inner(element.get(), function, std::index_sequence<Indices...>());
             }
         }
+    };
+
+    template <Component TComponent,Component... TComponents>
+        requires (sizeof...(TComponents) + 1 != 0) && !ViewFilter<TComponent>
+    class View<TComponent, TComponents...> : public View<ViewAlways, TComponent, TComponents...>
+    {
     };
 }

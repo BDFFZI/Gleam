@@ -1,9 +1,35 @@
 ﻿#pragma once
 #include <algorithm>
 #include <numbers>
+#include <cmath>
 
 namespace Light
 {
+    inline float cos(const float value)
+    {
+        return std::cos(value);
+    }
+    inline float sin(const float value)
+    {
+        return std::sin(value);
+    }
+    inline float tan(const float value)
+    {
+        return std::tan(value);
+    }
+    inline float acos(const float value)
+    {
+        return std::acos(value);
+    }
+    inline float asin(const float value)
+    {
+        return std::asin(value);
+    }
+    inline float atan(const float value)
+    {
+        return std::atan(value);
+    }
+
     template <typename Type>
         requires std::is_arithmetic_v<Type>
     constexpr Type max(const Type a, const Type b) { return std::max(a, b); }

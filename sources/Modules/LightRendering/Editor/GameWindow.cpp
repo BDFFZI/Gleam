@@ -14,6 +14,15 @@ namespace Light
     {
         systemEvent.onUpdate = [this]
         {
+            //重建渲染目标和纹理
+            if (isDirty && windowSize.x > 0 && windowSize.y > 0)
+            {
+                renderTexture = std::make_unique<GRenderTexture>(static_cast<int2>(windowSize));
+                RenderingSystem->SetDefaultRenderTarget(renderTexture.get());
+                if (renderTextureID != nullptr)
+                    UI::DeleteTexture(renderTextureID);
+                renderTextureID = UI::CreateTexture(*renderTexture);
+            }
             //更新输入系统的焦点范围为GameWindow
             Input->SetFocusArea(Rect{windowPosition, windowSize});
         };
@@ -22,26 +31,21 @@ namespace Light
     void GameWindow::Stop()
     {
         World::RemoveSystem(&systemEvent);
-
-        UI::DeleteTexture(textureID);
+        renderTexture.reset();
+        UI::DeleteTexture(renderTextureID);
     }
     void GameWindow::Update()
     {
-        //重建纹理
-        if (lastRenderTexture != RenderingSystem->GetDefaultRenderTarget().get())
-        {
-            lastRenderTexture = RenderingSystem->GetDefaultRenderTarget().get();
-            if (textureID != nullptr)
-                UI::DeleteTexture(textureID);
-            textureID = UI::CreateTexture(*lastRenderTexture);
-        }
-
         ImGui::Begin("GameWindow");
+        //重建纹理
+        if (any(windowSize != UI::GetWindowContentRegionSize()))
+            isDirty = true;
         //获取窗口信息
         windowSize = UI::GetWindowContentRegionSize();
         windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
         //显示游戏画面
-        ImGui::Image(textureID, windowSize);
+        if (renderTextureID != nullptr)
+            ImGui::Image(renderTextureID, windowSize);
         ImGui::End();
     }
 }

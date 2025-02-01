@@ -1,7 +1,7 @@
 #pragma once
 #include "../Public/SimulationSystem.h"
 #include "LightECS/Runtime/System.h"
-#include "LightMath/Runtime/Vector.h"
+#include "LightMath/Runtime/LinearAlgebra/Vector.h"
 
 namespace Light
 {

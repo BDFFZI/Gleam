@@ -2,8 +2,8 @@
 #include "LightGL/Runtime/Pipeline/GLMeshLayout.h"
 #include "LightGL/Runtime/Resource/GLDescriptorSetLayout.h"
 #include "LightGraphics/Runtime/Graphics.h"
-#include "LightMath/Runtime/Matrix.h"
-#include "LightMath/Runtime/Vector.h"
+#include "LightMath/Runtime/LinearAlgebra/Matrix.h"
+#include "LightMath/Runtime/LinearAlgebra/Vector.h"
 
 namespace Light
 {

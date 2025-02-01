@@ -11,27 +11,24 @@ namespace Light
     struct CameraInfo
     {
         Camera* camera;
-        float4x4 matrixVP;
+        CameraTransform* cameraTransform;
 
         CameraInfo() = default;
-        CameraInfo(Transform& transform, Camera& camera);
+        CameraInfo(Camera& camera, CameraTransform& cameraTransform);
         bool operator<(const CameraInfo& other) const;
     };
 
     struct RendererInfo
     {
-        float4x4 matrixM;
+        float4x4 localToWorld;
         int renderQueue;
         Material* material;
         Mesh* mesh;
 
         RendererInfo() = default;
-        RendererInfo(Transform& transform, Renderer& renderer);
+        RendererInfo(const float4x4& localToWorld, Renderer& renderer);
 
-        bool operator<(const RendererInfo& other) const
-        {
-            return renderQueue < other.renderQueue;
-        }
+        bool operator<(const RendererInfo& other) const;
     };
 
     class RenderingSystem : public System
@@ -41,17 +38,19 @@ namespace Light
         {
         }
 
-        const std::unique_ptr<GRenderTexture>& GetDefaultRenderTarget() const;
         const std::unique_ptr<Material>& GetDefaultPointMaterial() const;
         const std::unique_ptr<Material>& GetDefaultLineMaterial() const;
         const std::unique_ptr<Mesh>& GetFullScreenMesh() const;
         const std::unique_ptr<Material>& GetBlitMaterial() const;
+        GRenderTarget* GetDefaultRenderTarget() const;
+
+        void SetDefaultRenderTarget(GRenderTarget* renderTarget);
 
     private:
         std::multiset<CameraInfo> cameraInfos;
         std::multiset<RendererInfo> rendererInfos;
 
-        std::unique_ptr<GRenderTexture> defaultRenderTarget;
+        GRenderTarget* defaultRenderTarget = nullptr;
         //点线绘制
         std::unique_ptr<GShader> defaultPointShader = nullptr;
         std::unique_ptr<GShader> defaultLineShader = nullptr;

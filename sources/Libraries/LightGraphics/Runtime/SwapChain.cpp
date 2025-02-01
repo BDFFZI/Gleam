@@ -1,5 +1,6 @@
 #include "SwapChain.h"
 
+#include <iostream>
 #include <stdexcept>
 
 #include "LightGL/Runtime/GL.h"
@@ -15,8 +16,10 @@ namespace Light
     {
         bool canPresent = true;
 
+        int width = 0, height = 0;
+        glfwGetFramebufferSize(GL::glSurface->window, &width, &height);
         //获取交换链下次呈现使用的相关信息
-        if (glSwapChain->SwitchImageAsync(
+        if (width <= 0 || height <= 0 || glSwapChain->SwitchImageAsync(
             &currentImageIndex, &currentBufferIndex,
             &currentImageAvailable, &currentRenderFinishedSemaphores
         ) == false) //交换链过时，需重建
@@ -46,7 +49,7 @@ namespace Light
             VK_IMAGE_LAYOUT_UNDEFINED, GetPresentRenderTarget().glFinalLayout,
             VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        
+
         presentCommandBuffer.EndRecording();
 
         //提交命令
@@ -69,7 +72,7 @@ namespace Light
         //判断是否可以重建
         int width = 0, height = 0;
         glfwGetFramebufferSize(GL::glSurface->window, &width, &height);
-        if (width == 0 || height == 0)
+        if (width <= 0 || height <= 0)
             return false;
         //释放旧交换链
         vkDeviceWaitIdle(GL::glDevice->device); //等待显卡空闲，从而确保旧资源不被占用

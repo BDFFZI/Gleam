@@ -7,7 +7,7 @@
 
 namespace Light
 {
-    Light_MakeArchetype(CameraArchetype, Transform, Camera)
-    Light_MakeArchetype(PointsArchetype, Transform, PointsMesh, Renderer)
-    Light_MakeArchetype(LinesArchetype, Transform, LinesMesh, Renderer)
+    Light_MakeArchetype(CameraArchetype, LocalTransform, LocalToWorld, Camera, CameraTransform)
+    Light_MakeArchetype(PointsArchetype, LocalTransform, LocalToWorld, PointsMesh, Renderer)
+    Light_MakeArchetype(LinesArchetype, LocalTransform, LocalToWorld, LinesMesh, Renderer)
 }

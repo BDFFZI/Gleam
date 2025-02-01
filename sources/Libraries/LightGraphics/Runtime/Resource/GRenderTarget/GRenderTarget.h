@@ -2,7 +2,7 @@
 #include <memory>
 
 #include "LightGL/Runtime/Resource/GLImageView.h"
-#include "LightMath/Runtime/Vector.h"
+#include "LightMath/Runtime/LinearAlgebra/Vector.h"
 
 namespace Light
 {
@@ -11,6 +11,7 @@ namespace Light
     public:
         VkImage GetFinalImage() const { return glFinalImage; }
         int2 GetSize() const { return int2{static_cast<int>(width), static_cast<int>(height)}; }
+        float GetAspect() const { return static_cast<float>(width) / height; }
 
         uint32_t width, height; //渲染区域
         GLImageView* glColorImageView; //颜色附件

@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "LightEngine/Runtime/Engine.h"
-#include "LightMath/Runtime/VectorMath.h"
+#include "LightMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Time.h"
 #include "LightWindow/Runtime/Window.h"
