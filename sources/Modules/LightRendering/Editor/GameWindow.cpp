@@ -7,6 +7,7 @@
 #include "LightRendering/Runtime/System/RenderingSystem.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/Time.h"
 
 namespace Light
 {
@@ -44,8 +45,19 @@ namespace Light
         windowSize = UI::GetWindowContentRegionSize();
         windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
         //显示游戏画面
+        float2 cursor = ImGui::GetCursorPos();
         if (renderTextureID != nullptr)
             ImGui::Image(renderTextureID, windowSize);
+        //帧率信息
+        static double deltaTime = 0;
+        deltaTime = std::lerp(deltaTime, Time->GetDeltaTime(), 0.05f);
+        ImGui::SetCursorPos(cursor);
+        ImGui::TextColored(
+            float4::Magenta(),
+            "Frame Rate %5.1f ms/frame (%5.1f FPS)",
+            deltaTime * 1000.0,
+            1.0 / deltaTime
+        );
         ImGui::End();
     }
 }

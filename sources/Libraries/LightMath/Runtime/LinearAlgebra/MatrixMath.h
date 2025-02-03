@@ -251,9 +251,56 @@ MakeMatrixFunction_Adjoint(Type,Row,Column)
 
     MakeMatrixFunctions(float, 3, 3)
     MakeMatrixFunctions(float, 4, 4)
-
     Light_MakeVectorFunction_All(bool, 3*3)
     Light_MakeVectorFunction_All(bool, 4*4)
     Light_MakeVectorFunction_Any(bool, 3*3)
-    Light_MakeVectorFunction_Any(bool, 4*4) 
+    Light_MakeVectorFunction_Any(bool, 4*4)
+
+    constexpr static float3 DecomposeRotation(const float3x3& rotation)
+    {
+        float z;
+        float y;
+        float x;
+
+        float sinX = -rotation._m12;
+        if (equal(::abs(rotation._m12), 1.0f) == false)
+        {
+            z = atan2(rotation._m10, rotation._m11);
+            y = atan2(rotation._m02, rotation._m22);
+            float cosX = !equal(rotation._m10, 0.0f)
+                             ? rotation._m10 / sin(z)
+                             : rotation._m11 / cos(z);
+            x = atan2(sinX, cosX);
+        }
+        else
+        {
+            z = 0;
+            if (sinX > 0)
+            {
+                y = atan2(rotation._m01, rotation._m00);
+                x = std::numbers::pi_v<float> / 2;
+            }
+            else
+            {
+                y = atan2(-rotation._m01, rotation._m00);
+                x = -std::numbers::pi_v<float> / 2;
+            }
+        }
+
+        return degrees(vector<float, 3>{x, y, z});
+    }
+    constexpr static void DecomposeTRS(const float4x4& trs, float3& position, float3x3& rotation, float3& scale)
+    {
+        position = trs._m03_m13_m23;
+        float3x3 rs = static_cast<float3x3>(trs);
+        float3x3 scale2 = mul(transpose(rs), rs);
+        scale = sqrt(float3(scale2._m00, scale2._m11, scale2._m22));
+        rotation = mul(rs, float3x3::Scale(1 / scale));
+    }
+    constexpr static void DecomposeTRS(const float4x4& trs, float3& position, float3& eulerAngles, float3& scale)
+    {
+        float3x3 rotation;
+        DecomposeTRS(trs, position, rotation, scale);
+        eulerAngles = DecomposeRotation(rotation);
+    }
 }

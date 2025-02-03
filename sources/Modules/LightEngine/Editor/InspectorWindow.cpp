@@ -8,11 +8,29 @@
 
 namespace Light
 {
-    
-
+    void InspectorWindow::Show(const Entity target)
+    {
+        InspectorWindow* inspectorWindow = new InspectorWindow();
+        inspectorWindow->target = target;
+        World::AddSystem(inspectorWindow);
+    }
+    void InspectorWindow::Stop()
+    {
+        if (this != Light::InspectorWindow)
+            delete this;
+    }
     void InspectorWindow::Update()
     {
-        ImGui::Begin("InspectorWindow");
+        if (this == Light::InspectorWindow)
+            ImGui::Begin("InspectorWindow");
+        else
+        {
+            //非默认检视窗口，支持多窗口和关闭功能
+            bool isOpen = true;
+            ImGui::Begin(std::format("InspectorWindow {}", static_cast<uint32_t>(target)).c_str(), this == Light::InspectorWindow ? nullptr : &isOpen);
+            if (isOpen == false)
+                World::RemoveSystem(this);
+        }
 
         if (World::HasEntity(target))
         {

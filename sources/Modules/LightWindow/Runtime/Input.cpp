@@ -1,4 +1,6 @@
 ﻿#include "Input.h"
+
+#include "Cursor.h"
 #include "Window.h"
 
 using namespace Light;
@@ -59,7 +61,7 @@ void Input::Update()
     }
 
     //鼠标位置
-    mousePosition[0] = mousePosition[1];
+    mousePosition[0] = Cursor->GetLockState() ? Cursor->GetLockPosition() - focusArea.GetPosition() : mousePosition[1];
     mousePosition[1] = Window->GetMousePosition() - focusArea.GetPosition();
 
     //更新焦点状态

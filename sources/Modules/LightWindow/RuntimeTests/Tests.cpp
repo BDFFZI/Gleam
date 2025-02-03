@@ -3,6 +3,7 @@
 
 #include "LightEngine/Runtime/Engine.h"
 #include "LightMath/Runtime/LinearAlgebra/VectorMath.h"
+#include "LightWindow/Runtime/Cursor.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Time.h"
 #include "LightWindow/Runtime/Window.h"
@@ -11,14 +12,14 @@ using namespace Light;
 
 int main()
 {
-    int2 mousePosition;
-    int2 resolution;
+    float2 mousePosition;
+    float2 resolution;
 
     SystemEvent systemEvent = {"WindowTest", SimulationSystem};
     systemEvent.onStart = [&]
     {
-        glfwGetWindowPos(Window->GetGlfwWindow(), &mousePosition.x, &mousePosition.y);
-        resolution = Window->GetResolution();
+        mousePosition = Window->GetMousePosition();
+        resolution = static_cast<float2>(Window->GetResolution());
     };
     systemEvent.onUpdate = [&]
     {
@@ -43,22 +44,33 @@ int main()
         //检查鼠标位置增量
         if (Input->GetKey(KeyCode::LeftShift))
         {
-            mousePosition += static_cast<int2>(float2(Input->GetMouseMoveDelta().x, Input->GetMouseMoveDelta().y));
-            glfwSetWindowPos(Window->GetGlfwWindow(), mousePosition.x, mousePosition.y);
+            mousePosition += float2(Input->GetMouseMoveDelta().x, Input->GetMouseMoveDelta().y);
+            glfwSetWindowPos(Window->GetGlfwWindow(), static_cast<int>(mousePosition.x), static_cast<int>(mousePosition.y));
         }
         //检查输入区域功能
         if (Input->GetMouseButtonDown(MouseButton::Right))
             Input->SetFocusArea({Window->GetMousePosition(), float2(std::numeric_limits<float>::max())});
+        //检查光标隐藏
+        if (Input->GetMouseButtonDown(MouseButton::Right))
+        {
+            Cursor->SetLockState(true);
+            Cursor->SetVisible(false);
+        }
+        else if (Input->GetMouseButtonUp(MouseButton::Right))
+        {
+            Cursor->SetLockState(false);
+            Cursor->SetVisible(true);
+        }
         //检查窗口大小修改
         if (Input->GetKeyDown(KeyCode::Minus))
         {
             resolution /= 2;
-            Window->SetResolution(resolution);
+            Window->SetResolution(static_cast<int2>(resolution));
         }
         else if (Input->GetKeyDown(KeyCode::Equals))
         {
             resolution *= 2;
-            Window->SetResolution(resolution);
+            Window->SetResolution(static_cast<int2>(resolution));
         }
         //检查全屏功能
         if (Input->GetKeyDown(KeyCode::F11))

@@ -10,7 +10,7 @@ namespace Light
     {
         float3 position;
         Quaternion rotation = {0, 0, 0, 1};
-        float scale = 1;
+        float3 scale = 1;
     };
 
     struct LocalToWorld

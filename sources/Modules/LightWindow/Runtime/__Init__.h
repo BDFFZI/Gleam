@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Cursor.h"
 #include "Window.h"
 #include "Time.h"
 #include "Input.h"
@@ -6,6 +7,7 @@
 
 namespace Light
 {
+    Light_AddSystems(Cursor)
     Light_AddSystems(Window)
     Light_AddSystems(Time)
     Light_AddSystems(Input)

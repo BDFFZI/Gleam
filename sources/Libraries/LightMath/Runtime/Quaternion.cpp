@@ -1,4 +1,6 @@
 #include "Quaternion.h"
+
+#include "LinearAlgebra/MatrixMath.h"
 #include "LinearAlgebra/VectorMath.h"
 
 namespace Light
@@ -71,6 +73,6 @@ namespace Light
     }
     float3 Quaternion::ToEulerAngles() const
     {
-        return float3x3::DecomposeRotation(ToRotationMatrix());
+        return DecomposeRotation(ToRotationMatrix());
     }
 }

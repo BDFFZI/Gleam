@@ -31,6 +31,10 @@ void Window::SetFullScreen(const bool fullscreen) const
     else
         glfwSetWindowMonitor(glfwWindow, nullptr, 50, 50, resolution.x, resolution.y,GLFW_DONT_CARE);
 }
+void Window::SetMousePosition(const float2 position) const
+{
+    glfwSetCursorPos(glfwWindow, position.x, position.y);
+}
 
 void Window::Start()
 {

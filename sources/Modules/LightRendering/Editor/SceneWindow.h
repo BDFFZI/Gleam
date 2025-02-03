@@ -16,14 +16,18 @@ namespace Light
         }
 
     private:
+        float2 windowPosition;
+        float2 windowSize;
+        //预建资源
         SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", SimulationSystem);
         class Input inputSystem = {};
         Entity sceneCamera = Entity::Null;
-
-        float2 windowSize;
+        //场景相机渲染目标相关
         std::unique_ptr<GRenderTexture> sceneCameraCanvas;
         ImTextureID sceneCameraCanvasImID = nullptr;
-        bool isDirty = false;
+        bool isDirty = true;
+        //场景窗口UI
+        int handleOption = 1;
 
         void Start() override;
         void Stop() override;

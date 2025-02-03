@@ -14,10 +14,7 @@ namespace Light
           components(scene->GetEntityHeap(archetype).At(indexAtHeap))
     {
     }
-    bool World::HasEntity(const Entity entity)
-    {
-        return entityInfos.contains(entity);
-    }
+
     Entity World::GetNextEntity()
     {
         return static_cast<Entity>(nextEntity++);
@@ -45,6 +42,11 @@ namespace Light
     Scene* World::GetMainScene()
     {
         return mainScene;
+    }
+
+    bool World::HasEntity(const Entity entity)
+    {
+        return entityInfos.contains(entity);
     }
     Entity World::AddEntity(const Archetype* archetype, Scene* scene)
     {

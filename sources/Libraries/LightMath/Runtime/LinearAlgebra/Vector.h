@@ -11,14 +11,12 @@ namespace Light
     using float2 = vector<float, 2>;
     using float3 = vector<float, 3>;
     using float4 = vector<float, 4>;
-    //仅用于存储float向量布尔判断的结果
-    using bool2 = vector<bool, 2>;
-    using bool3 = vector<bool, 3>;
-    using bool4 = vector<bool, 4>;
-    //仅用于存储float向量强制转换的结果
     using int2 = vector<int, 2>;
     using int3 = vector<int, 3>;
     using int4 = vector<int, 4>;
+    using bool2 = vector<bool, 2>;
+    using bool3 = vector<bool, 3>;
+    using bool4 = vector<bool, 4>;
 
 #define xi 0
 #define yi 1
@@ -121,22 +119,22 @@ namespace Light
     struct vector<Type, 4>
     {
         consteval static vector Clear() { return {0, 0, 0, 0}; }
-        consteval static vector White() { return {1, 1, 1}; }
-        consteval static vector Black() { return {0, 0, 0}; }
-        consteval static vector Red() { return {1, 0, 0}; }
-        consteval static vector Green() { return {0, 1, 0}; }
-        consteval static vector Blue() { return {0, 0, 1}; }
-        consteval static vector Gray() { return {0.5f, 0.5f, 0.5f}; }
-        consteval static vector Yellow() { return {1, 1, 0}; }
-        consteval static vector Magenta() { return {1, 0, 1}; }
-        consteval static vector LightRed() { return {1, 0.5f, 0.5f}; }
-        consteval static vector LightGreen() { return {0.5f, 1, 0.5f}; }
-        consteval static vector LightBlue() { return {0.5f, 0.5f, 1}; }
-        consteval static vector LightYellow() { return {1, 1, 0.5f}; }
-        consteval static vector DarkRed() { return {0.5f, 0, 0}; }
-        consteval static vector DarkGreen() { return {0, 0.5f, 0}; }
-        consteval static vector DarkBlue() { return {0, 0, 0.5f}; }
-        consteval static vector DarkYellow() { return {0.5f, 0.5f, 0}; }
+        consteval static vector White() { return {1, 1, 1, 1}; }
+        consteval static vector Black() { return {0, 0, 0, 1}; }
+        consteval static vector Red() { return {1, 0, 0, 1}; }
+        consteval static vector Green() { return {0, 1, 0, 1}; }
+        consteval static vector Blue() { return {0, 0, 1, 1}; }
+        consteval static vector Gray() { return {0.5f, 0.5f, 0.5f, 1}; }
+        consteval static vector Yellow() { return {1, 1, 0, 1}; }
+        consteval static vector Magenta() { return {1, 0, 1, 1}; }
+        consteval static vector LightRed() { return {1, 0.5f, 0.5f, 1}; }
+        consteval static vector LightGreen() { return {0.5f, 1, 0.5f, 1}; }
+        consteval static vector LightBlue() { return {0.5f, 0.5f, 1, 1}; }
+        consteval static vector LightYellow() { return {1, 1, 0.5f, 1}; }
+        consteval static vector DarkRed() { return {0.5f, 0, 0, 1}; }
+        consteval static vector DarkGreen() { return {0, 0.5f, 0, 1}; }
+        consteval static vector DarkBlue() { return {0, 0, 0.5f, 1}; }
+        consteval static vector DarkYellow() { return {0.5f, 0.5f, 0, 1}; }
 
         union
         {

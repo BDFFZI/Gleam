@@ -52,40 +52,7 @@ namespace Light
          * @param rotation 
          * @return 
          */
-        constexpr static vector<Type, 3> DecomposeRotation(vector rotation)
-        {
-            Type z;
-            Type y;
-            Type x;
-
-            Type sinX = -rotation._m12;
-            if (equal(::abs(rotation._m12), 1.0f) == false)
-            {
-                z = atan2(rotation._m10, rotation._m11);
-                y = atan2(rotation._m02, rotation._m22);
-                Type cosX = !equal(rotation._m10, Type(0))
-                                ? rotation._m10 / sin(z)
-                                : rotation._m11 / cos(z);
-                x = atan2(sinX, cosX);
-            }
-            else
-            {
-                z = 0;
-                if (sinX > 0)
-                {
-                    y = atan2(rotation._m01, rotation._m00);
-                    x = std::numbers::pi_v<Type> / 2;
-                }
-                else
-                {
-                    y = atan2(-rotation._m01, rotation._m00);
-                    x = -std::numbers::pi_v<Type> / 2;
-                }
-            }
-
-            return degrees(vector<Type, 3>{x, y, z});
-        }
-
+        
         //为了与图像接口兼容故采用按列存储
         union
         {

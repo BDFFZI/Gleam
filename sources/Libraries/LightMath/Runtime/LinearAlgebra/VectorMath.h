@@ -291,17 +291,17 @@ return str + ")";\
     Light_MakeVectorFunction_ToString(float, 3, ":f")
     Light_MakeVectorFunction_ToString(float, 4, ":f")
 
+    Light_MakeVectorFunctions_Integer(int, 2)
+    Light_MakeVectorFunctions_Integer(int, 3)
+    Light_MakeVectorFunctions_Integer(int, 4)
+    Light_MakeVectorFunction_ToString(int, 2, "")
+    Light_MakeVectorFunction_ToString(int, 3, "")
+    Light_MakeVectorFunction_ToString(int, 4, "")
+    
     Light_MakeVectorFunction_All(bool, 2)
     Light_MakeVectorFunction_All(bool, 3)
     Light_MakeVectorFunction_All(bool, 4)
     Light_MakeVectorFunction_Any(bool, 2)
     Light_MakeVectorFunction_Any(bool, 3)
     Light_MakeVectorFunction_Any(bool, 4)
-
-    // Light_MakeVectorFunctions_Integer(int, 2)
-    // Light_MakeVectorFunctions_Integer(int, 3)
-    // Light_MakeVectorFunctions_Integer(int, 4)
-    // Light_MakeVectorFunction_ToString(int, 2, "")
-    // Light_MakeVectorFunction_ToString(int, 3, "")
-    // Light_MakeVectorFunction_ToString(int, 4, "")
 }

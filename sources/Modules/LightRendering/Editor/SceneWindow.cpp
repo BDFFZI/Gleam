@@ -8,15 +8,17 @@
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Time.h"
 #include <ImGuizmo.h>
+#include <iostream>
+
+#include "LightEngine/Editor/InspectorWindow.h"
+#include "LightWindow/Runtime/Cursor.h"
 
 
 namespace Light
 {
+    float3 eulerAngles;
     void ControlCamera(const class Input& input, LocalTransform& localTransform, LocalToWorld localToWorld)
     {
-        if (input.GetMouseButton(MouseButton::Right) == false)
-            return;
-
         const float deltaTime = Time->GetDeltaTime();
         const auto moveSpeed = static_cast<float>(4 * (input.GetKey(KeyCode::LeftShift) ? 3 : 1));
 
@@ -53,11 +55,10 @@ namespace Light
         localTransform.position = position;
 
         //视角调整
-        Quaternion rotation = localTransform.rotation;
         const float2 mouseMoveDelta = input.GetMouseMoveDelta();
-        rotation = Quaternion::AngleAxis(right, mouseMoveDelta.y * deltaTime * 50) * rotation;
-        rotation = Quaternion::AngleAxis(up, mouseMoveDelta.x * deltaTime * 50) * rotation;
-        localTransform.rotation = rotation;
+        eulerAngles.x += mouseMoveDelta.y * deltaTime * 50;
+        eulerAngles.y += mouseMoveDelta.x * deltaTime * 50;
+        localTransform.rotation = Quaternion::Euler(eulerAngles);
     }
 
     void SceneWindow::Start()
@@ -75,16 +76,32 @@ namespace Light
                 isDirty = false;
             }
             //相机控制
-            ControlCamera(
-                inputSystem,
-                World::GetComponent<LocalTransform>(sceneCamera),
-                World::GetComponent<LocalToWorld>(sceneCamera)
-            );
+            if (inputSystem.GetMouseButtonDown(MouseButton::Right))
+            {
+                Cursor->SetLockState(true);
+                Cursor->SetVisible(false);
+            }
+            else if (inputSystem.GetMouseButtonUp(MouseButton::Right))
+            {
+                Cursor->SetLockState(false);
+                Cursor->SetVisible(true);
+            }
+            else if (inputSystem.GetMouseButton(MouseButton::Right))
+            {
+                ControlCamera(
+                    inputSystem,
+                    World::GetComponent<LocalTransform>(sceneCamera),
+                    World::GetComponent<LocalToWorld>(sceneCamera)
+                );
+            }
         };
         World::AddSystem(&preProcessSystem);
         World::AddSystem(&inputSystem);
 
         sceneCamera = Awake->AddEntity(CameraArchetype);
+
+        ImGuizmo::AllowAxisFlip(false); //禁用手柄轴自动反转
+        ImGuizmo::SetGizmoSizeClipSpace(0.2f); //设置手柄在剪辑空间的大小
     }
     void SceneWindow::Stop()
     {
@@ -96,30 +113,101 @@ namespace Light
     }
     void SceneWindow::Update()
     {
-        ImGui::Begin("SceneWindow");
-        //重建渲染纹理
+        // ImGui::IsWindowHovered()
+
+        ImGui::Begin("SceneWindow", nullptr, ImGuiWindowFlags_MenuBar);
+
+        //渲染纹理重建检查
         if (any(windowSize != UI::GetWindowContentRegionSize()))
-        {
-            windowSize = UI::GetWindowContentRegionSize();
             isDirty = true;
-        }
+
+        windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
+        windowSize = UI::GetWindowContentRegionSize();
+
+        //设置输入区域范围
+        inputSystem.SetFocusArea({windowPosition, windowSize});
+
         //绘制相机画面
         if (sceneCameraCanvasImID != nullptr)
             ImGui::Image(sceneCameraCanvasImID, windowSize);
-        //绘制网格
-        ImGuizmo::BeginFrame();
-        const float2 windowPosition = ImGui::GetWindowContentRegionMin();
-        ImGuizmo::SetRect(windowPosition.x, windowPosition.y, windowSize.x, windowSize.y);
-        ImGuizmo::SetOrthographic(false);
-        
-        CameraTransform cameraTransform = World::GetComponent<CameraTransform>(sceneCamera);
-        float4x4 objectToWorld = float4x4::Identity();
-        ImGuizmo::DrawGrid(
-            reinterpret_cast<float*>(&cameraTransform.worldToView),
-            reinterpret_cast<float*>(&cameraTransform.viewToClip),
-            reinterpret_cast<float*>(&objectToWorld),
-            10
-        );
+
+        //绘制菜单选项
+        if (ImGui::BeginMenuBar())
+        {
+            // 查看场景相机
+            if (ImGui::MenuItem("EditorCamera"))
+            {
+                InspectorWindow::Show(sceneCamera);
+            }
+            //手柄选项
+            {
+                ImGui::SetNextItemWidth(windowSize.x * 0.5f);
+                static const char* optionName[] = {"Hide", "Position", "Rotation", "Scale"};
+                ImGui::Combo("Handle", &handleOption, optionName, std::size(optionName));
+                if (inputSystem.GetMouseButton(MouseButton::Right) == false)
+                {
+                    if (ImGui::IsKeyPressed(ImGuiKey_Q))handleOption = 0;
+                    if (ImGui::IsKeyPressed(ImGuiKey_W))handleOption = 1;
+                    if (ImGui::IsKeyPressed(ImGuiKey_E))handleOption = 2;
+                    if (ImGui::IsKeyPressed(ImGuiKey_R))handleOption = 3;
+                }
+            }
+
+            ImGui::EndMenuBar();
+        }
+
+        //绘制Gizmos
+        {
+            ImGuizmo::BeginFrame();
+            ImGuizmo::SetDrawlist(); //使Gizmos能绘制到场景画面前面
+            //设置绘制区域
+            const float2 windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
+            ImGuizmo::SetRect(windowPosition.x, windowPosition.y, windowSize.x, windowSize.y);
+            //获取并设置相机属性
+            Camera camera = World::GetComponent<Camera>(sceneCamera);
+            CameraTransform cameraTransform = World::GetComponent<CameraTransform>(sceneCamera);
+            ImGuizmo::SetOrthographic(camera.orthographic);
+            //绘制网格线
+            {
+                float4x4 objectToWorld = float4x4::Identity();
+                ImGuizmo::DrawGrid(
+                    reinterpret_cast<float*>(&cameraTransform.worldToView),
+                    reinterpret_cast<float*>(&cameraTransform.viewToClip),
+                    reinterpret_cast<float*>(&objectToWorld), 10
+                );
+            }
+            //绘制手柄
+            if (World::HasEntity(InspectorWindow->target) && World::HasComponent<LocalToWorld>(InspectorWindow->target))
+            {
+                //获取手柄类型信息
+                static constexpr ImGuizmo::OPERATION options[] = {ImGuizmo::BOUNDS, ImGuizmo::TRANSLATE, ImGuizmo::ROTATE, ImGuizmo::SCALE};
+                ImGuizmo::OPERATION imGuiOption = options[handleOption];
+                //绘制
+                LocalToWorld localToWorld = World::GetComponent<LocalToWorld>(InspectorWindow->target);
+                Manipulate(
+                    reinterpret_cast<float*>(&cameraTransform.worldToView),
+                    reinterpret_cast<float*>(&cameraTransform.viewToClip),
+                    imGuiOption, ImGuizmo::LOCAL,
+                    reinterpret_cast<float*>(&localToWorld.value)
+                );
+                //解析矩阵
+                if (World::HasComponent<LocalTransform>(InspectorWindow->target))
+                {
+                    LocalTransform& transform = World::GetComponent<LocalTransform>(InspectorWindow->target);
+
+                    float3 position;
+                    float3 rotation;
+                    float3 scale;
+                    DecomposeTRS(
+                        localToWorld.value,
+                        position, rotation, scale
+                    );
+                    transform.position = position;
+                    transform.rotation = Quaternion::Euler(rotation);
+                    transform.scale = scale;
+                }
+            }
+        }
 
         ImGui::End();
     }

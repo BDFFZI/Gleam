@@ -27,6 +27,7 @@ namespace Light
 
         void SetResolution(int2 resolution) const;
         void SetFullScreen(bool fullscreen) const;
+        void SetMousePosition(float2 position) const;
 
     private:
         GLFWwindow* glfwWindow = nullptr;

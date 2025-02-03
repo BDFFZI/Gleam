@@ -29,7 +29,6 @@ namespace Light
     class World
     {
     public:
-        static bool HasEntity(Entity entity);
         static Entity GetNextEntity();
         static const EntityInfo& GetEntityInfo(Entity entity);
         static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
@@ -38,6 +37,7 @@ namespace Light
         static Scene* GetMainScene();
         static Scene* CreateScene(std::string_view name = "");
 
+        static bool HasEntity(Entity entity);
         static Entity AddEntity(const Archetype* archetype, Scene* scene = GetMainScene());
         static void AddEntities(const Archetype* archetype, int count, Entity* outEntities = nullptr, Scene* scene = GetMainScene());
         static void RemoveEntity(Entity& entity);
@@ -70,6 +70,12 @@ namespace Light
         static void RemoveSystem(System* system);
         static void RemoveSystems(std::initializer_list<System*> systems);
 
+        template <Component TComponent>
+        static bool HasComponent(const Entity entity)
+        {
+            EntityInfo& entityInfo = entityInfos.at(entity);
+            return entityInfo.archetype->HasComponent(typeid(TComponent));
+        }
         template <Component TComponent>
         static TComponent& GetComponent(const Entity entity)
         {

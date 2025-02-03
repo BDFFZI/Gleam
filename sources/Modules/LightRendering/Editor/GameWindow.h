@@ -13,8 +13,8 @@ namespace Light
         }
 
     private:
-        float2 windowSize = 0;
         float2 windowPosition = 0;
+        float2 windowSize = 0;
         std::unique_ptr<GRenderTexture> renderTexture;
         ImTextureID renderTextureID = {};
         bool isDirty = false;
