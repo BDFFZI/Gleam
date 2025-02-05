@@ -13,6 +13,9 @@ namespace Light
     class PresentationSystem : public SystemGroup
     {
     public:
+        //通过修改该变量可以调整Presentation初始化Graphics库的方式，UI不需要，但Render需要
+        inline static std::function CreateGraphicsConfig = [] { return std::make_unique<GraphicsConfig>(); };
+        
         PresentationSystem(): SystemGroup(PostUpdateSystem, OrderRelation::After)
         {
         }

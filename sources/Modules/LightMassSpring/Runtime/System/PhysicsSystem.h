@@ -1,7 +1,7 @@
 #pragma once
 #include "LightECS/Runtime/System.h"
+#include "LightEngine/Runtime/System/TimeSystem.h"
 #include "LightMath/Runtime/LinearAlgebra/Vector.h"
-#include "LightWindow/Runtime/Window.h"
 
 namespace Light
 {
@@ -11,7 +11,7 @@ namespace Light
     class PhysicsSystem : public SystemGroup
     {
     public:
-        PhysicsSystem(): SystemGroup(Window, OrderRelation::After)
+        PhysicsSystem(): SystemGroup(TimeSystem, OrderRelation::After)
         {
         }
 

@@ -10,7 +10,7 @@ namespace Light
 
     private:
         friend class PointsRendererSystem;
-        std::unique_ptr<Mesh> pointsMesh;
+        std::optional<std::unique_ptr<Mesh>> pointsMesh;
     };
 
     Light_MakeType(PointsMesh, "B063D6E1-C2DE-4E37-AE7F-0F47502C8A0B")

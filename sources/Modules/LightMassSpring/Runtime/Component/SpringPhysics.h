@@ -11,7 +11,7 @@ namespace Light
     {
         EntityRef<Point, MassPointPhysics> pointA;
         EntityRef<Point, MassPointPhysics> pointB;
-        float length = 20;
+        float length = 10;
         float elasticity = 200;
         float resistance = 2;
     };

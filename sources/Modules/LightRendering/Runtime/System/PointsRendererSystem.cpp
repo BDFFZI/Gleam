@@ -8,19 +8,17 @@ namespace Light
 {
     void PointsRendererSystem::Update()
     {
-        View<PointsMesh>::Each(Awake, [](PointsMesh& pointsRenderer)
-        {
-            pointsRenderer.pointsMesh = std::make_unique<Mesh>(true);
-        });
-        View<PointsMesh, Renderer>::Each(Awake, [](PointsMesh& pointsRenderer, Renderer& renderer)
-        {
-            renderer.mesh = pointsRenderer.pointsMesh.get();
-            if (renderer.material == nullptr)
-                renderer.material = RenderingSystem->GetDefaultPointMaterial().get();
-        });
         View<PointsMesh>::Each([](PointsMesh& pointsRenderer)
         {
-            Mesh* pointMesh = pointsRenderer.pointsMesh.get();
+            if (pointsRenderer.pointsMesh == std::nullopt)
+            {
+                if (pointsRenderer.points.empty() == false)
+                    pointsRenderer.pointsMesh = std::make_unique<Mesh>(true);
+                else
+                    return;
+            }
+
+            std::unique_ptr<Mesh>& pointMesh = pointsRenderer.pointsMesh.value();
             std::vector<Vertex>& pointVertices = pointMesh->GetVertices();
             std::vector<uint32_t>& pointIndices = pointMesh->GetIndices();
 
@@ -34,6 +32,13 @@ namespace Light
             }
 
             pointMesh->SetDirty();
+        });
+        View<PointsMesh, Renderer>::Each([](PointsMesh& pointsRenderer, Renderer& renderer)
+        {
+            if (renderer.mesh == std::nullopt && pointsRenderer.pointsMesh.has_value())
+                renderer.mesh = pointsRenderer.pointsMesh.value().get();
+            if (renderer.material == std::nullopt)
+                renderer.material = RenderingSystem->GetDefaultPointMaterial().get();
         });
     }
 }

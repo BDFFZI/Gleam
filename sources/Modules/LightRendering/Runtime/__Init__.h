@@ -18,6 +18,6 @@ namespace Light
 
     Light_MakeInitEvent()
     {
-        CreateGraphicsConfig = RenderingConfig::CreateGraphicsConfig;
+        PresentationSystem::CreateGraphicsConfig = RenderingConfig::CreateGraphicsConfig;
     }
 }

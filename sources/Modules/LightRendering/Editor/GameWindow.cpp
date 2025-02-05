@@ -2,12 +2,13 @@
 
 #include <imgui_impl_vulkan.h>
 
+#include "LightECS/Runtime/View.h"
 #include "LightECS/Runtime/World.h"
+#include "LightEngine/Runtime/System/TimeSystem.h"
 #include "LightGraphics/Runtime/SwapChain.h"
 #include "LightRendering/Runtime/System/RenderingSystem.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightWindow/Runtime/Input.h"
-#include "LightWindow/Runtime/Time.h"
 
 namespace Light
 {
@@ -46,11 +47,25 @@ namespace Light
         windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
         //显示游戏画面
         float2 cursor = ImGui::GetCursorPos();
-        if (renderTextureID != nullptr)
-            ImGui::Image(renderTextureID, windowSize);
+        int cameraCount = 0;
+        View<Camera>::Each([&cameraCount](Camera& camera)
+        {
+            if (camera.renderTarget == std::nullopt)
+                cameraCount++;
+        });
+        if (cameraCount != 0)
+        {
+            if (renderTextureID != nullptr)
+                ImGui::Image(renderTextureID, windowSize);
+        }
+        else
+        {
+            ImGui::SetCursorPosY(windowSize.y / 2);
+            ImGui::Text("No Camera Direct Render To Screen");
+        }
         //帧率信息
         static double deltaTime = 0;
-        deltaTime = std::lerp(deltaTime, Time->GetDeltaTime(), 0.05f);
+        deltaTime = std::lerp(deltaTime, TimeSystem->GetDeltaTime(), 0.05f);
         ImGui::SetCursorPos(cursor);
         ImGui::TextColored(
             float4::Magenta(),

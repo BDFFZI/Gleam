@@ -36,7 +36,7 @@ class TestSystem : public System
 };
 Light_MakeSystem(TestSystem)
 
-inline int main()
+Light_MakeInitEvent()
 {
     World::AddSystem(TestSystem);
     //创建相机
@@ -61,8 +61,4 @@ inline int main()
     };
     Entity linesRendererEntity = Awake->AddEntity(LineRendererArchetype);
     World::GetComponent<LinesMesh>(linesRendererEntity).lines = lines;
-
-
-    Engine::Start();
-    return 0;
 }

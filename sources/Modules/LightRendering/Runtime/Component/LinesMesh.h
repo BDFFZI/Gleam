@@ -10,7 +10,7 @@ namespace Light
 
     private:
         friend class LinesRendererSystem;
-        std::unique_ptr<Mesh> linesMesh;
+        std::optional<std::unique_ptr<Mesh>> linesMesh;
     };
 
     Light_MakeType(LinesMesh, "253F9DB5-B894-43FD-A319-A69717536850")

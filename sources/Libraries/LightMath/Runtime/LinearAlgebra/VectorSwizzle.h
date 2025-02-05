@@ -3,7 +3,7 @@
 namespace Light
 {
 #define Light_MakeVectorMemberFunctions(Type,Number) \
-constexpr vector():vector(Type(0)) { };\
+constexpr vector() = default;\
 constexpr vector(const Type value)\
 {\
 for (int i = 0; i < (Number); i++)\

@@ -8,7 +8,7 @@ namespace Light
         float3 force;
         float3 velocity;
         float mass = 1;
-        float drag = 0.99f;
+        float drag = 0.01f;
     };
 
     Light_MakeType(MassPointPhysics, "3BF4A03E-EF37-4003-871A-6A5A03CCBCCF")

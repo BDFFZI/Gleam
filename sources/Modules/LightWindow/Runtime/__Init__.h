@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "Cursor.h"
 #include "Window.h"
-#include "Time.h"
 #include "Input.h"
 #include "LightEngine/Runtime/Engine.h"
 

@@ -7,8 +7,8 @@ namespace Light
 {
     struct Renderer
     {
-        Material* material;
-        Mesh* mesh;
+        std::optional<Material*> material;
+        std::optional<Mesh*> mesh;
         Bounds bounds;
     };
 }

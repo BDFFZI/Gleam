@@ -1,5 +1,7 @@
 ﻿#include "MassSpringMeshSystem.h"
 
+#include <iostream>
+
 #include "LightECS/Runtime/View.h"
 #include "LightMassSpring/Runtime/Component/MassPointPhysics.h"
 #include "LightMassSpring/Runtime/Component/MassSpringMesh.h"
@@ -32,11 +34,11 @@ namespace Light
 
         View<MassSpringMesh, PointsMesh>::Each([this](MassSpringMesh&, PointsMesh& pointsMesh)
         {
-            pointsMesh.points.swap(massPoints);
+            pointsMesh.points = massPoints;
         });
         View<MassSpringMesh, LinesMesh>::Each([this](MassSpringMesh&, LinesMesh& linesMesh)
         {
-            linesMesh.lines.swap(springs);
+            linesMesh.lines = springs;
         });
     }
 }

@@ -6,10 +6,10 @@
 #include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "LightRendering/Runtime/Entity/Archetype.h"
 #include "LightWindow/Runtime/Input.h"
-#include "LightWindow/Runtime/Time.h"
 #include <ImGuizmo.h>
 
 #include "LightEngine/Editor/InspectorWindow.h"
+#include "LightEngine/Runtime/System/TimeSystem.h"
 #include "LightEngine/Runtime/System/TransformSystem.h"
 #include "LightWindow/Runtime/Cursor.h"
 
@@ -18,7 +18,7 @@ namespace Light
     float3 eulerAngles;
     void ControlCamera(const class Input& input, LocalTransform& localTransform, LocalToWorld localToWorld)
     {
-        const float deltaTime = Time->GetDeltaTime();
+        const float deltaTime = TimeSystem->GetDeltaTime();
         const auto moveSpeed = static_cast<float>(4 * (input.GetKey(KeyCode::LeftShift) ? 3 : 1));
 
         float3 right = localToWorld.GetRight();

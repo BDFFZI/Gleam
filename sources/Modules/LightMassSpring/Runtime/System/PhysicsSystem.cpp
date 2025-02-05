@@ -1,9 +1,10 @@
 #include "PhysicsSystem.h"
-#include "LightWindow/Runtime/Time.h"
+
+#include "LightEngine/Runtime/System/TimeSystem.h"
 
 void Light::PhysicsSystem::Update()
 {
-    float currentTime = Time->GetTime();
+    float currentTime = TimeSystem->GetTime();
     float deltaTime = currentTime - lastTime;
     while (deltaTime >= fixedDeltaTime)
     {

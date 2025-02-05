@@ -2,7 +2,6 @@
 #include "LightGraphics/Runtime/SwapChain.h"
 #include "LightGraphics/Runtime/Graphics.h"
 #include "LightWindow/Runtime/Window.h"
-#include "__Init__.h"
 
 void Light::PresentationSystem::Start()
 {

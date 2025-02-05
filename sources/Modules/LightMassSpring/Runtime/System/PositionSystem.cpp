@@ -14,7 +14,7 @@ void Light::PositionSystem::Update()
         massPointPhysics.force = 0;
         //计算速度（速度不会自然衰减，牛顿第一定律）
         massPointPhysics.velocity += acceleration * PhysicsSystem->GetFixedDeltaTime();
-        massPointPhysics.velocity *= massPointPhysics.drag;
+        massPointPhysics.velocity *= 1 - massPointPhysics.drag;
         //根据速度移动
         point.position += massPointPhysics.velocity * PhysicsSystem->GetFixedDeltaTime();
     });

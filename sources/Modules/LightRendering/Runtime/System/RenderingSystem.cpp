@@ -41,9 +41,9 @@ namespace Light
     RendererInfo::RendererInfo(const float4x4& localToWorld, Renderer& renderer)
         : localToWorld(localToWorld)
     {
-        renderQueue = renderer.material->GetRenderQueue();
-        material = renderer.material;
-        mesh = renderer.mesh;
+        renderQueue = renderer.material.value()->GetRenderQueue();
+        material = renderer.material.value();
+        mesh = renderer.mesh.value();
     }
     bool RendererInfo::operator<(const RendererInfo& other) const
     {
@@ -117,7 +117,8 @@ namespace Light
         rendererInfos.clear();
         View<LocalToWorld, Renderer>::Each([this](auto& localToWorld, auto& renderer)
         {
-            rendererInfos.emplace(localToWorld.value, renderer);
+            if (renderer.material.has_value() && renderer.mesh.has_value())
+                rendererInfos.emplace(localToWorld.value, renderer);
         });
         //渲染
         CommandBuffer& commandBuffer = CommandBufferPool::Apply();

@@ -8,20 +8,17 @@ namespace Light
 {
     void LinesRendererSystem::Update()
     {
-        View<LinesMesh>::Each(Awake, [](LinesMesh& linesRenderer)
-        {
-            linesRenderer.linesMesh = std::make_unique<Mesh>(true);
-        });
-        View<LinesMesh, Renderer>::Each(Awake, [](LinesMesh& linesRenderer, Renderer& renderer)
-        {
-            linesRenderer.linesMesh = std::make_unique<Mesh>(true);
-            renderer.mesh = linesRenderer.linesMesh.get();
-            if (renderer.material == nullptr)
-                renderer.material = RenderingSystem->GetDefaultLineMaterial().get();
-        });
         View<LinesMesh>::Each([](LinesMesh& linesRenderer)
         {
-            Mesh* lineMesh = linesRenderer.linesMesh.get();
+            if (linesRenderer.linesMesh == std::nullopt)
+            {
+                if (linesRenderer.lines.empty() == false)
+                    linesRenderer.linesMesh = std::make_unique<Mesh>(true);
+                else
+                    return;
+            }
+
+            std::unique_ptr<Mesh>& lineMesh = linesRenderer.linesMesh.value();
             std::vector<Vertex>& lineVertices = lineMesh->GetVertices();
             std::vector<uint32_t>& lineIndices = lineMesh->GetIndices();
 
@@ -37,6 +34,13 @@ namespace Light
             }
 
             lineMesh->SetDirty();
+        });
+        View<LinesMesh, Renderer>::Each([](LinesMesh& linesRenderer, Renderer& renderer)
+        {
+            if (renderer.mesh == std::nullopt && linesRenderer.linesMesh.has_value())
+                renderer.mesh = linesRenderer.linesMesh.value().get();
+            if (renderer.material == std::nullopt)
+                renderer.material = RenderingSystem->GetDefaultLineMaterial().get();
         });
     }
 }

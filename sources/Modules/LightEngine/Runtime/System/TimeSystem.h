@@ -22,6 +22,7 @@ namespace Light
         void SetTimeScale(const float scale) { timeScale = scale; }
 
     private:
+        constexpr static float MaxDeltaTime = 0.1f;
         Timer<> timer;
         int frameCount = -1;
         float timeScale = 1;
@@ -29,7 +30,6 @@ namespace Light
         float time = 0;
         float deltaTime = 0;
 
-        void Start() override;
         void Update() override;
     };
     Light_MakeSystem(TimeSystem)

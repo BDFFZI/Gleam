@@ -7,6 +7,8 @@
 
 namespace Light
 {
-    Light_AddSystems(GameWindow)
-    Light_AddSystems(SceneWindow)
+    Light_AddSystems(
+        GameWindow,
+        SceneWindow
+    )
 }

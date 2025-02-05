@@ -86,6 +86,22 @@ namespace Light
             Each_Inner(scene, function, std::make_index_sequence<sizeof...(TComponents)>());
         }
 
+        static int Count(Scene* scene)
+        {
+            Query();
+            return Count_Inner(scene);
+        }
+        static int Count()
+        {
+            Query();
+
+            int count = 0;
+            for (auto& element : World::GetAllScenes())
+                if (element->GetVisibility())
+                    count += Count_Inner(element.get());
+            return count;
+        }
+
     private:
         inline static bool isQueried = false;
         inline static std::vector<Archetype*> targetArchetypes = {};
@@ -140,6 +156,13 @@ namespace Light
                 if (element->GetVisibility())
                     Each_Inner(element.get(), function, std::index_sequence<Indices...>());
             }
+        }
+        static int Count_Inner(Scene* scene)
+        {
+            int count = 0;
+            for (int i = 0; i < targetArchetypeCount; i++)
+                count += scene->GetEntityHeap(targetArchetypes[i]).GetCount();
+            return count;
         }
     };
 

@@ -1,5 +1,6 @@
 addPackage()
 
 linkLibrary(LightEngineRuntime ${PackageName}Runtime)
-linkLibrary(LightMathRuntime ${PackageName}Runtime)
-linkLibrary(LightWindowRuntime ${PackageName}Runtime)
+linkLibrary(LightRenderingRuntime ${PackageName}Runtime)
+
+linkLibrary(LightRenderingEditor ${PackageName}RuntimeTests)
