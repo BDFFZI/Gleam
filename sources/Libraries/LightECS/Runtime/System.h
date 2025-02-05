@@ -30,11 +30,22 @@ namespace Light
             return system;
         }
 
-        explicit System(std::optional<SystemGroup*> group, int minOrder = LeftOrder, int maxOrder = RightOrder);
+        /**
+         * minOrder和maxOrder不仅用于计算System的执行顺序，同时暗示了System的作用域，例如可以借此有意限制必须在其他系统之前执行。
+         * @param group 
+         * @param minOrder 
+         * @param maxOrder 
+         */
+        explicit System(std::optional<SystemGroup*> group = std::nullopt, int minOrder = LeftOrder, int maxOrder = RightOrder);
+        /**
+         * 根据与其他System的相对顺序计算当前System顺序，计算时会注意遵从被依赖System的作用域。
+         * @param system 
+         * @param orderRelation 
+         */
         System(System* system, OrderRelation orderRelation);
         virtual ~System() = default;
 
-        const std::string& GetName() ;
+        const std::string& GetName();
         std::optional<SystemGroup*> GetGroup() const;
         int GetOrder() const;
 

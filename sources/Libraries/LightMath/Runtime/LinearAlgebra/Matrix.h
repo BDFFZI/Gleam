@@ -7,8 +7,11 @@ namespace Light
 {
     template <class Type, int Row, int Column>
     using matrix = vector<Type, Row * Column>;
+
     using float3x3 = matrix<float, 3, 3>;
     using float4x4 = matrix<float, 4, 4>;
+    using bool3x3 = matrix<bool, 3, 3>;
+    using bool4x4 = matrix<bool, 4, 4>;
 
     template <class Type>
     struct vector<Type, 3 * 3>
@@ -52,7 +55,7 @@ namespace Light
          * @param rotation 
          * @return 
          */
-        
+
         //为了与图像接口兼容故采用按列存储
         union
         {

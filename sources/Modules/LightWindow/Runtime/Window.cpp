@@ -6,6 +6,12 @@
 
 using namespace Light;
 
+int2 Window::GetWindowPosition() const
+{
+    int2 position;
+    glfwGetWindowPos(glfwWindow, &position.x, &position.y);
+    return position;
+}
 int2 Window::GetResolution() const
 {
     int2 resolution;

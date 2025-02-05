@@ -1,6 +1,7 @@
 #include "EditorUISerializer.h"
 
 #include "EditorUIUtility.h"
+#include "LightMath/Runtime/LinearAlgebra/Matrix.h"
 #include "LightUI/Runtime/UI.h"
 
 namespace Light
@@ -169,6 +170,8 @@ namespace Light
                 ImGui::DragFloat3(GetNodeName(-1).c_str(), static_cast<float*>(arrayBuffer[0]), dragSpeed);
             else if (arrayBuffer.size() == 4)
                 ImGui::DragFloat4(GetNodeName(-1).c_str(), static_cast<float*>(arrayBuffer[0]), dragSpeed);
+            else if (arrayBuffer.size() == 16)
+                UI::DragFloat4x4(GetNodeName(-1).c_str(), static_cast<float4x4*>(arrayBuffer[0]), dragSpeed);
             else
             {
                 if (ImGui::TreeNode(GetNodeName(-1).c_str()))

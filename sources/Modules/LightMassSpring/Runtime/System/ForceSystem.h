@@ -4,14 +4,14 @@
 
 namespace Light
 {
-    class PositionSystem : public System
+    class ForceSystem : public System
     {
     public:
-        PositionSystem(): System(&PhysicsSystem, MiddleOrder)
+        ForceSystem(): System(PhysicsSystem, LeftOrder, MiddleOrder)
         {
         }
 
         void Update() override;
     };
-    inline PositionSystem PositionSystem = {};
+    Light_MakeSystem(ForceSystem);
 }

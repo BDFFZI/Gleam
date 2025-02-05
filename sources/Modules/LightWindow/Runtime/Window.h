@@ -3,7 +3,7 @@
 
 #include "InputEnum.h"
 #include "LightECS/Runtime/System.h"
-#include "LightEngine/Runtime/System/SimulationSystem.h"
+#include "LightEngine/Runtime/System/UpdateSystem.h"
 #include "LightMath/Runtime/LinearAlgebra/Vector.h"
 
 namespace Light
@@ -11,11 +11,12 @@ namespace Light
     class Window : public SystemGroup
     {
     public:
-        Window(): SystemGroup(SimulationSystem, OrderRelation::Before)
+        Window(): SystemGroup(PreUpdateSystem, LeftOrder, MiddleOrder)
         {
         }
 
         GLFWwindow* GetGlfwWindow() const { return glfwWindow; }
+        int2 GetWindowPosition() const;
         int2 GetResolution() const;
         bool GetFullScreen() const;
 

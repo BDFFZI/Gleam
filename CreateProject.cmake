@@ -72,6 +72,8 @@ macro(setExecutable)
 
     add_executable(${ProjectName} "${ProjectFiles}")
     setVS()
+
+    # set(Projects "${ProjectName};${Projects}" CACHE STRING "所有项目" FORCE)
 endmacro()
 
 # 设置项目为测试

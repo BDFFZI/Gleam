@@ -18,11 +18,17 @@ namespace Light
         float4 background = 0;
     };
 
-    struct CameraTransform
+    struct WorldToClip
     {
         float4x4 worldToView;
         float4x4 viewToClip;
-        float4x4 worldToClip;
+        float4x4 value;
+    };
+
+    struct ScreenToWorld
+    {
+        float4x4 screenToClip;
+        float4x4 value;
     };
 
     Light_MakeType(Camera, "AE2D3669-EC8B-4E5C-99AE-460E7253BD59")
@@ -36,9 +42,16 @@ namespace Light
         Light_MakeType_AddField(background);
     }
 
-    Light_MakeType(CameraTransform, "BCFEBBDE-A611-421E-B014-F560CB37A482")
+    Light_MakeType(WorldToClip, "")
     {
         Light_MakeType_AddField(worldToView);
         Light_MakeType_AddField(viewToClip);
+        Light_MakeType_AddField(value);
+    }
+
+    Light_MakeType(ScreenToWorld, "")
+    {
+        Light_MakeType_AddField(screenToClip);
+        Light_MakeType_AddField(value);
     }
 }

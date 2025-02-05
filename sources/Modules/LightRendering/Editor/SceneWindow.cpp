@@ -4,15 +4,14 @@
 #include "LightEngine/Runtime/Engine.h"
 #include "LightEngine/Runtime/Component/Transform.h"
 #include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
-#include "LightRendering/Runtime/Component/Archetype.h"
+#include "LightRendering/Runtime/Entity/Archetype.h"
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Time.h"
 #include <ImGuizmo.h>
-#include <iostream>
 
 #include "LightEngine/Editor/InspectorWindow.h"
+#include "LightEngine/Runtime/System/TransformSystem.h"
 #include "LightWindow/Runtime/Cursor.h"
-
 
 namespace Light
 {
@@ -165,7 +164,7 @@ namespace Light
             ImGuizmo::SetRect(windowPosition.x, windowPosition.y, windowSize.x, windowSize.y);
             //获取并设置相机属性
             Camera camera = World::GetComponent<Camera>(sceneCamera);
-            CameraTransform cameraTransform = World::GetComponent<CameraTransform>(sceneCamera);
+            WorldToClip cameraTransform = World::GetComponent<WorldToClip>(sceneCamera);
             ImGuizmo::SetOrthographic(camera.orthographic);
             //绘制网格线
             {
@@ -179,11 +178,15 @@ namespace Light
             //绘制手柄
             if (World::HasEntity(InspectorWindow->target) && World::HasComponent<LocalToWorld>(InspectorWindow->target))
             {
+                //获取组件
+                LocalToWorld& localToWorld = World::GetComponent<LocalToWorld>(InspectorWindow->target);
+                std::optional<LocalTransform*> transform = World::TryGetComponent<LocalTransform>(InspectorWindow->target);
+                if (transform.has_value()) //LocalToWorld可能过时，显式更新一次
+                    TransformSystem::ComputeLocalToWorld(*transform.value(), localToWorld);
                 //获取手柄类型信息
                 static constexpr ImGuizmo::OPERATION options[] = {ImGuizmo::BOUNDS, ImGuizmo::TRANSLATE, ImGuizmo::ROTATE, ImGuizmo::SCALE};
                 ImGuizmo::OPERATION imGuiOption = options[handleOption];
                 //绘制
-                LocalToWorld localToWorld = World::GetComponent<LocalToWorld>(InspectorWindow->target);
                 Manipulate(
                     reinterpret_cast<float*>(&cameraTransform.worldToView),
                     reinterpret_cast<float*>(&cameraTransform.viewToClip),
@@ -191,10 +194,8 @@ namespace Light
                     reinterpret_cast<float*>(&localToWorld.value)
                 );
                 //解析矩阵
-                if (World::HasComponent<LocalTransform>(InspectorWindow->target))
+                if (transform.has_value())
                 {
-                    LocalTransform& transform = World::GetComponent<LocalTransform>(InspectorWindow->target);
-
                     float3 position;
                     float3 rotation;
                     float3 scale;
@@ -202,9 +203,9 @@ namespace Light
                         localToWorld.value,
                         position, rotation, scale
                     );
-                    transform.position = position;
-                    transform.rotation = Quaternion::Euler(rotation);
-                    transform.scale = scale;
+                    transform.value()->position = position;
+                    transform.value()->rotation = Quaternion::Euler(rotation);
+                    transform.value()->scale = scale;
                 }
             }
         }

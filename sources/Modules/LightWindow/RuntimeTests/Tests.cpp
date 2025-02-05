@@ -5,20 +5,19 @@
 #include "LightMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "LightWindow/Runtime/Cursor.h"
 #include "LightWindow/Runtime/Input.h"
-#include "LightWindow/Runtime/Time.h"
 #include "LightWindow/Runtime/Window.h"
 
 using namespace Light;
 
-int main()
-{
-    float2 mousePosition;
-    float2 resolution;
+SystemEvent systemEvent = {"WindowTest", PostUpdateSystem};
+int2 windowPosition;
+float2 resolution;
 
-    SystemEvent systemEvent = {"WindowTest", SimulationSystem};
+Light_MakeInitEvent()
+{
     systemEvent.onStart = [&]
     {
-        mousePosition = Window->GetMousePosition();
+        windowPosition = Window->GetWindowPosition();
         resolution = static_cast<float2>(Window->GetResolution());
     };
     systemEvent.onUpdate = [&]
@@ -38,14 +37,12 @@ int main()
         //检查鼠标左键和鼠标位置输入
         if (Input->GetMouseButton(MouseButton::Left))
             std::cout << "Fire:" << to_string(Input->GetMousePosition()) << '\n';
-        //检查时间
-        if (Input->GetKey(KeyCode::T))
-            std::cout << std::format("Time:{:f}\tDeltaTime:{:f}\n", Time->GetTime(), Time->GetDeltaTime());
         //检查鼠标位置增量
         if (Input->GetKey(KeyCode::LeftShift))
         {
-            mousePosition += float2(Input->GetMouseMoveDelta().x, Input->GetMouseMoveDelta().y);
-            glfwSetWindowPos(Window->GetGlfwWindow(), static_cast<int>(mousePosition.x), static_cast<int>(mousePosition.y));
+            std::cout << "LeftShift:" << to_string(Input->GetMouseMoveDelta()) << '\n';
+            windowPosition += int2(Input->GetMouseMoveDelta().x, Input->GetMouseMoveDelta().y);
+            glfwSetWindowPos(Window->GetGlfwWindow(), windowPosition.x, windowPosition.y);
         }
         //检查输入区域功能
         if (Input->GetMouseButtonDown(MouseButton::Right))
@@ -78,6 +75,4 @@ int main()
     };
 
     World::AddSystem(&systemEvent);
-    Engine::Start();
-    return 0;
 }

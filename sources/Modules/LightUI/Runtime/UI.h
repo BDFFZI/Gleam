@@ -10,6 +10,7 @@ operator Light::float4()const{return Light::float4{x,y,z,w};}
 // ReSharper restore CppUnusedIncludeDirective
 
 #include "LightGraphics/Runtime/Resource/GTexture/GTexture.h"
+#include "LightMath/Runtime/LinearAlgebra/Matrix.h"
 
 namespace Light
 {
@@ -18,7 +19,8 @@ namespace Light
     public:
         static ImTextureID CreateTexture(GTexture& texture);
         static void DeleteTexture(ImTextureID texture);
-
         static float2 GetWindowContentRegionSize();
+
+        static bool DragFloat4x4(const char* label, float4x4* v, float v_speed = 1);
     };
 }

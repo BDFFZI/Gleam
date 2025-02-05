@@ -18,7 +18,7 @@ namespace Light
         std::unique_ptr<GRenderTexture> renderTexture;
         ImTextureID renderTextureID = {};
         bool isDirty = false;
-        SystemEvent systemEvent = SystemEvent("GameWindow_PreProcess", SimulationSystem);
+        SystemEvent systemEvent = SystemEvent("GameWindow_PreProcess", PostUpdateSystem);
 
         void Start() override;
         void Stop() override;

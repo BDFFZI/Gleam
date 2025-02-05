@@ -20,9 +20,3 @@ private:
 };
 Light_MakeSystem(MySystem)
 Light_AddSystems(MySystem)
-
-int main()
-{
-    Light::Engine::Start();
-    return 0;
-}

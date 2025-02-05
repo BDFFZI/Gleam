@@ -3,7 +3,7 @@
 #include "LightECS/Runtime/View.h"
 #include "LightGraphics/Runtime/SwapChain.h"
 #include "LightRendering/Runtime/Component/Camera.h"
-#include "LightRendering/Runtime/Resource/CommandBufferPool.h"
+#include "LightRendering/Runtime/Asset/CommandBufferPool.h"
 #include "LightWindow/Runtime/Window.h"
 
 namespace Light
@@ -30,7 +30,7 @@ namespace Light
         return fullScreenMesh;
     }
 
-    CameraInfo::CameraInfo(Camera& camera, CameraTransform& cameraTransform)
+    CameraInfo::CameraInfo(Camera& camera, WorldToClip& cameraTransform)
         : camera(&camera), cameraTransform(&cameraTransform)
     {
     }
@@ -110,7 +110,7 @@ namespace Light
     {
         //统计渲染对象
         cameraInfos.clear();
-        View<Camera, CameraTransform>::Each([this](auto& camera, auto& cameraTransform)
+        View<Camera, WorldToClip>::Each([this](auto& camera, auto& cameraTransform)
         {
             cameraInfos.emplace(camera, cameraTransform);
         });
@@ -128,7 +128,7 @@ namespace Light
             GRenderTarget* renderTarget = cameraInfo.camera->renderTarget.value_or(defaultRenderTarget);
             commandBuffer.SetRenderTarget(*renderTarget);
             commandBuffer.ClearRenderTarget(cameraInfo.camera->background);
-            commandBuffer.SetViewProjectionMatrices(cameraInfo.cameraTransform->worldToClip);
+            commandBuffer.SetViewProjectionMatrices(cameraInfo.cameraTransform->value);
             //绘制每个渲染器
             for (const auto& rendererInfo : rendererInfos)
             {

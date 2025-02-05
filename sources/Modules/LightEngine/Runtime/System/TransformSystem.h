@@ -1,13 +1,16 @@
 #pragma once
-#include "SimulationSystem.h"
+#include "UpdateSystem.h"
 #include "LightECS/Runtime/System.h"
+#include "LightEngine/Runtime/Component/Transform.h"
 
 namespace Light
 {
     class TransformSystem : public System
     {
     public:
-        TransformSystem(): System(SimulationSystem)
+        static void ComputeLocalToWorld(LocalTransform localTransform, LocalToWorld& localToWorld);
+
+        TransformSystem(): System(PostUpdateSystem)
         {
         }
 

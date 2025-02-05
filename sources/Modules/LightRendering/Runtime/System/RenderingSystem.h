@@ -4,17 +4,17 @@
 #include "LightPresentation/Runtime/PresentationSystem.h"
 #include "LightRendering/Runtime/Component/Camera.h"
 #include "LightRendering/Runtime/Component/Renderer.h"
-#include "LightRendering/Runtime/Resource/Mesh.h"
+#include "LightRendering/Runtime/Asset/Mesh.h"
 
 namespace Light
 {
     struct CameraInfo
     {
         Camera* camera;
-        CameraTransform* cameraTransform;
+        WorldToClip* cameraTransform;
 
         CameraInfo() = default;
-        CameraInfo(Camera& camera, CameraTransform& cameraTransform);
+        CameraInfo(Camera& camera, WorldToClip& cameraTransform);
         bool operator<(const CameraInfo& other) const;
     };
 

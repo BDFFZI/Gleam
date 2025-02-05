@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include "Public/Component.h"
-#include "Rendering/RenderingComponent.h"
+#include "LightRendering/Runtime/Entity/Archetype.h"
 #include "Physics/PhysicsComponent.h"
+#include "LightMath/Runtime/Geometry/Point.h"
 
-Light_MakeArchetype(MassPointArchetype, Light::Point, Light::Renderer, Light::MassPointPhysics)
-Light_MakeArchetype(SpringArchetype, Light::Segment, Light::Renderer, Light::SpringPhysics)
-Light_MakeArchetype(LineArchetype, Light::Segment, Light::Renderer)
+Light_MakeArchetype(MassPointArchetype, Light::Point, Light::MassPointPhysics);
+Light_MakeArchetype(SpringArchetype, Light::Segment, Light::SpringPhysics)
+Light_MakeArchetype(LineArchetype, Light::Segment)

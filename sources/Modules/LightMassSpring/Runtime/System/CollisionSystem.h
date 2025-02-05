@@ -1,7 +1,14 @@
 ﻿#pragma once
+#include "PhysicsSystem.h"
+#include "LightECS/Runtime/System.h"
 
-class CollisionSystem
+namespace Light
 {
-public:
-    
-};
+    class CollisionSystem : public System
+    {
+    public:
+        CollisionSystem(): System(PhysicsSystem, MiddleOrder, RightOrder)
+        {
+        }
+    };
+}

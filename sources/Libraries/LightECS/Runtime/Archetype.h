@@ -30,6 +30,16 @@ namespace Light
             ));
             return archetype.get();
         }
+        template <Component... TComponents>
+        static Archetype* Register(const char* name, const Archetype* parent)
+        {
+            std::vector<ComponentInfo> componentInfos = parent->componentInfos;
+            componentInfos.insert(componentInfos.end(), {ComponentInfoMeta<TComponents>::GetInfo()...});
+            std::unique_ptr<Archetype>& archetype = allArchetypes.emplace_back(
+                new Archetype(name, componentInfos)
+            );
+            return archetype.get();
+        }
 
         const std::string& GetName() const;
         int GetComponentCount() const;
@@ -61,9 +71,11 @@ namespace Light
         int archetypeSize;
         std::unordered_map<std::type_index, int> componentOffsetsMap; //缓存组件偏移查询信息
 
-        Archetype(std::string_view name, std::initializer_list<ComponentInfo> componentInfos);
+        Archetype(std::string_view name, const std::vector<ComponentInfo>& componentInfos);
     };
 
 #define Light_MakeArchetype(name,...)\
 inline const Light::Archetype* name = Light::Archetype::Register<Light::Entity,__VA_ARGS__>(#name);
+#define Light_MakeArchetypeChild(name,parent,...)\
+inline const Light::Archetype* name = Light::Archetype::Register<__VA_ARGS__>(#name,parent);
 }

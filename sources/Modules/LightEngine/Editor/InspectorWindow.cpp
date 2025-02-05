@@ -49,6 +49,7 @@ namespace Light
                 void* component = entityInfo.components + componentOffset;
                 //绘制组件标题
                 ImGui::SeparatorText(componentName);
+                ImGui::PushID(componentName);
                 //绘制组件内容
                 Type* type = Type::GetType(componentType);
                 if (type != nullptr)
@@ -56,6 +57,7 @@ namespace Light
                     EditorUISerializer editorUiSerializer;
                     type->serialize(editorUiSerializer, component);
                 }
+                ImGui::PopID();
             }
         }
 

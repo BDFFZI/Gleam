@@ -2,14 +2,15 @@
 #include <gtest/gtest.h>
 
 #include "LightEngine/Runtime/Engine.h"
-#include "LightEngine/Runtime/System/SimulationSystem.h"
+#include "LightEngine/Runtime/System/TimeSystem.h"
+#include "LightEngine/Runtime/System/UpdateSystem.h"
 
 using namespace Light;
 
 class MySystem : public System
 {
 public:
-    MySystem(): System(SimulationSystem)
+    MySystem(): System(PostUpdateSystem)
     {
     }
 
@@ -21,8 +22,14 @@ public:
     {
         countDown--;
         std::cout << "CountDown: " << countDown << std::endl;
-        if (countDown == 0)
+        if (countDown == 1)
             Engine::Stop();
+
+        std::cout
+            << std::format("Time:{:f}\tDeltaTime:{:f}", TimeSystem->GetTime(), TimeSystem->GetDeltaTime())
+            << std::endl;
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     void Stop() override
     {
@@ -33,9 +40,3 @@ public:
 };
 Light_MakeSystem(MySystem)
 Light_AddSystems(MySystem)
-
-int main()
-{
-    Engine::Start();
-    return 0;
-}

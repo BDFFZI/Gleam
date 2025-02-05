@@ -50,7 +50,7 @@ struct SpringPhysics
 };
 
 Light_MakeArchetype(physicsArchetype, Transform, RigidBody)
-Light_MakeArchetype(physicsWithSpringArchetype, Transform, RigidBody, SpringPhysics)
+Light_MakeArchetypeChild(physicsWithSpringArchetype, physicsArchetype, SpringPhysics)
 
 TEST(ECS, Heap)
 {

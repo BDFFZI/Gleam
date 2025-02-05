@@ -1,7 +1,7 @@
 #pragma once
-#include "Camera.h"
-#include "LinesMesh.h"
-#include "PointsMesh.h"
+#include "LightRendering/Runtime/Component/Camera.h"
+#include "LightRendering/Runtime/Component/LinesMesh.h"
+#include "LightRendering/Runtime/Component/PointsMesh.h"
 #include "LightEngine/Runtime/Component/Transform.h"
 #include "LightECS/Runtime/Archetype.h"
 

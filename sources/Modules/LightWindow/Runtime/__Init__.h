@@ -9,7 +9,6 @@ namespace Light
 {
     Light_AddSystems(Cursor)
     Light_AddSystems(Window)
-    Light_AddSystems(Time)
     Light_AddSystems(Input)
 }
 

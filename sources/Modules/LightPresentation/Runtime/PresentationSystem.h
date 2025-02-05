@@ -3,14 +3,17 @@
 #include "LightECS/Runtime/System.h"
 #include "LightGL/Runtime/GLCommandBuffer.h"
 #include "LightGraphics/Runtime/GCommandBuffer.h"
-#include "LightEngine/Runtime/System/SimulationSystem.h"
+#include "LightEngine/Runtime/System/UpdateSystem.h"
 
 namespace Light
 {
+    /**
+     * 将最终数据可视化输出到外部呈现设备中
+     */
     class PresentationSystem : public SystemGroup
     {
     public:
-        PresentationSystem(): SystemGroup(SimulationSystem, OrderRelation::After)
+        PresentationSystem(): SystemGroup(PostUpdateSystem, OrderRelation::After)
         {
         }
 

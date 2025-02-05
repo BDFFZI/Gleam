@@ -7,15 +7,19 @@
 
 namespace Light
 {
+    void TransformSystem::ComputeLocalToWorld(LocalTransform localTransform, LocalToWorld& localToWorld)
+    {
+        float3x3 scale = float3x3::Scale(localTransform.scale);
+        float3x3 rotate = localTransform.rotation.ToRotationMatrix();
+        float4x4 translate = float4x4::Translate(localTransform.position);
+        localToWorld.value = mul(translate, static_cast<float4x4>(mul(rotate, scale)));
+    }
     void TransformSystem::Update()
     {
         View<ViewExclusion<Parent>, LocalTransform, LocalToWorld>::Each(
-            [this](LocalTransform& local, LocalToWorld& localToWorld)
+            [this](LocalTransform& localTransform, LocalToWorld& localToWorld)
             {
-                float3x3 scale = float3x3::Scale(local.scale);
-                float3x3 rotate = local.rotation.ToRotationMatrix();
-                float4x4 translate = float4x4::Translate(local.position);
-                localToWorld.value = mul(translate, static_cast<float4x4>(mul(rotate, scale)));
+                ComputeLocalToWorld(localTransform, localToWorld);
             }
         );
 

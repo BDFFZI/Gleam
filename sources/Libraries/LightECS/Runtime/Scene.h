@@ -5,6 +5,9 @@
 
 namespace Light
 {
+    /**
+     * 一种实体容器，专门负责存储管理实体
+     */
     class Scene
     {
     public:

@@ -2,6 +2,7 @@
 #include "LightECS/Runtime/Scene.h"
 #include "LightECS/Runtime/System.h"
 #include "LightECS/Runtime/World.h"
+#include "LightEngine/Runtime/Engine.h"
 
 namespace Light
 {

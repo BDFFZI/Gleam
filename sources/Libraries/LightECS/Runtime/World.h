@@ -77,6 +77,13 @@ namespace Light
             return entityInfo.archetype->HasComponent(typeid(TComponent));
         }
         template <Component TComponent>
+        static std::optional<TComponent*> TryGetComponent(const Entity entity)
+        {
+            if (HasComponent<TComponent>(entity) == false)
+                return std::nullopt;
+            return &GetComponent<TComponent>(entity);
+        }
+        template <Component TComponent>
         static TComponent& GetComponent(const Entity entity)
         {
             assert(entity != Entity::Null && "目标实体为空！");

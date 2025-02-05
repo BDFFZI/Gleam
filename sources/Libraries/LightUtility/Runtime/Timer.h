@@ -12,18 +12,18 @@ namespace Light
             Tick();
         }
 
-        int Tick()
+        auto Tick()
         {
             auto durationTime = Time();
             lastTime = std::chrono::high_resolution_clock::now();
             return durationTime;
         }
-        int Time()
+        auto Time()
         {
             auto currentTime = std::chrono::high_resolution_clock::now();
             auto duration = currentTime - lastTime;
             auto durationTime = std::chrono::duration_cast<TUnit>(duration).count();
-            return static_cast<int>(durationTime);
+            return durationTime;
         }
 
     private:

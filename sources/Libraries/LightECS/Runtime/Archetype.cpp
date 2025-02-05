@@ -68,7 +68,7 @@ namespace Light
         return result;
     }
 
-    Archetype::Archetype(const std::string_view name, const std::initializer_list<ComponentInfo> componentInfos)
+    Archetype::Archetype(const std::string_view name, const std::vector<ComponentInfo>& componentInfos)
         : name(name),
           componentInfos(componentInfos)
     {

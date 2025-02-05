@@ -19,6 +19,12 @@ public:
 private:
     ImTextureID textureID = {};
     std::unique_ptr<GTexture2D> texture = {};
+    float4x4 matrix = {
+        11, 12, 13, 14,
+        21, 22, 23, 24,
+        31, 32, 33, 34,
+        41, 42, 43, 44,
+    };
 
     void Start() override
     {
@@ -40,6 +46,7 @@ private:
     {
         ImGui::ShowDemoWindow();
         ImGui::Image(textureID, float2(50));
+        UI::DragFloat4x4("matrix", &matrix);
 
         //逻辑处理
         if (Input->GetKeyDown(KeyCode::Esc))

@@ -19,7 +19,7 @@ namespace Light
         float2 windowPosition;
         float2 windowSize;
         //预建资源
-        SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", SimulationSystem);
+        SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", PostUpdateSystem);
         class Input inputSystem = {};
         Entity sceneCamera = Entity::Null;
         //场景相机渲染目标相关

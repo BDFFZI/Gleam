@@ -6,6 +6,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/output")
 add_compile_options("/utf-8")
 
 file(GLOB Sources "${CMAKE_SOURCE_DIR}/sources/*")
+
 foreach(Source ${Sources})
     if(IS_DIRECTORY ${Source})
         include_directories(${Source})
@@ -18,6 +19,7 @@ include(CreateProject.cmake)
 # 同步所有Assets文件夹
 file(GLOB_RECURSE ResourcesPaths LIST_DIRECTORIES true "sources/[!.]" "samples/[!.]")
 list(FILTER ResourcesPaths INCLUDE REGEX "Resources$")
+
 foreach(ResourcesPath ${ResourcesPaths})
     # string(REPLACE ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} NewAssetPath ${ResourcesPath})
     # file(COPY ${ResourcesPath} DESTINATION ${NewAssetPath}/..)
@@ -49,3 +51,19 @@ function(add_subdirectories_recursive current_dir)
 endfunction()
 
 add_subdirectories_recursive(${CMAKE_CURRENT_SOURCE_DIR})
+
+# # 后处理项目
+# foreach(ProjectName ${Projects})
+#     get_target_property(ProjectType ${ProjectName} TYPE)
+
+#     if(ProjectType STREQUAL "EXECUTABLE")
+#         get_target_property(Libraries ${ProjectName} LINK_LIBRARIES)
+
+#         foreach(Library ${Libraries})
+#             if(Library MATCHES "Light.*")
+#                 message("${ProjectName}：USE_${Library}")
+#                 target_compile_definitions(${ProjectName} PRIVATE "USE_${Library}")
+#             endif()
+#         endforeach()
+#     endif()
+# endforeach()
