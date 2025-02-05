@@ -5,12 +5,12 @@
 namespace Light
 {
     template <Component... TComponent>
-    struct Reference
+    struct EntityRef
     {
         Entity target = Entity::Null;
 
-        Reference() = default;
-        Reference(const Entity target) : target(target)
+        EntityRef() = default;
+        EntityRef(const Entity target) : target(target)
         {
         }
         operator Entity() const
