@@ -168,8 +168,10 @@ TEST(ECS, Archetype)
 
 TEST(ECS, World)
 {
-    Entity entities[2];
-    World::AddEntities(physicsArchetype, 2, entities);
+    Entity entities[2] = {
+        World::AddEntity(physicsArchetype),
+        World::AddEntity(physicsArchetype),
+    };
     World::RemoveEntity(entities[0]);
     World::MoveEntity(entities[1], physicsWithSpringArchetype);
 
@@ -208,7 +210,7 @@ public:
     }
 
 private:
-    static void Update()
+    void Update() override
     {
         View<Transform, RigidBody>::Each([](Transform& transform, RigidBody& rigidBody)
         {
@@ -236,28 +238,22 @@ TEST(ECS, System)
 {
     for (int i = 0; i < 10; i++)
         World::AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
-
     World::AddSystem(PhysicsSystem);
 
     World::Start();
-
-    std::stringstream log;
     for (int i = 0; i < 200; i++)
-    {
-        //更新
-        World::Update();
-
-        //输出
-        View<Transform>::Each([&log](Transform& transform)
-        {
-            log << std::format("{:10.3f}", transform.position) << '|';
-        });
-        std::cout << log.str() << "\n";
-        log.str("");
-    }
-
-    World::RemoveSystem(PhysicsSystem);
+        World::Update(); //更新
     World::Stop();
+
+    std::stringstream ss;
+    View<Transform>::Each([&ss](const Entity entity, Transform& transform)
+    {
+        ss << std::format("{:10.3f}", transform.position) << '|';
+        ASSERT_TRUE(World::HasComponent<SpringPhysics>(entity)
+            ?abs(transform.position+5) < 0.1f
+            :transform.position<70);
+    });
+    std::cout << ss.str();
 }
 
 inline std::stringstream printResult = {};
@@ -390,16 +386,15 @@ system1->Stop
 
 TEST(ECS, SceneVisibility)
 {
-    Scene* sleepScene = World::CreateScene("Sleep");
-    sleepScene->SetVisibility(false);
-    Entity entity = World::AddEntity(physicsArchetype, sleepScene);
+    Scene sleepScene = Scene{"Sleep"};
+    Entity entity = sleepScene.AddEntity(physicsArchetype);
     World::SetComponents(entity, Transform{3});
 
     //显式指明场景，+1
-    View<Transform>::Each(sleepScene, [](Transform& transform)
+    View<Transform>::Each([](Transform& transform)
     {
         transform.position++;
-    });
+    }, &sleepScene);
     float2 position = World::GetComponent<Transform>(entity).position;
     ASSERT_TRUE(all(position == float2(4)));
 
@@ -412,13 +407,15 @@ TEST(ECS, SceneVisibility)
     ASSERT_TRUE(all(position == float2(4)));
 
     //恢复到默认场景，+1
-    sleepScene->MoveEntity(entity, World::GetMainScene());
+    Scene::MoveEntity(entity, World::GetMainScene());
     View<Transform>::Each([](Transform& transform)
     {
         transform.position++;
     });
     position = World::GetComponent<Transform>(entity).position;
     ASSERT_TRUE(all(position == float2(5)));
+
+    World::GetMainScene()->RemoveEntity(entity);
 }
 
 TEST(ECS, View)

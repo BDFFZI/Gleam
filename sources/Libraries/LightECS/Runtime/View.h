@@ -73,33 +73,15 @@ namespace Light
     public:
         template <class TFunction> requires
             ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
-        static void Each(TFunction function)
-        {
-            Query();
-            Each_Inner(function, std::make_index_sequence<sizeof...(TComponents)>());
-        }
-        template <class TFunction> requires
-            ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
-        static void Each(Scene* scene, TFunction function)
+        static void Each(TFunction function, Scene* scene = World::GetMainScene())
         {
             Query();
             Each_Inner(scene, function, std::make_index_sequence<sizeof...(TComponents)>());
         }
-
-        static int Count(Scene* scene)
+        static int Count(Scene* scene = World::GetMainScene())
         {
             Query();
             return Count_Inner(scene);
-        }
-        static int Count()
-        {
-            Query();
-
-            int count = 0;
-            for (auto& element : World::GetAllScenes())
-                if (element->GetVisibility())
-                    count += Count_Inner(element.get());
-            return count;
         }
 
     private:
@@ -144,17 +126,6 @@ namespace Light
                     else if constexpr (ViewIteratorWithEntity<TFunction, TComponents...>)
                         function(*reinterpret_cast<Entity*>(item), *reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
                 });
-            }
-        }
-
-        template <class TFunction, size_t... Indices>
-            requires ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
-        static void Each_Inner(TFunction function, std::index_sequence<Indices...>)
-        {
-            for (auto& element : World::GetAllScenes())
-            {
-                if (element->GetVisibility())
-                    Each_Inner(element.get(), function, std::index_sequence<Indices...>());
             }
         }
         static int Count_Inner(Scene* scene)

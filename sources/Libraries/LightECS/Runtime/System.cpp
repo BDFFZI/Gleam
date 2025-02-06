@@ -31,6 +31,22 @@ namespace Light
     {
         return order;
     }
+    void System::SetIsAlwaysUpdate(const bool value)
+    {
+        isAlwaysUpdate = value;
+    }
+    void System::SetIsRunning(const bool value)
+    {
+        isRunning = value;
+    }
+    bool System::GetIsAlwaysUpdate() const
+    {
+        return isAlwaysUpdate;
+    }
+    bool System::GetIsRunning() const
+    {
+        return isRunning;
+    }
     void System::Start()
     {
     }
@@ -126,7 +142,21 @@ namespace Light
             subSystemStartQueue.clear();
         }
 
-        for (System* system : subSystemUpdateQueue)
-            system->Update();
+        if (GetIsRunning())
+        {
+            for (System* system : subSystemUpdateQueue)
+            {
+                if (system->GetIsRunning())
+                    system->Update();
+            }
+        }
+        else
+        {
+            for (System* system : subSystemUpdateQueue)
+            {
+                if (system->GetIsRunning() && system->GetIsAlwaysUpdate())
+                    system->Update();
+            }
+        }
     }
 }

@@ -4,8 +4,40 @@
 
 namespace Light
 {
+    void Scene::MoveEntity(const Entity entity, Scene* newScene)
+    {
+        //获取旧实体信息
+        EntityInfo oldEntityInfo = World::GetEntityInfo(entity);
+        Scene* oldScene = oldEntityInfo.scene;
+        //分配新内存
+        Heap& newHeap = newScene->GetEntityHeap(oldEntityInfo.archetype);
+        std::byte* newAddress = newHeap.AddElement();
+        //将旧数据复制到新内存
+        oldEntityInfo.archetype->RunMoveConstructor(oldEntityInfo.components, newAddress);
+        //将旧数据从内存中移除
+        oldScene->RemoveHeapItem(oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
+        //设置新实体信息
+        EntityInfo newEntityInfo = {newScene, oldEntityInfo.archetype, newHeap.GetCount() - 1, newAddress};
+        World::SetEntityInfo(entity, newEntityInfo);
+    }
+    void Scene::MoveAllEntities(Scene* oldScene, Scene* newScene)
+    {
+        for (auto& [archetype, oldHeap] : oldScene->allEntities)
+        {
+            Heap& newHeap = newScene->GetEntityHeap(archetype);
+            oldHeap.ForeachElements([newScene,archetype,&newHeap](std::byte* oldAddress)
+            {
+                std::byte* newAddress = newHeap.AddElement();
+                archetype->RunMoveConstructor(oldAddress, newAddress);
+                EntityInfo entityInfo = {newScene, archetype, newHeap.GetCount() - 1, newAddress,};
+                World::SetEntityInfo(*reinterpret_cast<Entity*>(oldAddress), entityInfo);
+            });
+            oldHeap.Clear();
+        }
+    }
+
     Scene::Scene(const std::string_view name)
-        : name(name), visibility(true)
+        : name(name)
     {
     }
     const std::string& Scene::GetName()
@@ -15,14 +47,6 @@ namespace Light
     std::unordered_map<const Archetype*, Heap>& Scene::GetAllEntities()
     {
         return allEntities;
-    }
-    bool Scene::GetVisibility() const
-    {
-        return visibility;
-    }
-    void Scene::SetVisibility(const bool visibility)
-    {
-        this->visibility = visibility;
     }
 
     Heap& Scene::GetEntityHeap(const Archetype* archetype)
@@ -148,36 +172,7 @@ namespace Light
         EntityInfo entityInfo = {this, newArchetype, newHeap.GetCount() - 1, newAddress};
         World::SetEntityInfo(entity, entityInfo);
     }
-    void Scene::MoveEntity(const Entity entity, Scene* newScene)
-    {
-        //获取旧实体信息
-        EntityInfo oldEntityInfo = World::GetEntityInfo(entity);
-        //分配新内存
-        Heap& newHeap = newScene->GetEntityHeap(oldEntityInfo.archetype);
-        std::byte* newAddress = newHeap.AddElement();
-        //将旧数据复制到新内存
-        oldEntityInfo.archetype->RunMoveConstructor(oldEntityInfo.components, newAddress);
-        //将旧数据从内存中移除
-        RemoveHeapItem(oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
-        //设置新实体信息
-        EntityInfo newEntityInfo = {newScene, oldEntityInfo.archetype, newHeap.GetCount() - 1, newAddress};
-        World::SetEntityInfo(entity, newEntityInfo);
-    }
-    void Scene::MoveAllEntities(Scene* newScene)
-    {
-        for (auto& [archetype, oldHeap] : allEntities)
-        {
-            Heap& newHeap = newScene->GetEntityHeap(archetype);
-            oldHeap.ForeachElements([newScene,archetype,&newHeap](std::byte* oldAddress)
-            {
-                std::byte* newAddress = newHeap.AddElement();
-                archetype->RunMoveConstructor(oldAddress, newAddress);
-                EntityInfo entityInfo = {newScene, archetype, newHeap.GetCount() - 1, newAddress,};
-                World::SetEntityInfo(*reinterpret_cast<Entity*>(oldAddress), entityInfo);
-            });
-            oldHeap.Clear();
-        }
-    }
+
 
     void Scene::RemoveHeapItem(const Archetype* heapIndex, const int elementIndex)
     {

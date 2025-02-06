@@ -48,6 +48,11 @@ namespace Light
         const std::string& GetName();
         std::optional<SystemGroup*> GetGroup() const;
         int GetOrder() const;
+        bool GetIsAlwaysUpdate() const;
+        bool GetIsRunning() const;
+
+        void SetIsAlwaysUpdate(bool value);
+        void SetIsRunning(bool value);
 
         virtual void Start();
         virtual void Stop();
@@ -63,6 +68,8 @@ namespace Light
         int minOrder;
         int maxOrder;
         int order;
+        bool isAlwaysUpdate = false;
+        bool isRunning = true;
     };
 
     class SystemEvent : public System
