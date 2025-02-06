@@ -1,7 +1,6 @@
 #include "SceneWindow.h"
 
 #include "LightECS/Runtime/World.h"
-#include "LightEngine/Runtime/Engine.h"
 #include "LightEngine/Runtime/Component/Transform.h"
 #include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "LightRendering/Runtime/Entity/Archetype.h"
@@ -10,7 +9,6 @@
 
 #include "LightEngine/Editor/InspectorWindow.h"
 #include "LightEngine/Runtime/System/TimeSystem.h"
-#include "LightEngine/Runtime/System/TransformSystem.h"
 #include "LightWindow/Runtime/Cursor.h"
 
 namespace Light
@@ -60,6 +58,22 @@ namespace Light
         localTransform.rotation = Quaternion::Euler(eulerAngles);
     }
 
+    void SceneWindow::RegisterSceneGUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneGUI)
+    {
+        sceneGUIs.insert({typeIndex, drawSceneGUI});
+    }
+    const Camera& SceneWindow::GetCamera() const
+    {
+        return camera;
+    }
+    const WorldToClip& SceneWindow::GetCameraTransform() const
+    {
+        return cameraTransform;
+    }
+    int SceneWindow::GetHandleOption() const
+    {
+        return handleOption;
+    }
     void SceneWindow::Start()
     {
         preProcessSystem.onUpdate = [this]
@@ -97,7 +111,7 @@ namespace Light
         World::AddSystem(&preProcessSystem);
         World::AddSystem(&inputSystem);
 
-        sceneCamera = Awake->AddEntity(CameraArchetype);
+        sceneCamera = World::AddEntity(CameraArchetype);
 
         ImGuizmo::AllowAxisFlip(false); //禁用手柄轴自动反转
         ImGuizmo::SetGizmoSizeClipSpace(0.2f); //设置手柄在剪辑空间的大小
@@ -163,8 +177,8 @@ namespace Light
             const float2 windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
             ImGuizmo::SetRect(windowPosition.x, windowPosition.y, windowSize.x, windowSize.y);
             //获取并设置相机属性
-            Camera camera = World::GetComponent<Camera>(sceneCamera);
-            WorldToClip cameraTransform = World::GetComponent<WorldToClip>(sceneCamera);
+            camera = World::GetComponent<Camera>(sceneCamera);
+            cameraTransform = World::GetComponent<WorldToClip>(sceneCamera);
             ImGuizmo::SetOrthographic(camera.orthographic);
             //绘制网格线
             {
@@ -175,40 +189,11 @@ namespace Light
                     reinterpret_cast<float*>(&objectToWorld), 10
                 );
             }
-            //绘制手柄
-            if (World::HasEntity(InspectorWindow->target) && World::HasComponent<LocalToWorld>(InspectorWindow->target))
-            {
-                //获取组件
-                LocalToWorld& localToWorld = World::GetComponent<LocalToWorld>(InspectorWindow->target);
-                std::optional<LocalTransform*> transform = World::TryGetComponent<LocalTransform>(InspectorWindow->target);
-                if (transform.has_value()) //LocalToWorld可能过时，显式更新一次
-                    TransformSystem::ComputeLocalToWorld(*transform.value(), localToWorld);
-                //获取手柄类型信息
-                static constexpr ImGuizmo::OPERATION options[] = {ImGuizmo::BOUNDS, ImGuizmo::TRANSLATE, ImGuizmo::ROTATE, ImGuizmo::SCALE};
-                ImGuizmo::OPERATION imGuiOption = options[handleOption];
-                //绘制
-                Manipulate(
-                    reinterpret_cast<float*>(&cameraTransform.worldToView),
-                    reinterpret_cast<float*>(&cameraTransform.viewToClip),
-                    imGuiOption, ImGuizmo::LOCAL,
-                    reinterpret_cast<float*>(&localToWorld.value)
-                );
-                //解析矩阵
-                if (transform.has_value())
-                {
-                    float3 position;
-                    float3 rotation;
-                    float3 scale;
-                    DecomposeTRS(
-                        localToWorld.value,
-                        position, rotation, scale
-                    );
-                    transform.value()->position = position;
-                    transform.value()->rotation = Quaternion::Euler(rotation);
-                    transform.value()->scale = scale;
-                }
-            }
         }
+
+        //绘制自定义UI
+        if (sceneGUIs.contains(InspectorWindow->GetTargetType()))
+            sceneGUIs[InspectorWindow->GetTargetType()](InspectorWindow->GetTarget());
 
         ImGui::End();
     }

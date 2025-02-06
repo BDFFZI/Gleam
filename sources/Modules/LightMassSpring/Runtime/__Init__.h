@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "LightEngine/Runtime/__Init__.h"
 
 #include "System/ForceSystem.h"
 #include "System/MassSpringMeshSystem.h"
@@ -14,5 +15,3 @@ namespace Light
         MassSpringMeshSystem
     )
 }
-
-#include "LightEngine/Runtime/__Init__.h"

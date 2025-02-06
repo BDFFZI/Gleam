@@ -3,7 +3,8 @@
 #include "LightECS/Runtime/Entity.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightECS/Runtime/System.h"
-#include "LightEngine/Editor/EditorUI/EditorUISystem.h"
+#include "LightEngine/Editor/EditorUISystem.h"
+#include "LightRendering/Runtime/Component/Camera.h"
 #include "LightWindow/Runtime/Input.h"
 
 namespace Light
@@ -11,13 +12,21 @@ namespace Light
     class SceneWindow : public System
     {
     public:
+        static void RegisterSceneGUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneGUI);
+
+        const Camera& GetCamera() const;
+        const WorldToClip& GetCameraTransform() const;
+        int GetHandleOption() const;
+
         SceneWindow(): System(EditorUISystem)
         {
         }
 
     private:
-        float2 windowPosition;
-        float2 windowSize;
+        inline static std::unordered_map<std::type_index, std::function<void(void*)>> sceneGUIs = {};
+
+        float2 windowPosition = 0;
+        float2 windowSize = 0;
         //预建资源
         SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", PostUpdateSystem);
         class Input inputSystem = {};
@@ -26,7 +35,9 @@ namespace Light
         std::unique_ptr<GRenderTexture> sceneCameraCanvas;
         ImTextureID sceneCameraCanvasImID = nullptr;
         bool isDirty = true;
-        //场景窗口UI
+        //场景UI信息
+        Camera camera = {};
+        WorldToClip cameraTransform = {};
         int handleOption = 1;
 
         void Start() override;
@@ -34,4 +45,8 @@ namespace Light
         void Update() override;
     };
     Light_MakeSystem(SceneWindow)
+
+#define Light_MakeSceneGUI(type,drawSceneGUI)\
+    Light_MakeInitEvent(){SceneWindow::RegisterSceneGUI(typeid(type),\
+    [](void* target){drawSceneGUI(static_cast<type##*>(target));});}
 }

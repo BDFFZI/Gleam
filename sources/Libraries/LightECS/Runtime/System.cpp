@@ -19,8 +19,6 @@ namespace Light
     }
     const std::string& System::GetName()
     {
-        if (name.empty())
-            name = typeid(*this).name();
         return name;
     }
     std::optional<SystemGroup*> System::GetGroup() const
@@ -35,18 +33,11 @@ namespace Light
     {
         isAlwaysUpdate = value;
     }
-    void System::SetIsRunning(const bool value)
-    {
-        isRunning = value;
-    }
     bool System::GetIsAlwaysUpdate() const
     {
         return isAlwaysUpdate;
     }
-    bool System::GetIsRunning() const
-    {
-        return isRunning;
-    }
+
     void System::Start()
     {
     }
@@ -83,10 +74,12 @@ namespace Light
     SystemGroup::SystemGroup(const std::optional<SystemGroup*> group, const int minOrder, const int maxOrder)
         : System(group, minOrder, maxOrder)
     {
+        SetIsAlwaysUpdate(true);
     }
     SystemGroup::SystemGroup(System* system, const OrderRelation orderRelation)
         : System(system, orderRelation)
     {
+        SetIsAlwaysUpdate(true);
     }
     void SystemGroup::AddSubSystem(System* system)
     {
@@ -142,21 +135,32 @@ namespace Light
             subSystemStartQueue.clear();
         }
 
-        if (GetIsRunning())
+        for (System* system : subSystemUpdateQueue)
         {
-            for (System* system : subSystemUpdateQueue)
-            {
-                if (system->GetIsRunning())
-                    system->Update();
-            }
+            system->Update();
         }
-        else
+    }
+    void SystemGroup::UpdateNegative()
+    {
+        if (subSystemStopQueue.empty() == false)
         {
-            for (System* system : subSystemUpdateQueue)
-            {
-                if (system->GetIsRunning() && system->GetIsAlwaysUpdate())
-                    system->Update();
-            }
+            for (System* system : std::ranges::reverse_view(subSystemStopQueue))
+                system->Stop();
+            subSystemStopQueue.clear();
+        }
+
+        if (subSystemStartQueue.empty() == false)
+        {
+            for (System* system : subSystemStartQueue)
+                system->Start();
+            subSystemUpdateQueue.insert(subSystemStartQueue.begin(), subSystemStartQueue.end());
+            subSystemStartQueue.clear();
+        }
+
+        for (System* system : subSystemUpdateQueue)
+        {
+            if (system->GetIsAlwaysUpdate())
+                system->Update();
         }
     }
 }

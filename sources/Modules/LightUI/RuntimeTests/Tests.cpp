@@ -1,3 +1,4 @@
+#include "LightECS/Runtime/World.h"
 #include "LightEngine/Runtime/Engine.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightUI/Runtime/UISystem.h"

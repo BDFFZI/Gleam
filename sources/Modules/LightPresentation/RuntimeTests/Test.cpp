@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "LightECS/Runtime/World.h"
 #include "LightEngine/Runtime/Engine.h"
 #include "LightPresentation/Runtime/PresentationSystem.h"
 #include "LightGraphics/Runtime/SwapChain.h"

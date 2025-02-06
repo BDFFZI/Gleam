@@ -195,6 +195,9 @@ TEST(ECS, World)
     entities[0] = World::AddEntity(physicsArchetype);
     World::SetComponents(entities[0], Transform{3});
     ASSERT_EQ(World::GetComponent<Transform>(entities[0]), Transform{3});
+
+    World::RemoveEntity(entities[0]);
+    World::RemoveEntity(entities[1]);
 }
 
 /**
@@ -435,4 +438,7 @@ TEST(ECS, View)
     });
     ASSERT_EQ(World::GetComponent<Transform>(physicsEntity).position, 2);
     ASSERT_EQ(World::GetComponent<Transform>(physicsWithSpring).position, 1);
+
+    World::RemoveEntity(physicsEntity);
+    World::RemoveEntity(physicsWithSpring);
 }

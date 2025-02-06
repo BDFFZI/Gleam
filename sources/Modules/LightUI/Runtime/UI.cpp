@@ -55,4 +55,25 @@ namespace Light
 
         return any(result);
     }
+    void UI::MenuItem(const std::vector<std::string>& path, const std::function<void()>& func, const size_t layer)
+    {
+        if (layer > path.size())
+            return;
+
+        if (layer == path.size() - 1)
+        {
+            if (ImGui::MenuItem(path.back().c_str()))
+            {
+                func();
+            }
+        }
+        else
+        {
+            if (ImGui::BeginMenu(path[layer].c_str()))
+            {
+                MenuItem(path, func, layer + 1);
+                ImGui::EndMenu();
+            }
+        }
+    }
 }

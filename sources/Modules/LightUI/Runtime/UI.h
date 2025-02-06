@@ -22,5 +22,12 @@ namespace Light
         static float2 GetWindowContentRegionSize();
 
         static bool DragFloat4x4(const char* label, float4x4* v, float v_speed = 1);
+        /**
+         * 按路径层级绘制菜单项，会自动执行Begin/EndMenu来绘制中间层
+         * @param path 
+         * @param func 
+         * @param layer 
+         */
+        static void MenuItem(const std::vector<std::string>& path, const std::function<void()>& func, size_t layer = 0);
     };
 }

@@ -6,19 +6,8 @@ namespace Light
     void Engine::Start()
     {
         World::Start();
-        while (isStopping == false)
-        {
-            World::Update();
-        }
-
-        //删除所有实体
-        for (auto& scene : World::GetAllScenes())
-        {
-            if (scene.get() != Destroy)
-                scene->MoveAllEntities(Destroy);
-        }
-        World::Update();
-
+        while (!isStopping)
+            World::Update(!isUpdating);
         World::Stop();
     }
     void Engine::Stop()

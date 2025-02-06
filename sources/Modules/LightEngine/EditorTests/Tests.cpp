@@ -1,5 +1,4 @@
-#include <gtest/gtest.h>
-
+#include "LightECS/Runtime/World.h"
 #include "LightEngine/Runtime/Engine.h"
 #include "LightReflection/RuntimeTests/Test.h"
 
@@ -7,11 +6,8 @@ using namespace Light;
 
 Light_MakeArchetype(DataArchetype, TestData)
 
-int main()
+Light_MakeInitEvent()
 {
-    Entity entity = Awake->AddEntity(DataArchetype);
+    Entity entity = World::AddEntity(DataArchetype);
     World::SetComponents(entity, data);
-
-    Engine::Start();
-    return 0;
 }

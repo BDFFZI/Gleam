@@ -171,7 +171,7 @@ namespace Light
         }
         constexpr static vector Rotate(vector<Type, 3> degree)
         {
-            return vector<Type, 3 * 3>::Rotate(degree);
+            return static_cast<vector>(vector<Type, 3 * 3>::Rotate(degree));
         }
         constexpr static vector Scale(vector<Type, 3> scale)
         {

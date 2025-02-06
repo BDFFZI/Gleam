@@ -1,8 +1,9 @@
 ﻿#pragma once
+#include "LightEngine/Runtime/__Init__.h"
+
 #include "Cursor.h"
 #include "Window.h"
 #include "Input.h"
-#include "LightEngine/Runtime/Engine.h"
 
 namespace Light
 {
@@ -10,5 +11,3 @@ namespace Light
     Light_AddSystems(Window)
     Light_AddSystems(Input)
 }
-
-#include "LightEngine/Runtime/__Init__.h"

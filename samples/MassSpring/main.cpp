@@ -24,7 +24,7 @@ int main()
     for (int i = 0, y = -10; i < 5; i++, y += length)
         for (int j = 0, x = -10; j < 5; j++, x += length)
         {
-            const Entity entity = Awake->AddEntity(MassPointArchetype);
+            const Entity entity = World::AddEntity(MassPointArchetype);
             World::SetComponents(entity, Point{{static_cast<float>(x), static_cast<float>(y)}});
             entities[i][j] = entity;
         }
@@ -33,32 +33,32 @@ int main()
         {
             if (x + 1 < 5)
             {
-                Entity entity = Awake->AddEntity(SpringArchetype);
+                Entity entity = World::AddEntity(SpringArchetype);
                 World::SetComponents(entity, SpringPhysics{entities[y][x], entities[y][x + 1], length});
             }
             if (y + 1 < 5)
             {
-                Entity entity = Awake->AddEntity(SpringArchetype);
+                Entity entity = World::AddEntity(SpringArchetype);
                 World::SetComponents(entity, SpringPhysics{entities[y][x], entities[y + 1][x], length});
             }
             if (x + 1 < 5 && y + 1 < 5)
             {
-                Entity entity = Awake->AddEntity(SpringArchetype);
+                Entity entity = World::AddEntity(SpringArchetype);
                 World::SetComponents(entity, SpringPhysics{entities[y][x], entities[y + 1][x + 1], bevelLength});
             }
             if (x + 1 < 5 && y - 1 >= 0)
             {
-                Entity entity = Awake->AddEntity(SpringArchetype);
+                Entity entity = World::AddEntity(SpringArchetype);
                 World::SetComponents(entity, SpringPhysics{entities[y][x], entities[y - 1][x + 1], bevelLength});
             }
             if (x + 2 < 5)
             {
-                Entity entity = Awake->AddEntity(SpringArchetype);
+                Entity entity = World::AddEntity(SpringArchetype);
                 World::SetComponents(entity, SpringPhysics{entities[y][x], entities[y][x + 2], length * 2});
             }
             if (y + 2 < 5)
             {
-                Entity entity = Awake->AddEntity(SpringArchetype);
+                Entity entity = World::AddEntity(SpringArchetype);
                 World::SetComponents(entity, SpringPhysics{entities[y][x], entities[y + 2][x], length * 2});
             }
         }

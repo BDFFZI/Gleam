@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <chrono>
 
-#include "AwakeSystem.h"
 #include "UpdateSystem.h"
 #include "LightUtility/Runtime/Timer.h"
 

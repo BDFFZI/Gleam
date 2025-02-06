@@ -43,7 +43,7 @@ Light_MakeInitEvent()
     Camera camera;
     camera.orthographic = true;
     camera.background = float4{0.2f, 0.2f, 0.5f, 1};
-    Entity cameraEntity = Awake->AddEntity(TestCameraArchetype);
+    Entity cameraEntity = World::AddEntity(TestCameraArchetype);
     World::SetComponents(cameraEntity, camera);
     //创建点渲染器
     std::vector points = {
@@ -51,7 +51,7 @@ Light_MakeInitEvent()
         Point{{0, 0, 1}},
         Point{{2, 0, 1}}
     };
-    Entity pointsRendererEntity = Awake->AddEntity(PointRendererArchetype);
+    Entity pointsRendererEntity = World::AddEntity(PointRendererArchetype);
     World::GetComponent<PointsMesh>(pointsRendererEntity).points = points;
     //创建线渲染器
     std::vector lines = {
@@ -59,6 +59,6 @@ Light_MakeInitEvent()
         Segment{{0, 0, 1}, {2, 0, 1}},
         Segment{{0, 1, 1}, {2, 0, 1}},
     };
-    Entity linesRendererEntity = Awake->AddEntity(LineRendererArchetype);
+    Entity linesRendererEntity = World::AddEntity(LineRendererArchetype);
     World::GetComponent<LinesMesh>(linesRendererEntity).lines = lines;
 }

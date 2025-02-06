@@ -96,16 +96,15 @@ namespace Light
     {
         assert(entity != Entity::Null && "实体参数不能为空！");
         assert(World::HasEntity(entity) && "实体必须存在！");
-
-        //去除实体信息
+        
         const EntityInfo entityInfo = World::GetEntityInfo(entity);
-        World::SetEntityInfo(entity, std::nullopt);
         //运行析构函数
         const Archetype* archetype = entityInfo.archetype;
         archetype->RunDestructor(entityInfo.components);
         //从内存中移除
         RemoveHeapItem(archetype, entityInfo.indexAtHeap);
-        //设置实体引用为空
+        //去除实体信息
+        World::SetEntityInfo(entity, std::nullopt);
         entity = Entity::Null;
     }
     void Scene::RemoveAllEntities()

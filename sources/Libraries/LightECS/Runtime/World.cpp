@@ -30,15 +30,11 @@ namespace Light
 
     Scene* World::GetMainScene()
     {
-        return updateScene.get();
+        return &mainScene;
     }
-    Scene* World::GetAwakeScene()
+    SystemGroup* World::GetMainSystem()
     {
-        return awakeScene.get();
-    }
-    Scene* World::GetDestroyScene()
-    {
-        return destroyScene.get();
+        return &mainSystem;
     }
 
     bool World::HasEntity(const Entity entity)
@@ -47,13 +43,11 @@ namespace Light
     }
     Entity World::AddEntity(const Archetype* archetype)
     {
-        Entity entity = readyScene->AddEntity(archetype);
-        movingEntities.emplace_back(entity, awakeScene.get());
-        return entity;
+        return mainScene.AddEntity(archetype);
     }
     void World::RemoveEntity(Entity& entity)
     {
-        movingEntities.emplace_back(entity, destroyScene.get());
+        mainScene.RemoveEntity(entity);
     }
     void World::MoveEntity(const Entity entity, const Archetype* newArchetype)
     {
@@ -96,33 +90,26 @@ namespace Light
 
     void World::Start()
     {
-        FlushBufferQueue(); //将所有系统送到开始队列，实体送到Awake队列
-        allSystems.Start(); //执行开始队列并将系统转移到更新队列
+        FlushSystemQueue(); //将所有系统送到开始队列，实体送到Awake队列
+        mainSystem.Start(); //执行开始队列并将系统转移到更新队列
     }
     void World::Stop()
     {
-        allSystems.Stop(); //停止所有队列，忽略开始队列
-        //所有事件均停止并移除，不能再次触发FlushSystemQueue，不然可能导致重复移除
+        mainScene.RemoveAllEntities(); //移除所有实体
+        mainSystem.Stop(); //停止所有队列，忽略开始队列
     }
-    void World::Update()
+    void World::Update(const bool negative)
     {
         //将更新过程中标记增删的实体或系统移入到对应的事件队列
-        FlushBufferQueue();
+        FlushSystemQueue();
         //运行更新队列
-        allSystems.Update();
-        //清理事件队列中的实体
-        Scene::MoveAllEntities(awakeScene.get(), updateScene.get()); //唤醒事件结束，相关实体移入主场景
-        destroyScene->RemoveAllEntities(); //删除事件结束，将相关实体真正从内存中移除
+        if (negative)
+            mainSystem.UpdateNegative();
+        else
+            mainSystem.Update();
     }
-    void World::Pause()
-    {
-        allSystems.SetIsRunning(false);
-    }
-    void World::Play()
-    {
-        allSystems.SetIsRunning(true);
-    }
-    void World::FlushBufferQueue()
+
+    void World::FlushSystemQueue()
     {
         for (auto system : removingSystems)
         {
@@ -137,7 +124,7 @@ namespace Light
             if (count == 0)
             {
                 //最后一次移除，需实际从系统组移除。
-                system->GetGroup().value_or(&allSystems)->RemoveSubSystem(system);
+                system->GetGroup().value_or(&mainSystem)->RemoveSubSystem(system);
             }
         }
         removingSystems.clear();
@@ -149,12 +136,9 @@ namespace Light
             if (count == 1)
             {
                 //首次添加，需实际注册到系统组接收事件。
-                system->GetGroup().value_or(&allSystems)->AddSubSystem(system);
+                system->GetGroup().value_or(&mainSystem)->AddSubSystem(system);
             }
         }
         addingSystems.clear();
-        for (const auto& [entity,scene] : movingEntities)
-            Scene::MoveEntity(entity, scene);
-        movingEntities.clear();
     }
 }

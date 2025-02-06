@@ -34,8 +34,7 @@ namespace Light
         static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
 
         static Scene* GetMainScene();
-        static Scene* GetAwakeScene();
-        static Scene* GetDestroyScene();
+        static SystemGroup* GetMainSystem();
 
         static bool HasEntity(Entity entity);
         static Entity AddEntity(const Archetype* archetype);
@@ -124,33 +123,24 @@ namespace Light
 
         static void Start();
         static void Stop();
-        static void Update();
-        static void Pause();
-        static void Play();
+        static void Update(bool negative = false);
 
     private:
         friend class HierarchyWindow;
-
         //实体信息
         inline static uint32_t nextEntity = 1;
         inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
-        //场景信息（实体的存储容器）
-        //一个实体通常被多个系统使用（各用不同的组件），但任何个体系统都有权创建或删除实体，
-        //为确保其他系统能收到通知以便处理诸如回收初始化等事宜，故需要缓存变动的实体
-        inline static std::unique_ptr<Scene> readyScene = std::make_unique<Scene>("Ready"); //用于存储刚创建还没有所属旧场景，等待处理的实体
-        inline static std::unique_ptr<Scene> awakeScene = std::make_unique<Scene>("Awake"); //实体唤醒事件
-        inline static std::unique_ptr<Scene> updateScene = std::make_unique<Scene>("Update"); //所有系统默认处理的场景
-        inline static std::unique_ptr<Scene> destroyScene = std::make_unique<Scene>("Destroy"); //实体销毁事件
-        //系统信息
-        inline static SystemGroup allSystems = {std::nullopt, System::LeftOrder, System::RightOrder};
+        //主场景系统
+        inline static Scene mainScene = Scene{"Main"}; //所有系统默认处理的场景
+        inline static SystemGroup mainSystem = {std::nullopt, System::LeftOrder, System::RightOrder}; //所有系统的根系统
+        //系统使用计数，实现按需自动加载和卸载系统
         inline static std::unordered_map<System*, int> systemUsageCount = {};
         //在遍历系统的时候是不能修改容器结构的，但提供的游戏事件都是遍历容器的时候运行的，所以如果用户有增删系统的需求，必须先缓存然后再执行
         inline static std::vector<System*> removingSystems = {};
         inline static std::vector<System*> addingSystems = {};
-        ///负责实体创建或删除的系统有一个执行时间，例如每帧最后时真正删除相关实体，
-        ///所以如果用户直接在当前帧将实体移入删除场景，那只有当前和删除系统之间的系统可以接收通知。
-        ///因此必须缓存实体场景移动信息到下一帧执行，这样才能确保所有系统都能收到通知。
-        inline static std::vector<std::tuple<Entity, Scene*>> movingEntities = {};
-        static void FlushBufferQueue();
+        static void FlushSystemQueue();
     };
+
+#include "LightUtility/Runtime/Program.h"
+#define Light_AddSystems(...) Light_MakeInitEvent(){::Light::World::AddSystems({__VA_ARGS__});}
 }

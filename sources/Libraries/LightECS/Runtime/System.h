@@ -26,6 +26,8 @@ namespace Light
         static TSystem* Register()
         {
             TSystem* system = new TSystem();
+            if (system->name.empty())
+                system->name = typeid(TSystem).name();
             allSystems.emplace_back(system);
             return system;
         }
@@ -49,10 +51,7 @@ namespace Light
         std::optional<SystemGroup*> GetGroup() const;
         int GetOrder() const;
         bool GetIsAlwaysUpdate() const;
-        bool GetIsRunning() const;
-
         void SetIsAlwaysUpdate(bool value);
-        void SetIsRunning(bool value);
 
         virtual void Start();
         virtual void Stop();
@@ -69,7 +68,6 @@ namespace Light
         int maxOrder;
         int order;
         bool isAlwaysUpdate = false;
-        bool isRunning = true;
     };
 
     class SystemEvent : public System
@@ -110,6 +108,7 @@ namespace Light
         void Start() override;
         void Stop() override;
         void Update() override;
+        void UpdateNegative();
 
     private:
         friend class EditorUIUtility;

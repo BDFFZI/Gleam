@@ -1,18 +1,29 @@
 #include "InspectorWindow.h"
 
-#include "EditorUI/EditorUISerializer.h"
 #include "LightECS/Runtime/World.h"
 #include "LightReflection/Runtime/Type.h"
-#include "LightReflection/Runtime/Transferrer/DataTransferrer.h"
 #include "LightUI/Runtime/UI.h"
 
 namespace Light
 {
+    void InspectorWindow::RegisterInspectorGUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorGUI)
+    {
+        inspectorGUIs.insert({typeIndex, drawInspectorGUI});
+    }
     void InspectorWindow::Show(const Entity target)
     {
         InspectorWindow* inspectorWindow = new InspectorWindow();
-        inspectorWindow->target = target;
+        inspectorWindow->target = World::GetEntityInfo(target).components;
+        inspectorWindow->targetType = typeid(Entity);
         World::AddSystem(inspectorWindow);
+    }
+    void* InspectorWindow::GetTarget() const
+    {
+        return target;
+    }
+    std::type_index InspectorWindow::GetTargetType() const
+    {
+        return targetType;
     }
     void InspectorWindow::Stop()
     {
@@ -27,39 +38,18 @@ namespace Light
         {
             //非默认检视窗口，支持多窗口和关闭功能
             bool isOpen = true;
-            ImGui::Begin(std::format("InspectorWindow {}", static_cast<uint32_t>(target)).c_str(), this == Light::InspectorWindow ? nullptr : &isOpen);
+            ImGui::Begin(
+                std::format("InspectorWindow##{}", reinterpret_cast<uintptr_t>(target)).c_str(),
+                this == Light::InspectorWindow ? nullptr : &isOpen
+            );
             if (isOpen == false)
                 World::RemoveSystem(this);
         }
 
-        if (World::HasEntity(target))
-        {
-            EntityInfo entityInfo = World::GetEntityInfo(target);
-            const Archetype& archetype = *entityInfo.archetype;
-            //绘制实体信息
-            ImGui::Text("Entity:%i", static_cast<int>(target));
-            //绘制组件
-            for (int i = 1; i < archetype.GetComponentCount(); ++i)
-            {
-                const ComponentInfo& componentInfo = archetype.GetComponentInfo(i);
-
-                std::type_index componentType = componentInfo.type;
-                const char* componentName = componentInfo.type.name();
-                int componentOffset = archetype.GetComponentOffset(i);
-                void* component = entityInfo.components + componentOffset;
-                //绘制组件标题
-                ImGui::SeparatorText(componentName);
-                ImGui::PushID(componentName);
-                //绘制组件内容
-                Type* type = Type::GetType(componentType);
-                if (type != nullptr)
-                {
-                    EditorUISerializer editorUiSerializer;
-                    type->serialize(editorUiSerializer, component);
-                }
-                ImGui::PopID();
-            }
-        }
+        if (inspectorGUIs.contains(targetType))
+            inspectorGUIs[targetType](target);
+        else
+            ImGui::Text("The target being inspected is unknown type.");
 
         ImGui::End();
     }

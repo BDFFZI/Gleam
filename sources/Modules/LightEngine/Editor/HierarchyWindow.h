@@ -1,5 +1,5 @@
 #pragma once
-#include "EditorUI/EditorUISystem.h"
+#include "EditorUISystem.h"
 #include "LightECS/Runtime/System.h"
 
 namespace Light

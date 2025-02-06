@@ -3,8 +3,8 @@
 #include <benchmark/benchmark.h>
 
 #include "LightUtility/Runtime/Timer.h"
-#include "LightUtility/Runtime/ObjectPool.h"
-#include "LightUtility/Runtime/ThreadPool.h"
+#include "LightUtility/Runtime/Pool/ObjectPool.h"
+#include "LightUtility/Runtime/Pool/ThreadPool.h"
 
 using namespace Light;
 

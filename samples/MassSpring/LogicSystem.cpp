@@ -31,7 +31,7 @@ void LogicSystem::OnCreatePoint() const
 {
     if (Input->GetMouseButtonDown(MouseButton::Left))
     {
-        const Entity entity = Awake->AddEntity(MassPointArchetype);
+        const Entity entity = World::AddEntity(MassPointArchetype);
         World::SetComponents(entity, Point{mousePositionWS});
         InspectorWindow->target = entity;
     }
@@ -74,7 +74,7 @@ void LogicSystem::OnCreateSpring()
             {
                 Point pointA = World::GetComponent<Point>(springPointA);
                 Point pointB = World::GetComponent<Point>(coveringPoint);
-                Entity entity = Awake->AddEntity(SpringArchetype);
+                Entity entity = World::AddEntity(SpringArchetype);
                 World::SetComponents(
                     entity, SpringPhysics{
                         springPointA,

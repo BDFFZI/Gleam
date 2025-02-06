@@ -1,6 +1,7 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
+#include "LightECS/Runtime/World.h"
 #include "LightEngine/Runtime/Engine.h"
 #include "LightEngine/Runtime/System/TimeSystem.h"
 #include "LightEngine/Runtime/System/UpdateSystem.h"
@@ -22,7 +23,7 @@ public:
     {
         countDown--;
         std::cout << "CountDown: " << countDown << std::endl;
-        if (countDown == 1)
+        if (countDown == 0)
             Engine::Stop();
 
         std::cout

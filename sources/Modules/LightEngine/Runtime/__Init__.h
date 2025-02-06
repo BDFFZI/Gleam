@@ -1,17 +1,20 @@
 ﻿#pragma once
-#include "System/AwakeSystem.h"
-#include "System/DestroySystem.h"
+#include "Engine.h"
+#include "LightECS/Runtime/World.h"
 #include "System/TimeSystem.h"
 #include "System/TransformSystem.h"
 
 namespace Light
 {
-    Light_AddSystems(AwakeSystem)
-    Light_AddSystems(DestroySystem)
-    Light_AddSystems(PreUpdateSystem)
-    Light_AddSystems(PostUpdateSystem)
-    Light_AddSystems(TimeSystem)
-    Light_AddSystems(TransformSystem)
+    Light_MakeInitEvent()
+    {
+        World::AddSystems({
+            PreUpdateSystem,
+            PostUpdateSystem,
+            TimeSystem,
+            TransformSystem
+        });
+    }
 }
 
 inline int main()

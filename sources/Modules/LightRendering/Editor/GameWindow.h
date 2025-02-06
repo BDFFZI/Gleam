@@ -1,5 +1,5 @@
 #pragma once
-#include "LightEngine/Editor/EditorUI/EditorUISystem.h"
+#include "LightEngine/Editor/EditorUISystem.h"
 #include "LightGraphics/Runtime/Resource/GRenderTarget/GRenderTexture.h"
 #include "LightUI/Runtime/UI.h"
 
