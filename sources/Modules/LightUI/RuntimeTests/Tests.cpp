@@ -64,4 +64,4 @@ private:
     }
 };
 Light_MakeGlobalSystem(MySystem)
-Light_AddSystems(MySystem)
+Light_AddEditorSystems(MySystem)

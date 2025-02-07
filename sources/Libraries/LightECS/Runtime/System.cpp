@@ -29,15 +29,6 @@ namespace Light
     {
         return order;
     }
-    void System::SetIsAlwaysUpdate(const bool value)
-    {
-        isAlwaysUpdate = value;
-    }
-    bool System::GetIsAlwaysUpdate() const
-    {
-        return isAlwaysUpdate;
-    }
-
     void System::Start()
     {
     }
@@ -74,12 +65,10 @@ namespace Light
     SystemGroup::SystemGroup(const std::optional<SystemGroup*> group, const int minOrder, const int maxOrder)
         : System(group, minOrder, maxOrder)
     {
-        SetIsAlwaysUpdate(true);
     }
     SystemGroup::SystemGroup(System* system, const OrderRelation orderRelation)
         : System(system, orderRelation)
     {
-        SetIsAlwaysUpdate(true);
     }
     void SystemGroup::AddSubSystem(System* system)
     {
@@ -138,29 +127,6 @@ namespace Light
         for (System* system : subSystemUpdateQueue)
         {
             system->Update();
-        }
-    }
-    void SystemGroup::UpdateNegative()
-    {
-        if (subSystemStopQueue.empty() == false)
-        {
-            for (System* system : std::ranges::reverse_view(subSystemStopQueue))
-                system->Stop();
-            subSystemStopQueue.clear();
-        }
-
-        if (subSystemStartQueue.empty() == false)
-        {
-            for (System* system : subSystemStartQueue)
-                system->Start();
-            subSystemUpdateQueue.insert(subSystemStartQueue.begin(), subSystemStartQueue.end());
-            subSystemStartQueue.clear();
-        }
-
-        for (System* system : subSystemUpdateQueue)
-        {
-            if (system->GetIsAlwaysUpdate())
-                system->Update();
         }
     }
 }

@@ -143,7 +143,7 @@ void TestMaterialAndCubeMesh(GCommandBuffer& commandBuffer, float4x4 matrixVP)
 }
 void TestWireCubeMesh(GCommandBuffer& commandBuffer, float4x4 matrixVP)
 {
-    float4x4 matrixMVP = mul(matrixVP, float4x4::TRS(0, 0, 2));
+    float4x4 matrixMVP = mul(matrixVP, float4x4::TRS(0, float3{0}, 2));
     lineMaterial->SetPushConstant(0, &matrixMVP);
     commandBuffer.DrawMesh(*cubeMesh, *lineMaterial);
 }

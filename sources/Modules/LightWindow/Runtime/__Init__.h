@@ -7,7 +7,7 @@
 
 namespace Light
 {
-    Light_AddSystems(Cursor)
-    Light_AddSystems(Window)
-    Light_AddSystems(Input)
+    Light_AddEditorSystems(Cursor)
+    Light_AddEditorSystems(Window)
+    Light_AddEditorSystems(Input)
 }

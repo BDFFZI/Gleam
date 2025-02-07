@@ -9,6 +9,9 @@ namespace Light
     class Engine
     {
     public:
+        static std::vector<System*>& GetRuntimeSystems();
+        static std::vector<System*>& GetEditorSystems();
+
         template <typename TSystem>
             requires std::is_base_of_v<System, TSystem>
         static TSystem* RegisterGlobalSystem()
@@ -26,8 +29,9 @@ namespace Light
         friend class Editor;
 
         static inline std::vector<std::unique_ptr<System>> allSystems;
+        static inline std::vector<System*> runtimeSystems;
+        static inline std::vector<System*> editorSystems;
         inline static bool isStopping = false;
-        inline static bool isUpdating = true;
     };
 
 #define Light_MakeGlobalSystem(systemClass) \
@@ -35,5 +39,5 @@ using systemClass##_T = systemClass;\
 inline systemClass* systemClass = Light::Engine::RegisterGlobalSystem<class systemClass##>();
 
 #include "LightUtility/Runtime/Program.h"
-#define Light_AddSystems(...) Light_MakeInitEvent(){::Light::World::AddSystems({__VA_ARGS__});}
+#define Light_AddEditorSystems(...) Light_MakeInitEvent(){::Light::Engine::GetEditorSystems().insert(::Light::Engine::GetEditorSystems().end(),{__VA_ARGS__});}
 }

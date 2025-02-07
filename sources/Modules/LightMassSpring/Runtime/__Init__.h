@@ -8,7 +8,7 @@
 
 namespace Light
 {
-    Light_AddSystems(
+    Light_AddEditorSystems(
         PhysicsSystem,
         PositionSystem,
         ForceSystem,

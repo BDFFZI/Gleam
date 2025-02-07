@@ -131,14 +131,14 @@ namespace Light
     void SceneWindow::Update()
     {
         ImGui::Begin("SceneWindow", nullptr, ImGuiWindowFlags_MenuBar);
+        //渲染纹理重建检查（别在获取窗口信息后执行！）
+        if (any(windowSize != UI::GetWindowContentRegionSize()))
+            isDirty = true;
         //获取窗口信息
         windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
         windowSize = UI::GetWindowContentRegionSize();
         //设置输入区域范围
         inputSystem.SetFocusArea({windowPosition, windowSize});
-        //渲染纹理重建检查
-        if (any(windowSize != UI::GetWindowContentRegionSize()))
-            isDirty = true;
 
         //绘制菜单选项
         if (ImGui::BeginMenuBar())

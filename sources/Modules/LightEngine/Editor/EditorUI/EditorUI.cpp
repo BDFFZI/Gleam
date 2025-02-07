@@ -3,6 +3,7 @@
 #include "EditorUISerializer.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightECS/Runtime/World.h"
+#include "LightEngine/Editor/System/EditorSystem.h"
 #include "LightEngine/Editor/System/InspectorWindow.h"
 
 namespace Light
@@ -100,14 +101,16 @@ namespace Light
     {
         SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(system);
         //下拉框
+        // ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetColorU32(ImGuiCol_Header, 0)); //隐藏背景，只留箭头
         bool collapsing = ImGui::CollapsingHeader(
             std::format("##{}", system->GetName()).c_str(),
             (systemGroup == nullptr || systemGroup->subSystemUpdateQueue.empty()
                  ? ImGuiTreeNodeFlags_Leaf : 0) //无子系统时不显示箭头
             | ImGuiTreeNodeFlags_AllowItemOverlap //支持叠加按钮
         );
-        //下拉框旁边的按钮，用于选中系统
-        ImGui::SameLine();
+        // ImGui::PopStyleColor();
+        //系统选中按钮
+        ImGui::SameLine(); //放在下拉框旁边
         if (ImGui::Button(
             system->GetName().c_str(),
             {ImGui::GetContentRegionAvail().x, 0} //按钮铺满当前行余下的所有空间

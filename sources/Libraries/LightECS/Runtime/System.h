@@ -40,23 +40,19 @@ namespace Light
         std::string& GetName();
         std::optional<SystemGroup*> GetGroup() const;
         int GetOrder() const;
-        bool GetIsAlwaysUpdate() const;
-        void SetIsAlwaysUpdate(bool value);
-
+        
         virtual void Start();
-        virtual void Stop();
         virtual void Update();
+        virtual void Stop();
 
     private:
         friend class SystemEvent;
-
 
         std::string name;
         std::optional<SystemGroup*> group;
         int minOrder;
         int maxOrder;
         int order;
-        bool isAlwaysUpdate = false;
     };
 
     class SystemEvent : public System
@@ -97,7 +93,6 @@ namespace Light
         void Start() override;
         void Stop() override;
         void Update() override;
-        void UpdateNegative();
 
     private:
         friend class EditorUI;

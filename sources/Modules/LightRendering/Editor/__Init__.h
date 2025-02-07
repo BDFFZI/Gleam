@@ -10,7 +10,7 @@
 
 namespace Light
 {
-    Light_AddSystems(
+    Light_AddEditorSystems(
         GameWindow,
         SceneWindow
     )

@@ -95,21 +95,18 @@ namespace Light
     }
     void World::Stop()
     {
-        mainScene.RemoveAllEntities(); //移除所有实体（放在系统前，是因为部分数据需要在系统是否前回收）
+        mainScene.RemoveAllEntities(); //移除所有实体（放在系统前，是因为部分数据需要在系统释放前回收）
         mainSystem.Stop(); //停止并移除所有系统
         systemUsageCount.clear();
         removingSystems.clear();
         addingSystems.clear();
     }
-    void World::Update(const bool negative)
+    void World::Update()
     {
         //将更新过程中标记增删的实体或系统移入到对应的事件队列
         FlushSystemQueue();
         //运行更新队列
-        if (negative)
-            mainSystem.UpdateNegative();
-        else
-            mainSystem.Update();
+        mainSystem.Update();
     }
 
     void World::FlushSystemQueue()

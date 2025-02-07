@@ -9,7 +9,7 @@
 
 namespace Light
 {
-    Light_AddSystems(
+    Light_AddEditorSystems(
         RenderingSystem,
         PointsRendererSystem,
         LinesRendererSystem,

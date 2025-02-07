@@ -5,5 +5,5 @@
 
 namespace Light
 {
-    Light_AddSystems(PresentationSystem)
+    Light_AddEditorSystems(PresentationSystem)
 }

@@ -31,4 +31,4 @@ class TestSystem : public System
     }
 };
 Light_MakeGlobalSystem(TestSystem)
-Light_AddSystems(TestSystem)
+Light_AddEditorSystems(TestSystem)

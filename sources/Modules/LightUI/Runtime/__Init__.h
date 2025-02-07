@@ -5,5 +5,5 @@
 
 namespace Light
 {
-    Light_AddSystems(UISystem)
+    Light_AddEditorSystems(UISystem)
 }

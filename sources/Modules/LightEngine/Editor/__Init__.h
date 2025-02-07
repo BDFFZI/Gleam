@@ -1,16 +1,17 @@
 #pragma once
 
-#include "Editor.h"
 #include "LightUI/Runtime/__Init__.h"
 
 #include "System/InspectorWindow.h"
 #include "System/HierarchyWindow.h"
 #include "LightEngine/Editor/EditorUI/EditorUI.h"
 #include "LightUI/Runtime/UI.h"
+#include "System/EditorSystem.h"
 
 namespace Light
 {
-    Light_AddSystems(
+    Light_AddEditorSystems(
+        EditorSystem,
         EditorUISystem,
         HierarchyWindow,
         InspectorWindow
@@ -18,7 +19,7 @@ namespace Light
 
     inline void EditorMenu_Play()
     {
-        Editor::IsPlaying() = !Editor::IsPlaying();
+        EditorSystem->IsPlaying() = !EditorSystem->IsPlaying();
     }
     Light_MakeEditorMenu("Edit/Play | Stop", EditorMenu_Play)
 

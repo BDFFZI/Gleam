@@ -34,14 +34,14 @@ namespace Light
          * @return 
          */
         GCommandBuffer& GetPresentGCommandBuffer() const { return *presentGCommandBuffer; }
+    
+    private:
+        GLCommandBuffer* presentGLCommandBuffer = nullptr;
+        std::unique_ptr<GCommandBuffer> presentGCommandBuffer = nullptr;
 
         void Start() override;
         void Stop() override;
         void Update() override;
-
-    private:
-        GLCommandBuffer* presentGLCommandBuffer = nullptr;
-        std::unique_ptr<GCommandBuffer> presentGCommandBuffer = nullptr;
     };
     Light_MakeGlobalSystem(PresentationSystem)
 }

@@ -123,7 +123,7 @@ namespace Light
 
         static void Start();
         static void Stop();
-        static void Update(bool negative = false);
+        static void Update();
 
     private:
         friend class HierarchyWindow;
