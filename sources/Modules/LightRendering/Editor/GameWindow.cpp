@@ -36,6 +36,7 @@ namespace Light
         renderTexture.reset();
         UI::DeleteTexture(renderTextureID);
     }
+
     void GameWindow::Update()
     {
         ImGui::Begin("GameWindow");
@@ -61,11 +62,11 @@ namespace Light
         else
         {
             ImGui::SetCursorPosY(windowSize.y / 2);
-            ImGui::Text("No Camera Direct Render To Screen");
+            ImGui::Text("No camera direct render to screen.");
         }
         //帧率信息
-        static double deltaTime = 0;
-        deltaTime = std::lerp(deltaTime, TimeSystem->GetDeltaTime(), 0.05f);
+        static float deltaTime = 0;
+        deltaTime = std::lerp(deltaTime, TimeSystem->GetDeltaTimeReal(), 0.05f);
         ImGui::SetCursorPos(cursor);
         ImGui::TextColored(
             float4::Magenta(),

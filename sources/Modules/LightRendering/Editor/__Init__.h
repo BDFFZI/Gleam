@@ -15,11 +15,10 @@ namespace Light
         SceneWindow
     )
 
-    inline void SceneGUI_LocalToWorld(LocalToWorld* target)
+    inline void SceneGUI_LocalToWorld(LocalToWorld& localToWorld)
     {
         //获取实体和组件
         Entity entity = EditorUI::GetEntityDrawing();
-        LocalToWorld& localToWorld = *target;
         std::optional<LocalTransform*> transform = World::TryGetComponent<LocalTransform>(entity);
         if (transform.has_value()) //LocalToWorld可能过时，显式更新一次
             TransformSystem::ComputeLocalToWorld(*transform.value(), localToWorld);
@@ -51,11 +50,11 @@ namespace Light
         }
     }
     Light_MakeSceneGUI(LocalToWorld, SceneGUI_LocalToWorld)
-    
-    inline void SceneGUI_Entity(Entity* entity)
+
+    inline void SceneGUI_Entity(const Entity entity)
     {
-        if (World::HasEntity(*entity))
-            EditorUI::DrawEntityPure(*entity, SceneWindow::GetCustomGUI());
+        if (World::HasEntity(entity))
+            EditorUI::DrawEntityPure(entity, SceneWindow::GetCustomGUI());
     }
     Light_MakeSceneGUI(Entity, SceneGUI_Entity)
 }

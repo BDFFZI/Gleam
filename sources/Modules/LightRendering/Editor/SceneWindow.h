@@ -50,5 +50,5 @@ namespace Light
 
 #define Light_MakeSceneGUI(type,drawSceneGUI)\
     Light_MakeInitEvent(){SceneWindow::AddCustomGUI(typeid(type),\
-    [](void* target){drawSceneGUI(static_cast<type##*>(target));});}
+    [](void* target){drawSceneGUI(*static_cast<type##*>(target));});}
 }

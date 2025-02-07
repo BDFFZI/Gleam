@@ -15,7 +15,7 @@ namespace Light
     {
         if (ImGui::Button(std::format("Entity:{}", static_cast<uint32_t>(entity)).c_str()))
         {
-            InspectorWindow->SetTarget(reinterpret_cast<Entity*>(World::GetEntityInfo(entity).components));
+            InspectorWindow->SetTarget(entity);
         }
         if (ImGui::BeginDragDropSource())
         {

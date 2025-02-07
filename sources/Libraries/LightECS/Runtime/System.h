@@ -119,5 +119,6 @@ namespace Light
     };
 
 #define Light_MakeSystem(systemClass) \
+    using systemClass##_T = systemClass;\
     inline systemClass* systemClass = Light::System::Register<class systemClass##>();
 }

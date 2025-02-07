@@ -8,10 +8,10 @@ namespace Light
             timer.Tick();
 
         const float currentTimeReal = static_cast<float>(static_cast<double>(timer.Time()) / 1000.0);
-        deltaTime = std::min(MaxDeltaTime, currentTimeReal - timeReal);
+        deltaTimeReal = currentTimeReal - timeReal;
         timeReal = currentTimeReal;
 
-        deltaTime *= timeScale;
+        deltaTime = std::min(MaxDeltaTime, deltaTimeReal) * timeScale;
         time += deltaTime;
 
         frameCount++;

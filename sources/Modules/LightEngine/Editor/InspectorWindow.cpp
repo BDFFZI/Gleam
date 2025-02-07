@@ -2,7 +2,6 @@
 
 #include "EditorUI/EditorUISerializer.h"
 #include "LightECS/Runtime/World.h"
-#include "LightReflection/Runtime/Type.h"
 #include "LightUI/Runtime/UI.h"
 
 namespace Light
@@ -19,27 +18,34 @@ namespace Light
     {
         inspectorGUIs.insert({typeIndex, drawInspectorGUI});
     }
-    void InspectorWindow::Show(const Entity target)
+
+    void* InspectorWindow::GetTarget()
     {
-        InspectorWindow* inspectorWindow = new InspectorWindow();
-        inspectorWindow->target = World::GetEntityInfo(target).components;
-        inspectorWindow->targetType = typeid(Entity);
-        World::AddSystem(inspectorWindow);
-    }
-    void InspectorWindow::Show(void* target, const std::type_index targetType)
-    {
-        InspectorWindow* inspectorWindow = new InspectorWindow();
-        inspectorWindow->target = target;
-        inspectorWindow->targetType = targetType;
-        World::AddSystem(inspectorWindow);
-    }
-    void* InspectorWindow::GetTarget() const
-    {
-        return target;
+        void* targetPtr;
+        switch (target.index())
+        {
+        case 0:
+            targetPtr = &std::get<std::any>(target);
+            break;
+        case 1:
+            targetPtr = std::get<void*>(target);
+            break;
+        case 2:
+            targetPtr = std::get<std::weak_ptr<void>>(target).lock().get();
+            break;
+        default:
+            throw std::runtime_error("不支持的目标种类！");
+        }
+        return targetPtr;
     }
     std::type_index InspectorWindow::GetTargetType() const
     {
         return targetType;
+    }
+    void InspectorWindow::SetTarget(const std::variant<std::any, void*, std::weak_ptr<void>>& target, const std::type_index targetType)
+    {
+        this->target = target;
+        this->targetType = targetType;
     }
     void InspectorWindow::Stop()
     {
@@ -55,7 +61,7 @@ namespace Light
             //非默认检视窗口，支持多窗口和关闭功能
             bool isOpen = true;
             ImGui::Begin(
-                std::format("InspectorWindow##{}", reinterpret_cast<uintptr_t>(target)).c_str(),
+                std::format("InspectorWindow##{}", reinterpret_cast<uintptr_t>(this)).c_str(),
                 this == Light::InspectorWindow ? nullptr : &isOpen
             );
             if (isOpen == false)
@@ -76,12 +82,18 @@ namespace Light
             ImGui::EndMenuBar();
         }
         //绘制目标
-        if (inspectorGUIs.contains(targetType))
-            inspectorGUIs[targetType](target);
-        else
+        void* targetPtr = GetTarget();
+        if (targetPtr != nullptr)
         {
-            EditorUISerializer serializer = {};
-            serializer.Transfer(target, targetType);
+            if (inspectorGUIs.contains(targetType))
+                inspectorGUIs[targetType](targetPtr);
+            else if (Type* type = Type::GetType(targetType))
+            {
+                EditorUISerializer serializer = {};
+                type->serialize(serializer, targetPtr);
+            }
+            else
+                ImGui::Text("The inspected target is unknown type.");
         }
 
         ImGui::End();

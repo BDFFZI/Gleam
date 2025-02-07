@@ -21,22 +21,22 @@ namespace Light
     }
     Light_MakeEditorMenu("Edit/Play | Stop", EditorMenu_Play)
 
-    inline void InspectorGUI_LocalTransform(LocalTransform* localTransform)
+    inline void InspectorGUI_LocalTransform(LocalTransform& localTransform)
     {
-        ImGui::DragFloat3("position", &localTransform->position[0]);
-        float3 eulerAngles = localTransform->rotation.ToEulerAngles();
+        ImGui::DragFloat3("position", &localTransform.position[0]);
+        float3 eulerAngles = localTransform.rotation.ToEulerAngles();
         ImGui::DragFloat3("rotation", &eulerAngles[0]);
-        localTransform->rotation = Quaternion::Euler(eulerAngles);
-        ImGui::DragFloat3("scale", &localTransform->scale[0]);
+        localTransform.rotation = Quaternion::Euler(eulerAngles);
+        ImGui::DragFloat3("scale", &localTransform.scale[0]);
     }
     Light_MakeInspectorGUI(LocalTransform, InspectorGUI_LocalTransform)
 
-    inline void InspectorGUI_Entity(Entity* entity)
+    inline void InspectorGUI_Entity(const Entity entity)
     {
-        if (World::HasEntity(*entity))
+        if (World::HasEntity(entity))
         {
             EditorUI::DrawEntity(
-                *entity,
+                entity,
                 InspectorWindow::UseDebugGUI() ? CustomGUI{} : InspectorWindow::GetCustomGUI()
             );
         }

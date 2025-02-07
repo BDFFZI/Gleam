@@ -130,23 +130,15 @@ namespace Light
     }
     void SceneWindow::Update()
     {
-        // ImGui::IsWindowHovered()
-
         ImGui::Begin("SceneWindow", nullptr, ImGuiWindowFlags_MenuBar);
-
+        //获取窗口信息
+        windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
+        windowSize = UI::GetWindowContentRegionSize();
+        //设置输入区域范围
+        inputSystem.SetFocusArea({windowPosition, windowSize});
         //渲染纹理重建检查
         if (any(windowSize != UI::GetWindowContentRegionSize()))
             isDirty = true;
-
-        windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
-        windowSize = UI::GetWindowContentRegionSize();
-
-        //设置输入区域范围
-        inputSystem.SetFocusArea({windowPosition, windowSize});
-
-        //绘制相机画面
-        if (sceneCameraCanvasImID != nullptr)
-            ImGui::Image(sceneCameraCanvasImID, windowSize);
 
         //绘制菜单选项
         if (ImGui::BeginMenuBar())
@@ -173,6 +165,10 @@ namespace Light
             ImGui::EndMenuBar();
         }
 
+        //绘制相机画面
+        if (sceneCameraCanvasImID != nullptr)
+            ImGui::Image(sceneCameraCanvasImID, windowSize);
+
         //绘制Gizmos
         {
             ImGuizmo::BeginFrame();
@@ -195,9 +191,14 @@ namespace Light
             }
         }
 
-        //绘制自定义UI
-        if (sceneGUIs.contains(InspectorWindow->GetTargetType()))
-            sceneGUIs[InspectorWindow->GetTargetType()](InspectorWindow->GetTarget());
+        //绘制自定义UI和Gizmos
+        void* target = InspectorWindow->GetTarget();
+        if (target != nullptr)
+        {
+            ImGui::SetCursorPos({});
+            if (sceneGUIs.contains(InspectorWindow->GetTargetType()))
+                sceneGUIs[InspectorWindow->GetTargetType()](target);
+        }
 
         ImGui::End();
     }
