@@ -235,13 +235,13 @@ private:
         });
     }
 };
-Light_MakeSystem(PhysicsSystem)
 
 TEST(ECS, System)
 {
+    PhysicsSystem physicsSystem{};
     for (int i = 0; i < 10; i++)
         World::AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
-    World::AddSystem(PhysicsSystem);
+    World::AddSystem(&physicsSystem);
 
     World::Start();
     for (int i = 0; i < 200; i++)

@@ -140,7 +140,4 @@ namespace Light
         inline static std::vector<System*> addingSystems = {};
         static void FlushSystemQueue();
     };
-
-#include "LightUtility/Runtime/Program.h"
-#define Light_AddSystems(...) Light_MakeInitEvent(){::Light::World::AddSystems({__VA_ARGS__});}
 }

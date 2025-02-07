@@ -34,7 +34,7 @@ namespace Light
 
     public:
         template <typename T>
-        static Type* Register(const std::string_view uuidStr)
+        static Type* Register(const std::string_view uuidStr, const std::optional<std::type_index> parent = std::nullopt)
         {
             std::unique_ptr<Type>& type = allTypes.emplace_back(new Type());
 
@@ -47,6 +47,7 @@ namespace Light
             type->size = sizeof(T);
             type->construct = Type_Construct<T>::Invoke;
             type->serialize = [](DataTransferrer& serializer, void* ptr) { Type_Transfer<T, DataTransferrer>::Invoke(serializer, *static_cast<T*>(ptr)); };
+            type->parent = parent;
 
             std::byte instance[sizeof(T)];
             type->construct(instance);
@@ -72,6 +73,7 @@ namespace Light
         Construct construct = nullptr;
         Serialize serialize = nullptr;
         std::vector<FieldInfo> fieldInfos;
+        std::optional<std::type_index> parent;
 
     private:
         inline static std::vector<std::unique_ptr<Type>> allTypes = {};
@@ -88,7 +90,7 @@ friend struct ::Light::Type_Transfer;
 #define Light_MakeType_AddField(field)\
 transferrer.TransferField(#field, value.field)
 #define Light_MakeType(type,uuidStr,...)\
-inline const ::Light::Type* type##Type = ::Light::Type::Register<type>(uuidStr);\
+inline const ::Light::Type* type##Type = ::Light::Type::Register<type>(uuidStr,__VA_ARGS__);\
 template <Light::Transferrer TTransferrer>\
 struct ::Light::Type_Transfer<type, TTransferrer>\
 {static void Invoke(TTransferrer& transferrer, type& value);};\

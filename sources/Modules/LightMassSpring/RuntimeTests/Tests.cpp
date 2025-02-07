@@ -30,5 +30,5 @@ class TestSystem : public System
         World::SetComponents(spring, springPhysics);
     }
 };
-Light_MakeSystem(TestSystem)
+Light_MakeGlobalSystem(TestSystem)
 Light_AddSystems(TestSystem)

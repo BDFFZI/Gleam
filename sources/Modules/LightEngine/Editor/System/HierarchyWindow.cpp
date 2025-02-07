@@ -1,5 +1,5 @@
 #include "HierarchyWindow.h"
-#include "EditorUI/EditorUI.h"
+#include "LightEngine/Editor/EditorUI/EditorUI.h"
 #include "LightECS/Runtime/World.h"
 #include "LightUI/Runtime/UI.h"
 

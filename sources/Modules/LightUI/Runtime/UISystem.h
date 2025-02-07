@@ -20,5 +20,5 @@ namespace Light
         void Stop() override;
         void Update() override;
     };
-    Light_MakeSystem(UISystem)
+    Light_MakeGlobalSystem(UISystem)
 }

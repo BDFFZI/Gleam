@@ -48,7 +48,7 @@ namespace Light
         friend void GlfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
         friend void GlfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     };
-    Light_MakeSystem(Window)
+    Light_MakeGlobalSystem(Window)
 
     void GlfwWindowFocusCallback(GLFWwindow* window, int focused);
     void GlfwCursorEnterCallback(GLFWwindow* window, int entered);

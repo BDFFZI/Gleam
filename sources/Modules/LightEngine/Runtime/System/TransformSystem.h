@@ -17,5 +17,5 @@ namespace Light
     private:
         void Update() override;
     };
-    Light_MakeSystem(TransformSystem)
+    Light_MakeGlobalSystem(TransformSystem)
 }

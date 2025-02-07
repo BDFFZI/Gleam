@@ -14,5 +14,5 @@ namespace Light
     private:
         void Update() override;
     };
-    Light_MakeSystem(PointsRendererSystem)
+    Light_MakeGlobalSystem(PointsRendererSystem)
 }

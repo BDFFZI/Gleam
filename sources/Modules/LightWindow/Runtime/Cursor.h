@@ -22,5 +22,5 @@ namespace Light
 
         void Update() override;
     };
-    Light_MakeSystem(Cursor)
+    Light_MakeGlobalSystem(Cursor)
 }

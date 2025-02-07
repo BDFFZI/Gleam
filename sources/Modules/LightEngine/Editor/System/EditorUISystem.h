@@ -19,7 +19,7 @@ namespace Light
 
         void Update() override;
     };
-    Light_MakeSystem(EditorUISystem)
+    Light_MakeGlobalSystem(EditorUISystem)
 
 #define Light_MakeEditorMenu(name,action) \
     Light_MakeInitEvent(){EditorUISystem->RegisterEditorMenu(name,action);}

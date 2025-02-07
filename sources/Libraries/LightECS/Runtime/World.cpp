@@ -95,8 +95,11 @@ namespace Light
     }
     void World::Stop()
     {
-        mainScene.RemoveAllEntities(); //移除所有实体
-        mainSystem.Stop(); //停止所有队列，忽略开始队列
+        mainScene.RemoveAllEntities(); //移除所有实体（放在系统前，是因为部分数据需要在系统是否前回收）
+        mainSystem.Stop(); //停止并移除所有系统
+        systemUsageCount.clear();
+        removingSystems.clear();
+        addingSystems.clear();
     }
     void World::Update(const bool negative)
     {

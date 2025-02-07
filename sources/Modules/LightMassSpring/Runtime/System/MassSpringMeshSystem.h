@@ -17,5 +17,5 @@ namespace Light
         
         void Update() override;
     };
-    Light_MakeSystem(MassSpringMeshSystem)
+    Light_MakeGlobalSystem(MassSpringMeshSystem)
 }

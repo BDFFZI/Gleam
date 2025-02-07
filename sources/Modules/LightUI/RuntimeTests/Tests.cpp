@@ -63,5 +63,5 @@ private:
         }
     }
 };
-Light_MakeSystem(MySystem)
+Light_MakeGlobalSystem(MySystem)
 Light_AddSystems(MySystem)

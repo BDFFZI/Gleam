@@ -6,15 +6,12 @@
 
 namespace Light
 {
-    Light_MakeInitEvent()
-    {
-        World::AddSystems({
-            PreUpdateSystem,
-            PostUpdateSystem,
-            TimeSystem,
-            TransformSystem
-        });
-    }
+    Light_AddSystems(
+        PreUpdateSystem,
+        PostUpdateSystem,
+        TimeSystem,
+        TransformSystem
+    );
 }
 
 inline int main()

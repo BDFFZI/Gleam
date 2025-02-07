@@ -1,10 +1,11 @@
 #pragma once
 
+#include "Editor.h"
 #include "LightUI/Runtime/__Init__.h"
 
-#include "InspectorWindow.h"
-#include "HierarchyWindow.h"
-#include "EditorUI/EditorUI.h"
+#include "System/InspectorWindow.h"
+#include "System/HierarchyWindow.h"
+#include "LightEngine/Editor/EditorUI/EditorUI.h"
 #include "LightUI/Runtime/UI.h"
 
 namespace Light
@@ -17,7 +18,7 @@ namespace Light
 
     inline void EditorMenu_Play()
     {
-        Engine::isUpdating = !Engine::isUpdating;
+        Editor::IsPlaying() = !Editor::IsPlaying();
     }
     Light_MakeEditorMenu("Edit/Play | Stop", EditorMenu_Play)
 
@@ -42,4 +43,10 @@ namespace Light
         }
     }
     Light_MakeInspectorGUI(Entity, InspectorGUI_Entity)
+
+    inline void InspectorGUI_System(System& system)
+    {
+        ImGui::Text("System");
+    }
+    Light_MakeInspectorGUI(System, InspectorGUI_System)
 }

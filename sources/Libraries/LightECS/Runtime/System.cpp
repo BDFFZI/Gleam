@@ -17,10 +17,8 @@ namespace Light
                  orderRelation == OrderRelation::Before ? system->order : system->maxOrder)
     {
     }
-    const std::string& System::GetName()
+    std::string& System::GetName()
     {
-        if (name.empty()) //RTTI无法在构造函数中正常使用，只能推后执行
-            name = typeid(*this).name();
         return name;
     }
     std::optional<SystemGroup*> System::GetGroup() const

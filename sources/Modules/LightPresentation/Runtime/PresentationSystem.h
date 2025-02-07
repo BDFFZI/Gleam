@@ -43,5 +43,5 @@ namespace Light
         GLCommandBuffer* presentGLCommandBuffer = nullptr;
         std::unique_ptr<GCommandBuffer> presentGCommandBuffer = nullptr;
     };
-    Light_MakeSystem(PresentationSystem)
+    Light_MakeGlobalSystem(PresentationSystem)
 }

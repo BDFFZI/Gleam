@@ -7,7 +7,7 @@
 #include "LightWindow/Runtime/Input.h"
 #include <ImGuizmo.h>
 
-#include "LightEngine/Editor/InspectorWindow.h"
+#include "LightEngine/Editor/System/InspectorWindow.h"
 #include "LightEngine/Runtime/System/TimeSystem.h"
 #include "LightWindow/Runtime/Cursor.h"
 

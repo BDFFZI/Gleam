@@ -36,7 +36,7 @@ namespace Light
 
         void Update() override;
     };
-    Light_MakeSystem(TimeSystem)
+    Light_MakeGlobalSystem(TimeSystem)
 
     Light_MakeType(TimeSystem_T, "")
     {

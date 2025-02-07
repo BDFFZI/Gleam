@@ -4,7 +4,7 @@
 #include "LightWindow/Runtime/Input.h"
 #include "LightWindow/Runtime/Window.h"
 #include "LightECS/Runtime/View.h"
-#include "LightEngine/Editor/InspectorWindow.h"
+#include "LightEngine/Editor/System/InspectorWindow.h"
 #include "LightEngine/Runtime/Engine.h"
 #include "LightWindow/Runtime/Time.h"
 

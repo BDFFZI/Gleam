@@ -3,7 +3,7 @@
 #include <variant>
 
 #include "EditorUISystem.h"
-#include "EditorUI/EditorUI.h"
+#include "LightEngine/Editor/EditorUI/EditorUI.h"
 #include "LightECS/Runtime/World.h"
 #include "LightECS/Runtime/System.h"
 
@@ -59,7 +59,7 @@ namespace Light
         void Stop() override;
         void Update() override;
     };
-    Light_MakeSystem(InspectorWindow)
+    Light_MakeGlobalSystem(InspectorWindow)
 
 #define Light_MakeInspectorGUI(type,drawInspectorGUI)\
     Light_MakeInitEvent(){InspectorWindow::AddCustomGUI(typeid(type),\

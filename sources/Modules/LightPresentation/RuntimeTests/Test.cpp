@@ -19,5 +19,5 @@ private:
         Light::PresentationSystem->GetPresentGCommandBuffer().ClearRenderTarget(Light::float4{0, 0, 1, 1});
     }
 };
-Light_MakeSystem(MySystem)
+Light_MakeGlobalSystem(MySystem)
 Light_AddSystems(MySystem)

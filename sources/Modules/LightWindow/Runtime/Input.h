@@ -13,8 +13,9 @@ namespace Light
     class Input : public System
     {
     public:
-        Input(): System(Window, MiddleOrder, RightOrder)
+        Input(const std::string_view name = ""): System(Window, MiddleOrder, RightOrder)
         {
+            this->GetName() = name;
         }
 
         bool GetMouseButtonDown(MouseButton mouseButton) const;
@@ -38,5 +39,5 @@ namespace Light
 
         void Update() override;
     };
-    Light_MakeSystem(Input)
+    Light_MakeGlobalSystem(Input)
 }

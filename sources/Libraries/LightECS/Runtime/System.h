@@ -22,16 +22,6 @@ namespace Light
         constexpr static int32_t RightOrder = std::numeric_limits<int32_t>::max();
         constexpr static int32_t MiddleOrder = 0;
 
-        template <typename TSystem>
-        static TSystem* Register()
-        {
-            TSystem* system = new TSystem();
-            if (system->name.empty())
-                system->name = typeid(TSystem).name();
-            allSystems.emplace_back(system);
-            return system;
-        }
-
         /**
          * minOrder和maxOrder不仅用于计算System的执行顺序，同时暗示了System的作用域，例如可以借此有意限制必须在其他系统之前执行。
          * @param group 
@@ -47,7 +37,7 @@ namespace Light
         System(System* system, OrderRelation orderRelation);
         virtual ~System() = default;
 
-        const std::string& GetName();
+        std::string& GetName();
         std::optional<SystemGroup*> GetGroup() const;
         int GetOrder() const;
         bool GetIsAlwaysUpdate() const;
@@ -60,7 +50,6 @@ namespace Light
     private:
         friend class SystemEvent;
 
-        static inline std::vector<std::unique_ptr<System>> allSystems;
 
         std::string name;
         std::optional<SystemGroup*> group;
@@ -117,8 +106,4 @@ namespace Light
         std::set<System*, SystemPtrComparer> subSystemStopQueue = {};
         std::set<System*, SystemPtrComparer> subSystemUpdateQueue = {};
     };
-
-#define Light_MakeSystem(systemClass) \
-    using systemClass##_T = systemClass;\
-    inline systemClass* systemClass = Light::System::Register<class systemClass##>();
 }

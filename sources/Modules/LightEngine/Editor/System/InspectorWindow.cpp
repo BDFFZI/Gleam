@@ -1,6 +1,6 @@
 #include "InspectorWindow.h"
 
-#include "EditorUI/EditorUISerializer.h"
+#include "LightEngine/Editor/EditorUI/EditorUISerializer.h"
 #include "LightECS/Runtime/World.h"
 #include "LightUI/Runtime/UI.h"
 

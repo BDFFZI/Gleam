@@ -34,7 +34,7 @@ class TestSystem : public System
         });
     }
 };
-Light_MakeSystem(TestSystem)
+Light_MakeGlobalSystem(TestSystem)
 
 Light_MakeInitEvent()
 {

@@ -3,7 +3,7 @@
 #include "EditorUISerializer.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightECS/Runtime/World.h"
-#include "LightEngine/Editor/InspectorWindow.h"
+#include "LightEngine/Editor/System/InspectorWindow.h"
 
 namespace Light
 {

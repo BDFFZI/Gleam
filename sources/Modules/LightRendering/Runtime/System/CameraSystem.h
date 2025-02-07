@@ -14,5 +14,5 @@ namespace Light
     private:
         void Update() override;
     };
-    Light_MakeSystem(CameraSystem)
+    Light_MakeGlobalSystem(CameraSystem)
 }
