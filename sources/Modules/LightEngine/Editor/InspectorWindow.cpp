@@ -1,12 +1,21 @@
 #include "InspectorWindow.h"
 
+#include "EditorUI/EditorUISerializer.h"
 #include "LightECS/Runtime/World.h"
 #include "LightReflection/Runtime/Type.h"
 #include "LightUI/Runtime/UI.h"
 
 namespace Light
 {
-    void InspectorWindow::RegisterInspectorGUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorGUI)
+    bool& InspectorWindow::UseDebugGUI()
+    {
+        return useDebugGUI;
+    }
+    const CustomGUI& InspectorWindow::GetCustomGUI()
+    {
+        return inspectorGUIs;
+    }
+    void InspectorWindow::AddCustomGUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorGUI)
     {
         inspectorGUIs.insert({typeIndex, drawInspectorGUI});
     }
@@ -15,6 +24,13 @@ namespace Light
         InspectorWindow* inspectorWindow = new InspectorWindow();
         inspectorWindow->target = World::GetEntityInfo(target).components;
         inspectorWindow->targetType = typeid(Entity);
+        World::AddSystem(inspectorWindow);
+    }
+    void InspectorWindow::Show(void* target, const std::type_index targetType)
+    {
+        InspectorWindow* inspectorWindow = new InspectorWindow();
+        inspectorWindow->target = target;
+        inspectorWindow->targetType = targetType;
         World::AddSystem(inspectorWindow);
     }
     void* InspectorWindow::GetTarget() const
@@ -33,7 +49,7 @@ namespace Light
     void InspectorWindow::Update()
     {
         if (this == Light::InspectorWindow)
-            ImGui::Begin("InspectorWindow");
+            ImGui::Begin("InspectorWindow", nullptr, ImGuiWindowFlags_MenuBar);
         else
         {
             //非默认检视窗口，支持多窗口和关闭功能
@@ -46,10 +62,27 @@ namespace Light
                 World::RemoveSystem(this);
         }
 
+        //绘制菜单项
+        if (ImGui::BeginMenuBar())
+        {
+            if (ImGui::MenuItem("Clone"))
+                Show(target, targetType);
+            if (ImGui::BeginMenu("Debug"))
+            {
+                ImGui::Checkbox("UseDebugGUI", &useDebugGUI);
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenuBar();
+        }
+        //绘制目标
         if (inspectorGUIs.contains(targetType))
             inspectorGUIs[targetType](target);
         else
-            ImGui::Text("The target being inspected is unknown type.");
+        {
+            EditorUISerializer serializer = {};
+            serializer.Transfer(target, targetType);
+        }
 
         ImGui::End();
     }

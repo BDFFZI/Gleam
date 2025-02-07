@@ -47,7 +47,6 @@ namespace Light
             type->size = sizeof(T);
             type->construct = Type_Construct<T>::Invoke;
             type->serialize = [](DataTransferrer& serializer, void* ptr) { Type_Transfer<T, DataTransferrer>::Invoke(serializer, *static_cast<T*>(ptr)); };
-            type->deserialize = type->serialize;
 
             std::byte instance[sizeof(T)];
             type->construct(instance);
@@ -72,7 +71,6 @@ namespace Light
         size_t size = 0;
         Construct construct = nullptr;
         Serialize serialize = nullptr;
-        Serialize deserialize = nullptr;
         std::vector<FieldInfo> fieldInfos;
 
     private:

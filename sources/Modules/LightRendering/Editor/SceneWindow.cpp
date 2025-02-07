@@ -58,7 +58,11 @@ namespace Light
         localTransform.rotation = Quaternion::Euler(eulerAngles);
     }
 
-    void SceneWindow::RegisterSceneGUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneGUI)
+    const CustomGUI& SceneWindow::GetCustomGUI()
+    {
+        return sceneGUIs;
+    }
+    void SceneWindow::AddCustomGUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneGUI)
     {
         sceneGUIs.insert({typeIndex, drawSceneGUI});
     }

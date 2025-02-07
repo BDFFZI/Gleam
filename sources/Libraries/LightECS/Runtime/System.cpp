@@ -19,6 +19,8 @@ namespace Light
     }
     const std::string& System::GetName()
     {
+        if (name.empty()) //RTTI无法在构造函数中正常使用，只能推后执行
+            name = typeid(*this).name();
         return name;
     }
     std::optional<SystemGroup*> System::GetGroup() const

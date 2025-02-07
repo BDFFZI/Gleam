@@ -111,7 +111,7 @@ namespace Light
         void UpdateNegative();
 
     private:
-        friend class EditorUIUtility;
+        friend class EditorUI;
 
         std::set<System*, SystemPtrComparer> subSystemStartQueue = {};
         std::set<System*, SystemPtrComparer> subSystemStopQueue = {};

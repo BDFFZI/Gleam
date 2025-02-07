@@ -26,7 +26,15 @@ namespace Light
     }
     void DataTransferrer::Transfer(void* value, const std::type_index typeIndex)
     {
-        throw std::runtime_error("不支持的传输类型！");
+        Type* type = Type::GetType(typeIndex);
+        if (type != nullptr)
+        {
+            PushNode(nullptr, DataType::Class);
+            type->serialize(*this, value);
+            PopNode();
+        }
+        else
+            throw std::runtime_error("不支持的传输类型！");
     }
     void DataTransferrer::Transfer(float& value)
     {

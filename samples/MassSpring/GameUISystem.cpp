@@ -4,7 +4,7 @@
 #include <magic_enum.hpp>
 
 #include "LogicSystem.h"
-#include "LightEngine/Editor/EditorUI/EditorUIUtility.h"
+#include "LightEngine/Editor/EditorUI/EditorUI.h"
 #include "LightEngine/Runtime/Engine.h"
 
 using namespace Light;
@@ -26,7 +26,7 @@ void GameUISystem::Update()
     //显示鼠标所在的点
     ImGui::Text("CoveringPoint");
     ImGui::SameLine();
-    EditorUIUtility::DrawEntityButton(LogicSystem.GetCoveringPoint());
+    EditorUI::DrawEntityButton(LogicSystem.GetCoveringPoint());
     //退出游戏按钮
     if (ImGui::Button("ExitGame"))
         Engine::Stop();

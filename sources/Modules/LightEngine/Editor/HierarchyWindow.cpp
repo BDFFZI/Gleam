@@ -1,5 +1,5 @@
 #include "HierarchyWindow.h"
-#include "EditorUI/EditorUIUtility.h"
+#include "EditorUI/EditorUI.h"
 #include "LightECS/Runtime/World.h"
 #include "LightUI/Runtime/UI.h"
 
@@ -14,9 +14,17 @@ namespace Light
 
         ImGui::SeparatorText("Details");
         if (ImGui::CollapsingHeader("MainSystem"))
-            EditorUIUtility::DrawSystemGroupUnfolding(World::GetMainSystem());
+        {
+            ImGui::TreePush("MainSystem");
+            EditorUI::DrawSystemGroupContent(World::GetMainSystem());
+            ImGui::TreePop();
+        }
         if (ImGui::CollapsingHeader("MainScene"))
-            EditorUIUtility::DrawSceneUnfolding(World::GetMainScene());
+        {
+            ImGui::TreePush("MainScene");
+            EditorUI::DrawSceneUnfolding(World::GetMainScene());
+            ImGui::TreePop();
+        }
 
 
         ImGui::End();

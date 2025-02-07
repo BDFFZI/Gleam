@@ -21,7 +21,7 @@ namespace Light
     {
         type->construct(address);
         JsonReader jsonReader = {doc};
-        type->deserialize(jsonReader, address);
+        type->serialize(jsonReader, address);
     }
     std::string Json::ToJson(void* object, Type* type, const bool pretty)
     {

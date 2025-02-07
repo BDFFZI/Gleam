@@ -4,6 +4,7 @@
 #include "LightUI/Runtime/UI.h"
 #include "LightECS/Runtime/System.h"
 #include "LightEngine/Editor/EditorUISystem.h"
+#include "LightEngine/Editor/EditorUI/EditorUI.h"
 #include "LightRendering/Runtime/Component/Camera.h"
 #include "LightWindow/Runtime/Input.h"
 
@@ -12,7 +13,8 @@ namespace Light
     class SceneWindow : public System
     {
     public:
-        static void RegisterSceneGUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneGUI);
+        static const CustomGUI& GetCustomGUI();
+        static void AddCustomGUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneGUI);
 
         const Camera& GetCamera() const;
         const WorldToClip& GetCameraTransform() const;
@@ -47,6 +49,6 @@ namespace Light
     Light_MakeSystem(SceneWindow)
 
 #define Light_MakeSceneGUI(type,drawSceneGUI)\
-    Light_MakeInitEvent(){SceneWindow::RegisterSceneGUI(typeid(type),\
+    Light_MakeInitEvent(){SceneWindow::AddCustomGUI(typeid(type),\
     [](void* target){drawSceneGUI(static_cast<type##*>(target));});}
 }

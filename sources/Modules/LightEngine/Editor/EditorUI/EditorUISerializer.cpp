@@ -1,6 +1,6 @@
 #include "EditorUISerializer.h"
 
-#include "EditorUIUtility.h"
+#include "EditorUI.h"
 #include "LightMath/Runtime/LinearAlgebra/Matrix.h"
 #include "LightUI/Runtime/UI.h"
 
@@ -126,11 +126,18 @@ namespace Light
         PreTransferNode();
         if (type == typeid(Entity))
         {
-            EditorUIUtility::DrawEntityButton(*static_cast<Entity*>(value));
+            EditorUI::DrawEntityButton(*static_cast<Entity*>(value));
             return;
         }
 
-        ImGui::Text("unknown type");
+        try
+        {
+            DataTransferrer::Transfer(value, type);
+        }
+        catch (...)
+        {
+            ImGui::Text("unknown type <%s>",type.name());
+        }
     }
 
     std::string EditorUISerializer::GetElementName(size_t index)

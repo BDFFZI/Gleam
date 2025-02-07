@@ -14,6 +14,10 @@ namespace Light
     };
 
     class DataTransferrer;
+    ///扩展DataTransferrer传输函数。
+    ///由于基于模板，因此针对各种类型扩展都非常方便，但也因此仅对直接调用有效，使用RTTI访问将绕过该函数。
+    ///建议仅用于扩展基本类型，例如向量之类等价于int,float这样被存放在class内的成员类型。
+    ///class类型通过会利用RTTI和Type来获取对应的序列化方法。
     template <typename TValue>
     struct DataTransferrer_Transfer
     {
@@ -103,17 +107,10 @@ namespace Light
     };
     static_assert(Transferrer<DataTransferrer>);
 
+    //默认情况下扩展类型直接通过RTTI处理
     template <typename TValue>
     void DataTransferrer_Transfer<TValue>::Invoke(DataTransferrer& serializer, TValue& value)
     {
-        Type* type = Type::GetType(typeid(TValue));
-        if (type != nullptr)
-        {
-            serializer.PushNode(nullptr, DataType::Class);
-            type->serialize(serializer, &value);
-            serializer.PopNode();
-        }
-        else
-            serializer.Transfer(&value, typeid(TValue));
+        serializer.Transfer(&value, typeid(TValue));
     }
 }
