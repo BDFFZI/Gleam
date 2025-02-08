@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Editor.h"
 #include "LightUI/Runtime/__Init__.h"
 
 #include "System/InspectorWindow.h"
@@ -10,18 +11,26 @@
 
 namespace Light
 {
+    Light_AddStartEvent(ReplaceRuntimeSystem, 0)
+    {
+        for (auto* system : Engine::RuntimeSystems())
+            World::RemoveSystem(system);
+        for (auto* system : Editor::EditorSystems())
+            World::AddSystem(system);
+    }
+
     Light_AddEditorSystems(
         EditorSystem,
         EditorUISystem,
         HierarchyWindow,
-        InspectorWindow
+        InspectorWindow,
     )
 
     inline void EditorMenu_Play()
     {
-        EditorSystem->IsPlaying() = !EditorSystem->IsPlaying();
+        Editor::IsPlaying() = !Editor::IsPlaying();
     }
-    Light_MakeEditorMenu("Edit/Play | Stop", EditorMenu_Play)
+    Light_MakeEditorMenu("Edit/Play | Pause", EditorMenu_Play)
 
     inline void InspectorGUI_LocalTransform(LocalTransform& localTransform)
     {

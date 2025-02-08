@@ -39,5 +39,5 @@ public:
 
     int countDown = 3;
 };
-Light_MakeGlobalSystem(MySystem)
-Light_AddEditorSystems(MySystem)
+Light_MakeSystemInstance(MySystem)
+Light_AddSystems(MySystem)

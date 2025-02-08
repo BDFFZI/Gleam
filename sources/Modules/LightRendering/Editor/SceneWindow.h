@@ -5,8 +5,9 @@
 #include "LightECS/Runtime/System.h"
 #include "LightEngine/Editor/System/EditorUISystem.h"
 #include "LightEngine/Editor/EditorUI/EditorUI.h"
+#include "LightEngine/Runtime/System/TimeSystem.h"
 #include "LightRendering/Runtime/Component/Camera.h"
-#include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/System/InputSystem.h"
 
 namespace Light
 {
@@ -31,7 +32,8 @@ namespace Light
         float2 windowSize = 0;
         //预建资源
         SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", PostUpdateSystem);
-        class Input inputSystem = {"SceneWindow_Input"};
+        class InputSystem inputSystem = {"SceneWindow_Input"};
+        class TimeSystem timeSystem = {"SceneWindow_Time"};
         Entity sceneCamera = Entity::Null;
         //场景相机渲染目标相关
         std::unique_ptr<GRenderTexture> sceneCameraCanvas;
@@ -46,7 +48,7 @@ namespace Light
         void Stop() override;
         void Update() override;
     };
-    Light_MakeGlobalSystem(SceneWindow)
+    Light_MakeSystemInstance(SceneWindow)
 
 #define Light_MakeSceneGUI(type,drawSceneGUI)\
     Light_MakeInitEvent(){SceneWindow::AddCustomGUI(typeid(type),\

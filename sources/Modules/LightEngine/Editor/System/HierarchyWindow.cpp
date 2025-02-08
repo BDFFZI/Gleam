@@ -1,8 +1,8 @@
 #include "HierarchyWindow.h"
 
-#include "EditorSystem.h"
 #include "LightEngine/Editor/EditorUI/EditorUI.h"
 #include "LightECS/Runtime/World.h"
+#include "LightEngine/Editor/Editor.h"
 #include "LightUI/Runtime/UI.h"
 
 namespace Light
@@ -12,7 +12,7 @@ namespace Light
         ImGui::Begin("HierarchyWindow");
 
         ImGui::SeparatorText("Statistics");
-        ImGui::BulletText(std::format("IsPlaying:{}", EditorSystem->IsPlaying()).c_str());
+        ImGui::BulletText(std::format("IsPlaying:{}", Editor::IsPlaying()).c_str());
         ImGui::BulletText(std::format("TotalEntity:{}", World::nextEntity - 1).c_str());
 
         ImGui::SeparatorText("Details");

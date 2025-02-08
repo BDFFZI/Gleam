@@ -8,7 +8,7 @@
 #include "LightGraphics/Runtime/SwapChain.h"
 #include "LightRendering/Runtime/System/RenderingSystem.h"
 #include "LightUI/Runtime/UI.h"
-#include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/System/InputSystem.h"
 
 namespace Light
 {
@@ -26,7 +26,7 @@ namespace Light
                 renderTextureID = UI::CreateTexture(*renderTexture);
             }
             //更新输入系统的焦点范围为GameWindow
-            Input->SetFocusArea(Rect{windowPosition, windowSize});
+            InputSystem->SetFocusArea(Rect{windowPosition, windowSize});
         };
         World::AddSystem(&systemEvent);
     }

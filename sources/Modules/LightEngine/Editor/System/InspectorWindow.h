@@ -59,7 +59,7 @@ namespace Light
         void Stop() override;
         void Update() override;
     };
-    Light_MakeGlobalSystem(InspectorWindow)
+    Light_MakeSystemInstance(InspectorWindow)
 
 #define Light_MakeInspectorGUI(type,drawInspectorGUI)\
     Light_MakeInitEvent(){InspectorWindow::AddCustomGUI(typeid(type),\

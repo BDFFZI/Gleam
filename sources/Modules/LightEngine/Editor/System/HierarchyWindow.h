@@ -14,5 +14,5 @@ namespace Light
     private:
         void Update() override;
     };
-    Light_MakeGlobalSystem(HierarchyWindow)
+    Light_MakeSystemInstance(HierarchyWindow)
 }

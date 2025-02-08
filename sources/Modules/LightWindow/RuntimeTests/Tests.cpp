@@ -4,8 +4,8 @@
 #include "LightECS/Runtime/World.h"
 #include "LightMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "LightUtility/Runtime/Program.h"
-#include "LightWindow/Runtime/Cursor.h"
-#include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/System/CursorSystem.h"
+#include "LightWindow/Runtime/System/InputSystem.h"
 #include "LightWindow/Runtime/Window.h"
 
 using namespace Light;
@@ -18,61 +18,61 @@ Light_MakeInitEvent()
 {
     systemEvent.onStart = [&]
     {
-        windowPosition = Window->GetWindowPosition();
-        resolution = static_cast<float2>(Window->GetResolution());
+        windowPosition = Window::GetWindowPosition();
+        resolution = static_cast<float2>(Window::GetResolution());
     };
     systemEvent.onUpdate = [&]
     {
         //检查WASD输入
         float2 moveInput = 0;
-        if (Input->GetKey(KeyCode::W))
+        if (InputSystem->GetKey(KeyCode::W))
             moveInput.y = 1;
-        else if (Input->GetKey(KeyCode::S))
+        else if (InputSystem->GetKey(KeyCode::S))
             moveInput.y = -1;
-        if (Input->GetKey(KeyCode::A))
+        if (InputSystem->GetKey(KeyCode::A))
             moveInput.x = -1;
-        else if (Input->GetKey(KeyCode::D))
+        else if (InputSystem->GetKey(KeyCode::D))
             moveInput.x = 1;
         if (any(moveInput))
             std::cout << "Move:" << to_string(moveInput) << '\n';
         //检查鼠标左键和鼠标位置输入
-        if (Input->GetMouseButton(MouseButton::Left))
-            std::cout << "Fire:" << to_string(Input->GetMousePosition()) << '\n';
+        if (InputSystem->GetMouseButton(MouseButton::Left))
+            std::cout << "Fire:" << to_string(InputSystem->GetMousePosition()) << '\n';
         //检查鼠标位置增量
-        if (Input->GetKey(KeyCode::LeftShift))
+        if (InputSystem->GetKey(KeyCode::LeftShift))
         {
-            std::cout << "LeftShift:" << to_string(Input->GetMouseMoveDelta()) << '\n';
-            windowPosition += int2(Input->GetMouseMoveDelta().x, Input->GetMouseMoveDelta().y);
-            glfwSetWindowPos(Window->GetGlfwWindow(), windowPosition.x, windowPosition.y);
+            std::cout << "LeftShift:" << to_string(InputSystem->GetMouseMoveDelta()) << '\n';
+            windowPosition += int2(InputSystem->GetMouseMoveDelta().x, InputSystem->GetMouseMoveDelta().y);
+            glfwSetWindowPos(Window::GetGlfwWindow(), windowPosition.x, windowPosition.y);
         }
         //检查输入区域功能
-        if (Input->GetMouseButtonDown(MouseButton::Right))
-            Input->SetFocusArea({Window->GetMousePosition(), float2(std::numeric_limits<float>::max())});
+        if (InputSystem->GetMouseButtonDown(MouseButton::Right))
+            InputSystem->SetFocusArea({Window::GetMousePosition(), float2(std::numeric_limits<float>::max())});
         //检查光标隐藏
-        if (Input->GetMouseButtonDown(MouseButton::Right))
+        if (InputSystem->GetMouseButtonDown(MouseButton::Right))
         {
-            Cursor->SetLockState(true);
-            Cursor->SetVisible(false);
+            CursorSystem->SetLockState(true);
+            CursorSystem->SetVisible(false);
         }
-        else if (Input->GetMouseButtonUp(MouseButton::Right))
+        else if (InputSystem->GetMouseButtonUp(MouseButton::Right))
         {
-            Cursor->SetLockState(false);
-            Cursor->SetVisible(true);
+            CursorSystem->SetLockState(false);
+            CursorSystem->SetVisible(true);
         }
         //检查窗口大小修改
-        if (Input->GetKeyDown(KeyCode::Minus))
+        if (InputSystem->GetKeyDown(KeyCode::Minus))
         {
             resolution /= 2;
-            Window->SetResolution(static_cast<int2>(resolution));
+            Window::SetResolution(static_cast<int2>(resolution));
         }
-        else if (Input->GetKeyDown(KeyCode::Equals))
+        else if (InputSystem->GetKeyDown(KeyCode::Equals))
         {
             resolution *= 2;
-            Window->SetResolution(static_cast<int2>(resolution));
+            Window::SetResolution(static_cast<int2>(resolution));
         }
         //检查全屏功能
-        if (Input->GetKeyDown(KeyCode::F11))
-            Window->SetFullScreen(!Window->GetFullScreen());
+        if (InputSystem->GetKeyDown(KeyCode::F11))
+            Window::SetFullScreen(!Window::GetFullScreen());
     };
 
     World::AddSystem(&systemEvent);

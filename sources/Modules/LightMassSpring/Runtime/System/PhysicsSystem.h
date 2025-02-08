@@ -25,5 +25,5 @@ namespace Light
 
         void Update() override;
     };
-    Light_MakeGlobalSystem(PhysicsSystem)
+    Light_MakeSystemInstance(PhysicsSystem)
 }

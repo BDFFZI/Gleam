@@ -43,7 +43,7 @@ namespace Light
 
         // Setup Platform/Renderer backends
 
-        ImGui_ImplGlfw_InitForVulkan(Window->GetGlfwWindow(), true);
+        ImGui_ImplGlfw_InitForVulkan(Window::GetGlfwWindow(), true);
         ImGui_ImplVulkan_InitInfo initInfo = {};
         initInfo.Instance = GL::glInstance->instance;
         initInfo.PhysicalDevice = GL::glDevice->physicalDevice;

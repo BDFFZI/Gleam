@@ -2,59 +2,46 @@
 #include <GLFW/glfw3.h>
 
 #include "InputEnum.h"
-#include "LightECS/Runtime/System.h"
-#include "LightEngine/Runtime/System/UpdateSystem.h"
 #include "LightMath/Runtime/LinearAlgebra/Vector.h"
 
 namespace Light
 {
-    class Window : public SystemGroup
+    class Window
     {
     public:
-        Window(): SystemGroup(PreUpdateSystem, LeftOrder, MiddleOrder)
-        {
-        }
+        static GLFWwindow* GetGlfwWindow();
 
-        GLFWwindow* GetGlfwWindow() const { return glfwWindow; }
-        int2 GetWindowPosition() const;
-        int2 GetResolution() const;
-        bool GetFullScreen() const;
+        static int2 GetWindowPosition();
+        static int2 GetResolution();
+        static bool GetFullScreen();
+        static float2 GetMousePosition();
+        static float2 GetMouseScrollDelta();
+        static bool GetIsMouseDown();
+        static bool GetMouseButtonState(MouseButton button);
+        static bool GetKeyboardState(KeyCode key);
+        static void SetResolution(int2 resolution);
+        static void SetFullScreen(bool fullscreen);
+        static void SetMousePosition(float2 position);
 
-        float2 GetMousePosition() const { return mousePosition; }
-        float2 GetMouseScrollDelta() const { return mouseScrollDelta; }
-        bool GetMouseButtonState(const MouseButton button) const { return mouseButtonStates[static_cast<uint8_t>(button)]; }
-        bool GetKeyboardState(const KeyCode key) const { return keyboardStates[static_cast<uint16_t>(key)]; }
-        bool IsMouseDown() const { return isMouseDown; }
-
-        void SetResolution(int2 resolution) const;
-        void SetFullScreen(bool fullscreen) const;
-        void SetMousePosition(float2 position) const;
+        static void Init();
+        static void UnInit();
+        static void Update();
 
     private:
-        GLFWwindow* glfwWindow = nullptr;
-        float2 mousePosition = {};
-        float2 mouseScrollDelta = {};
-        bool mouseButtonStates[3] = {};
-        bool keyboardStates[349] = {};
-        bool lastMouseState = false;
-        bool isMouseDown = false;
+        inline static GLFWwindow* glfwWindow = nullptr;
+        inline static float2 mousePosition = {};
+        inline static float2 mouseScrollDelta = {};
+        inline static bool mouseButtonStates[3] = {};
+        inline static bool keyboardStates[349] = {};
+        inline static bool lastMouseState = false;
+        inline static bool isMouseDown = false;
 
-        void Start() override;
-        void Stop() override;
-        void Update() override;
-
-        friend void GlfwCursorPosCallback(GLFWwindow* window, double xPos, double yPos);
-        friend void GlfwScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
-        friend void GlfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-        friend void GlfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        static void GlfwWindowFocusCallback(GLFWwindow* window, int focused);
+        static void GlfwCursorEnterCallback(GLFWwindow* window, int entered);
+        static void GlfwCursorPosCallback(GLFWwindow* window, double xPos, double yPos);
+        static void GlfwScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
+        static void GlfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+        static void GlfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+        static void GlfwCharCallback(GLFWwindow* window, unsigned int codepoint);
     };
-    Light_MakeGlobalSystem(Window)
-
-    void GlfwWindowFocusCallback(GLFWwindow* window, int focused);
-    void GlfwCursorEnterCallback(GLFWwindow* window, int entered);
-    void GlfwCursorPosCallback(GLFWwindow* window, double xPos, double yPos);
-    void GlfwScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
-    void GlfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-    void GlfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    void GlfwCharCallback(GLFWwindow* window, unsigned int codepoint);
 }

@@ -14,7 +14,7 @@ namespace Light
         {
         }
     };
-    Light_MakeGlobalSystem(PreUpdateSystem)
+    Light_MakeSystemInstance(PreUpdateSystem)
 
     /**
      * 在默认更新顺序之后执行，用于引擎接收处理用户更新后的游戏数据，系统将根据这些信息调整一些系统功能，例如更新矩阵，绘制。
@@ -26,5 +26,5 @@ namespace Light
         {
         }
     };
-    Light_MakeGlobalSystem(PostUpdateSystem)
+    Light_MakeSystemInstance(PostUpdateSystem)
 }

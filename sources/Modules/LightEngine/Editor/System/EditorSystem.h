@@ -7,17 +7,14 @@ namespace Light
     class EditorSystem : public System
     {
     public:
-        EditorSystem(): System(std::nullopt, LeftOrder, LeftOrder)
+        EditorSystem(): System(std::nullopt, RightOrder, RightOrder)
         {
-
         }
 
-        bool& IsPlaying();
-
     private:
-        bool isPlaying = false;
+        bool lastIsPlaying = false;
 
         void Update() override;
     };
-    Light_MakeGlobalSystem(EditorSystem)
+    Light_MakeSystemInstance(EditorSystem)
 }

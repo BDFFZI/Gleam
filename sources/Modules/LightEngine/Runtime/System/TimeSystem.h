@@ -10,8 +10,9 @@ namespace Light
     class TimeSystem : public System
     {
     public:
-        TimeSystem(): System(PreUpdateSystem)
+        TimeSystem(const std::string_view name = ""): System(PreUpdateSystem)
         {
+            GetName() = name;
         }
 
         float GetTimeReal() const { return timeReal; }
@@ -36,7 +37,7 @@ namespace Light
 
         void Update() override;
     };
-    Light_MakeGlobalSystem(TimeSystem)
+    Light_MakeSystemInstance(TimeSystem)
 
     Light_MakeType(TimeSystem_T, "")
     {

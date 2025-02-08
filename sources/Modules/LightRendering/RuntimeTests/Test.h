@@ -8,7 +8,7 @@
 #include "LightRendering/Runtime/Component/Camera.h"
 #include "LightRendering/Runtime/Component/LinesMesh.h"
 #include "LightRendering/Runtime/Component/PointsMesh.h"
-#include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/System/InputSystem.h"
 
 using namespace Light; // NOLINT(clang-diagnostic-header-hygiene)
 
@@ -30,11 +30,11 @@ class TestSystem : public System
     {
         View<ScreenToWorld, TestCameraData>::Each([](ScreenToWorld& screenToWorld, TestCameraData& testCameraData)
         {
-            testCameraData.mousePositionWS = mul(screenToWorld.value, float4(Input->GetMousePosition(), 0, 1));
+            testCameraData.mousePositionWS = mul(screenToWorld.value, float4(InputSystem->GetMousePosition(), 0, 1));
         });
     }
 };
-Light_MakeGlobalSystem(TestSystem)
+Light_MakeSystemInstance(TestSystem)
 
 Light_MakeInitEvent()
 {

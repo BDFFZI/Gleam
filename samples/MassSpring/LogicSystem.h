@@ -1,7 +1,7 @@
 #pragma once
 #include "LightECS/Runtime/Entity.h"
 #include "LightECS/Runtime/System.h"
-#include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/System/InputSystem.h"
 #include "Physics/PhysicsSystem.h"
 
 enum class EditMode:uint8_t

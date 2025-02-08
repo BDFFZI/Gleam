@@ -6,12 +6,22 @@
 #include "System/PhysicsSystem.h"
 #include "System/PositionSystem.h"
 
+#ifdef Light_Editor
+#include "LightEngine/Editor/Editor.h"
+#endif
+
 namespace Light
 {
-    Light_AddEditorSystems(
+    Light_AddSystems(
         PhysicsSystem,
         PositionSystem,
         ForceSystem,
         MassSpringMeshSystem
     )
+
+#ifdef Light_Editor
+    Light_AddEditorSystems(
+        MassSpringMeshSystem
+    )
+#endif
 }

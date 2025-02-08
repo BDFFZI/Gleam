@@ -24,5 +24,5 @@ namespace Light
         void Stop() override;
         void Update() override;
     };
-    Light_MakeGlobalSystem(GameWindow)
+    Light_MakeSystemInstance(GameWindow)
 }

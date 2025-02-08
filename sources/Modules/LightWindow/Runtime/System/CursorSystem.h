@@ -1,13 +1,13 @@
 #pragma once
-#include "Input.h"
+#include "InputSystem.h"
 #include "LightECS/Runtime/System.h"
 
 namespace Light
 {
-    class Cursor : public System
+    class CursorSystem : public System
     {
     public:
-        Cursor(): System(Input, OrderRelation::After)
+        CursorSystem(): System(InputSystem, OrderRelation::After)
         {
         }
 
@@ -18,9 +18,9 @@ namespace Light
 
     private:
         bool isLocking = false;
-        float2 lockingPos;
-
+        float2 lockingPos = 0;
+        
         void Update() override;
     };
-    Light_MakeGlobalSystem(Cursor)
+    Light_MakeSystemInstance(CursorSystem)
 }

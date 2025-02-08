@@ -32,6 +32,7 @@ namespace Light
         static Entity GetNextEntity();
         static const EntityInfo& GetEntityInfo(Entity entity);
         static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
+        static void FlushSystemQueue();
 
         static Scene* GetMainScene();
         static SystemGroup* GetMainSystem();
@@ -138,6 +139,5 @@ namespace Light
         //在遍历系统的时候是不能修改容器结构的，但提供的游戏事件都是遍历容器的时候运行的，所以如果用户有增删系统的需求，必须先缓存然后再执行
         inline static std::vector<System*> removingSystems = {};
         inline static std::vector<System*> addingSystems = {};
-        static void FlushSystemQueue();
     };
 }

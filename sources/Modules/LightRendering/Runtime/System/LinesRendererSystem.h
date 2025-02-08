@@ -14,5 +14,5 @@ namespace Light
     private:
         void Update() override;
     };
-    Light_MakeGlobalSystem(LinesRendererSystem)
+    Light_MakeSystemInstance(LinesRendererSystem)
 }

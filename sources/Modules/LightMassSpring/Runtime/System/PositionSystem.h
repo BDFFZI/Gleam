@@ -13,5 +13,5 @@ namespace Light
 
         void Update() override;
     };
-    Light_MakeGlobalSystem(PositionSystem)
+    Light_MakeSystemInstance(PositionSystem)
 }

@@ -12,14 +12,14 @@ namespace Light
         {
         }
 
-        void RegisterEditorMenu(std::string name, std::function<void()> action);
+        void RegisterEditorMenu(const std::string& name, const std::function<void()>& action);
 
     private:
         std::vector<std::tuple<std::string, std::function<void()>>> editorMenus = {};
 
         void Update() override;
     };
-    Light_MakeGlobalSystem(EditorUISystem)
+    Light_MakeSystemInstance(EditorUISystem)
 
 #define Light_MakeEditorMenu(name,action) \
     Light_MakeInitEvent(){EditorUISystem->RegisterEditorMenu(name,action);}

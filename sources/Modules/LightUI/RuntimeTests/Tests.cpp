@@ -2,8 +2,8 @@
 #include "LightEngine/Runtime/Engine.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightUI/Runtime/UISystem.h"
-#include "LightWindow/Runtime/Cursor.h"
-#include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/System/CursorSystem.h"
+#include "LightWindow/Runtime/System/InputSystem.h"
 #include "LightWindow/Runtime/Window.h"
 
 using namespace Light;
@@ -48,20 +48,20 @@ private:
         UI::DragFloat4x4("matrix", &matrix);
 
         //逻辑处理
-        if (Input->GetKeyDown(KeyCode::Esc))
+        if (InputSystem->GetKeyDown(KeyCode::Esc))
             Engine::Stop();
 
-        if (Input->GetMouseButtonDown(MouseButton::Right))
+        if (InputSystem->GetMouseButtonDown(MouseButton::Right))
         {
-            Cursor->SetLockState(true);
-            Cursor->SetVisible(false);
+            CursorSystem->SetLockState(true);
+            CursorSystem->SetVisible(false);
         }
-        else if (Input->GetMouseButtonUp(MouseButton::Right))
+        else if (InputSystem->GetMouseButtonUp(MouseButton::Right))
         {
-            Cursor->SetLockState(false);
-            Cursor->SetVisible(true);
+            CursorSystem->SetLockState(false);
+            CursorSystem->SetVisible(true);
         }
     }
 };
-Light_MakeGlobalSystem(MySystem)
-Light_AddEditorSystems(MySystem)
+Light_MakeSystemInstance(MySystem)
+Light_AddSystems(MySystem)

@@ -4,20 +4,22 @@
 #include "LightEngine/Runtime/Component/Transform.h"
 #include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "LightRendering/Runtime/Entity/Archetype.h"
-#include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/System/InputSystem.h"
 #include <ImGuizmo.h>
 
 #include "LightEngine/Editor/System/InspectorWindow.h"
 #include "LightEngine/Runtime/System/TimeSystem.h"
-#include "LightWindow/Runtime/Cursor.h"
+#include "LightWindow/Runtime/System/CursorSystem.h"
 
 namespace Light
 {
     float3 eulerAngles;
-    void ControlCamera(const class Input& input, LocalTransform& localTransform, LocalToWorld localToWorld)
+    void ControlCamera(
+        class InputSystem& inputSystem, class TimeSystem& timeSystem,
+        LocalTransform& localTransform, LocalToWorld localToWorld)
     {
-        const float deltaTime = TimeSystem->GetDeltaTime();
-        const auto moveSpeed = static_cast<float>(4 * (input.GetKey(KeyCode::LeftShift) ? 3 : 1));
+        const float deltaTime = timeSystem.GetDeltaTime();
+        const auto moveSpeed = static_cast<float>(4 * (inputSystem.GetKey(KeyCode::LeftShift) ? 3 : 1));
 
         float3 right = localToWorld.GetRight();
         float3 up = localToWorld.GetUp();
@@ -25,34 +27,34 @@ namespace Light
 
         //位置调整
         float3 position = localTransform.position;
-        if (input.GetKey(KeyCode::W))
+        if (inputSystem.GetKey(KeyCode::W))
         {
             position += forward * deltaTime * moveSpeed;
         }
-        if (input.GetKey(KeyCode::S))
+        if (inputSystem.GetKey(KeyCode::S))
         {
             position += -forward * deltaTime * moveSpeed;
         }
-        if (input.GetKey(KeyCode::A))
+        if (inputSystem.GetKey(KeyCode::A))
         {
             position += -right * deltaTime * moveSpeed;
         }
-        if (input.GetKey(KeyCode::D))
+        if (inputSystem.GetKey(KeyCode::D))
         {
             position += right * deltaTime * moveSpeed;
         }
-        if (input.GetKey(KeyCode::Q))
+        if (inputSystem.GetKey(KeyCode::Q))
         {
             position += -up * deltaTime * moveSpeed;
         }
-        if (input.GetKey(KeyCode::E))
+        if (inputSystem.GetKey(KeyCode::E))
         {
             position += up * deltaTime * moveSpeed;
         }
         localTransform.position = position;
 
         //视角调整
-        const float2 mouseMoveDelta = input.GetMouseMoveDelta();
+        const float2 mouseMoveDelta = inputSystem.GetMouseMoveDelta();
         eulerAngles.x += mouseMoveDelta.y * deltaTime * 50;
         eulerAngles.y += mouseMoveDelta.x * deltaTime * 50;
         localTransform.rotation = Quaternion::Euler(eulerAngles);
@@ -95,18 +97,18 @@ namespace Light
             //相机控制
             if (inputSystem.GetMouseButtonDown(MouseButton::Right))
             {
-                Cursor->SetLockState(true);
-                Cursor->SetVisible(false);
+                CursorSystem->SetLockState(true);
+                CursorSystem->SetVisible(false);
             }
             else if (inputSystem.GetMouseButtonUp(MouseButton::Right))
             {
-                Cursor->SetLockState(false);
-                Cursor->SetVisible(true);
+                CursorSystem->SetLockState(false);
+                CursorSystem->SetVisible(true);
             }
             else if (inputSystem.GetMouseButton(MouseButton::Right))
             {
                 ControlCamera(
-                    inputSystem,
+                    inputSystem, timeSystem,
                     World::GetComponent<LocalTransform>(sceneCamera),
                     World::GetComponent<LocalToWorld>(sceneCamera)
                 );
@@ -114,6 +116,7 @@ namespace Light
         };
         World::AddSystem(&preProcessSystem);
         World::AddSystem(&inputSystem);
+        World::AddSystem(&timeSystem);
 
         sceneCamera = World::AddEntity(CameraArchetype);
 
@@ -124,6 +127,7 @@ namespace Light
     {
         World::RemoveSystem(&preProcessSystem);
         World::RemoveSystem(&inputSystem);
+        World::RemoveSystem(&timeSystem);
         sceneCameraCanvas.reset();
 
         UI::DeleteTexture(sceneCameraCanvasImID);

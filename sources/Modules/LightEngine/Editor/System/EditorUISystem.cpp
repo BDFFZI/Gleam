@@ -1,13 +1,13 @@
 ﻿#include "EditorUISystem.h"
 
 #include "EditorSystem.h"
-#include "LightEngine/Runtime/Engine.h"
+#include "LightEngine/Editor/Editor.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightUtility/Runtime/String.h"
 
 namespace Light
 {
-    void EditorUISystem::RegisterEditorMenu(std::string name, std::function<void()> action)
+    void EditorUISystem::RegisterEditorMenu(const std::string& name, const std::function<void()>& action)
     {
         editorMenus.emplace_back(name, action);
     }
@@ -18,7 +18,7 @@ namespace Light
         //增加船坞功能
         ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
         //绘制菜单项
-        ImGui::PushStyleColor(ImGuiCol_MenuBarBg, EditorSystem->IsPlaying() ? float4::DarkGreen() : float4::Blue());
+        ImGui::PushStyleColor(ImGuiCol_MenuBarBg, Editor::IsPlaying() ? float4::DarkGreen() : float4::Blue());
         if (ImGui::BeginMainMenuBar())
         {
             for (auto& [name,func] : editorMenus)

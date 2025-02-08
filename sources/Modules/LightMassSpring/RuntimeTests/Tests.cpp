@@ -2,6 +2,7 @@
 
 #include "LightECS/Runtime/System.h"
 #include "LightECS/Runtime/World.h"
+#include "LightEngine/Editor/Editor.h"
 #include "LightEngine/Runtime/System/TimeSystem.h"
 #include "LightMassSpring/Runtime/Entity/Archetype.h"
 
@@ -30,5 +31,6 @@ class TestSystem : public System
         World::SetComponents(spring, springPhysics);
     }
 };
-Light_MakeGlobalSystem(TestSystem)
+Light_MakeSystemInstance(TestSystem)
+Light_AddSystems(TestSystem)
 Light_AddEditorSystems(TestSystem)

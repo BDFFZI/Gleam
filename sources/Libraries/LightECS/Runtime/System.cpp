@@ -76,8 +76,17 @@ namespace Light
     }
     void SystemGroup::RemoveSubSystem(System* system)
     {
-        subSystemUpdateQueue.erase(system);
-        subSystemStopQueue.insert(system);
+        if (subSystemStartQueue.contains(system))
+            subSystemStartQueue.erase(system);
+        else if (subSystemUpdateQueue.contains(system))
+        {
+            subSystemUpdateQueue.erase(system);
+            subSystemStopQueue.insert(system);
+        }
+        else if (subSystemStopQueue.contains(system))
+            throw std::runtime_error("不能重复移除系统！");
+        else
+            throw std::runtime_error("不能移除尚未添加过的系统！");
     }
     void SystemGroup::Start()
     {

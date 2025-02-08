@@ -7,17 +7,30 @@
 #include "System/PointsRendererSystem.h"
 #include "System/RenderingSystem.h"
 
+#ifdef Light_Editor
+#include "LightEngine/Editor/Editor.h"
+#endif
+
 namespace Light
 {
-    Light_AddEditorSystems(
+    Light_MakeInitEvent()
+    {
+        CreateGraphicsConfig = RenderingConfig::CreateGraphicsConfig;
+    }
+    
+    Light_AddSystems(
         RenderingSystem,
         PointsRendererSystem,
         LinesRendererSystem,
         CameraSystem
     )
 
-    Light_MakeInitEvent()
-    {
-        PresentationSystem::CreateGraphicsConfig = RenderingConfig::CreateGraphicsConfig;
-    }
+#ifdef Light_Editor
+    Light_AddEditorSystems(
+        RenderingSystem,
+        PointsRendererSystem,
+        LinesRendererSystem,
+        CameraSystem
+    );
+#endif
 }

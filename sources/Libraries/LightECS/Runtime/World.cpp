@@ -11,7 +11,7 @@ namespace Light
           components(scene->GetEntityHeap(archetype).At(indexAtHeap))
     {
     }
-
+    
     Entity World::GetNextEntity()
     {
         return static_cast<Entity>(nextEntity++);
@@ -27,7 +27,41 @@ namespace Light
         else
             entityInfos.erase(entity);
     }
+    void World::FlushSystemQueue()
+    {
+        for (auto system : addingSystems)
+        {
+            const int count = 1 + (systemUsageCount.contains(system) ? systemUsageCount[system] : 0);
+            systemUsageCount[system] = count;
 
+            if (count == 1)
+            {
+                //首次添加，需实际注册到系统组接收事件。
+                system->GetGroup().value_or(&mainSystem)->AddSubSystem(system);
+                // std::cout << "Add System：" << system->GetName() << std::endl;
+            }
+        }
+        addingSystems.clear();
+        for (auto system : removingSystems)
+        {
+            assert(systemUsageCount.contains(system) && "无法移除未添加过的系统！");
+
+            const int count = systemUsageCount[system] - 1;
+            if (count == 0)
+                systemUsageCount.erase(system);
+            else
+                systemUsageCount[system] = count;
+
+            if (count == 0)
+            {
+                //最后一次移除，需实际从系统组移除。
+                system->GetGroup().value_or(&mainSystem)->RemoveSubSystem(system);
+                // std::cout << "Remove System：" << system->GetName() << std::endl;
+            }
+        }
+        removingSystems.clear();
+    }
+    
     Scene* World::GetMainScene()
     {
         return &mainScene;
@@ -95,8 +129,8 @@ namespace Light
     }
     void World::Stop()
     {
-        mainScene.RemoveAllEntities(); //移除所有实体（放在系统前，是因为部分数据需要在系统释放前回收）
         mainSystem.Stop(); //停止并移除所有系统
+        mainScene.RemoveAllEntities(); //移除所有实体
         systemUsageCount.clear();
         removingSystems.clear();
         addingSystems.clear();
@@ -109,36 +143,5 @@ namespace Light
         mainSystem.Update();
     }
 
-    void World::FlushSystemQueue()
-    {
-        for (auto system : removingSystems)
-        {
-            assert(systemUsageCount.contains(system) && "无法移除未添加过的系统！");
 
-            const int count = systemUsageCount[system] - 1;
-            if (count == 0)
-                systemUsageCount.erase(system);
-            else
-                systemUsageCount[system] = count;
-
-            if (count == 0)
-            {
-                //最后一次移除，需实际从系统组移除。
-                system->GetGroup().value_or(&mainSystem)->RemoveSubSystem(system);
-            }
-        }
-        removingSystems.clear();
-        for (auto system : addingSystems)
-        {
-            const int count = 1 + (systemUsageCount.contains(system) ? systemUsageCount[system] : 0);
-            systemUsageCount[system] = count;
-
-            if (count == 1)
-            {
-                //首次添加，需实际注册到系统组接收事件。
-                system->GetGroup().value_or(&mainSystem)->AddSubSystem(system);
-            }
-        }
-        addingSystems.clear();
-    }
 }

@@ -1,19 +1,20 @@
 ﻿#pragma once
 
-#include "Window.h"
+#include "WindowSystem.h"
 #include "LightECS/Runtime/System.h"
 #include "LightMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "LightMath/Runtime/Geometry/Rect.h"
+#include "LightWindow/Runtime/InputEnum.h"
 
 namespace Light
 {
     /**
      * 每帧将GLFW传入的用户输入解析成Light所用的输入格式
      */
-    class Input : public System
+    class InputSystem : public System
     {
     public:
-        Input(const std::string_view name = ""): System(Window, MiddleOrder, RightOrder)
+        InputSystem(const std::string_view name = ""): System(WindowSystem, MiddleOrder, RightOrder)
         {
             this->GetName() = name;
         }
@@ -39,5 +40,5 @@ namespace Light
 
         void Update() override;
     };
-    Light_MakeGlobalSystem(Input)
+    Light_MakeSystemInstance(InputSystem)
 }

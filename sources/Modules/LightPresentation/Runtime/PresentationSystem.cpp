@@ -5,11 +5,6 @@
 
 void Light::PresentationSystem::Start()
 {
-    std::vector<const char*> extensions;
-    Graphics::InitializeGLDemand(extensions);
-    GL gl = GL::Initialize(Window->GetGlfwWindow(), extensions);
-    Graphics::Initialize(gl, CreateGraphicsConfig());
-
     presentGCommandBuffer = std::make_unique<GCommandBuffer>("PresentGCommandBuffer");
 
     SystemGroup::Start();
@@ -19,9 +14,6 @@ void Light::PresentationSystem::Stop()
     SystemGroup::Stop();
 
     presentGCommandBuffer.reset();
-
-    Graphics::UnInitialize();
-    GL::UnInitialize();
 }
 void Light::PresentationSystem::Update()
 {

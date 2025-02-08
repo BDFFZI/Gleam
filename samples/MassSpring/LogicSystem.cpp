@@ -1,7 +1,7 @@
 #include "LogicSystem.h"
 
 #include "Archetype.h"
-#include "LightWindow/Runtime/Input.h"
+#include "LightWindow/Runtime/System/InputSystem.h"
 #include "LightWindow/Runtime/Window.h"
 #include "LightECS/Runtime/View.h"
 #include "LightEngine/Editor/System/InspectorWindow.h"
@@ -15,13 +15,13 @@ using namespace Light;
 
 void LogicSystem::OnMovePoint()
 {
-    if (Input->GetMouseButtonDown(MouseButton::Left))
+    if (InputSystem->GetMouseButtonDown(MouseButton::Left))
     {
         fixedPoint = coveringPoint;
         InspectorWindow->target = fixedPoint;
     }
 
-    if (Input->GetMouseButtonUp(MouseButton::Left))
+    if (InputSystem->GetMouseButtonUp(MouseButton::Left))
         fixedPoint = Entity::Null;
 
     if (fixedPoint != Entity::Null)
@@ -29,7 +29,7 @@ void LogicSystem::OnMovePoint()
 }
 void LogicSystem::OnCreatePoint() const
 {
-    if (Input->GetMouseButtonDown(MouseButton::Left))
+    if (InputSystem->GetMouseButtonDown(MouseButton::Left))
     {
         const Entity entity = World::AddEntity(MassPointArchetype);
         World::SetComponents(entity, Point{mousePositionWS});
@@ -40,7 +40,7 @@ void LogicSystem::OnCreatePoint() const
 std::vector<Entity> lines;
 void LogicSystem::OnDeletePoint()
 {
-    if (Input->GetMouseButtonDown(MouseButton::Left) && coveringPoint != Entity::Null)
+    if (InputSystem->GetMouseButtonDown(MouseButton::Left) && coveringPoint != Entity::Null)
     {
         lines.clear();
         View<SpringPhysics>::Each([this](const Entity entity, SpringPhysics& springPhysics)
@@ -57,7 +57,7 @@ void LogicSystem::OnCreateSpring()
 {
     if (springPointA == Entity::Null)
     {
-        if (Input->GetMouseButtonDown(MouseButton::Left))
+        if (InputSystem->GetMouseButtonDown(MouseButton::Left))
         {
             if (coveringPoint != Entity::Null)
             {
@@ -68,7 +68,7 @@ void LogicSystem::OnCreateSpring()
     }
     else
     {
-        if (Input->GetMouseButtonDown(MouseButton::Left))
+        if (InputSystem->GetMouseButtonDown(MouseButton::Left))
         {
             if (coveringPoint != Entity::Null && coveringPoint != springPointA)
             {
@@ -98,12 +98,12 @@ void LogicSystem::OnCreateSpring()
 void LogicSystem::Update()
 {
     //根据当前数值状态运行游戏逻辑
-    if (Input->GetKeyDown(KeyCode::Space))
+    if (InputSystem->GetKeyDown(KeyCode::Space))
         simulating = true;
-    if (Input->GetKeyUp(KeyCode::Space))
+    if (InputSystem->GetKeyUp(KeyCode::Space))
         simulating = false;
     //获取鼠标位置
-    mousePositionWS = RenderingSystem.ScreenToWorldPoint(Input->GetMousePosition());
+    mousePositionWS = RenderingSystem.ScreenToWorldPoint(InputSystem->GetMousePosition());
     //获取当前鼠标覆盖的顶点
     coveringPoint = Entity::Null;
     View<Point>::Each([this](const Entity entity, const Point& point)

@@ -145,14 +145,20 @@ function(linkLibrary LibraryName ProjectName)
     target_link_libraries(${ProjectName} PUBLIC ${LibraryName})
     get_target_property(ProjectType ${ProjectName} TYPE) # 获取项目类型
 
-    # 若项目为可执行项目，还需负责编译库的初始化文件
+    # 可执行项目作为最终编译目标需要进行一些处理
     if(${ProjectType} STREQUAL "EXECUTABLE")
+        # 生成库初始化文件，从而实现跨库的全局变量初始化（否则部分代码会因优化而剥离，导致无法利用全局变量初始化执行事件）
         set(ProjectInitFile "${${ProjectName}Source}/__Init__.cpp") # 项目初始化文件
         set(LibraryInitFile "${${LibraryName}Source}/__Init__.h") # 库初始化文件
 
         if(EXISTS ${LibraryInitFile})
             file(RELATIVE_PATH relative_path "${${LibraryName}Source}/../.." ${LibraryInitFile})
             file(APPEND ${ProjectInitFile} "#include \"${relative_path}\"\n")
+        endif()
+
+        # 若引用的是编辑器库，需添加编辑器宏（跨库时该宏只有在初始化文件中有效，因为初始化文件实际是随可执行文件一起编译）
+        if(LibraryName MATCHES ".*Editor")
+            target_compile_definitions(${ProjectName} PUBLIC "Light_Editor")
         endif()
     endif()
 endfunction()

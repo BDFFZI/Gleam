@@ -4,6 +4,7 @@
 #include "LightGL/Runtime/GLCommandBuffer.h"
 #include "LightGraphics/Runtime/GCommandBuffer.h"
 #include "LightEngine/Runtime/System/UpdateSystem.h"
+#include "LightWindow/Runtime/Window.h"
 
 namespace Light
 {
@@ -13,9 +14,6 @@ namespace Light
     class PresentationSystem : public SystemGroup
     {
     public:
-        //通过修改该变量可以调整Presentation初始化Graphics库的方式，UI不需要，但Render需要
-        inline static std::function CreateGraphicsConfig = [] { return std::make_unique<GraphicsConfig>(); };
-        
         PresentationSystem(): SystemGroup(PostUpdateSystem, OrderRelation::After)
         {
         }
@@ -34,8 +32,9 @@ namespace Light
          * @return 
          */
         GCommandBuffer& GetPresentGCommandBuffer() const { return *presentGCommandBuffer; }
-    
+
     private:
+        friend class PresentationSystem;
         GLCommandBuffer* presentGLCommandBuffer = nullptr;
         std::unique_ptr<GCommandBuffer> presentGCommandBuffer = nullptr;
 
@@ -43,5 +42,5 @@ namespace Light
         void Stop() override;
         void Update() override;
     };
-    Light_MakeGlobalSystem(PresentationSystem)
+    Light_MakeSystemInstance(PresentationSystem)
 }
