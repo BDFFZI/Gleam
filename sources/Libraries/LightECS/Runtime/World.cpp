@@ -1,5 +1,7 @@
 ﻿#include "World.h"
 
+#include <iostream>
+
 namespace Light
 {
     EntityInfo::EntityInfo(Scene* scene, const Archetype* archetype, const int indexAtHeap, std::byte* components)
@@ -38,7 +40,7 @@ namespace Light
             {
                 //首次添加，需实际注册到系统组接收事件。
                 system->GetGroup().value_or(&mainSystem)->AddSubSystem(system);
-                // std::cout << "Add System：" << system->GetName() << std::endl;
+                std::cout << "Add System：" << system->GetName() << std::endl;
             }
         }
         addingSystems.clear();
@@ -56,7 +58,7 @@ namespace Light
             {
                 //最后一次移除，需实际从系统组移除。
                 system->GetGroup().value_or(&mainSystem)->RemoveSubSystem(system);
-                // std::cout << "Remove System：" << system->GetName() << std::endl;
+                std::cout << "Remove System：" << system->GetName() << std::endl;
             }
         }
         removingSystems.clear();

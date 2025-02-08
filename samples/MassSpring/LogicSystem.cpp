@@ -1,15 +1,14 @@
 #include "LogicSystem.h"
 
-#include "Archetype.h"
+#include "AssetSystem.h"
 #include "LightWindow/Runtime/System/InputSystem.h"
-#include "LightWindow/Runtime/Window.h"
 #include "LightECS/Runtime/View.h"
 #include "LightEngine/Editor/System/InspectorWindow.h"
-#include "LightEngine/Runtime/Engine.h"
-#include "LightWindow/Runtime/Time.h"
-
-#include "Public/Component.h"
-#include "Rendering/RenderingSystem.h"
+#include "LightEngine/Runtime/System/TimeSystem.h"
+#include "LightMassSpring/Runtime/Component/MassPointPhysics.h"
+#include "LightMassSpring/Runtime/Entity/Archetype.h"
+#include "LightMath/Runtime/Geometry/Point.h"
+#include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
 
 using namespace Light;
 
@@ -18,14 +17,10 @@ void LogicSystem::OnMovePoint()
     if (InputSystem->GetMouseButtonDown(MouseButton::Left))
     {
         fixedPoint = coveringPoint;
-        InspectorWindow->target = fixedPoint;
+        InspectorWindow->SetTarget(fixedPoint);
     }
-
-    if (InputSystem->GetMouseButtonUp(MouseButton::Left))
+    else if (InputSystem->GetMouseButtonUp(MouseButton::Left))
         fixedPoint = Entity::Null;
-
-    if (fixedPoint != Entity::Null)
-        World::GetComponent<Point>(fixedPoint).position = mousePositionWS;
 }
 void LogicSystem::OnCreatePoint() const
 {
@@ -33,7 +28,7 @@ void LogicSystem::OnCreatePoint() const
     {
         const Entity entity = World::AddEntity(MassPointArchetype);
         World::SetComponents(entity, Point{mousePositionWS});
-        InspectorWindow->target = entity;
+        InspectorWindow->SetTarget(entity);
     }
 }
 
@@ -62,7 +57,7 @@ void LogicSystem::OnCreateSpring()
             if (coveringPoint != Entity::Null)
             {
                 springPointA = coveringPoint;
-                tempLine = World::AddEntity(LineArchetype);
+                tempLine = World::AddEntity(LineRendererArchetype);
             }
         }
     }
@@ -91,10 +86,31 @@ void LogicSystem::OnCreateSpring()
     if (tempLine != Entity::Null)
     {
         Point pointA = World::GetComponent<Point>(springPointA);
-        World::SetComponents(tempLine, Segment{pointA.position, mousePositionWS});
+        World::GetComponent<LinesMesh>(tempLine).lines = {
+            Segment{pointA.position, mousePositionWS}
+        };
     }
 }
-
+void LogicSystem::Start()
+{
+    fixedPointSystem.onUpdate = [this]
+    {
+        View<Point, MassPointPhysics>::Each([this](const Entity entity, Point& point, MassPointPhysics& massPointPhysics)
+        {
+            if (entity == fixedPoint)
+            {
+                massPointPhysics.force = 0;
+                massPointPhysics.velocity = 0;
+                point.position = mousePositionWS;
+            }
+        });
+    };
+    World::AddSystem(&fixedPointSystem);
+}
+void LogicSystem::Stop()
+{
+    World::RemoveSystem(&fixedPointSystem);
+}
 void LogicSystem::Update()
 {
     //根据当前数值状态运行游戏逻辑
@@ -103,7 +119,8 @@ void LogicSystem::Update()
     if (InputSystem->GetKeyUp(KeyCode::Space))
         simulating = false;
     //获取鼠标位置
-    mousePositionWS = RenderingSystem.ScreenToWorldPoint(InputSystem->GetMousePosition());
+    ScreenToWorld screenToWorld = World::GetComponent<ScreenToWorld>(AssetSystem->GetCameraEntity());
+    mousePositionWS = float3(mul(screenToWorld.value, float4(InputSystem->GetMousePosition(), 0, 1)).xy, 1);
     //获取当前鼠标覆盖的顶点
     coveringPoint = Entity::Null;
     View<Point>::Each([this](const Entity entity, const Point& point)
@@ -124,5 +141,5 @@ void LogicSystem::Update()
         break;
     }
 
-    Time->SetTimeScale(simulating ? 1 : 0);
+    TimeSystem->SetTimeScale(simulating ? 1 : 0);
 }

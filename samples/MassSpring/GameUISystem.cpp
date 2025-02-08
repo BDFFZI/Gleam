@@ -18,15 +18,16 @@ void GameUISystem::Update()
         magic_enum::enum_name(static_cast<EditMode>(2)).data(),
         magic_enum::enum_name(static_cast<EditMode>(3)).data(),
     };
-    ImGui::Combo("EditMode", reinterpret_cast<int*>(&LogicSystem.GetEditMode()), editModeOptions, std::size(editModeOptions));
+    ImGui::Combo("EditMode", reinterpret_cast<int*>(&LogicSystem->GetEditMode()), editModeOptions, std::size(editModeOptions));
     //显示模拟状态
-    ImGui::Checkbox("Simulating", &LogicSystem.GetSimulating());
+    ImGui::Checkbox("Simulating", &LogicSystem->GetSimulating());
     //显示鼠标位置
-    ImGui::InputFloat2("MousePosition", InputSystem->GetMousePosition().data);
+    ImGui::InputFloat2("MousePositionCS", InputSystem->GetMousePosition().data);
+    ImGui::InputFloat2("MousePositionWS", LogicSystem->GetMousePositionWS().data);
     //显示鼠标所在的点
     ImGui::Text("CoveringPoint");
     ImGui::SameLine();
-    EditorUI::DrawEntityButton(LogicSystem.GetCoveringPoint());
+    EditorUI::DrawEntityButton(LogicSystem->GetCoveringPoint());
     //退出游戏按钮
     if (ImGui::Button("ExitGame"))
         Engine::Stop();

@@ -90,25 +90,27 @@ namespace Light
     void EditorUI::DrawSystemGroup(SystemGroup* systemGroup)
     {
         //绘制内部子系统
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text)
+                              * (systemGroup->GetIsActive() ? float4::White() : float4::LightRed())); //禁用情况显示
         if (DrawSystem(systemGroup))
         {
             ImGui::TreePush(systemGroup->GetName().c_str());
             DrawSystemGroupContent(systemGroup);
             ImGui::TreePop();
         }
+        ImGui::PopStyleColor();
     }
     bool EditorUI::DrawSystem(System* system)
     {
         SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(system);
+
         //下拉框
-        // ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetColorU32(ImGuiCol_Header, 0)); //隐藏背景，只留箭头
         bool collapsing = ImGui::CollapsingHeader(
             std::format("##{}", system->GetName()).c_str(),
             (systemGroup == nullptr || systemGroup->subSystemUpdateQueue.empty()
                  ? ImGuiTreeNodeFlags_Leaf : 0) //无子系统时不显示箭头
             | ImGuiTreeNodeFlags_AllowItemOverlap //支持叠加按钮
         );
-        // ImGui::PopStyleColor();
         //系统选中按钮
         ImGui::SameLine(); //放在下拉框旁边
         if (ImGui::Button(
@@ -121,6 +123,26 @@ namespace Light
     }
     void EditorUI::DrawSystemGroupContent(SystemGroup* systemGroup)
     {
+        ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::LightGreen());
+        for (const auto subSystem : systemGroup->subSystemStartQueue)
+        {
+            if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
+                DrawSystemGroup(subSystemGroup);
+            else
+                DrawSystem(subSystem);
+        }
+        ImGui::PopStyleColor();
+
+        ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::LightRed());
+        for (const auto subSystem : systemGroup->subSystemStopQueue)
+        {
+            if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
+                DrawSystemGroup(subSystemGroup);
+            else
+                DrawSystem(subSystem);
+        }
+        ImGui::PopStyleColor();
+
         for (const auto subSystem : systemGroup->subSystemUpdateQueue)
         {
             if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))

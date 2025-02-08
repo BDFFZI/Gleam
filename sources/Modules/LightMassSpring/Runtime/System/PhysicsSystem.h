@@ -15,6 +15,7 @@ namespace Light
         {
         }
 
+        bool GetIsActive() override;
         float3 GetGravity() const { return gravity; }
         float GetFixedDeltaTime() const { return fixedDeltaTime; }
 
