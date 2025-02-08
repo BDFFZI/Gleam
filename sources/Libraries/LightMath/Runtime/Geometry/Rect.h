@@ -29,4 +29,12 @@ namespace Light
 
         bool Contains(float2 point) const;
     };
+
+    Light_MakeType(Rect, "CAD2E68E-EA4E-4848-9201-71CA36865003")
+    {
+        Light_MakeType_AddField(x);
+        Light_MakeType_AddField(y);
+        Light_MakeType_AddField(width);
+        Light_MakeType_AddField(height);
+    }
 }

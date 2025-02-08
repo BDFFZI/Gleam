@@ -65,7 +65,7 @@ endmacro()
 
 # 设置项目为可执行文件
 macro(setExecutable)
-    # 额外生成初始化文件，用于初始化依赖库
+    # 生成初始化文件，该文件将被显式编译，用于实现跨库的全局变量初始化（否则部分代码会因优化而剥离，导致无法利用全局变量初始化执行事件）
     set(ProjectInitFile "${ProjectSource}/__Init__.cpp")
     file(WRITE ${ProjectInitFile} "// ReSharper disable CppUnusedIncludeDirective\n")
     list(INSERT ProjectFiles 0 ${ProjectInitFile})
@@ -147,11 +147,11 @@ function(linkLibrary LibraryName ProjectName)
 
     # 可执行项目作为最终编译目标需要进行一些处理
     if(${ProjectType} STREQUAL "EXECUTABLE")
-        # 生成库初始化文件，从而实现跨库的全局变量初始化（否则部分代码会因优化而剥离，导致无法利用全局变量初始化执行事件）
-        set(ProjectInitFile "${${ProjectName}Source}/__Init__.cpp") # 项目初始化文件
         set(LibraryInitFile "${${LibraryName}Source}/__Init__.h") # 库初始化文件
 
+        # 目标库存在初始化文件，需要记录到项目初始化文件中
         if(EXISTS ${LibraryInitFile})
+            set(ProjectInitFile "${${ProjectName}Source}/__Init__.cpp") # 项目初始化地址
             file(RELATIVE_PATH relative_path "${${LibraryName}Source}/../.." ${LibraryInitFile})
             file(APPEND ${ProjectInitFile} "#include \"${relative_path}\"\n")
         endif()

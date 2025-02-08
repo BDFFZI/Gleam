@@ -21,6 +21,9 @@ void LogicSystem::OnMovePoint()
     }
     else if (InputSystem->GetMouseButtonUp(MouseButton::Left))
         fixedPoint = Entity::Null;
+
+    if (World::HasEntity(fixedPoint))
+        World::GetComponent<Point>(fixedPoint).position = mousePositionWS;
 }
 void LogicSystem::OnCreatePoint() const
 {
@@ -101,7 +104,6 @@ void LogicSystem::Start()
             {
                 massPointPhysics.force = 0;
                 massPointPhysics.velocity = 0;
-                point.position = mousePositionWS;
             }
         });
     };

@@ -64,6 +64,9 @@ void InputSystem::Update()
     mousePosition[0] = CursorSystem->GetLockState() ? CursorSystem->GetLockPosition() - focusArea.GetPosition() : mousePosition[1];
     mousePosition[1] = Window::GetMousePosition() - focusArea.GetPosition();
 
+    //鼠标滚轮
+    mouseScrollDelta = Window::GetMouseScrollDelta();
+
     //更新焦点状态
     if (Window::GetIsMouseDown())
         isFocus = focusArea.Contains(Window::GetMousePosition());

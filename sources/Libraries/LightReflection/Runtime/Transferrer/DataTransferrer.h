@@ -29,13 +29,6 @@ namespace Light
     public:
         virtual ~DataTransferrer() = default;
 
-        template <class TValue>
-        void TransferField(const char* name, TValue& value)
-        {
-            PushNode(name, DataType::Field);
-            Transfer(value);
-            PopNode();
-        }
         /**
          * 基础类型
          * @tparam TValue 
@@ -59,9 +52,10 @@ namespace Light
          * @param value 
          */
         template <class TValue> requires
-            requires(TValue container) { std::size(container);std::begin(container);std::end(container); }
-            && !std::is_same_v<TValue, std::vector<std::byte>>
-            && !std::is_same_v<TValue, std::string>
+            (requires(TValue container) { std::size(container);std::begin(container);std::end(container); }
+                && !std::is_same_v<TValue, std::vector<std::byte>>
+                && !std::is_same_v<TValue, std::string>)
+            || std::is_array_v<TValue>
         void TransferField(const char* name, TValue& value)
         {
             PushNode(name, DataType::Class);
@@ -85,6 +79,19 @@ namespace Light
          * @param value 
          */
         void TransferField(const char* name, std::vector<bool>& value);
+        /**
+         * 其他类型
+         * @tparam TValue 
+         * @param name 
+         * @param value 
+         */
+        template <class TValue>
+        void TransferField(const char* name, TValue& value)
+        {
+            PushNode(name, DataType::Field);
+            Transfer(value);
+            PopNode();
+        }
 
         virtual void PushNode(const char* name, DataType dataType) =0;
         virtual void PopNode() =0;

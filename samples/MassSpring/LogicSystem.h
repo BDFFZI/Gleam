@@ -8,7 +8,7 @@
 #include "LightMassSpring/Runtime/System/PositionSystem.h"
 #include "LightWindow/Runtime/System/InputSystem.h"
 
-enum class EditMode:uint8_t
+enum class EditMode
 {
     MovePoint,
     CreatePoint,

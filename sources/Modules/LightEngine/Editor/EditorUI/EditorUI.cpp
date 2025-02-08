@@ -3,7 +3,6 @@
 #include "EditorUISerializer.h"
 #include "LightUI/Runtime/UI.h"
 #include "LightECS/Runtime/World.h"
-#include "LightEngine/Editor/System/EditorSystem.h"
 #include "LightEngine/Editor/System/InspectorWindow.h"
 
 namespace Light
@@ -90,15 +89,12 @@ namespace Light
     void EditorUI::DrawSystemGroup(SystemGroup* systemGroup)
     {
         //绘制内部子系统
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text)
-                              * (systemGroup->GetIsActive() ? float4::White() : float4::LightRed())); //禁用情况显示
         if (DrawSystem(systemGroup))
         {
             ImGui::TreePush(systemGroup->GetName().c_str());
             DrawSystemGroupContent(systemGroup);
             ImGui::TreePop();
         }
-        ImGui::PopStyleColor();
     }
     bool EditorUI::DrawSystem(System* system)
     {

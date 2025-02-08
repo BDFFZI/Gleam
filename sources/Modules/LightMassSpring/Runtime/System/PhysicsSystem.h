@@ -14,12 +14,13 @@ namespace Light
         PhysicsSystem(): SystemGroup(TimeSystem, OrderRelation::After)
         {
         }
-
-        bool GetIsActive() override;
+        
         float3 GetGravity() const { return gravity; }
         float GetFixedDeltaTime() const { return fixedDeltaTime; }
 
     private:
+        Light_MakeType_Friend
+
         float lastTime = 0;
         float fixedDeltaTime = 0.01f;
         float3 gravity = {0.0f, -9.81f, 0.0f};
@@ -27,4 +28,11 @@ namespace Light
         void Update() override;
     };
     Light_MakeSystemInstance(PhysicsSystem)
+
+    Light_MakeType(PhysicsSystem_T, "")
+    {
+        Light_MakeType_AddField(lastTime);
+        Light_MakeType_AddField(fixedDeltaTime);
+        Light_MakeType_AddField(gravity);
+    }
 }

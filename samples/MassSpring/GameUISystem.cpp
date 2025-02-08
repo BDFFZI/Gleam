@@ -22,7 +22,6 @@ void GameUISystem::Update()
     //显示模拟状态
     ImGui::Checkbox("Simulating", &LogicSystem->GetSimulating());
     //显示鼠标位置
-    ImGui::InputFloat2("MousePositionCS", InputSystem->GetMousePosition().data);
     ImGui::InputFloat2("MousePositionWS", LogicSystem->GetMousePositionWS().data);
     //显示鼠标所在的点
     ImGui::Text("CoveringPoint");

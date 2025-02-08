@@ -87,8 +87,6 @@ namespace Light
         SystemGroup(std::optional<SystemGroup*> group, int minOrder = LeftOrder, int maxOrder = RightOrder);
         SystemGroup(System* system, OrderRelation orderRelation);
 
-        virtual bool GetIsActive() { return true; }
-        
         void AddSubSystem(System* system);
         void RemoveSubSystem(System* system);
 

@@ -2,10 +2,6 @@
 
 #include "LightEngine/Runtime/System/TimeSystem.h"
 
-bool Light::PhysicsSystem::GetIsActive()
-{
-    return TimeSystem->GetTime()-lastTime >= fixedDeltaTime;
-}
 void Light::PhysicsSystem::Update()
 {
     float currentTime = TimeSystem->GetTime();

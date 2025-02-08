@@ -39,19 +39,23 @@ namespace Light
 
     ///创建系统并非一定要调用该函数。（我甚至在考虑移除该函数，改为让用户自行创建单例）
     ///系统本质只是一种接收事件的接口，唯一的要求就是继承System。所以系统就像实体一样是可以由用户自由创建增删。
+    ///该宏用于创建全局作用域的系统单例，变量名与系统类名相同，因此后续再次使用系统类时可能存在问题，
+    ///故该宏还会利用using创建一个系统类型别名：<systemType>_T
 #define Light_MakeSystemInstance(systemClass) \
 using systemClass##_T = systemClass;\
 inline systemClass* systemClass = Light::Engine::RegisterGlobalSystem<class systemClass##>();
 
+    ///将系统添加到世界，并注册到运行时系统组
 #include "LightUtility/Runtime/Program.h"
 #define Light_AddSystems(...) Light_MakeInitEvent(){::Light::Engine::RuntimeSystems().insert(::Light::Engine::RuntimeSystems().end(),{__VA_ARGS__});}
 
+    ///利用如下宏实现关系到程序整个运行周期的事件，如库初始化。
+    ///因为System中Stop在实体回收前执行，如果在Stop逆初始化库，这可能导致实体中需要该库的数据可能无法正常回收。
 #define Light_AddEngineEvent(eventType, eventName, order) \
     inline void eventName();\
     inline int eventName##Order = order;\
     Light_MakeInitEvent(){Engine::Add##eventType##Event(eventName,order);}\
     inline void eventName()
-
 #define Light_AddStartEvent(eventName, order) Light_AddEngineEvent(Start, eventName, order)
 #define Light_AddStopEvent(eventName, order) Light_AddEngineEvent(Stop, eventName, order)
 }

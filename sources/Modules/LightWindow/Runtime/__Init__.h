@@ -31,7 +31,6 @@ namespace Light
     Light_AddEditorSystems(
         CursorSystem,
         WindowSystem,
-        InputSystem
     );
 #endif
 }

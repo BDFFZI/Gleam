@@ -1,5 +1,7 @@
 ﻿#include "Window.h"
 
+#include <iostream>
+
 namespace Light
 {
     GLFWwindow* Window::GetGlfwWindow()
@@ -95,6 +97,7 @@ namespace Light
     }
     void Window::Update()
     {
+        mouseScrollDelta = 0;
         glfwPollEvents();
 
         bool currentMouseState = std::ranges::any_of(mouseButtonStates, [](auto item) { return item; });
