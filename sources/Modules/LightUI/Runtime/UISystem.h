@@ -13,11 +13,6 @@ namespace Light
         }
 
     private:
-        std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = {};
-        std::unique_ptr<GLDescriptorPool> descriptorPool = {};
-
-        void Start() override;
-        void Stop() override;
         void Update() override;
     };
     Light_MakeSystemInstance(UISystem)

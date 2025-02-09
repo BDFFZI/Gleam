@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <vector>
 
+#include "LightECS/Runtime/World.h"
 #include "LightECS/Runtime/System.h"
 
 namespace Light
@@ -10,8 +11,8 @@ namespace Light
     public:
         static std::vector<System*>& EditorSystems();
         static bool& IsPlaying();
-
     private:
+        static std::unordered_map<World*, std::vector<std::tuple<Entity, Entity>>>& attachedScenes;
         static inline std::vector<System*> editorSystems;
         static inline bool isPlaying = false;
     };

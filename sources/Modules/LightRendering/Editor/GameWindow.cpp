@@ -14,11 +14,13 @@ namespace Light
 {
     void GameWindow::Start()
     {
-        systemEvent.onUpdate = [this]
+        windowSize = 0; //以便重启时能触发纹理重建
+        preProcessSystem.onUpdate = [this]
         {
             //重建渲染目标和纹理
             if (isDirty && windowSize.x > 0 && windowSize.y > 0)
             {
+                isDirty = false;
                 renderTexture = std::make_unique<GRenderTexture>(static_cast<int2>(windowSize));
                 RenderingSystem->SetDefaultRenderTarget(renderTexture.get());
                 if (renderTextureID != nullptr)
@@ -28,11 +30,11 @@ namespace Light
             //更新输入系统的焦点范围为GameWindow
             InputSystem->SetFocusArea(Rect{windowPosition, windowSize});
         };
-        World::AddSystem(&systemEvent);
+        World::AddSystem(&preProcessSystem);
     }
     void GameWindow::Stop()
     {
-        World::RemoveSystem(&systemEvent);
+        World::RemoveSystem(&preProcessSystem);
         renderTexture.reset();
         UI::DeleteTexture(renderTextureID);
     }

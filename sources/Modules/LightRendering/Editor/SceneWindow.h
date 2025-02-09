@@ -5,6 +5,7 @@
 #include "LightECS/Runtime/System.h"
 #include "LightEngine/Editor/System/EditorUISystem.h"
 #include "LightEngine/Editor/EditorUI/EditorUI.h"
+#include "LightEngine/Runtime/Component/Transform.h"
 #include "LightEngine/Runtime/System/TimeSystem.h"
 #include "LightRendering/Runtime/Component/Camera.h"
 #include "LightWindow/Runtime/System/InputSystem.h"
@@ -43,6 +44,8 @@ namespace Light
         Camera camera = {};
         WorldToClip cameraTransform = {};
         int handleOption = 1;
+        //相机位置存档（重启时使用）
+        LocalTransform cameraLocalTransform = {};
 
         void Start() override;
         void Stop() override;

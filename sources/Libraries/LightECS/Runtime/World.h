@@ -1,48 +1,46 @@
-﻿#pragma once
-#include <set>
+#pragma once
+
 #include <cassert>
-#include <optional>
 
 #include "Heap.h"
-#include "System.h"
 #include "Archetype.h"
-#include "Entity.h"
 #include "Scene.h"
+#include "System.h"
 
 namespace Light
 {
     struct EntityInfo
     {
-        Scene* scene;
         const Archetype* archetype;
         int indexAtHeap;
         std::byte* components;
 
-        EntityInfo(Scene* scene, const Archetype* archetype, int indexAtHeap, std::byte* components);
-        EntityInfo(Scene* scene, const Archetype* archetype, int indexAtHeap);
+        EntityInfo(const Archetype* archetype, int indexAtHeap, std::byte* components);
         EntityInfo() = default;
     };
 
-    /**
-     * 存储着所有的实体和系统
-     */
     class World
     {
     public:
-        static Entity GetNextEntity();
-        static const EntityInfo& GetEntityInfo(Entity entity);
-        static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
-        static void FlushSystemQueue();
+        //场景属性
+        static std::unordered_map<const Archetype*, Heap>& GetEntities();
+        static SystemGroup* GetSystems();
 
-        static Scene* GetMainScene();
-        static SystemGroup* GetMainSystem();
-
+        //查询实体
         static bool HasEntity(Entity entity);
+        static Heap& GetEntityHeap(const Archetype* archetype);
+        //添加实体
         static Entity AddEntity(const Archetype* archetype);
+        static void AddEntities(const Archetype* archetype, int count, Entity* outEntities = nullptr);
+        //移除实体
         static void RemoveEntity(Entity& entity);
+        static void RemoveAllEntities();
+        //移动实体
         static void MoveEntity(Entity entity, const Archetype* newArchetype);
         /**
          * 一种快速简单的实体移动，它假定新旧原型的数据存储布局是完全一样的，从而直接进行内存复制。
+         * @param entity 
+         * @param newArchetype 
          */
         static void MoveEntitySimply(Entity entity, const Archetype* newArchetype);
 
@@ -122,22 +120,40 @@ namespace Light
             ((*reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetComponentOffset(typeid(TComponents))) = components), ...);
         }
 
-        static void Start();
-        static void Stop();
         static void Update();
+        static void Clear();
 
     private:
         friend class HierarchyWindow;
+        friend class EditorUI;
+
         //实体信息
         inline static uint32_t nextEntity = 1;
         inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
-        //主场景系统
-        inline static Scene mainScene = Scene{"Main"}; //所有系统默认处理的场景
-        inline static SystemGroup mainSystem = {std::nullopt, System::LeftOrder, System::RightOrder}; //所有系统的根系统
+
+        inline static std::unordered_map<const Archetype*, Heap> entities;
+        inline static SystemGroup systems = {std::nullopt, System::LeftOrder, System::RightOrder}; //场景内所有系统的根系统
         //系统使用计数，实现按需自动加载和卸载系统
         inline static std::unordered_map<System*, int> systemUsageCount = {};
         //在遍历系统的时候是不能修改容器结构的，但提供的游戏事件都是遍历容器的时候运行的，所以如果用户有增删系统的需求，必须先缓存然后再执行
         inline static std::vector<System*> removingSystems = {};
         inline static std::vector<System*> addingSystems = {};
+
+        static Entity GetNextEntity();
+        static const EntityInfo& GetEntityInfo(Entity entity);
+        static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
+    public:
+        /**
+         * 将缓存的添加或卸载中的System通过引用计算后，修改到实际的系统容器中
+         */
+        static void FlushSystemQueue();
+        /**
+         * 将实体从堆中移除并自动修正因此被迁移的实体信息
+         * 
+         * Heap容器的特点是删除时，末尾项会被用来替补空位，所以原末尾项的实体信息需要更变。该函数可以实现该功能。
+         * @param heapIndex 
+         * @param elementIndex
+         */
+        static void RemoveHeapItem(const Archetype* heapIndex, int elementIndex);
     };
 }

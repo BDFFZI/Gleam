@@ -2,6 +2,7 @@
 
 #include "LightECS/Runtime/View.h"
 #include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
+#include "LightRendering/Runtime/Rendering.h"
 
 namespace Light
 {

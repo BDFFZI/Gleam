@@ -35,8 +35,8 @@ namespace Light
 
     private:
         friend class PresentationSystem;
-        GLCommandBuffer* presentGLCommandBuffer = nullptr;
-        std::unique_ptr<GCommandBuffer> presentGCommandBuffer = nullptr;
+        GLCommandBuffer* presentGLCommandBuffer = nullptr; //系统执行呈现命令用的缓冲区
+        std::unique_ptr<GCommandBuffer> presentGCommandBuffer = nullptr; //预建的辅助命令缓冲区
 
         void Start() override;
         void Stop() override;

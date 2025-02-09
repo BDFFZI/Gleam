@@ -15,20 +15,12 @@ namespace Light
         ImGui::BulletText(std::format("IsPlaying:{}", Editor::IsPlaying()).c_str());
         ImGui::BulletText(std::format("TotalEntity:{}", World::nextEntity - 1).c_str());
 
-        ImGui::SeparatorText("Details");
-        if (ImGui::CollapsingHeader("MainSystem"))
-        {
-            ImGui::TreePush("MainSystem");
-            EditorUI::DrawSystemGroupContent(World::GetMainSystem());
-            ImGui::TreePop();
-        }
-        if (ImGui::CollapsingHeader("MainScene"))
-        {
-            ImGui::TreePush("MainScene");
-            EditorUI::DrawSceneUnfolding(World::GetMainScene());
-            ImGui::TreePop();
-        }
-
+        ImGui::SeparatorText("World");
+        EditorUI::DrawWorldUnfolding();
+        
+        ImGui::SeparatorText("Scenes");
+        // for (auto* scene : Editor::GetScenes())
+        //     EditorUI::DrawScene(scene);
 
         ImGui::End();
     }

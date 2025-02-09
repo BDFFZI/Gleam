@@ -82,17 +82,18 @@ namespace Light
     }
     void SceneWindow::Start()
     {
+        windowSize = 0; //以便重启时能触发纹理重建
         preProcessSystem.onUpdate = [this]
         {
             //重建渲染目标和纹理
             if (isDirty && windowSize.x > 0 && windowSize.y > 0)
             {
+                isDirty = false;
                 if (sceneCameraCanvasImID != nullptr)
                     UI::DeleteTexture(sceneCameraCanvasImID);
                 sceneCameraCanvas = std::make_unique<GRenderTexture>(static_cast<int2>(windowSize));
                 World::GetComponent<Camera>(sceneCamera).renderTarget = sceneCameraCanvas.get();
                 sceneCameraCanvasImID = UI::CreateTexture(*sceneCameraCanvas);
-                isDirty = false;
             }
             //相机控制
             if (inputSystem.GetMouseButtonDown(MouseButton::Right))
@@ -112,6 +113,7 @@ namespace Light
                     World::GetComponent<LocalTransform>(sceneCamera),
                     World::GetComponent<LocalToWorld>(sceneCamera)
                 );
+                cameraLocalTransform = World::GetComponent<LocalTransform>(sceneCamera);
             }
         };
         World::AddSystem(&preProcessSystem);
@@ -119,6 +121,7 @@ namespace Light
         World::AddSystem(&timeSystem);
 
         sceneCamera = World::AddEntity(CameraArchetype);
+        World::SetComponents(sceneCamera, cameraLocalTransform);
 
         ImGuizmo::AllowAxisFlip(false); //禁用手柄轴自动反转
         ImGuizmo::SetGizmoSizeClipSpace(0.2f); //设置手柄在剪辑空间的大小

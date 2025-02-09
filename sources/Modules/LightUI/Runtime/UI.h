@@ -9,6 +9,7 @@ operator Light::float4()const{return Light::float4{x,y,z,w};}
 #include <magic_enum.hpp>
 // ReSharper restore CppUnusedIncludeDirective
 
+#include "LightGL/Runtime/Resource/GLDescriptorPool.h"
 #include "LightGraphics/Runtime/Resource/GTexture/GTexture.h"
 #include "LightMath/Runtime/LinearAlgebra/Matrix.h"
 
@@ -17,8 +18,13 @@ namespace Light
     class UI
     {
     public:
+        static void Init();
+        static void UnInit();
+        static void BeginFrame();
+        static void EndFrame();
+
         static ImTextureID CreateTexture(GTexture& texture);
-        static void DeleteTexture(ImTextureID texture);
+        static void DeleteTexture(ImTextureID& texture);
         static float2 GetWindowContentRegionSize();
 
         static bool DragFloat4x4(const char* label, float4x4* v, float v_speed = 1);
@@ -29,5 +35,9 @@ namespace Light
          * @param layer 
          */
         static void MenuItem(const std::vector<std::string>& path, const std::function<void()>& func, size_t layer = 0);
+
+    private:
+        static inline std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = {};
+        static inline std::unique_ptr<GLDescriptorPool> descriptorPool = {};
     };
 }

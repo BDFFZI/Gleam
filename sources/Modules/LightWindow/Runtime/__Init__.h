@@ -6,7 +6,7 @@
 #include "System/WindowSystem.h"
 #include "System/InputSystem.h"
 
-#ifdef Light_Editor
+#ifdef LightEngineEditor
 #include "LightEngine/Editor/Editor.h"
 #endif
 
@@ -27,7 +27,7 @@ namespace Light
         InputSystem
     )
 
-#ifdef Light_Editor
+#ifdef LightEngineEditor
     Light_AddEditorSystems(
         CursorSystem,
         WindowSystem,

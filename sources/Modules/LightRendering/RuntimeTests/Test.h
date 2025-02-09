@@ -26,6 +26,31 @@ Light_MakeArchetypeChild(TestCameraArchetype, CameraArchetype, ScreenToWorld, Te
 
 class TestSystem : public System
 {
+    void Start() override
+    {
+        //创建相机
+        Camera camera;
+        camera.orthographic = true;
+        camera.background = float4{0.2f, 0.2f, 0.5f, 1};
+        Entity cameraEntity = World::AddEntity(TestCameraArchetype);
+        World::SetComponents(cameraEntity, camera);
+        //创建点渲染器
+        std::vector points = {
+            Point{{0, 1, 1}},
+            Point{{0, 0, 1}},
+            Point{{2, 0, 1}}
+        };
+        Entity pointsRendererEntity = World::AddEntity(PointRendererArchetype);
+        World::GetComponent<PointsMesh>(pointsRendererEntity).points = points;
+        //创建线渲染器
+        std::vector lines = {
+            Segment{{0, 0, 1}, {0, 1, 1}},
+            Segment{{0, 0, 1}, {2, 0, 1}},
+            Segment{{0, 1, 1}, {2, 0, 1}},
+        };
+        Entity linesRendererEntity = World::AddEntity(LineRendererArchetype);
+        World::GetComponent<LinesMesh>(linesRendererEntity).lines = lines;
+    }
     void Update() override
     {
         View<ScreenToWorld, TestCameraData>::Each([](ScreenToWorld& screenToWorld, TestCameraData& testCameraData)
@@ -35,30 +60,4 @@ class TestSystem : public System
     }
 };
 Light_MakeSystemInstance(TestSystem)
-
-Light_MakeInitEvent()
-{
-    World::AddSystem(TestSystem);
-    //创建相机
-    Camera camera;
-    camera.orthographic = true;
-    camera.background = float4{0.2f, 0.2f, 0.5f, 1};
-    Entity cameraEntity = World::AddEntity(TestCameraArchetype);
-    World::SetComponents(cameraEntity, camera);
-    //创建点渲染器
-    std::vector points = {
-        Point{{0, 1, 1}},
-        Point{{0, 0, 1}},
-        Point{{2, 0, 1}}
-    };
-    Entity pointsRendererEntity = World::AddEntity(PointRendererArchetype);
-    World::GetComponent<PointsMesh>(pointsRendererEntity).points = points;
-    //创建线渲染器
-    std::vector lines = {
-        Segment{{0, 0, 1}, {0, 1, 1}},
-        Segment{{0, 0, 1}, {2, 0, 1}},
-        Segment{{0, 1, 1}, {2, 0, 1}},
-    };
-    Entity linesRendererEntity = World::AddEntity(LineRendererArchetype);
-    World::GetComponent<LinesMesh>(linesRendererEntity).lines = lines;
-}
+Light_AddSystems(TestSystem)

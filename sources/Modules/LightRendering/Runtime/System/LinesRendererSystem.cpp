@@ -1,7 +1,7 @@
 ﻿#include "LinesRendererSystem.h"
 
 #include "LightECS/Runtime/View.h"
-#include "LightEngine/Runtime/Engine.h"
+#include "LightRendering/Runtime/Rendering.h"
 #include "LightRendering/Runtime/Component/LinesMesh.h"
 
 namespace Light
@@ -40,7 +40,7 @@ namespace Light
             if (renderer.mesh == std::nullopt && linesRenderer.linesMesh.has_value())
                 renderer.mesh = linesRenderer.linesMesh.value().get();
             if (renderer.material == std::nullopt)
-                renderer.material = RenderingSystem->GetDefaultLineMaterial().get();
+                renderer.material = Rendering::GetDefaultLineMaterial().get();
         });
     }
 }

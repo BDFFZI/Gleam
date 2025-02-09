@@ -3,7 +3,7 @@
 
 #include "PresentationSystem.h"
 
-#ifdef Light_Editor
+#ifdef LightEngineEditor
 #include "LightEngine/Editor/Editor.h"
 #endif
 
@@ -29,7 +29,7 @@ namespace Light
         PresentationSystem
     )
 
-#ifdef Light_Editor
+#ifdef LightEngineEditor
     Light_AddEditorSystems(
         PresentationSystem
     );

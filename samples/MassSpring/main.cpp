@@ -7,7 +7,7 @@ Light_AddSystems(
     GameUISystem
 )
 
-#ifdef Light_Editor
+#ifdef LightEngineEditor
 #include "LightEngine/Editor/Editor.h"
 Light_AddEditorSystems(
     AssetSystem

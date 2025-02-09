@@ -70,6 +70,32 @@ namespace Light
         : System(system, orderRelation)
     {
     }
+    std::vector<System*> SystemGroup::GetSubSystems()
+    {
+        std::vector<System*> outSubSystems;
+
+        std::vector subSystemGroups = {this};
+        while (!subSystemGroups.empty())
+        {
+            SystemGroup* systemGroup = subSystemGroups.back();
+            subSystemGroups.pop_back();
+
+            for (auto* subSystem : systemGroup->subSystemStartQueue)
+            {
+                outSubSystems.push_back(subSystem);
+                if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
+                    subSystemGroups.push_back(subSystemGroup);
+            }
+
+            for (auto* subSystem : systemGroup->subSystemUpdateQueue)
+            {
+                outSubSystems.push_back(subSystem);
+                if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
+                    subSystemGroups.push_back(subSystemGroup);
+            }
+        }
+        return outSubSystems;
+    }
     void SystemGroup::AddSubSystem(System* system)
     {
         subSystemStartQueue.insert(system);
@@ -88,6 +114,7 @@ namespace Light
         else
             throw std::runtime_error("不能移除尚未添加过的系统！");
     }
+
     void SystemGroup::Start()
     {
         if (subSystemStartQueue.empty() == false)

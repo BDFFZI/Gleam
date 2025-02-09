@@ -3,7 +3,7 @@
 #include "LightECS/Runtime/World.h"
 #include "System/TimeSystem.h"
 #include "System/TransformSystem.h"
-#ifdef Light_Editor
+#ifdef LightEngineEditor
 #include "LightEngine/Editor/Editor.h"
 #endif
 
@@ -16,7 +16,7 @@ namespace Light
         TransformSystem
     );
 
-#ifdef Light_Editor
+#ifdef LightEngineEditor
     Light_AddEditorSystems(
         PreUpdateSystem,
         PostUpdateSystem,

@@ -147,39 +147,48 @@ namespace Light
                 DrawSystem(subSystem);
         }
     }
-    void EditorUI::DrawScene(Scene* scene)
+    void EditorUI::DrawWorld()
     {
-        if (ImGui::CollapsingHeader(scene->GetName().c_str()))
+        if (ImGui::CollapsingHeader("World", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            DrawSceneUnfolding(scene);
+            ImGui::TreePush("World");
+            DrawWorldUnfolding();
+            ImGui::TreePop();
         }
-        if (ImGui::BeginDragDropTarget())
-        {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(typeid(dragging).name()))
-            {
-                Entity entity = *static_cast<Entity*>(payload->Data);
-                Scene::MoveEntity(entity, scene);
-            }
-            ImGui::EndDragDropTarget();
-        }
+        // if (ImGui::BeginDragDropTarget())
+        // {
+        //     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(typeid(dragging).name()))
+        //     {
+        //         Entity entity = *static_cast<Entity*>(payload->Data);
+        //         World::MoveEntity(entity, scene);
+        //     }
+        //     ImGui::EndDragDropTarget();
+        // }
     }
-    void EditorUI::DrawSceneUnfolding(Scene* scene)
+    void EditorUI::DrawWorldUnfolding()
     {
-        for (auto& [archetype,heap] : scene->GetAllEntities())
+        if (ImGui::CollapsingHeader("Entities"))
         {
-            if (heap.GetCount() == 0)
-                continue;
-
-            if (ImGui::TreeNode(archetype->GetName().c_str()))
+            for (auto& [archetype,heap] : World::GetEntities())
             {
-                heap.ForeachElements([](std::byte* item)
-                {
-                    Entity& entity = *reinterpret_cast<Entity*>(item);
-                    DrawEntityButton(entity);
-                });
+                if (heap.GetCount() == 0)
+                    continue;
 
-                ImGui::TreePop();
+                if (ImGui::TreeNode(archetype->GetName().c_str()))
+                {
+                    heap.ForeachElements([](std::byte* item)
+                    {
+                        Entity& entity = *reinterpret_cast<Entity*>(item);
+                        DrawEntityButton(entity);
+                    });
+
+                    ImGui::TreePop();
+                }
             }
+        }
+        if (ImGui::CollapsingHeader("Systems"))
+        {
+            DrawSystemGroupContent(World::GetSystems());
         }
     }
 }

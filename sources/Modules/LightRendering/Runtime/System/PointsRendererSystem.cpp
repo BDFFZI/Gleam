@@ -2,6 +2,7 @@
 
 #include "LightECS/Runtime/View.h"
 #include "LightEngine/Runtime/Engine.h"
+#include "LightRendering/Runtime/Rendering.h"
 #include "LightRendering/Runtime/Component/PointsMesh.h"
 
 namespace Light
@@ -38,7 +39,7 @@ namespace Light
             if (renderer.mesh == std::nullopt && pointsRenderer.pointsMesh.has_value())
                 renderer.mesh = pointsRenderer.pointsMesh.value().get();
             if (renderer.material == std::nullopt)
-                renderer.material = RenderingSystem->GetDefaultPointMaterial().get();
+                renderer.material = Rendering::GetDefaultPointMaterial().get();
         });
     }
 }

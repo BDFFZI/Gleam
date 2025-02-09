@@ -12,6 +12,7 @@ namespace Light
     public:
         static void AddStartEvent(const std::function<void()>& event, int order = 0);
         static void AddStopEvent(const std::function<void()>& event, int order = 0);
+        static void AddUpdateEvent(const std::function<void()>& event, int order = 0);
         static std::vector<System*>& RuntimeSystems();
 
         template <typename TSystem>
@@ -33,6 +34,7 @@ namespace Light
         static inline std::vector<std::unique_ptr<System>> allSystems;
         static inline std::vector<System*> runtimeSystems;
         static inline std::multimap<int, std::function<void()>> startEvents;
+        static inline std::multimap<int, std::function<void()>> updateEvents;
         static inline std::multimap<int, std::function<void()>> stopEvents;
         inline static bool isStopping = false;
     };
@@ -53,9 +55,10 @@ inline systemClass* systemClass = Light::Engine::RegisterGlobalSystem<class syst
     ///因为System中Stop在实体回收前执行，如果在Stop逆初始化库，这可能导致实体中需要该库的数据可能无法正常回收。
 #define Light_AddEngineEvent(eventType, eventName, order) \
     inline void eventName();\
-    inline int eventName##Order = order;\
-    Light_MakeInitEvent(){Engine::Add##eventType##Event(eventName,order);}\
+    constexpr int eventName##Order = order;\
+    Light_MakeInitEvent(){Engine::Add##eventType##Event(eventName,eventName##Order);}\
     inline void eventName()
 #define Light_AddStartEvent(eventName, order) Light_AddEngineEvent(Start, eventName, order)
 #define Light_AddStopEvent(eventName, order) Light_AddEngineEvent(Stop, eventName, order)
+#define Light_AddUpdateEvent(eventName, order) Light_AddEngineEvent(Update, eventName, order)
 }

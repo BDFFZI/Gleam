@@ -87,6 +87,13 @@ namespace Light
         SystemGroup(std::optional<SystemGroup*> group, int minOrder = LeftOrder, int maxOrder = RightOrder);
         SystemGroup(System* system, OrderRelation orderRelation);
 
+        /**
+         * 统计所有子系统，包括递归，但不包含正在卸载的子系统。
+         * 也即是在用户调用AddSubSystem和RemoveSubSystem后逻辑上子系统集合。
+         * 排除生命周期的影响，用该结果反向插入后可重建相同的系统组。
+         * @return 
+         */
+        std::vector<System*> GetSubSystems();
         void AddSubSystem(System* system);
         void RemoveSubSystem(System* system);
 

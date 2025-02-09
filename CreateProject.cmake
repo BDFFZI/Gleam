@@ -25,9 +25,10 @@ endmacro()
 
 macro(initProject)
     # 存储项目信息
-    set(${ProjectName} TRUE CACHE BOOL "特定项目是否存在" FORCE)
-    set(${ProjectName}Source ${ProjectSource} CACHE STRING "特定项目的SOURCE目录" FORCE)
-    set(${ProjectName}Binary ${ProjectBinary} CACHE STRING "特定项目的SOURCE目录" FORCE)
+    set(${ProjectName} TRUE CACHE BOOL "项目是否存在" FORCE)
+    set(${ProjectName}Source ${ProjectSource} CACHE STRING "项目的SOURCE目录" FORCE)
+    set(${ProjectName}Binary ${ProjectBinary} CACHE STRING "项目的Binary目录" FORCE)
+    set(${ProjectName}Dependencies "" CACHE STRING "项目依赖的其他项目" FORCE)
 
     # 创建项目
     project(${ProjectName})
@@ -61,6 +62,9 @@ endmacro()
 macro(setLibrary)
     add_library(${ProjectName} STATIC "${ProjectFiles}")
     setVS()
+
+    # 添加以自身命名的具有传染性质的宏，以便让其他项目可以在代码中判断库链接情况
+    target_compile_definitions(${ProjectName} PUBLIC ${ProjectName})
 endmacro()
 
 # 设置项目为可执行文件
@@ -73,7 +77,9 @@ macro(setExecutable)
     add_executable(${ProjectName} "${ProjectFiles}")
     setVS()
 
-    # set(Projects "${ProjectName};${Projects}" CACHE STRING "所有项目" FORCE)
+    # 统计所有可执行项目
+    list(APPEND AllExecutable ${ProjectName})
+    set(AllExecutable ${AllExecutable} CACHE STRING "全部可执行项目" FORCE)
 endmacro()
 
 # 设置项目为测试
@@ -141,8 +147,15 @@ macro(addProject)
 endmacro()
 
 # 链接目标库并自动创建库初始化文件
-function(linkLibrary LibraryName ProjectName)
+macro(linkLibrary LibraryName ProjectName)
     target_link_libraries(${ProjectName} PUBLIC ${LibraryName})
+
+    # 添加依赖项信息
+    list(APPEND ${ProjectName}Dependencies ${${LibraryName}Dependencies})
+    list(APPEND ${ProjectName}Dependencies ${LibraryName})
+    list(REMOVE_DUPLICATES ${ProjectName}Dependencies)
+    set(${ProjectName}Dependencies ${${ProjectName}Dependencies} CACHE STRING "项目依赖的其他项目" FORCE)
+
     get_target_property(ProjectType ${ProjectName} TYPE) # 获取项目类型
 
     # 可执行项目作为最终编译目标需要进行一些处理
@@ -155,10 +168,5 @@ function(linkLibrary LibraryName ProjectName)
             file(RELATIVE_PATH relative_path "${${LibraryName}Source}/../.." ${LibraryInitFile})
             file(APPEND ${ProjectInitFile} "#include \"${relative_path}\"\n")
         endif()
-
-        # 若引用的是编辑器库，需添加编辑器宏（跨库时该宏只有在初始化文件中有效，因为初始化文件实际是随可执行文件一起编译）
-        if(LibraryName MATCHES ".*Editor")
-            target_compile_definitions(${ProjectName} PUBLIC "Light_Editor")
-        endif()
     endif()
-endfunction()
+endmacro()

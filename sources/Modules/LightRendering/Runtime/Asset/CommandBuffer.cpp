@@ -1,6 +1,7 @@
 #include "CommandBuffer.h"
 
 #include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
+#include "LightRendering/Runtime/Rendering.h"
 #include "LightRendering/Runtime/System/RenderingSystem.h"
 
 namespace Light
@@ -33,7 +34,7 @@ namespace Light
     {
         SetRenderTarget(*destination);
         SetViewProjectionMatricesToIdentity();
-        RenderingSystem->GetBlitMaterial()->SetTexture(0, *source);
-        Draw(*RenderingSystem->GetFullScreenMesh(), float4x4::Identity(), *RenderingSystem->GetBlitMaterial());
+        Rendering::GetBlitMaterial()->SetTexture(0, *source);
+        Draw(*Rendering::GetFullScreenMesh(), float4x4::Identity(), *Rendering::GetBlitMaterial());
     }
 }

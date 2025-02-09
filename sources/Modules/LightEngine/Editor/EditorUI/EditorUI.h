@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LightECS/Runtime/Entity.h"
-#include "LightECS/Runtime/Scene.h"
+#include "LightECS/Runtime/World.h"
 #include "LightECS/Runtime/System.h"
 
 namespace Light
@@ -17,8 +17,8 @@ namespace Light
         static bool DrawSystem(System* system);
         static void DrawSystemGroup(SystemGroup* systemGroup);
         static void DrawSystemGroupContent(SystemGroup* systemGroup);
-        static void DrawScene(Scene* scene);
-        static void DrawSceneUnfolding(Scene* scene);
+        static void DrawWorld();
+        static void DrawWorldUnfolding();
 
     private:
         inline static Entity drawing = Entity::Null;

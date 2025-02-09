@@ -3,12 +3,15 @@
 #include "AssetSystem.h"
 #include "LightWindow/Runtime/System/InputSystem.h"
 #include "LightECS/Runtime/View.h"
-#include "LightEngine/Editor/System/InspectorWindow.h"
 #include "LightEngine/Runtime/System/TimeSystem.h"
 #include "LightMassSpring/Runtime/Component/MassPointPhysics.h"
 #include "LightMassSpring/Runtime/Entity/Archetype.h"
 #include "LightMath/Runtime/Geometry/Point.h"
 #include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
+
+#ifdef LightEngineEditor
+#include "LightEngine/Editor/System/InspectorWindow.h"
+#endif
 
 using namespace Light;
 
@@ -17,7 +20,9 @@ void LogicSystem::OnMovePoint()
     if (InputSystem->GetMouseButtonDown(MouseButton::Left))
     {
         fixedPoint = coveringPoint;
+#ifdef LightEngineEditor
         InspectorWindow->SetTarget(fixedPoint);
+#endif
     }
     else if (InputSystem->GetMouseButtonUp(MouseButton::Left))
         fixedPoint = Entity::Null;
@@ -31,7 +36,9 @@ void LogicSystem::OnCreatePoint() const
     {
         const Entity entity = World::AddEntity(MassPointArchetype);
         World::SetComponents(entity, Point{mousePositionWS});
+#ifdef LightEngineEditor
         InspectorWindow->SetTarget(entity);
+#endif
     }
 }
 

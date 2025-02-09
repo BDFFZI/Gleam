@@ -1,7 +1,5 @@
 #include "PresentationSystem.h"
 #include "LightGraphics/Runtime/SwapChain.h"
-#include "LightGraphics/Runtime/Graphics.h"
-#include "LightWindow/Runtime/Window.h"
 
 void Light::PresentationSystem::Start()
 {
@@ -12,7 +10,7 @@ void Light::PresentationSystem::Start()
 void Light::PresentationSystem::Stop()
 {
     SystemGroup::Stop();
-
+    
     presentGCommandBuffer.reset();
 }
 void Light::PresentationSystem::Update()

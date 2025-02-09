@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Editor.h"
+#include "EditorUI/EditorUISerializer.h"
 #include "LightUI/Runtime/__Init__.h"
 
 #include "System/InspectorWindow.h"
@@ -15,8 +16,34 @@ namespace Light
     {
         for (auto* system : Engine::RuntimeSystems())
             World::RemoveSystem(system);
+        World::FlushSystemQueue();
         for (auto* system : Editor::EditorSystems())
             World::AddSystem(system);
+    }
+
+    Light_AddUpdateEvent(PlayOrStop, 0)
+    {
+        static bool lastIsPlaying = false;
+        if (lastIsPlaying != Editor::IsPlaying())
+        {
+            if (Editor::IsPlaying())
+            {
+                for (auto* system : Engine::RuntimeSystems())
+                {
+                    World::AddSystem(system);
+                }
+            }
+            else
+            {
+                World::Clear();
+                for (auto* system : Editor::EditorSystems())
+                {
+                    World::AddSystem(system);
+                }
+            }
+        }
+
+        lastIsPlaying = Editor::IsPlaying();
     }
 
     Light_AddEditorSystems(
@@ -34,11 +61,12 @@ namespace Light
 
     inline void InspectorGUI_LocalTransform(LocalTransform& localTransform)
     {
-        ImGui::DragFloat3("position", &localTransform.position[0]);
+        EditorUISerializer serializer;
+        serializer.TransferField("position", localTransform.position);
         float3 eulerAngles = localTransform.rotation.ToEulerAngles();
-        ImGui::DragFloat3("rotation", &eulerAngles[0]);
+        serializer.TransferField("rotation", eulerAngles);
         localTransform.rotation = Quaternion::Euler(eulerAngles);
-        ImGui::DragFloat3("scale", &localTransform.scale[0]);
+        serializer.TransferField("scale", localTransform.scale);
     }
     Light_MakeInspectorGUI(LocalTransform, InspectorGUI_LocalTransform)
 

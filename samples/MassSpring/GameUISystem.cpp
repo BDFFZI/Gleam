@@ -4,7 +4,6 @@
 #include <magic_enum.hpp>
 
 #include "LogicSystem.h"
-#include "LightEngine/Editor/EditorUI/EditorUI.h"
 #include "LightEngine/Runtime/Engine.h"
 
 using namespace Light;
@@ -22,11 +21,10 @@ void GameUISystem::Update()
     //显示模拟状态
     ImGui::Checkbox("Simulating", &LogicSystem->GetSimulating());
     //显示鼠标位置
-    ImGui::InputFloat2("MousePositionWS", LogicSystem->GetMousePositionWS().data);
+    ImGui::DragFloat2("MousePositionWS", LogicSystem->GetMousePositionWS().data);
     //显示鼠标所在的点
-    ImGui::Text("CoveringPoint");
-    ImGui::SameLine();
-    EditorUI::DrawEntityButton(LogicSystem->GetCoveringPoint());
+    int pointID = static_cast<int>(LogicSystem->GetCoveringPoint());
+    ImGui::DragInt("CoveringPoint", &pointID);
     //退出游戏按钮
     if (ImGui::Button("ExitGame"))
         Engine::Stop();

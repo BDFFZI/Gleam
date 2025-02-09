@@ -31,7 +31,7 @@ namespace Light
         static bool IsMatched(Archetype* archetype)
         {
             std::type_index components[] = {typeid(TComponents)...};
-            for (int i = 0; i < sizeof...(TComponents); ++i)
+            for (size_t i = 0; i < sizeof...(TComponents); ++i)
                 if (archetype->HasComponent(components[i]) == false)
                     return false;
             return true;
@@ -45,7 +45,7 @@ namespace Light
         static bool IsMatched(Archetype* archetype)
         {
             std::type_index components[] = {typeid(TComponents)...};
-            for (int i = 0; i < sizeof...(TComponents); ++i)
+            for (size_t i = 0; i < sizeof...(TComponents); ++i)
                 if (archetype->HasComponent(components[i]))
                     return false;
             return true;
@@ -73,15 +73,15 @@ namespace Light
     public:
         template <class TFunction> requires
             ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
-        static void Each(TFunction function, Scene* scene = World::GetMainScene())
+        static void Each(TFunction function)
         {
             Query();
-            Each_Inner(scene, function, std::make_index_sequence<sizeof...(TComponents)>());
+            Each_Inner(function, std::make_index_sequence<sizeof...(TComponents)>());
         }
-        static int Count(Scene* scene = World::GetMainScene())
+        static int Count()
         {
             Query();
-            return Count_Inner(scene);
+            return Count_Inner();
         }
 
     private:
@@ -114,12 +114,12 @@ namespace Light
 
         template <class TFunction, size_t... Indices>
             requires ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
-        static void Each_Inner(Scene* scene, TFunction function, std::index_sequence<Indices...>)
+        static void Each_Inner(TFunction function, std::index_sequence<Indices...>)
         {
             for (int i = 0; i < targetArchetypeCount; i++)
             {
                 const std::array<int, sizeof...(TComponents)>& componentOffset = targetComponentOffsets[i];
-                scene->GetEntityHeap(targetArchetypes[i]).ForeachElements([function,componentOffset](std::byte* item)
+                World::GetEntityHeap(targetArchetypes[i]).ForeachElements([function,componentOffset](std::byte* item)
                 {
                     if constexpr (ViewIterator<TFunction, TComponents...>)
                         function(*reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
@@ -128,11 +128,11 @@ namespace Light
                 });
             }
         }
-        static int Count_Inner(Scene* scene)
+        static int Count_Inner()
         {
             int count = 0;
             for (int i = 0; i < targetArchetypeCount; i++)
-                count += scene->GetEntityHeap(targetArchetypes[i]).GetCount();
+                count += World::GetEntityHeap(targetArchetypes[i]).GetCount();
             return count;
         }
     };

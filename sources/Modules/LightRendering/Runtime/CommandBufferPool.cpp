@@ -2,6 +2,14 @@
 
 namespace Light
 {
+    void CommandBufferPool::Init()
+    {
+        commandBuffers = std::make_unique<ObjectPool<CommandBuffer>>();
+    }
+    void CommandBufferPool::UnInit()
+    {
+        commandBuffers.reset();
+    }
     CommandBuffer& CommandBufferPool::Apply(const std::string& name)
     {
         return commandBuffers->Get();
@@ -9,9 +17,5 @@ namespace Light
     void CommandBufferPool::Release(CommandBuffer& commandBuffer)
     {
         commandBuffers->Release(commandBuffer);
-    }
-    void CommandBufferPool::Clear()
-    {
-        commandBuffers.reset();
     }
 }

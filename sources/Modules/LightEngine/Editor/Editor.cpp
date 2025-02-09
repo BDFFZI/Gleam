@@ -1,5 +1,7 @@
 ﻿#include "Editor.h"
 
+#include "LightECS/Runtime/World.h"
+
 namespace Light
 {
     std::vector<System*>& Editor::EditorSystems()
