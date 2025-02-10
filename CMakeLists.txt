@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30.0)
-project(Light)
+project(Gleam)
 
 # 全局项目设置
 set(CMAKE_CXX_STANDARD 20) # 使用C++20

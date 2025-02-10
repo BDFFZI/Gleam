@@ -4,9 +4,9 @@
 #include <magic_enum.hpp>
 
 #include "LogicSystem.h"
-#include "LightEngine/Runtime/Engine.h"
+#include "GleamEngine/Runtime/Engine.h"
 
-using namespace Light;
+using namespace Gleam;
 
 void GameUISystem::Update()
 {

@@ -1,0 +1,26 @@
+﻿#pragma once
+#include "GleamECS/Runtime/System.h"
+#include "GleamUI/Runtime/UISystem.h"
+#include "GleamUtility/Runtime/Program.h"
+
+namespace Gleam
+{
+    class EditorUISystem : public SystemGroup
+    {
+    public:
+        EditorUISystem(): SystemGroup(UISystem, MiddleOrder, RightOrder)
+        {
+        }
+
+        void RegisterEditorMenu(const std::string& name, const std::function<void()>& action);
+
+    private:
+        std::vector<std::tuple<std::string, std::function<void()>>> editorMenus = {};
+
+        void Update() override;
+    };
+    Gleam_MakeSystemInstance(EditorUISystem)
+
+#define Gleam_MakeEditorMenu(name,action) \
+    Gleam_MakeInitEvent(){EditorUISystem->RegisterEditorMenu(name,action);}
+}

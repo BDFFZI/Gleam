@@ -1,26 +1,26 @@
 #include "LogicSystem.h"
 
 #include "AssetSystem.h"
-#include "LightWindow/Runtime/System/InputSystem.h"
-#include "LightECS/Runtime/View.h"
-#include "LightEngine/Runtime/System/TimeSystem.h"
-#include "LightMassSpring/Runtime/Component/MassPointPhysics.h"
-#include "LightMassSpring/Runtime/Entity/Archetype.h"
-#include "LightMath/Runtime/Geometry/Point.h"
-#include "LightMath/Runtime/LinearAlgebra/MatrixMath.h"
+#include "GleamWindow/Runtime/System/InputSystem.h"
+#include "GleamECS/Runtime/View.h"
+#include "GleamEngine/Runtime/System/TimeSystem.h"
+#include "GleamMassSpring/Runtime/Component/MassPointPhysics.h"
+#include "GleamMassSpring/Runtime/Entity/Archetype.h"
+#include "GleamMath/Runtime/Geometry/Point.h"
+#include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 
-#ifdef LightEngineEditor
-#include "LightEngine/Editor/System/InspectorWindow.h"
+#ifdef GleamEngineEditor
+#include "GleamEngine/Editor/System/InspectorWindow.h"
 #endif
 
-using namespace Light;
+using namespace Gleam;
 
 void LogicSystem::OnMovePoint()
 {
     if (InputSystem->GetMouseButtonDown(MouseButton::Left))
     {
         fixedPoint = coveringPoint;
-#ifdef LightEngineEditor
+#ifdef GleamEngineEditor
         InspectorWindow->SetTarget(fixedPoint);
 #endif
     }
@@ -36,7 +36,7 @@ void LogicSystem::OnCreatePoint() const
     {
         const Entity entity = World::AddEntity(MassPointArchetype);
         World::SetComponents(entity, Point{mousePositionWS});
-#ifdef LightEngineEditor
+#ifdef GleamEngineEditor
         InspectorWindow->SetTarget(entity);
 #endif
     }

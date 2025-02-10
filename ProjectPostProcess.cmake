@@ -4,10 +4,17 @@ foreach(ProjectName ${AllProjects})
     # 统计所有依赖项
     set(RealDependencies "")
 
-    foreach(dependency ${${ProjectName}Dependencies})
-        list(APPEND RealDependencies ${${dependency}Dependencies})
-        list(APPEND RealDependencies ${dependency})
-    endforeach()
+    set(SourceDependencies ${${ProjectName}Dependencies})
+
+    while(NOT SourceDependencies STREQUAL "") # 递归添加所有依赖项
+        set(Dependencies ${SourceDependencies})
+        set(SourceDependencies "")
+
+        foreach(dependency ${Dependencies})
+            list(PREPEND RealDependencies ${dependency})
+            list(APPEND SourceDependencies ${${dependency}Dependencies})
+        endforeach()
+    endwhile()
 
     if(NOT RealDependencies STREQUAL "")
         list(REMOVE_DUPLICATES RealDependencies)
@@ -47,8 +54,10 @@ foreach(ProjectName ${AllProjects})
         endforeach()
 
         # 处理资源依赖
+        get_target_property(OUTPUT_DIRECTORY ${ProjectName} RUNTIME_OUTPUT_DIRECTORY)
+
         foreach(ResourcesPath ${ALLResourcesPaths})
-            file(COPY ${ResourcesPath} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+            file(COPY ${ResourcesPath} DESTINATION ${OUTPUT_DIRECTORY})
         endforeach()
     endif()
 endforeach()

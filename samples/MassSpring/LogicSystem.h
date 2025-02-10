@@ -1,12 +1,12 @@
 #pragma once
 #include <iostream>
 
-#include "LightECS/Runtime/Entity.h"
-#include "LightECS/Runtime/System.h"
-#include "LightMassSpring/Runtime/System/ForceSystem.h"
-#include "LightMassSpring/Runtime/System/PhysicsSystem.h"
-#include "LightMassSpring/Runtime/System/PositionSystem.h"
-#include "LightWindow/Runtime/System/InputSystem.h"
+#include "GleamECS/Runtime/Entity.h"
+#include "GleamECS/Runtime/System.h"
+#include "GleamMassSpring/Runtime/System/ForceSystem.h"
+#include "GleamMassSpring/Runtime/System/PhysicsSystem.h"
+#include "GleamMassSpring/Runtime/System/PositionSystem.h"
+#include "GleamWindow/Runtime/System/InputSystem.h"
 
 enum class EditMode
 {
@@ -16,25 +16,25 @@ enum class EditMode
     CreateSpring,
 };
 
-class LogicSystem : public Light::System
+class LogicSystem : public Gleam::System
 {
 public:
     EditMode& GetEditMode() { return editMode; }
     bool& GetSimulating() { return simulating; }
-    Light::Entity GetFixedPoint() const { return fixedPoint; }
-    Light::Entity GetCoveringPoint() const { return coveringPoint; }
-    Light::float3 GetMousePositionWS() const { return mousePositionWS; }
+    Gleam::Entity GetFixedPoint() const { return fixedPoint; }
+    Gleam::Entity GetCoveringPoint() const { return coveringPoint; }
+    Gleam::float3 GetMousePositionWS() const { return mousePositionWS; }
 
 private:
     EditMode editMode = EditMode::MovePoint;
     bool simulating = false;
-    Light::float3 mousePositionWS = 0;
-    Light::Entity coveringPoint = Light::Entity::Null; //鼠标当前位置所在的点
-    Light::Entity fixedPoint = Light::Entity::Null; //移动点模式下的移动点
-    Light::Entity springPointA = Light::Entity::Null; //创建弹簧时的弹簧A点
-    Light::Entity tempLine = Light::Entity::Null; //创建弹簧时临时的可视化线
-    Light::SystemEvent fixedPointSystem = {"FixedPointSystem",
-        Light::PhysicsSystem, Light::ForceSystem->GetOrder(), Light::PositionSystem->GetOrder(),};
+    Gleam::float3 mousePositionWS = 0;
+    Gleam::Entity coveringPoint = Gleam::Entity::Null; //鼠标当前位置所在的点
+    Gleam::Entity fixedPoint = Gleam::Entity::Null; //移动点模式下的移动点
+    Gleam::Entity springPointA = Gleam::Entity::Null; //创建弹簧时的弹簧A点
+    Gleam::Entity tempLine = Gleam::Entity::Null; //创建弹簧时临时的可视化线
+    Gleam::SystemEvent fixedPointSystem = {"FixedPointSystem",
+        Gleam::PhysicsSystem, Gleam::ForceSystem->GetOrder(), Gleam::PositionSystem->GetOrder(),};
 
     void OnMovePoint();
     void OnCreatePoint() const;
@@ -45,4 +45,4 @@ private:
     void Stop() override;
     void Update() override;
 };
-Light_MakeSystemInstance(LogicSystem)
+Gleam_MakeSystemInstance(LogicSystem)

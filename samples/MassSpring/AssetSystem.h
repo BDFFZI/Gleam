@@ -1,21 +1,21 @@
 ﻿#pragma once
 #include "GameUISystem.h"
-#include "LightECS/Runtime/Archetype.h"
-#include "LightECS/Runtime/Entity.h"
-#include "LightECS/Runtime/System.h"
-#include "LightRendering/Runtime/Entity/Archetype.h"
+#include "GleamECS/Runtime/Archetype.h"
+#include "GleamECS/Runtime/Entity.h"
+#include "GleamECS/Runtime/System.h"
+#include "GleamRendering/Runtime/Entity/Archetype.h"
 
-Light_MakeArchetypeChild(CameraArchetype2, Light::CameraArchetype, Light::ScreenToWorld)
+Gleam_MakeArchetypeChild(CameraArchetype2, Gleam::CameraArchetype, Gleam::ScreenToWorld)
 
-class AssetSystem : public Light::System
+class AssetSystem : public Gleam::System
 {
 public:
-    Light::Entity GetCameraEntity() const;
+    Gleam::Entity GetCameraEntity() const;
 
 private:
-    Light::Entity cameraEntity = Light::Entity::Null;
+    Gleam::Entity cameraEntity = Gleam::Entity::Null;
 
     void Start() override;
 };
-Light_MakeSystemInstance(AssetSystem)
+Gleam_MakeSystemInstance(AssetSystem)
 

@@ -1,14 +1,14 @@
 ﻿#pragma once
-#include "LightECS/Runtime/System.h"
-#include "LightUI/Runtime/UISystem.h"
+#include "GleamECS/Runtime/System.h"
+#include "GleamUI/Runtime/UISystem.h"
 
-class GameUISystem : public Light::System
+class GameUISystem : public Gleam::System
 {
 public:
-    GameUISystem(): System(Light::UISystem)
+    GameUISystem(): System(Gleam::UISystem)
     {
     }
 
     void Update() override;
 };
-Light_MakeSystemInstance(GameUISystem)
+Gleam_MakeSystemInstance(GameUISystem)

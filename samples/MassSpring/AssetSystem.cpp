@@ -1,15 +1,15 @@
 ﻿#include "AssetSystem.h"
-#include "LightECS/Runtime/Entity.h"
-#include "LightECS/Runtime/World.h"
-#include "LightMassSpring/Runtime/Entity/Archetype.h"
+#include "GleamECS/Runtime/Entity.h"
+#include "GleamECS/Runtime/World.h"
+#include "GleamMassSpring/Runtime/Entity/Archetype.h"
 
-Light::Entity AssetSystem::GetCameraEntity() const
+Gleam::Entity AssetSystem::GetCameraEntity() const
 {
     return cameraEntity;
 }
 void AssetSystem::Start()
 {
-    using namespace Light;
+    using namespace Gleam;
     //添加相机
     cameraEntity = World::AddEntity(CameraArchetype2);
     Camera& camera = World::GetComponent<Camera>(cameraEntity);

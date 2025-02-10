@@ -50,8 +50,9 @@ macro(setVS)
     file(RELATIVE_PATH SolutionFolder ${CMAKE_SOURCE_DIR} ${ParentPath}) # 根据父目录相对根目录的路径分类
     set_target_properties(${ProjectName} PROPERTIES FOLDER ${SolutionFolder})
 
-    # 设置工作目录
-    set_property(TARGET ${ProjectName} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+    # 设置输出目录和工作目录
+    set_target_properties(${ProjectName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${ProjectName}")
+    set_target_properties(${ProjectName} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${ProjectName}")
 
     # 创建vs筛选器
     source_group(TREE "${ProjectSource}" FILES "${ProjectFiles}")
@@ -116,8 +117,8 @@ macro(addPackage)
         linkLibrary(${TargetLibrary} ${ProjectName})
 
         # 引用编辑器核心库
-        if(NOT ${PackageName} STREQUAL "LightEngine")
-            linkLibrary("LightEngineEditor" ${ProjectName})
+        if(NOT ${PackageName} STREQUAL "GleamEngine")
+            linkLibrary("GleamEngineEditor" ${ProjectName})
         endif()
     endif()
 

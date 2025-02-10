@@ -1,15 +1,15 @@
 ﻿#include "AssetSystem.h"
 #include "LogicSystem.h"
 
-Light_AddSystems(
+Gleam_AddSystems(
     AssetSystem,
     LogicSystem,
     GameUISystem
 )
 
-#ifdef LightEngineEditor
-#include "LightEngine/Editor/Editor.h"
-Light_AddEditorSystems(
+#ifdef GleamEngineEditor
+#include "GleamEngine/Editor/Editor.h"
+Gleam_AddEditorSystems(
     AssetSystem
 )
 #endif

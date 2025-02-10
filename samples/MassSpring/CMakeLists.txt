@@ -1,7 +1,7 @@
 addProject()
 
-linkLibrary(LightMassSpringRuntime ${ProjectName})
-linkLibrary(LightRenderingRuntime ${ProjectName})
-linkLibrary(LightUIRuntime ${ProjectName})
+linkLibrary(GleamMassSpringRuntime ${ProjectName})
+linkLibrary(GleamRenderingRuntime ${ProjectName})
+linkLibrary(GleamUIRuntime ${ProjectName})
 
-linkLibrary(LightRenderingEditor ${ProjectName})
+linkLibrary(GleamRenderingEditor ${ProjectName})
