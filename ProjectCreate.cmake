@@ -1,54 +1,53 @@
-function(parseRelativeDir in_path out_dir)
-    file(RELATIVE_PATH relative_path ${CMAKE_SOURCE_DIR} ${in_path})
-    set(${out_dir} ${relative_path} PARENT_SCOPE)
-endfunction()
+# 计算包基本信息
+macro(initPackageInfo)
+    set(PackageSource ${CMAKE_CURRENT_SOURCE_DIR})
+    set(PackageBinary ${CMAKE_CURRENT_BINARY_DIR})
+    cmake_path(GET PackageSource FILENAME PackageName)
+    message("创建包：${PackageName}")
+endmacro()
 
-function(parseName in_path out_projectName)
-    parseRelativeDir(${in_path} relative_path)
-    string(REPLACE "/" "" projectName ${relative_path})
-    set(${out_projectName} ${projectName} PARENT_SCOPE)
-endfunction()
-
+# 计算包项目基本信息
 macro(initPackageProjectInfo projectSubPath)
-    # 获取路径和名称信息
     set(ProjectSource "${PackageSource}/${projectSubPath}")
     set(ProjectBinary "${PackageBinary}/${projectSubPath}")
     set(ProjectName "${PackageName}${projectSubPath}")
+    message("创建包项目：${ProjectName}")
 endmacro()
 
+# 计算项目基本信息
 macro(initProjectInfo)
-    # 获取路径和名称信息
     set(ProjectSource ${CMAKE_CURRENT_SOURCE_DIR})
     set(ProjectBinary ${CMAKE_CURRENT_BINARY_DIR})
     cmake_path(GET ProjectSource FILENAME ProjectName)
+    message("创建项目：${ProjectName}")
 endmacro()
 
+# 根据项目基本信息创建项目
 macro(initProject)
-    # 存储项目信息
-    set(${ProjectName} TRUE CACHE BOOL "项目是否存在" FORCE)
+    project(${ProjectName})
+
+    # 存储项目关键信息
     set(${ProjectName}Source ${ProjectSource} CACHE STRING "项目的SOURCE目录" FORCE)
     set(${ProjectName}Binary ${ProjectBinary} CACHE STRING "项目的Binary目录" FORCE)
     set(${ProjectName}Dependencies "" CACHE STRING "项目依赖的其他项目" FORCE)
+    set(${ProjectName}Resources "" CACHE STRING "项目依赖的资源" FORCE)
 
-    # 创建项目
-    project(${ProjectName})
-    message("添加项目：${ProjectName}")
+    # 统计所有项目
+    list(APPEND AllProjects ${ProjectName})
+    set(AllProjects ${AllProjects} CACHE STRING "全部项目" FORCE)
 
     # 获取项目文件
     file(GLOB_RECURSE ProjectFiles "${ProjectSource}/*.*")
-
-    # 禁用部分文件的误编译
-    set(SpecialFiles ${ProjectFiles})
+    set(SpecialFiles ${ProjectFiles}) # 取消对部分项目文件的误编译
     list(FILTER SpecialFiles INCLUDE REGEX ".*\.(hlsl|obj)")
     set_property(SOURCE ${SpecialFiles} PROPERTY VS_SETTINGS "ExcludedFromBuild=true")
 endmacro()
 
-# 设置vs属性
+# 设置vs属性（vs属性只能在设置项目类型后才可设置，所以不能在创建项目时设置）
 macro(setVS)
-    # 设置项目所在的解决方案目录
+    # 设置项目所在的解决方案分类
     cmake_path(GET ProjectSource PARENT_PATH ParentPath)
-    parseRelativeDir(${ParentPath} relative_path) # 使用相对路径分类
-    set(SolutionFolder ${relative_path})
+    file(RELATIVE_PATH SolutionFolder ${CMAKE_SOURCE_DIR} ${ParentPath}) # 根据父目录相对根目录的路径分类
     set_target_properties(${ProjectName} PROPERTIES FOLDER ${SolutionFolder})
 
     # 设置工作目录
@@ -69,39 +68,32 @@ endmacro()
 
 # 设置项目为可执行文件
 macro(setExecutable)
-    # 生成初始化文件，该文件将被显式编译，用于实现跨库的全局变量初始化（否则部分代码会因优化而剥离，导致无法利用全局变量初始化执行事件）
+    # 生成初始化文件，该文件将被用于编译库初始化文件，从而实现跨库的全局变量初始化（否则部分代码会因优化而剥离，导致无法利用全局变量初始化执行事件）
     set(ProjectInitFile "${ProjectSource}/__Init__.cpp")
     file(WRITE ${ProjectInitFile} "// ReSharper disable CppUnusedIncludeDirective\n")
-    list(INSERT ProjectFiles 0 ${ProjectInitFile})
+    list(INSERT ProjectFiles 0 ${ProjectInitFile}) # 将初始化文件添加到项目文件中
 
     add_executable(${ProjectName} "${ProjectFiles}")
     setVS()
-
-    # 统计所有可执行项目
-    list(APPEND AllExecutable ${ProjectName})
-    set(AllExecutable ${AllExecutable} CACHE STRING "全部可执行项目" FORCE)
 endmacro()
 
 # 设置项目为测试
 macro(setTests)
     setExecutable()
 
-    # 引用测试用的基本库（gtest和benchmark）
+    # 引用测试工具库（gtest和benchmark）
     find_package(GTest CONFIG REQUIRED)
     target_link_libraries(${ProjectName} PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
     find_package(benchmark CONFIG REQUIRED)
     target_link_libraries(${ProjectName} PRIVATE benchmark::benchmark)
 
-    # 引用测试目标库
+    # 引用被测试库
     string(REPLACE "Tests" "" TargetLibrary ${ProjectName})
     linkLibrary(${TargetLibrary} ${ProjectName})
 endmacro()
 
 macro(addPackage)
-    set(PackageSource ${CMAKE_CURRENT_SOURCE_DIR})
-    set(PackageBinary ${CMAKE_CURRENT_BINARY_DIR})
-    cmake_path(GET PackageSource FILENAME PackageName)
-    message("添加包：${PackageName}")
+    initPackageInfo()
 
     if(EXISTS "${PackageSource}/Runtime")
         initPackageProjectInfo("Runtime")
@@ -119,9 +111,11 @@ macro(addPackage)
         initProject()
         setLibrary()
 
+        # 引用对应的运行时库
         string(REPLACE "Editor" "Runtime" TargetLibrary ${ProjectName})
         linkLibrary(${TargetLibrary} ${ProjectName})
 
+        # 引用编辑器核心库
         if(NOT ${PackageName} STREQUAL "LightEngine")
             linkLibrary("LightEngineEditor" ${ProjectName})
         endif()
@@ -151,22 +145,13 @@ macro(linkLibrary LibraryName ProjectName)
     target_link_libraries(${ProjectName} PUBLIC ${LibraryName})
 
     # 添加依赖项信息
-    list(APPEND ${ProjectName}Dependencies ${${LibraryName}Dependencies})
     list(APPEND ${ProjectName}Dependencies ${LibraryName})
-    list(REMOVE_DUPLICATES ${ProjectName}Dependencies)
     set(${ProjectName}Dependencies ${${ProjectName}Dependencies} CACHE STRING "项目依赖的其他项目" FORCE)
 
-    get_target_property(ProjectType ${ProjectName} TYPE) # 获取项目类型
-
-    # 可执行项目作为最终编译目标需要进行一些处理
-    if(${ProjectType} STREQUAL "EXECUTABLE")
-        set(LibraryInitFile "${${LibraryName}Source}/__Init__.h") # 库初始化文件
-
-        # 目标库存在初始化文件，需要记录到项目初始化文件中
-        if(EXISTS ${LibraryInitFile})
-            set(ProjectInitFile "${${ProjectName}Source}/__Init__.cpp") # 项目初始化地址
-            file(RELATIVE_PATH relative_path "${${LibraryName}Source}/../.." ${LibraryInitFile})
-            file(APPEND ${ProjectInitFile} "#include \"${relative_path}\"\n")
-        endif()
+    # 若依赖项目未添加到全部项目，则插入到项目前一位，以便后续按依赖顺序处理项目
+    if(NOT ${LibraryName} IN_LIST AllProjects)
+        list(FIND AllProjects ${ProjectName} Index)
+        list(INSERT AllProjects ${Index} ${LibraryName})
+        set(AllProjects ${AllProjects} CACHE STRING "全部项目" FORCE)
     endif()
 endmacro()

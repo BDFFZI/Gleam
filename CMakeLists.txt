@@ -1,33 +1,21 @@
 cmake_minimum_required(VERSION 3.30.0)
+project(Light)
 
-# 使用C++20
-set(CMAKE_CXX_STANDARD 20)
+# 全局项目设置
+set(CMAKE_CXX_STANDARD 20) # 使用C++20
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+add_compile_options("/utf-8") # 代码文件使用utf-8
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/output") # 自定义输出目录
 
-# 代码文件使用utf-8
-add_compile_options("/utf-8")
-
-# 自定义输出目录
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/output")
-# 设置头文件目录，使可以从每个项目的父目录包含项目文件
 file(GLOB Sources "${CMAKE_SOURCE_DIR}/sources/*")
 
 foreach(Source ${Sources})
     if(IS_DIRECTORY ${Source})
-        include_directories(${Source})
+        include_directories(${Source}) # 设置头文件目录，使可以从每个项目的父目录包含项目文件
     endif()
 endforeach()
 
-project(Light)
-include(CreateProject.cmake)
-
-# 同步所有Resources文件夹
-# file(GLOB_RECURSE ResourcesPaths LIST_DIRECTORIES true "sources/[!.]" "samples/[!.]")
-# list(FILTER ResourcesPaths INCLUDE REGEX "Resources$")
-# foreach(ResourcesPath ${ResourcesPaths})
-# file(COPY ${ResourcesPath} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-# message("复制资源：${ResourcesPath}")
-# endforeach()
+include(ProjectCreate.cmake) # 供子目录使用的项目创建宏
 
 # 运行子目录中的所有CMakeLists.txt
 function(add_subdirectories_recursive current_dir)
@@ -49,25 +37,12 @@ function(add_subdirectories_recursive current_dir)
     endforeach()
 endfunction()
 
-set(AllExecutable "" CACHE STRING "全部可执行项目" FORCE)
+set(AllProjects "" CACHE STRING "全部项目" FORCE)
 add_subdirectories_recursive(${CMAKE_CURRENT_SOURCE_DIR})
+list(REMOVE_DUPLICATES AllProjects)
 
-message("后处理可执行文件 ${AllExecutable}")
+# 后处理项目
+include(ProjectPostProcess.cmake)
 
-foreach(Executable ${AllExecutable})
-    set(ALLResourcesPaths "")
-
-    foreach(dependency ${${Executable}Dependencies})
-        # 查看依赖的Resources文件
-        file(GLOB_RECURSE ResourcesPaths LIST_DIRECTORIES true "${${dependency}Source}/[!.]")
-        list(FILTER ResourcesPaths INCLUDE REGEX "Resources$")
-        list(APPEND ALLResourcesPaths ${ResourcesPaths})
-    endforeach()
-
-    message("发现资源依赖：${Executable}->${ALLResourcesPaths}")
-    add_custom_command(
-        TARGET ${Executable}
-        POST_BUILD
-        COMMAND cmake -D ResourcesPath=${ALLResourcesPaths} -P ${CMAKE_SOURCE_DIR}/CopyResources.cmake
-    )
-endforeach()
+# 额外的打包功能
+include(ProjectPack.cmake)

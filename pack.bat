@@ -1,3 +1,9 @@
+set PackTarget=%1
+set PackPath=%2
+set PackType=%3
+if "%PackPath%"=="" set PackPath="%~dp0..\LightPack"
+if "%PackType%"=="" set PackType=Debug
+
 cd ../LightBuild/.
-cmake ../Light/. -DCMAKE_BUILD_TYPE=Release -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$<1:C:\Users\BDFFZI\Desktop\TestPack>" -Dcaca=B 
-cmake --build . --target MassSpring
+cmake ../Light/. -DPackTarget=%PackTarget% -DPackType=%PackType%
+cmake --build . --config %PackType% --target=pack 
