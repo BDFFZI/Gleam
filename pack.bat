@@ -1,4 +1,5 @@
 @echo off
+@cd /d %~dp0
 
 set PackTarget=%1
 set PackType=%2
@@ -7,14 +8,16 @@ if "%PackPath%"=="" set PackPath="%~dp0..\GleamPack"
 if "%PackType%"=="" set PackType=Debug
 
 if "%PackTarget%"=="" (
-    echo è­¦å‘Šï¼æœªåœ¨å‚æ•°ä¸­æŒ‡æ˜ç›®æ ‡é¡¹ç›®ï¼Œå°†é»˜è®¤ä½¿ç”¨â€œHelloGleamâ€é¡¹ç›®æ¥æ¼”ç¤ºæ‰“åŒ…åŠŸèƒ½ã€‚
+    echo "¾¯¸æ£¡Î´ÔÚ²ÎÊıÖĞÖ¸Ã÷Ä¿±êÏîÄ¿£¬½«Ä¬ÈÏÊ¹ÓÃ¡°HelloGleam¡±ÏîÄ¿À´ÑİÊ¾´ò°ü¹¦ÄÜ¡£"
     pause
     set PackTarget="HelloGleam"
 )
 
-cd ../GleamBuild/.
+cmake %~dp0 -DPackTarget=%PackTarget% -DPackPath=%PackPath% -DPackType=%PackType% --preset=default
+
+mkdir "../GleamBuild/."
+cd "../GleamBuild/."
 cmake -E rm -fr ./output/%PackTarget%
-cmake ../Gleam/. -DPackTarget=%PackTarget% -DPackPath=%PackPath% -DPackType=%PackType%
 cmake --build . --config %PackType% --target=pack 
 
 pause

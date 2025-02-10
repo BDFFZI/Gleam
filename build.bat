@@ -1,13 +1,13 @@
 @echo off
 @cd /d %~dp0
 
-echo ==========检查项目环境==========
+echo ==========环境检测==========
 echo=
 
 if ["%VCPKG_ROOT%"]==[""] (
-    echo 错误！未设置 VCPKG_ROOT 环境变量。
+    echo 错误！未设置VCPKG_ROOT环境变量
 ) else (
-    echo ==========生成项目文件==========
+    echo ==========项目构建==========
     echo=
 
     cmake --preset=default
