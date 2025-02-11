@@ -16,7 +16,7 @@ namespace Gleam
     {
         updateEvents.insert({order, event});
     }
-    std::vector<System*>& Engine::RuntimeSystems()
+    std::vector<std::reference_wrapper<System>>& Engine::RuntimeSystems()
     {
         return runtimeSystems;
     }

@@ -4,7 +4,6 @@
 
 #include "Heap.h"
 #include "Archetype.h"
-#include "Scene.h"
 #include "System.h"
 
 namespace Gleam
@@ -53,8 +52,8 @@ namespace Gleam
          * 
          * @param system 
          */
-        static void AddSystem(System* system);
-        static void AddSystems(std::initializer_list<System*> systems);
+        static void AddSystem(System& system);
+        static void AddSystems(std::initializer_list<std::reference_wrapper<System>> systems);
         /**
          * @brief 移除系统
          *
@@ -63,8 +62,8 @@ namespace Gleam
          * 
          * @param system 
          */
-        static void RemoveSystem(System* system);
-        static void RemoveSystems(std::initializer_list<System*> systems);
+        static void RemoveSystem(System& system);
+        static void RemoveSystems(std::initializer_list<std::reference_wrapper<System>> systems);
 
         template <Component TComponent>
         static bool HasComponent(const Entity entity)
@@ -132,7 +131,7 @@ namespace Gleam
         inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
 
         inline static std::unordered_map<const Archetype*, Heap> entities;
-        inline static SystemGroup systems = {std::nullopt, System::LeftOrder, System::RightOrder}; //场景内所有系统的根系统
+        inline static SystemGroup systems = {"Systems"}; //场景内所有系统的根系统
         //系统使用计数，实现按需自动加载和卸载系统
         inline static std::unordered_map<System*, int> systemUsageCount = {};
         //在遍历系统的时候是不能修改容器结构的，但提供的游戏事件都是遍历容器的时候运行的，所以如果用户有增删系统的需求，必须先缓存然后再执行
@@ -142,6 +141,7 @@ namespace Gleam
         static Entity GetNextEntity();
         static const EntityInfo& GetEntityInfo(Entity entity);
         static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
+
     public:
         /**
          * 将缓存的添加或卸载中的System通过引用计算后，修改到实际的系统容器中

@@ -1,6 +1,5 @@
 #include "World.h"
-
-#include <iostream>
+#include "GleamUtility/Runtime/Program.h"
 
 namespace Gleam
 {
@@ -147,26 +146,26 @@ namespace Gleam
     {
         return systemUsageCount.contains(&system);
     }
-    void World::AddSystem(System* system)
+    void World::AddSystem(System& system)
     {
-        if (system->GetGroup().has_value())
-            AddSystem(system->GetGroup().value());
-        addingSystems.push_back(system);
+        if (system.GetGroup().has_value())
+            AddSystem(system.GetGroup().value());
+        addingSystems.push_back(&system);
     }
-    void World::AddSystems(const std::initializer_list<System*> systems)
+    void World::AddSystems(const std::initializer_list<std::reference_wrapper<System>> systems)
     {
-        for (System* system : systems)
+        for (System& system : systems | UnwrapRef)
             AddSystem(system);
     }
-    void World::RemoveSystem(System* system)
+    void World::RemoveSystem(System& system)
     {
-        if (system->GetGroup().has_value())
-            RemoveSystem(system->GetGroup().value());
-        removingSystems.push_back(system);
+        if (system.GetGroup().has_value())
+            RemoveSystem(system.GetGroup().value());
+        removingSystems.push_back(&system);
     }
-    void World::RemoveSystems(const std::initializer_list<System*> systems)
+    void World::RemoveSystems(const std::initializer_list<std::reference_wrapper<System>> systems)
     {
-        for (System* system : systems)
+        for (System& system : systems | UnwrapRef)
             RemoveSystem(system);
     }
 
@@ -211,7 +210,7 @@ namespace Gleam
             if (count == 1)
             {
                 //首次添加，需实际注册到系统组接收事件。
-                system->GetGroup().value_or(&systems)->AddSubSystem(system);
+                system->GetGroup().value_or(systems).get().AddSubSystem(system);
                 // std::cout << "Add System：" << system->GetName() << std::endl;
             }
         }
@@ -229,7 +228,7 @@ namespace Gleam
             if (count == 0)
             {
                 //最后一次移除，需实际从系统组移除。
-                system->GetGroup().value_or(&systems)->RemoveSubSystem(system);
+                system->GetGroup().value_or(systems).get().RemoveSubSystem(system);
                 // std::cout << "Remove System：" << system->GetName() << std::endl;
             }
         }

@@ -1,9 +1,9 @@
 ﻿#pragma once
+#include <functional>
 #include <map>
-#include <memory>
-#include <vector>
 
 #include "GleamECS/Runtime/System.h"
+
 
 namespace Gleam
 {
@@ -13,17 +13,7 @@ namespace Gleam
         static void AddStartEvent(const std::function<void()>& event, int order = 0);
         static void AddStopEvent(const std::function<void()>& event, int order = 0);
         static void AddUpdateEvent(const std::function<void()>& event, int order = 0);
-        static std::vector<System*>& RuntimeSystems();
-
-        template <typename TSystem>
-            requires std::is_base_of_v<System, TSystem>
-        static TSystem* RegisterGlobalSystem()
-        {
-            TSystem* system = new TSystem();
-            system->GetName() = typeid(TSystem).name();
-            allSystems.emplace_back(system);
-            return system;
-        }
+        static std::vector<std::reference_wrapper<System>>& RuntimeSystems();
 
         static void Start();
         static void Stop();
@@ -31,8 +21,7 @@ namespace Gleam
     private:
         friend class Editor;
 
-        static inline std::vector<std::unique_ptr<System>> allSystems;
-        static inline std::vector<System*> runtimeSystems;
+        static inline std::vector<std::reference_wrapper<System>> runtimeSystems;
         static inline std::multimap<int, std::function<void()>> startEvents;
         static inline std::multimap<int, std::function<void()>> updateEvents;
         static inline std::multimap<int, std::function<void()>> stopEvents;
@@ -64,7 +53,7 @@ inline void eventName()
     ///故该宏还会利用using创建一个系统类型别名：<systemType>_T
 #define Gleam_MakeSystemInstance(systemClass) \
 using systemClass##_T = systemClass;\
-inline systemClass* systemClass = Gleam::Engine::RegisterGlobalSystem<class systemClass##>();
+inline systemClass systemClass = {};
 
     ///将系统添加到世界，并注册到运行时系统组
 #include "GleamUtility/Runtime/Program.h"

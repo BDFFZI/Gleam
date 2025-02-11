@@ -1,27 +1,28 @@
 ﻿#include "System.h"
 
-#include <cassert>
 #include <iostream>
+#include <ranges>
 
 namespace Gleam
 {
-    System::System(const std::optional<SystemGroup*> group, const int minOrder, const int maxOrder)
-        : group(group), minOrder(minOrder), maxOrder(maxOrder),
-          order(static_cast<int32_t>((static_cast<int64_t>(minOrder) + static_cast<int64_t>(maxOrder)) / 2))
-    {
-        assert(minOrder <= maxOrder && "最大顺序不能小于最小顺序！");
-    }
-    System::System(System* system, const OrderRelation orderRelation)
-        : System(system->GetGroup(),
-                 orderRelation == OrderRelation::Before ? system->minOrder : system->order,
-                 orderRelation == OrderRelation::Before ? system->order : system->maxOrder)
+    System::System(const std::string_view name, const std::optional<std::reference_wrapper<SystemGroup>> group)
+        : System(name, group,
+                 std::numeric_limits<int32_t>::lowest(),
+                 std::numeric_limits<int32_t>::max())
     {
     }
+    System::System(const std::string_view name, System& system, const OrderRelation orderRelation)
+        : System(name, system.GetGroup(),
+                 orderRelation == OrderRelation::Before ? system.minOrder : system.order,
+                 orderRelation == OrderRelation::Before ? system.order : system.maxOrder)
+    {
+    }
+
     std::string& System::GetName()
     {
         return name;
     }
-    std::optional<SystemGroup*> System::GetGroup() const
+    std::optional<std::reference_wrapper<SystemGroup>> System::GetGroup() const
     {
         return group;
     }
@@ -29,6 +30,7 @@ namespace Gleam
     {
         return order;
     }
+
     void System::Start()
     {
     }
@@ -39,16 +41,24 @@ namespace Gleam
     {
     }
 
-    SystemEvent::SystemEvent(const std::string_view name, const std::optional<SystemGroup*> group, const int minOrder, const int maxOrder)
-        : System(group, minOrder, maxOrder)
+    System::System(const std::string_view name, const std::optional<std::reference_wrapper<SystemGroup>> group, const int minOrder, const int maxOrder)
+        : name(name), group(group), minOrder(minOrder), maxOrder(maxOrder),
+          order(static_cast<int32_t>((static_cast<int64_t>(minOrder) + static_cast<int64_t>(maxOrder)) / 2))
     {
-        this->name = name;
     }
-    SystemEvent::SystemEvent(const std::string_view name, System* system, const OrderRelation orderRelation)
-        : System(system, orderRelation)
+    std::function<void()>& SystemEvent::OnStart()
     {
-        this->name = name;
+        return onStart;
     }
+    std::function<void()>& SystemEvent::OnStop()
+    {
+        return onStop;
+    }
+    std::function<void()>& SystemEvent::OnUpdate()
+    {
+        return onUpdate;
+    }
+
     void SystemEvent::Start()
     {
         if (onStart) onStart();
@@ -61,15 +71,7 @@ namespace Gleam
     {
         if (onUpdate) onUpdate();
     }
-
-    SystemGroup::SystemGroup(const std::optional<SystemGroup*> group, const int minOrder, const int maxOrder)
-        : System(group, minOrder, maxOrder)
-    {
-    }
-    SystemGroup::SystemGroup(System* system, const OrderRelation orderRelation)
-        : System(system, orderRelation)
-    {
-    }
+    
     std::vector<System*> SystemGroup::GetSubSystems()
     {
         std::vector<System*> outSubSystems;

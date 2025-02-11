@@ -1,10 +1,9 @@
 ﻿#pragma once
 #include <functional>
-#include <memory>
 #include <optional>
-#include <ranges>
 #include <set>
 #include <string>
+
 
 namespace Gleam
 {
@@ -18,27 +17,18 @@ namespace Gleam
     class System
     {
     public:
-        constexpr static int32_t LeftOrder = std::numeric_limits<int32_t>::lowest();
-        constexpr static int32_t RightOrder = std::numeric_limits<int32_t>::max();
-        constexpr static int32_t MiddleOrder = 0;
-
-        /**
-         * minOrder和maxOrder不仅用于计算System的执行顺序，同时暗示了System的作用域，例如可以借此有意限制必须在其他系统之前执行。
-         * @param group 
-         * @param minOrder 
-         * @param maxOrder 
-         */
-        explicit System(std::optional<SystemGroup*> group = std::nullopt, int minOrder = LeftOrder, int maxOrder = RightOrder);
+        explicit System(std::string_view name, std::optional<std::reference_wrapper<SystemGroup>> group = std::nullopt);
         /**
          * 根据与其他System的相对顺序计算当前System顺序，计算时会注意遵从被依赖System的作用域。
+         * @param name
          * @param system 
          * @param orderRelation 
          */
-        System(System* system, OrderRelation orderRelation);
+        System(std::string_view name, System& system, OrderRelation orderRelation);
         virtual ~System() = default;
 
         std::string& GetName();
-        std::optional<SystemGroup*> GetGroup() const;
+        std::optional<std::reference_wrapper<SystemGroup>> GetGroup() const;
         int GetOrder() const;
 
         virtual void Start();
@@ -49,23 +39,35 @@ namespace Gleam
         friend class SystemEvent;
 
         std::string name;
-        std::optional<SystemGroup*> group;
+        std::optional<std::reference_wrapper<SystemGroup>> group;
         int minOrder;
         int maxOrder;
         int order;
+
+        System(std::string_view name, std::optional<std::reference_wrapper<SystemGroup>> group, int minOrder, int maxOrder);
     };
 
     class SystemEvent : public System
     {
     public:
+        std::function<void()>& OnStart();
+        std::function<void()>& OnStop();
+        std::function<void()>& OnUpdate();
+
+        SystemEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group)
+            : System(name, group)
+        {
+        }
+        SystemEvent(const std::string_view& name, System& system, const OrderRelation orderRelation)
+            : System(name, system, orderRelation)
+        {
+        }
+
+    private:
         std::function<void()> onStart = nullptr;
         std::function<void()> onStop = nullptr;
         std::function<void()> onUpdate = nullptr;
 
-        SystemEvent(std::string_view name, std::optional<SystemGroup*> group, int minOrder = LeftOrder, int maxOrder = RightOrder);
-        SystemEvent(std::string_view name, System* system, OrderRelation orderRelation);
-
-    private:
         void Start() override;
         void Stop() override;
         void Update() override;
@@ -84,8 +86,14 @@ namespace Gleam
     class SystemGroup : public System
     {
     public:
-        SystemGroup(std::optional<SystemGroup*> group, int minOrder = LeftOrder, int maxOrder = RightOrder);
-        SystemGroup(System* system, OrderRelation orderRelation);
+        SystemGroup(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>> group = std::nullopt)
+            : System(name, group)
+        {
+        }
+        SystemGroup(const std::string_view& name, System& system, const OrderRelation orderRelation)
+            : System(name, system, orderRelation)
+        {
+        }
 
         /**
          * 统计所有子系统，包括递归，但不包含正在卸载的子系统。

@@ -208,7 +208,7 @@ class PhysicsSystem : public System
 public:
     constexpr static float DeltaTime = 0.02f;
 
-    PhysicsSystem(): System(std::nullopt, 0)
+    PhysicsSystem(): System("PhysicsSystem", std::nullopt)
     {
     }
 
@@ -241,12 +241,10 @@ TEST(ECS, System)
     PhysicsSystem physicsSystem{};
     for (int i = 0; i < 10; i++)
         World::AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
-    World::AddSystem(&physicsSystem);
+    World::AddSystem(physicsSystem);
 
-    World::Start();
     for (int i = 0; i < 200; i++)
         World::Update(); //更新
-    World::Stop();
 
     std::stringstream ss;
     View<Transform>::Each([&ss](const Entity entity, Transform& transform)
@@ -257,65 +255,63 @@ TEST(ECS, System)
             :transform.position<70);
     });
     std::cout << ss.str();
+
+    World::Clear();
 }
 
 inline std::stringstream printResult = {};
 class PrintSystem : public System
 {
 public:
-    PrintSystem(const std::optional<SystemGroup*> group, const int minOrder, const int maxOrder, const char* name)
-        : System(group, minOrder, maxOrder), name(name)
+    PrintSystem(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group)
+        : System(name, group)
     {
     }
-    PrintSystem(System* system, const OrderRelation orderRelation, const char* name)
-        : System(system, orderRelation), name(name)
+    PrintSystem(const std::string_view& name, System& system, const OrderRelation orderRelation)
+        : System(name, system, orderRelation)
     {
     }
 
 private:
-    const char* name;
-
     void Start() override
     {
-        printResult << name << "->Start\n";
+        printResult << GetName() << "->Start\n";
     }
     void Stop() override
     {
-        printResult << name << "->Stop\n";
+        printResult << GetName() << "->Stop\n";
     }
     void Update() override
     {
-        printResult << name << "->Update\n";
+        printResult << GetName() << "->Update\n";
     }
 };
 class PrintSystemGroup : public SystemGroup
 {
 public:
-    PrintSystemGroup(const std::optional<SystemGroup*> group, const int minOrder, const int maxOrder, const char* name)
-        : SystemGroup(group, minOrder, maxOrder), name(name)
+    PrintSystemGroup(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group)
+        : SystemGroup(name, group)
     {
     }
-    PrintSystemGroup(System* system, const OrderRelation orderRelation, const char* name)
-        : SystemGroup(system, orderRelation), name(name)
+    PrintSystemGroup(const std::string_view& name, System& system, const OrderRelation orderRelation)
+        : SystemGroup(name, system, orderRelation)
     {
     }
 
 private:
-    const char* name;
-
     void Start() override
     {
-        printResult << name << "->Start\n";
+        printResult << GetName() << "->Start\n";
         SystemGroup::Start();
     }
     void Stop() override
     {
         SystemGroup::Stop();
-        printResult << name << "->Stop\n";
+        printResult << GetName() << "->Stop\n";
     }
     void Update() override
     {
-        printResult << name << "->Update\n";
+        printResult << GetName() << "->Update\n";
         SystemGroup::Update();
     }
 };
@@ -330,35 +326,25 @@ TEST(ECS, SystemOrder)
     ///    - system3_2_1
     ///    - system3_2_2
     ///  - system3_3
-    PrintSystem system2 = {std::nullopt, System::LeftOrder, System::RightOrder, "system2"};
-    PrintSystemGroup system3 = {&system2, OrderRelation::After, "system3"};
-    PrintSystemGroup system3_2 = {&system3, System::LeftOrder, System::RightOrder, "system3_2"};
-    PrintSystem system3_1 = {&system3_2, OrderRelation::Before, "system3_1"};
-    PrintSystem system1 = {&system2, OrderRelation::Before, "system1"};
-    PrintSystem system3_3 = {&system3_2, OrderRelation::After, "system3_3"};
-    PrintSystem system3_2_2 = {&system3_2, System::LeftOrder, System::RightOrder, "system3_2_2"};
-    PrintSystem system3_2_1 = {&system3_2_2, OrderRelation::Before, "system3_2_1"};
+    PrintSystem system2 = {"system2", std::nullopt};
+    PrintSystemGroup system3 = {"system3", system2, OrderRelation::After};
+    PrintSystemGroup system3_2 = {"system3_2", system3,};
+    PrintSystem system3_1 = {"system3_1", system3_2, OrderRelation::Before,};
+    PrintSystem system1 = {"system1", system2, OrderRelation::Before,};
+    PrintSystem system3_3 = {"system3_3", system3_2, OrderRelation::After,};
+    PrintSystem system3_2_2 = {"system3_2_2", system3_2};
+    PrintSystem system3_2_1 = {"system3_2_1", system3_2_2, OrderRelation::Before,};
 
-    World::AddSystem(&system2);
-    World::AddSystem(&system3);
-    World::AddSystem(&system3_1);
-    World::AddSystem(&system1);
-    World::AddSystem(&system3_3);
-    World::AddSystem(&system3_2_2);
-    World::AddSystem(&system3_2_1);
+    World::AddSystem(system2);
+    World::AddSystem(system3);
+    World::AddSystem(system3_1);
+    World::AddSystem(system1);
+    World::AddSystem(system3_3);
+    World::AddSystem(system3_2_2);
+    World::AddSystem(system3_2_1);
 
-    World::Start();
     World::Update();
-
-    World::RemoveSystem(&system2);
-    World::RemoveSystem(&system3);
-    World::RemoveSystem(&system3_1);
-    World::RemoveSystem(&system1);
-    World::RemoveSystem(&system3_3);
-    World::RemoveSystem(&system3_2_2);
-    World::RemoveSystem(&system3_2_1);
-
-    World::Stop();
+    World::Clear();
 
     ASSERT_EQ(printResult.str(), R"(system1->Start
 system2->Start
@@ -385,40 +371,6 @@ system3->Stop
 system2->Stop
 system1->Stop
 )");
-}
-
-TEST(ECS, SceneVisibility)
-{
-    Scene sleepScene = Scene{"Sleep"};
-    Entity entity = sleepScene.AddEntity(physicsArchetype);
-    World::SetComponents(entity, Transform{3});
-
-    //显式指明场景，+1
-    View<Transform>::Each([](Transform& transform)
-    {
-        transform.position++;
-    }, &sleepScene);
-    float2 position = World::GetComponent<Transform>(entity).position;
-    ASSERT_TRUE(all(position == float2(4)));
-
-    //不显式指明场景，==
-    View<Transform>::Each([](Transform& transform)
-    {
-        transform.position++;
-    });
-    position = World::GetComponent<Transform>(entity).position;
-    ASSERT_TRUE(all(position == float2(4)));
-
-    //恢复到默认场景，+1
-    Scene::MoveEntity(entity, World::GetMainScene());
-    View<Transform>::Each([](Transform& transform)
-    {
-        transform.position++;
-    });
-    position = World::GetComponent<Transform>(entity).position;
-    ASSERT_TRUE(all(position == float2(5)));
-
-    World::GetMainScene()->RemoveEntity(entity);
 }
 
 TEST(ECS, View)
