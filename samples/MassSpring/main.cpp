@@ -13,3 +13,5 @@ Gleam_AddEditorSystems(
     AssetSystem
 )
 #endif
+
+Gleam_Main

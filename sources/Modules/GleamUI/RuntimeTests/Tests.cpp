@@ -65,3 +65,5 @@ private:
 };
 Gleam_MakeSystemInstance(MySystem)
 Gleam_AddSystems(MySystem)
+
+Gleam_Main

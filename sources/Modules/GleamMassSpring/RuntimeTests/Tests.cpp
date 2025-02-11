@@ -40,3 +40,5 @@ Gleam_AddSystems(TestSystem)
 #ifdef GleamEngineEditor
 Gleam_AddEditorSystems(TestSystem)
 #endif
+
+Gleam_Main

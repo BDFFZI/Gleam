@@ -39,6 +39,25 @@ namespace Gleam
         inline static bool isStopping = false;
     };
 
+    ///利用如下宏实现关系到程序整个运行周期的事件，如库初始化。
+    ///这些事件与System中的Start和Stop不同，System在程序运行中可能多次Start和Stop，
+    ///且System::Stop在实体回收前执行，如果在Stop逆初始化库，这可能导致实体中需要该库的数据可能无法正常回收。
+#define Gleam_AddEngineEvent(eventType, eventName, order) \
+inline void eventName();\
+constexpr int eventName##Order = order;\
+Gleam_MakeInitEvent(){Engine::Add##eventType##Event(eventName,eventName##Order);}\
+inline void eventName()
+#define Gleam_AddStartEvent(eventName, order) Gleam_AddEngineEvent(Start, eventName, order)
+#define Gleam_AddStopEvent(eventName, order) Gleam_AddEngineEvent(Stop, eventName, order)
+#define Gleam_AddUpdateEvent(eventName, order) Gleam_AddEngineEvent(Update, eventName, order)
+
+#define Gleam_Main \
+    inline int main()\
+    {\
+        Gleam::Engine::Start();\
+        return 0;\
+    }
+
     ///创建系统并非一定要调用该函数。（我甚至在考虑移除该函数，改为让用户自行创建单例）
     ///系统本质只是一种接收事件的接口，唯一的要求就是继承System。所以系统就像实体一样是可以由用户自由创建增删。
     ///该宏用于创建全局作用域的系统单例，变量名与系统类名相同，因此后续再次使用系统类时可能存在问题，
@@ -50,15 +69,4 @@ inline systemClass* systemClass = Gleam::Engine::RegisterGlobalSystem<class syst
     ///将系统添加到世界，并注册到运行时系统组
 #include "GleamUtility/Runtime/Program.h"
 #define Gleam_AddSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::RuntimeSystems().insert(::Gleam::Engine::RuntimeSystems().end(),{__VA_ARGS__});}
-
-    ///利用如下宏实现关系到程序整个运行周期的事件，如库初始化。
-    ///因为System中Stop在实体回收前执行，如果在Stop逆初始化库，这可能导致实体中需要该库的数据可能无法正常回收。
-#define Gleam_AddEngineEvent(eventType, eventName, order) \
-    inline void eventName();\
-    constexpr int eventName##Order = order;\
-    Gleam_MakeInitEvent(){Engine::Add##eventType##Event(eventName,eventName##Order);}\
-    inline void eventName()
-#define Gleam_AddStartEvent(eventName, order) Gleam_AddEngineEvent(Start, eventName, order)
-#define Gleam_AddStopEvent(eventName, order) Gleam_AddEngineEvent(Stop, eventName, order)
-#define Gleam_AddUpdateEvent(eventName, order) Gleam_AddEngineEvent(Update, eventName, order)
 }

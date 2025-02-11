@@ -24,9 +24,3 @@ namespace Gleam
     );
 #endif
 }
-
-inline int main()
-{
-    Gleam::Engine::Start();
-    return 0;
-}

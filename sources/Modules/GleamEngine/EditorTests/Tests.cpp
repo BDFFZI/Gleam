@@ -11,3 +11,5 @@ Gleam_MakeInitEvent()
     Entity entity = World::AddEntity(DataArchetype);
     World::SetComponents(entity, data);
 }
+
+Gleam_Main

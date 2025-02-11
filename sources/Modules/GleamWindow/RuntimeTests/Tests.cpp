@@ -77,3 +77,5 @@ Gleam_MakeInitEvent()
 
     World::AddSystem(&systemEvent);
 }
+
+Gleam_Main
