@@ -34,7 +34,7 @@ class TestSystem : public System
         World::SetComponents(spring, springPhysics);
     }
 };
-Gleam_MakeSystemInstance(TestSystem)
+Gleam_MakeGlobalSystem(TestSystem)
 Gleam_AddSystems(TestSystem)
 
 #ifdef GleamEngineEditor

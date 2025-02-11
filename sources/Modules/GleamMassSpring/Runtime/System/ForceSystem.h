@@ -7,11 +7,11 @@ namespace Gleam
     class ForceSystem : public System
     {
     public:
-        ForceSystem(): System(PhysicsSystem, LeftOrder, MiddleOrder)
+        ForceSystem(): System(PhysicsSystem)
         {
         }
 
         void Update() override;
     };
-    Gleam_MakeSystemInstance(ForceSystem);
+    Gleam_MakeGlobalSystem(ForceSystem);
 }

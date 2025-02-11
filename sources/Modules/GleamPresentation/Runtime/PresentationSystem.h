@@ -42,5 +42,5 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeSystemInstance(PresentationSystem)
+    Gleam_MakeGlobalSystem(PresentationSystem)
 }

@@ -33,8 +33,8 @@ namespace Gleam
         float2 windowSize = 0;
         //预建资源
         SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", PostUpdateSystem);
-        class InputSystem inputSystem = {"SceneWindow_Input"};
-        class TimeSystem timeSystem = {"SceneWindow_Time"};
+        class InputSystem inputSystem = Engine::CreateSystem<InputSystem_T>("SceneWindow_Input");
+        class TimeSystem timeSystem = Engine::CreateSystem<TimeSystem_T>("SceneWindow_Time");
         Entity sceneCamera = Entity::Null;
         //场景相机渲染目标相关
         std::unique_ptr<GRenderTexture> sceneCameraCanvas;
@@ -51,7 +51,7 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeSystemInstance(SceneWindow)
+    Gleam_MakeGlobalSystem(SceneWindow)
 
 #define Gleam_MakeSceneGUI(type,drawSceneGUI)\
     Gleam_MakeInitEvent(){SceneWindow::AddCustomGUI(typeid(type),\

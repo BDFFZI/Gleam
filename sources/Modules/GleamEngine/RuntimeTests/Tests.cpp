@@ -27,7 +27,7 @@ public:
             Engine::Stop();
 
         std::cout
-            << std::format("Time:{:f}\tDeltaTime:{:f}", TimeSystem->GetTime(), TimeSystem->GetDeltaTime())
+            << std::format("Time:{:f}\tDeltaTime:{:f}", TimeSystem.GetTime(), TimeSystem.GetDeltaTime())
             << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -39,7 +39,7 @@ public:
 
     int countDown = 3;
 };
-Gleam_MakeSystemInstance(MySystem)
+Gleam_MakeGlobalSystem(MySystem)
 Gleam_AddSystems(MySystem)
 
 Gleam_Main

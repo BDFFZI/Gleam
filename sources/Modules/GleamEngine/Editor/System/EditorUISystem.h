@@ -8,7 +8,7 @@ namespace Gleam
     class EditorUISystem : public SystemGroup
     {
     public:
-        EditorUISystem(): SystemGroup(UISystem, MiddleOrder, RightOrder)
+        EditorUISystem(): SystemGroup(UISystem)
         {
         }
 
@@ -19,8 +19,8 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeSystemInstance(EditorUISystem)
+    Gleam_MakeGlobalSystem(EditorUISystem)
 
 #define Gleam_MakeEditorMenu(name,action) \
-    Gleam_MakeInitEvent(){EditorUISystem->RegisterEditorMenu(name,action);}
+    Gleam_MakeInitEvent(){EditorUISystem.RegisterEditorMenu(name,action);}
 }

@@ -24,5 +24,5 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeSystemInstance(GameWindow)
+    Gleam_MakeGlobalSystem(GameWindow)
 }

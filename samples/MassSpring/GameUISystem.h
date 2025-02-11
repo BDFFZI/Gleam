@@ -11,4 +11,4 @@ public:
 
     void Update() override;
 };
-Gleam_MakeSystemInstance(GameUISystem)
+Gleam_MakeGlobalSystem(GameUISystem)

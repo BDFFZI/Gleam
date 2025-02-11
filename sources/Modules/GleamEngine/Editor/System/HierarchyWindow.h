@@ -7,12 +7,12 @@ namespace Gleam
     class HierarchyWindow : public System
     {
     public:
-        HierarchyWindow(): System(EditorUISystem)
+        HierarchyWindow(): System(UISystem)
         {
         }
 
     private:
         void Update() override;
     };
-    Gleam_MakeSystemInstance(HierarchyWindow)
+    Gleam_MakeGlobalSystem(HierarchyWindow)
 }

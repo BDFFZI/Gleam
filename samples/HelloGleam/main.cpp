@@ -9,7 +9,7 @@ class MySystem : public Gleam::System// 实现System类
         std::cout << "Hello Gleam!" << std::endl;
     }
 };
-Gleam_MakeSystemInstance(MySystem)//创建System实例
+Gleam_MakeGlobalSystem(MySystem)//创建System实例
 Gleam_AddSystems(MySystem)//将System实例添加到World中
 
 Gleam_Main//运行引擎

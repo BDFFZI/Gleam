@@ -73,7 +73,7 @@ namespace Gleam
         }
         commandBuffer.EndRecording();
         //执行渲染命令
-        PresentationSystem->GetPresentGLCommandBuffer().ExecuteSubCommands(commandBuffer);
+        PresentationSystem.GetPresentGLCommandBuffer().ExecuteSubCommands(commandBuffer);
         CommandBufferPool::Release(commandBuffer);
     }
 }

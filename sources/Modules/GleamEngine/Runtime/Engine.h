@@ -10,6 +10,22 @@ namespace Gleam
     class Engine
     {
     public:
+        /**
+         * 一个更完善的System创建函数。
+         * 相比正常使用构造函数创建，该函数能自动按需设置系统名称以及注册类型信息。
+         * @tparam TSystem 
+         * @param name 
+         * @return 
+         */
+        template <typename TSystem> requires std::derived_from<TSystem, System>
+        static TSystem CreateSystem(const std::string_view name = typeid(TSystem).name())
+        {
+            TSystem system = {};
+            if (system.GetName().empty())
+                system.GetName() = name;
+            return std::move(system);
+        }
+
         static void AddStartEvent(const std::function<void()>& event, int order = 0);
         static void AddStopEvent(const std::function<void()>& event, int order = 0);
         static void AddUpdateEvent(const std::function<void()>& event, int order = 0);
@@ -47,13 +63,10 @@ inline void eventName()
         return 0;\
     }
 
-    ///创建系统并非一定要调用该函数。（我甚至在考虑移除该函数，改为让用户自行创建单例）
-    ///系统本质只是一种接收事件的接口，唯一的要求就是继承System。所以系统就像实体一样是可以由用户自由创建增删。
-    ///该宏用于创建全局作用域的系统单例，变量名与系统类名相同，因此后续再次使用系统类时可能存在问题，
-    ///故该宏还会利用using创建一个系统类型别名：<systemType>_T
-#define Gleam_MakeSystemInstance(systemClass) \
+    ///创建全局作用域的系统单例，变量名与系统类名相同。同时创建一个类别名<systemType>_T，以解决命名冲突。
+#define Gleam_MakeGlobalSystem(systemClass,...) \
 using systemClass##_T = systemClass;\
-inline systemClass systemClass = {};
+inline systemClass systemClass = Gleam::Engine::CreateSystem<systemClass##_T>(__VA_ARGS__);
 
     ///将系统添加到世界，并注册到运行时系统组
 #include "GleamUtility/Runtime/Program.h"

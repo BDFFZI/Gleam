@@ -19,8 +19,8 @@ namespace Gleam
     private:
         bool isLocking = false;
         float2 lockingPos = 0;
-        
+
         void Update() override;
     };
-    Gleam_MakeSystemInstance(CursorSystem)
+    Gleam_MakeGlobalSystem(CursorSystem)
 }

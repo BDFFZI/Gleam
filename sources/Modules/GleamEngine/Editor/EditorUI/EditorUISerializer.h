@@ -7,7 +7,7 @@ namespace Gleam
     class EditorUISerializer : public DataTransferrer
     {
     public:
-        EditorUISerializer(std::string_view rootName = "");
+        EditorUISerializer(std::string_view rootName);
 
         void PushNode(const char* name, DataType dataType) override;
         void PopNode() override;

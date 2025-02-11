@@ -17,14 +17,14 @@ using namespace Gleam;
 
 void LogicSystem::OnMovePoint()
 {
-    if (InputSystem->GetMouseButtonDown(MouseButton::Left))
+    if (InputSystem.GetMouseButtonDown(MouseButton::Left))
     {
         fixedPoint = coveringPoint;
 #ifdef GleamEngineEditor
-        InspectorWindow->SetTarget(fixedPoint);
+        InspectorWindow.SetTarget(fixedPoint);
 #endif
     }
-    else if (InputSystem->GetMouseButtonUp(MouseButton::Left))
+    else if (InputSystem.GetMouseButtonUp(MouseButton::Left))
         fixedPoint = Entity::Null;
 
     if (World::HasEntity(fixedPoint))
@@ -32,12 +32,12 @@ void LogicSystem::OnMovePoint()
 }
 void LogicSystem::OnCreatePoint() const
 {
-    if (InputSystem->GetMouseButtonDown(MouseButton::Left))
+    if (InputSystem.GetMouseButtonDown(MouseButton::Left))
     {
         const Entity entity = World::AddEntity(MassPointArchetype);
         World::SetComponents(entity, Point{mousePositionWS});
 #ifdef GleamEngineEditor
-        InspectorWindow->SetTarget(entity);
+        InspectorWindow.SetTarget(entity);
 #endif
     }
 }
@@ -45,7 +45,7 @@ void LogicSystem::OnCreatePoint() const
 std::vector<Entity> lines;
 void LogicSystem::OnDeletePoint()
 {
-    if (InputSystem->GetMouseButtonDown(MouseButton::Left) && coveringPoint != Entity::Null)
+    if (InputSystem.GetMouseButtonDown(MouseButton::Left) && coveringPoint != Entity::Null)
     {
         lines.clear();
         View<SpringPhysics>::Each([this](const Entity entity, SpringPhysics& springPhysics)
@@ -62,7 +62,7 @@ void LogicSystem::OnCreateSpring()
 {
     if (springPointA == Entity::Null)
     {
-        if (InputSystem->GetMouseButtonDown(MouseButton::Left))
+        if (InputSystem.GetMouseButtonDown(MouseButton::Left))
         {
             if (coveringPoint != Entity::Null)
             {
@@ -73,7 +73,7 @@ void LogicSystem::OnCreateSpring()
     }
     else
     {
-        if (InputSystem->GetMouseButtonDown(MouseButton::Left))
+        if (InputSystem.GetMouseButtonDown(MouseButton::Left))
         {
             if (coveringPoint != Entity::Null && coveringPoint != springPointA)
             {
@@ -103,7 +103,7 @@ void LogicSystem::OnCreateSpring()
 }
 void LogicSystem::Start()
 {
-    fixedPointSystem.onUpdate = [this]
+    fixedPointSystem.OnUpdate() = [this]
     {
         View<Point, MassPointPhysics>::Each([this](const Entity entity, Point& point, MassPointPhysics& massPointPhysics)
         {
@@ -114,22 +114,22 @@ void LogicSystem::Start()
             }
         });
     };
-    World::AddSystem(&fixedPointSystem);
+    World::AddSystem(fixedPointSystem);
 }
 void LogicSystem::Stop()
 {
-    World::RemoveSystem(&fixedPointSystem);
+    World::RemoveSystem(fixedPointSystem);
 }
 void LogicSystem::Update()
 {
     //根据当前数值状态运行游戏逻辑
-    if (InputSystem->GetKeyDown(KeyCode::Space))
+    if (InputSystem.GetKeyDown(KeyCode::Space))
         simulating = true;
-    if (InputSystem->GetKeyUp(KeyCode::Space))
+    if (InputSystem.GetKeyUp(KeyCode::Space))
         simulating = false;
     //获取鼠标位置
-    ScreenToWorld screenToWorld = World::GetComponent<ScreenToWorld>(AssetSystem->GetCameraEntity());
-    mousePositionWS = float3(mul(screenToWorld.value, float4(InputSystem->GetMousePosition(), 0, 1)).xy, 1);
+    ScreenToWorld screenToWorld = World::GetComponent<ScreenToWorld>(AssetSystem.GetCameraEntity());
+    mousePositionWS = float3(mul(screenToWorld.value, float4(InputSystem.GetMousePosition(), 0, 1)).xy, 1);
     //获取当前鼠标覆盖的顶点
     coveringPoint = Entity::Null;
     View<Point>::Each([this](const Entity entity, const Point& point)
@@ -150,5 +150,5 @@ void LogicSystem::Update()
         break;
     }
 
-    TimeSystem->SetTimeScale(simulating ? 1 : 0);
+    TimeSystem.SetTimeScale(simulating ? 1 : 0);
 }

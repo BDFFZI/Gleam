@@ -83,7 +83,7 @@ namespace Gleam
     void SceneWindow::Start()
     {
         windowSize = 0; //以便重启时能触发纹理重建
-        preProcessSystem.onUpdate = [this]
+        preProcessSystem.OnUpdate() = [this]
         {
             //重建渲染目标和纹理
             if (isDirty && windowSize.x > 0 && windowSize.y > 0)
@@ -98,13 +98,13 @@ namespace Gleam
             //相机控制
             if (inputSystem.GetMouseButtonDown(MouseButton::Right))
             {
-                CursorSystem->SetLockState(true);
-                CursorSystem->SetVisible(false);
+                CursorSystem.SetLockState(true);
+                CursorSystem.SetVisible(false);
             }
             else if (inputSystem.GetMouseButtonUp(MouseButton::Right))
             {
-                CursorSystem->SetLockState(false);
-                CursorSystem->SetVisible(true);
+                CursorSystem.SetLockState(false);
+                CursorSystem.SetVisible(true);
             }
             else if (inputSystem.GetMouseButton(MouseButton::Right))
             {
@@ -116,9 +116,9 @@ namespace Gleam
                 cameraLocalTransform = World::GetComponent<LocalTransform>(sceneCamera);
             }
         };
-        World::AddSystem(&preProcessSystem);
-        World::AddSystem(&inputSystem);
-        World::AddSystem(&timeSystem);
+        World::AddSystem(preProcessSystem);
+        World::AddSystem(inputSystem);
+        World::AddSystem(timeSystem);
 
         sceneCamera = World::AddEntity(CameraArchetype);
         World::SetComponents(sceneCamera, cameraLocalTransform);
@@ -128,9 +128,9 @@ namespace Gleam
     }
     void SceneWindow::Stop()
     {
-        World::RemoveSystem(&preProcessSystem);
-        World::RemoveSystem(&inputSystem);
-        World::RemoveSystem(&timeSystem);
+        World::RemoveSystem(preProcessSystem);
+        World::RemoveSystem(inputSystem);
+        World::RemoveSystem(timeSystem);
         sceneCameraCanvas.reset();
 
         UI::DeleteTexture(sceneCameraCanvasImID);
@@ -199,12 +199,12 @@ namespace Gleam
         }
 
         //绘制自定义UI和Gizmos
-        void* target = InspectorWindow->GetTarget();
+        void* target = InspectorWindow.GetTarget();
         if (target != nullptr)
         {
             ImGui::SetCursorPos({});
-            if (sceneGUIs.contains(InspectorWindow->GetTargetType()))
-                sceneGUIs[InspectorWindow->GetTargetType()](target);
+            if (sceneGUIs.contains(InspectorWindow.GetTargetType()))
+                sceneGUIs[InspectorWindow.GetTargetType()](target);
         }
 
         ImGui::End();

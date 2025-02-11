@@ -8,10 +8,11 @@ namespace Gleam
     class Editor
     {
     public:
-        static std::vector<System*>& EditorSystems();
+        static std::vector<std::reference_wrapper<System>>& EditorSystems();
         static bool& IsPlaying();
+
     private:
-        static inline std::vector<System*> editorSystems;
+        static inline std::vector<std::reference_wrapper<System>> editorSystems;
         static inline bool isPlaying = false;
     };
 

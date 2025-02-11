@@ -4,7 +4,7 @@
 
 void Gleam::PhysicsSystem::Update()
 {
-    float currentTime = TimeSystem->GetTime();
+    float currentTime = TimeSystem.GetTime();
     float deltaTime = currentTime - lastTime;
     while (deltaTime >= fixedDeltaTime)
     {

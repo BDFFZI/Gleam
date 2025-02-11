@@ -1,4 +1,5 @@
 ﻿#include "Engine.h"
+#include <ranges>
 
 #include "GleamECS/Runtime/World.h"
 
@@ -22,7 +23,7 @@ namespace Gleam
     }
     void Engine::Start()
     {
-        for (auto* system : runtimeSystems)
+        for (auto system : runtimeSystems)
             World::AddSystem(system);
 
         for (auto& event : startEvents | std::views::values)

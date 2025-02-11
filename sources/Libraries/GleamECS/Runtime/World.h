@@ -131,7 +131,7 @@ namespace Gleam
         inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
 
         inline static std::unordered_map<const Archetype*, Heap> entities;
-        inline static SystemGroup systems = {"Systems"}; //场景内所有系统的根系统
+        inline static SystemGroup systems = {std::nullopt}; //场景内所有系统的根系统
         //系统使用计数，实现按需自动加载和卸载系统
         inline static std::unordered_map<System*, int> systemUsageCount = {};
         //在遍历系统的时候是不能修改容器结构的，但提供的游戏事件都是遍历容器的时候运行的，所以如果用户有增删系统的需求，必须先缓存然后再执行

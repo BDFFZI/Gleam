@@ -79,13 +79,14 @@ namespace Gleam
                 type->fieldInfos.swap(memberTransferrer.GetResult()); //获取成员信息
             }
 
-
             return type.get();
         }
         static Type* GetType(const std::string_view uuidStr)
         {
-            uuids::uuid uuid = uuids::uuid::from_string(uuidStr).value();
-            return uuidToType.at(uuid);
+            auto inputUuid = uuids::uuid::from_string(uuidStr);
+            if (inputUuid.has_value() == false)
+                throw std::runtime_error("无法识别的UUID字符串！");
+            return uuidToType.at(inputUuid.value());
         }
         static Type* GetType(const std::type_index name)
         {

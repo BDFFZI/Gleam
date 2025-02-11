@@ -14,5 +14,5 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeSystemInstance(PointsRendererSystem)
+    Gleam_MakeGlobalSystem(PointsRendererSystem)
 }

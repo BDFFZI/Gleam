@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "GleamEngine/Runtime/Component/Transform.h"
-#include "GleamGraphics/Runtime/Resource/GRenderTarget/GRenderTexture.h"
 #include "GleamPresentation/Runtime/PresentationSystem.h"
 #include "GleamRendering/Runtime/Component/Camera.h"
 #include "GleamRendering/Runtime/Component/Renderer.h"
@@ -34,7 +33,7 @@ namespace Gleam
     class RenderingSystem : public System
     {
     public:
-        RenderingSystem(): System(PresentationSystem, LeftOrder, MiddleOrder)
+        RenderingSystem(): System(PresentationSystem)
         {
         }
 
@@ -49,5 +48,5 @@ namespace Gleam
         void Start() override;
         void Update() override;
     };
-    Gleam_MakeSystemInstance(RenderingSystem)
+    Gleam_MakeGlobalSystem(RenderingSystem)
 }

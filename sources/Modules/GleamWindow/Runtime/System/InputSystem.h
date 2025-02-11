@@ -14,9 +14,8 @@ namespace Gleam
     class InputSystem : public System
     {
     public:
-        InputSystem(const std::string_view name = ""): System(WindowSystem, MiddleOrder, RightOrder)
+        InputSystem(): System(WindowSystem)
         {
-            this->GetName() = name;
         }
 
         bool GetMouseButtonDown(MouseButton mouseButton) const;
@@ -42,7 +41,7 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeSystemInstance(InputSystem)
+    Gleam_MakeGlobalSystem(InputSystem)
 
     Gleam_MakeType(InputSystem_T, "")
     {

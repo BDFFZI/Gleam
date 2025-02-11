@@ -11,10 +11,10 @@ namespace Gleam
 {
     Gleam_AddStartEvent(ReplaceRuntimeSystem, 0)
     {
-        for (auto* system : Engine::RuntimeSystems())
+        for (auto system : Engine::RuntimeSystems())
             World::RemoveSystem(system);
         World::FlushSystemQueue();
-        for (auto* system : Editor::EditorSystems())
+        for (auto system : Editor::EditorSystems())
             World::AddSystem(system);
     }
 
@@ -25,7 +25,7 @@ namespace Gleam
         {
             if (Editor::IsPlaying())
             {
-                for (auto* system : Engine::RuntimeSystems())
+                for (auto system : Engine::RuntimeSystems())
                 {
                     World::AddSystem(system);
                 }
@@ -33,7 +33,7 @@ namespace Gleam
             else
             {
                 World::Clear();
-                for (auto* system : Editor::EditorSystems())
+                for (auto system : Editor::EditorSystems())
                 {
                     World::AddSystem(system);
                 }
@@ -57,7 +57,7 @@ namespace Gleam
 
     inline void InspectorGUI_LocalTransform(LocalTransform& localTransform)
     {
-        EditorUISerializer serializer;
+        EditorUISerializer serializer = {"LocalTransform"};
         serializer.TransferField("position", localTransform.position);
         float3 eulerAngles = localTransform.rotation.ToEulerAngles();
         serializer.TransferField("rotation", eulerAngles);

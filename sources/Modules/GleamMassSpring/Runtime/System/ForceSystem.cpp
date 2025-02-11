@@ -31,6 +31,6 @@ void Gleam::ForceSystem::Update()
     //重力
     View<MassPointPhysics>::Each([](MassPointPhysics& massPointPhysics)
     {
-        massPointPhysics.force += PhysicsSystem->GetGravity() * massPointPhysics.mass;
+        massPointPhysics.force += PhysicsSystem.GetGravity() * massPointPhysics.mass;
     });
 }

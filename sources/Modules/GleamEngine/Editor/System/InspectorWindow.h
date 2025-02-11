@@ -20,10 +20,10 @@ namespace Gleam
         {
             InspectorWindow* inspectorWindow = new InspectorWindow();
             inspectorWindow->SetTarget(args...);
-            World::AddSystem(inspectorWindow);
+            World::AddSystem(*inspectorWindow);
         }
 
-        InspectorWindow(): System(EditorUISystem)
+        InspectorWindow(): System(UISystem)
         {
         }
 
@@ -59,7 +59,7 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeSystemInstance(InspectorWindow)
+    Gleam_MakeGlobalSystem(InspectorWindow)
 
 #define Gleam_MakeInspectorGUI(type,drawInspectorGUI)\
     Gleam_MakeInitEvent(){InspectorWindow::AddCustomGUI(typeid(type),\

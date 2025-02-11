@@ -15,26 +15,26 @@ namespace Gleam
     void GameWindow::Start()
     {
         windowSize = 0; //以便重启时能触发纹理重建
-        preProcessSystem.onUpdate = [this]
+        preProcessSystem.OnUpdate() = [this]
         {
             //重建渲染目标和纹理
             if (isDirty && windowSize.x > 0 && windowSize.y > 0)
             {
                 isDirty = false;
                 renderTexture = std::make_unique<GRenderTexture>(static_cast<int2>(windowSize));
-                RenderingSystem->SetDefaultRenderTarget(renderTexture.get());
+                RenderingSystem.SetDefaultRenderTarget(renderTexture.get());
                 if (renderTextureID != nullptr)
                     UI::DeleteTexture(renderTextureID);
                 renderTextureID = UI::CreateTexture(*renderTexture);
             }
             //更新输入系统的焦点范围为GameWindow
-            InputSystem->SetFocusArea(Rect{windowPosition, windowSize});
+            InputSystem.SetFocusArea(Rect{windowPosition, windowSize});
         };
-        World::AddSystem(&preProcessSystem);
+        World::AddSystem(preProcessSystem);
     }
     void GameWindow::Stop()
     {
-        World::RemoveSystem(&preProcessSystem);
+        World::RemoveSystem(preProcessSystem);
         renderTexture.reset();
         UI::DeleteTexture(renderTextureID);
     }
@@ -68,7 +68,7 @@ namespace Gleam
         }
         //帧率信息
         static float deltaTime = 0;
-        deltaTime = std::lerp(deltaTime, TimeSystem->GetDeltaTimeReal(), 0.05f);
+        deltaTime = std::lerp(deltaTime, TimeSystem.GetDeltaTimeReal(), 0.05f);
         ImGui::SetCursorPos(cursor);
         ImGui::TextColored(
             float4::Magenta(),

@@ -15,11 +15,11 @@ public:
 private:
     void Update() override
     {
-        Gleam::PresentationSystem->GetPresentGCommandBuffer().SetRenderTarget(Gleam::SwapChain::GetPresentRenderTarget());
-        Gleam::PresentationSystem->GetPresentGCommandBuffer().ClearRenderTarget(Gleam::float4{0, 0, 1, 1});
+        Gleam::PresentationSystem.GetPresentGCommandBuffer().SetRenderTarget(Gleam::SwapChain::GetPresentRenderTarget());
+        Gleam::PresentationSystem.GetPresentGCommandBuffer().ClearRenderTarget(Gleam::float4{0, 0, 1, 1});
     }
 };
-Gleam_MakeSystemInstance(MySystem)
+Gleam_MakeGlobalSystem(MySystem)
 Gleam_AddSystems(MySystem)
 
 Gleam_Main

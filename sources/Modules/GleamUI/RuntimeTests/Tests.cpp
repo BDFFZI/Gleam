@@ -4,7 +4,6 @@
 #include "GleamUI/Runtime/UISystem.h"
 #include "GleamWindow/Runtime/System/CursorSystem.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
-#include "GleamWindow/Runtime/Window.h"
 
 using namespace Gleam;
 
@@ -48,22 +47,22 @@ private:
         UI::DragFloat4x4("matrix", &matrix);
 
         //逻辑处理
-        if (InputSystem->GetKeyDown(KeyCode::Esc))
+        if (InputSystem.GetKeyDown(KeyCode::Esc))
             Engine::Stop();
 
-        if (InputSystem->GetMouseButtonDown(MouseButton::Right))
+        if (InputSystem.GetMouseButtonDown(MouseButton::Right))
         {
-            CursorSystem->SetLockState(true);
-            CursorSystem->SetVisible(false);
+            CursorSystem.SetLockState(true);
+            CursorSystem.SetVisible(false);
         }
-        else if (InputSystem->GetMouseButtonUp(MouseButton::Right))
+        else if (InputSystem.GetMouseButtonUp(MouseButton::Right))
         {
-            CursorSystem->SetLockState(false);
-            CursorSystem->SetVisible(true);
+            CursorSystem.SetLockState(false);
+            CursorSystem.SetVisible(true);
         }
     }
 };
-Gleam_MakeSystemInstance(MySystem)
+Gleam_MakeGlobalSystem(MySystem)
 Gleam_AddSystems(MySystem)
 
 Gleam_Main

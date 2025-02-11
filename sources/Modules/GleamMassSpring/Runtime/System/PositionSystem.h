@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "ForceSystem.h"
 #include "PhysicsSystem.h"
 #include "GleamECS/Runtime/System.h"
 
@@ -7,11 +8,11 @@ namespace Gleam
     class PositionSystem : public System
     {
     public:
-        PositionSystem(): System(PhysicsSystem, MiddleOrder, MiddleOrder)
+        PositionSystem(): System(ForceSystem, OrderRelation::After)
         {
         }
 
         void Update() override;
     };
-    Gleam_MakeSystemInstance(PositionSystem)
+    Gleam_MakeGlobalSystem(PositionSystem)
 }

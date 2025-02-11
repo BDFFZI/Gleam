@@ -17,5 +17,5 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeSystemInstance(TransformSystem)
+    Gleam_MakeGlobalSystem(TransformSystem)
 }

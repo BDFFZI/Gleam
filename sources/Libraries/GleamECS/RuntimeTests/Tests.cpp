@@ -208,10 +208,6 @@ class PhysicsSystem : public System
 public:
     constexpr static float DeltaTime = 0.02f;
 
-    PhysicsSystem(): System("PhysicsSystem", std::nullopt)
-    {
-    }
-
 private:
     void Update() override
     {
@@ -264,15 +260,15 @@ class PrintSystem : public System
 {
 public:
     PrintSystem(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group)
-        : System(name, group)
+        : System(group, name)
     {
     }
     PrintSystem(const std::string_view& name, System& system, const OrderRelation orderRelation)
-        : System(name, system, orderRelation)
+        : System(system, orderRelation, name)
     {
     }
 
-private:
+
     void Start() override
     {
         printResult << GetName() << "->Start\n";
@@ -290,11 +286,11 @@ class PrintSystemGroup : public SystemGroup
 {
 public:
     PrintSystemGroup(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group)
-        : SystemGroup(name, group)
+        : SystemGroup(group, name)
     {
     }
     PrintSystemGroup(const std::string_view& name, System& system, const OrderRelation orderRelation)
-        : SystemGroup(name, system, orderRelation)
+        : SystemGroup(system, orderRelation, name)
     {
     }
 

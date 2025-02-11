@@ -61,7 +61,7 @@ void InputSystem::Update()
     }
 
     //鼠标位置
-    mousePosition[0] = CursorSystem->GetLockState() ? CursorSystem->GetLockPosition() - focusArea.GetPosition() : mousePosition[1];
+    mousePosition[0] = CursorSystem.GetLockState() ? CursorSystem.GetLockPosition() - focusArea.GetPosition() : mousePosition[1];
     mousePosition[1] = Window::GetMousePosition() - focusArea.GetPosition();
 
     //鼠标滚轮

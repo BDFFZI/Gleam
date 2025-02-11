@@ -10,9 +10,8 @@ namespace Gleam
     class TimeSystem : public System
     {
     public:
-        TimeSystem(const std::string_view name = ""): System(PreUpdateSystem)
+        TimeSystem(): System(PreUpdateSystem)
         {
-            GetName() = name;
         }
 
         float GetTimeReal() const { return timeReal; }
@@ -37,7 +36,7 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeSystemInstance(TimeSystem)
+    Gleam_MakeGlobalSystem(TimeSystem)
 
     Gleam_MakeType(TimeSystem_T, "")
     {

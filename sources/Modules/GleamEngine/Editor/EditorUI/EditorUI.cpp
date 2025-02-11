@@ -15,7 +15,7 @@ namespace Gleam
     {
         if (ImGui::Button(std::format("Entity:{}", static_cast<uint32_t>(entity)).c_str()))
         {
-            InspectorWindow->SetTarget(entity);
+            InspectorWindow.SetTarget(entity);
         }
         if (ImGui::BeginDragDropSource())
         {
@@ -54,7 +54,7 @@ namespace Gleam
                     Type* type = Type::GetType(componentType);
                     if (type != nullptr)
                     {
-                        EditorUISerializer editorUiSerializer;
+                        EditorUISerializer editorUiSerializer = {componentName};
                         type->serialize(editorUiSerializer, component);
                     }
                 }
@@ -113,7 +113,7 @@ namespace Gleam
             system->GetName().c_str(),
             {ImGui::GetContentRegionAvail().x, 0} //按钮铺满当前行余下的所有空间
         ))
-            InspectorWindow->SetTarget(system);
+            InspectorWindow.SetTarget(system);
 
         return collapsing;
     }

@@ -49,12 +49,12 @@ namespace Gleam
     }
     void InspectorWindow::Stop()
     {
-        if (this != Gleam::InspectorWindow)
+        if (this != &Gleam::InspectorWindow)
             delete this;
     }
     void InspectorWindow::Update()
     {
-        if (this == Gleam::InspectorWindow)
+        if (this == &Gleam::InspectorWindow)
             ImGui::Begin("InspectorWindow", nullptr, ImGuiWindowFlags_MenuBar);
         else
         {
@@ -62,10 +62,10 @@ namespace Gleam
             bool isOpen = true;
             ImGui::Begin(
                 std::format("InspectorWindow##{}", reinterpret_cast<uintptr_t>(this)).c_str(),
-                this == Gleam::InspectorWindow ? nullptr : &isOpen
+                this == &Gleam::InspectorWindow ? nullptr : &isOpen
             );
             if (isOpen == false)
-                World::RemoveSystem(this);
+                World::RemoveSystem(*this);
         }
 
         //绘制菜单项
@@ -89,11 +89,16 @@ namespace Gleam
                 inspectorGUIs[targetType](targetPtr);
             else if (Type* type = Type::GetType(targetType))
             {
-                EditorUISerializer serializer = {};
+                //序列化每个元素
+                EditorUISerializer serializer = {"InspectionTarget"};
                 type->serialize(serializer, targetPtr);
             }
             else
-                ImGui::Text("The inspected target is unknown type.");
+            {
+                //未知类型，当成字段整体传输给序列化器判断
+                EditorUISerializer serializer = {"InspectionTarget"};
+                serializer.Transfer(targetPtr, targetType);
+            }
         }
 
         ImGui::End();

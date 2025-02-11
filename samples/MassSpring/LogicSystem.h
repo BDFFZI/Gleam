@@ -33,8 +33,7 @@ private:
     Gleam::Entity fixedPoint = Gleam::Entity::Null; //移动点模式下的移动点
     Gleam::Entity springPointA = Gleam::Entity::Null; //创建弹簧时的弹簧A点
     Gleam::Entity tempLine = Gleam::Entity::Null; //创建弹簧时临时的可视化线
-    Gleam::SystemEvent fixedPointSystem = {"FixedPointSystem",
-        Gleam::PhysicsSystem, Gleam::ForceSystem->GetOrder(), Gleam::PositionSystem->GetOrder(),};
+    Gleam::SystemEvent fixedPointSystem = {"FixedPointSystem", Gleam::PositionSystem, Gleam::OrderRelation::Before,};
 
     void OnMovePoint();
     void OnCreatePoint() const;
@@ -45,4 +44,4 @@ private:
     void Stop() override;
     void Update() override;
 };
-Gleam_MakeSystemInstance(LogicSystem)
+Gleam_MakeGlobalSystem(LogicSystem)

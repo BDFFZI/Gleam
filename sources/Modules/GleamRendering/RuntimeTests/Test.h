@@ -55,9 +55,9 @@ class TestSystem : public System
     {
         View<ScreenToWorld, TestCameraData>::Each([](ScreenToWorld& screenToWorld, TestCameraData& testCameraData)
         {
-            testCameraData.mousePositionWS = mul(screenToWorld.value, float4(InputSystem->GetMousePosition(), 0, 1));
+            testCameraData.mousePositionWS = mul(screenToWorld.value, float4(InputSystem.GetMousePosition(), 0, 1));
         });
     }
 };
-Gleam_MakeSystemInstance(TestSystem)
+Gleam_MakeGlobalSystem(TestSystem)
 Gleam_AddSystems(TestSystem)

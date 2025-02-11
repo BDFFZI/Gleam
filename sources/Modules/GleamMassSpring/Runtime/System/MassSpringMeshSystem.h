@@ -56,6 +56,6 @@ namespace Gleam
             });
         }
     };
-    Gleam_MakeSystemInstance(MassSpringMeshSystem)
+    Gleam_MakeGlobalSystem(MassSpringMeshSystem)
 }
 #endif

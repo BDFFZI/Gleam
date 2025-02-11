@@ -27,7 +27,7 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeSystemInstance(PhysicsSystem)
+    Gleam_MakeGlobalSystem(PhysicsSystem)
 
     Gleam_MakeType(PhysicsSystem_T, "")
     {

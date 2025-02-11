@@ -4,7 +4,7 @@
 
 namespace Gleam
 {
-    std::vector<System*>& Editor::EditorSystems()
+    std::vector<std::reference_wrapper<System>>& Editor::EditorSystems()
     {
         return editorSystems;
     }

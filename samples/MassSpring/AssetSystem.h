@@ -17,5 +17,5 @@ private:
 
     void Start() override;
 };
-Gleam_MakeSystemInstance(AssetSystem)
+Gleam_MakeGlobalSystem(AssetSystem)
 

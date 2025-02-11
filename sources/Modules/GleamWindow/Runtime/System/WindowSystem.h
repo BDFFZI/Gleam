@@ -10,14 +10,14 @@ namespace Gleam
     class WindowSystem : public SystemGroup
     {
     public:
-        WindowSystem(): SystemGroup(PreUpdateSystem, LeftOrder, MiddleOrder)
+        WindowSystem(): SystemGroup(PreUpdateSystem)
         {
         }
 
     private:
         void Update() override;
     };
-    Gleam_MakeSystemInstance(WindowSystem)
+    Gleam_MakeGlobalSystem(WindowSystem)
 
     Gleam_MakeType(WindowSystem_T, "")
     {

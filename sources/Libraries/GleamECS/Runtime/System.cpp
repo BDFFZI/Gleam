@@ -5,16 +5,18 @@
 
 namespace Gleam
 {
-    System::System(const std::string_view name, const std::optional<std::reference_wrapper<SystemGroup>> group)
-        : System(name, group,
-                 std::numeric_limits<int32_t>::lowest(),
-                 std::numeric_limits<int32_t>::max())
+    System::System(const std::optional<std::reference_wrapper<SystemGroup>> group, std::string_view name)
+        : System(name, group)
     {
     }
-    System::System(const std::string_view name, System& system, const OrderRelation orderRelation)
+    System::System(System& system, const OrderRelation orderRelation, const std::string_view name)
         : System(name, system.GetGroup(),
                  orderRelation == OrderRelation::Before ? system.minOrder : system.order,
                  orderRelation == OrderRelation::Before ? system.order : system.maxOrder)
+    {
+    }
+    System::System(SystemGroup& group)
+        : System(std::optional<std::reference_wrapper<SystemGroup>>(group), "")
     {
     }
 
@@ -46,6 +48,7 @@ namespace Gleam
           order(static_cast<int32_t>((static_cast<int64_t>(minOrder) + static_cast<int64_t>(maxOrder)) / 2))
     {
     }
+
     std::function<void()>& SystemEvent::OnStart()
     {
         return onStart;
@@ -71,7 +74,7 @@ namespace Gleam
     {
         if (onUpdate) onUpdate();
     }
-    
+
     std::vector<System*> SystemGroup::GetSubSystems()
     {
         std::vector<System*> outSubSystems;
