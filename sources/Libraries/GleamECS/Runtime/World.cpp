@@ -3,8 +3,8 @@
 
 namespace Gleam
 {
-    EntityInfo::EntityInfo(const Archetype* archetype, const int indexAtHeap, std::byte* components)
-        : archetype(archetype), indexAtHeap(indexAtHeap), components(components)
+    EntityInfo::EntityInfo(const Archetype& archetype, const int indexAtHeap, std::byte* components)
+        : archetype(&archetype), indexAtHeap(indexAtHeap), components(components)
     {
     }
 
@@ -12,26 +12,26 @@ namespace Gleam
     {
         return entities;
     }
-    SystemGroup* World::GetSystems()
+    SystemGroup& World::GetSystems()
     {
-        return &systems;
+        return systems;
     }
 
     bool World::HasEntity(const Entity entity)
     {
         return entityInfos.contains(entity);
     }
-    Heap& World::GetEntityHeap(const Archetype* archetype)
+    Heap& World::GetEntityHeap(const Archetype& archetype)
     {
-        auto iterator = entities.find(archetype);
+        auto iterator = entities.find(&archetype);
         if (iterator != entities.end())
             return iterator->second;
 
-        entities.insert({archetype, Heap(archetype->GetArchetypeSize())});
-        return entities.at(archetype);
+        entities.insert({&archetype, Heap(archetype.GetArchetypeSize())});
+        return entities.at(&archetype);
     }
 
-    Entity World::AddEntity(const Archetype* archetype)
+    Entity World::AddEntity(const Archetype& archetype)
     {
         //创建实体
         Entity entity = GetNextEntity();
@@ -40,13 +40,13 @@ namespace Gleam
         int heapOrigin = heap.GetCount();
         std::byte* heapAddress = heap.AddElement();
         //内存赋值
-        archetype->RunConstructor(heapAddress);
+        archetype.RunConstructor(heapAddress);
         *reinterpret_cast<Entity*>(heapAddress) = entity;
         //返回实体信息
         SetEntityInfo(entity, std::make_optional<EntityInfo>(archetype, heapOrigin, heapAddress));
         return entity;
     }
-    void World::AddEntities(const Archetype* archetype, const int count, Entity* outEntities)
+    void World::AddEntities(const Archetype& archetype, const int count, Entity* outEntities)
     {
         //申请堆内存
         Heap& heap = GetEntityHeap(archetype);
@@ -56,7 +56,7 @@ namespace Gleam
             //创建实体
             Entity entity = GetNextEntity();
             //内存赋值
-            archetype->RunConstructor(item);
+            archetype.RunConstructor(item);
             *reinterpret_cast<Entity*>(item) = entity;
             //返回实体信息
             SetEntityInfo(entity, std::make_optional<EntityInfo>(archetype, heapOrigin + itemIndex, item));
@@ -73,7 +73,7 @@ namespace Gleam
         const Archetype* archetype = entityInfo.archetype;
         archetype->RunDestructor(entityInfo.components);
         //从内存中移除
-        RemoveHeapItem(archetype, entityInfo.indexAtHeap);
+        RemoveHeapItem(*archetype, entityInfo.indexAtHeap);
         //去除实体信息
         SetEntityInfo(entity, std::nullopt);
         entity = Entity::Null;
@@ -94,7 +94,7 @@ namespace Gleam
             heap.Clear();
         }
     }
-    void World::MoveEntity(const Entity entity, const Archetype* newArchetype)
+    void World::MoveEntity(const Entity entity, const Archetype& newArchetype)
     {
         assert(entity != Entity::Null && "实体参数不能为空！");
         assert(World::HasEntity(entity) && "实体必须存在！");
@@ -106,14 +106,14 @@ namespace Gleam
         Heap& newHeap = GetEntityHeap(newArchetype);
         std::byte* newAddress = newHeap.AddElement();
         //迁移内存数据
-        for (int i = 0; i < newArchetype->GetComponentCount(); ++i)
+        for (int i = 0; i < newArchetype.GetComponentCount(); ++i)
         {
             //遍历每个新原形的组件
 
             //获取组件信息
-            const ComponentInfo& componentInfo = newArchetype->GetComponentInfo(i);
+            const ComponentInfo& componentInfo = newArchetype.GetComponentInfo(i);
             const std::type_index type = componentInfo.type;
-            std::byte* componentAddress = newAddress + newArchetype->GetComponentOffset(i);
+            std::byte* componentAddress = newAddress + newArchetype.GetComponentOffset(i);
             //赋值组件内存
             if (oldArchetype->HasComponent(type)) //若旧元组包含该组件则移动数据
                 componentInfo.moveConstructor(oldEntityInfo.components + oldArchetype->GetComponentOffset(type), componentAddress);
@@ -121,12 +121,12 @@ namespace Gleam
                 componentInfo.constructor(componentAddress);
         }
         //从旧内存中移除
-        RemoveHeapItem(oldArchetype, oldEntityInfo.indexAtHeap);
+        RemoveHeapItem(*oldArchetype, oldEntityInfo.indexAtHeap);
         //设置新实体信息
         EntityInfo entityInfo = {newArchetype, newHeap.GetCount() - 1, newAddress};
         SetEntityInfo(entity, entityInfo);
     }
-    void World::MoveEntitySimply(const Entity entity, const Archetype* newArchetype)
+    void World::MoveEntitySimply(const Entity entity, const Archetype& newArchetype)
     {
         //获取旧实体信息
         EntityInfo oldEntityInfo = GetEntityInfo(entity);
@@ -136,7 +136,7 @@ namespace Gleam
         //将旧数据复制到新内存
         oldEntityInfo.archetype->RunMoveConstructor(oldEntityInfo.components, newAddress);
         //将旧数据从内存中移除
-        RemoveHeapItem(oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
+        RemoveHeapItem(*oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
         //设置新实体信息
         EntityInfo entityInfo = {newArchetype, newHeap.GetCount() - 1, newAddress};
         SetEntityInfo(entity, entityInfo);
@@ -210,7 +210,7 @@ namespace Gleam
             if (count == 1)
             {
                 //首次添加，需实际注册到系统组接收事件。
-                system->GetGroup().value_or(systems).get().AddSubSystem(system);
+                system->GetGroup().value_or(systems).get().AddSubSystem(*system);
                 // std::cout << "Add System：" << system->GetName() << std::endl;
             }
         }
@@ -228,13 +228,13 @@ namespace Gleam
             if (count == 0)
             {
                 //最后一次移除，需实际从系统组移除。
-                system->GetGroup().value_or(systems).get().RemoveSubSystem(system);
+                system->GetGroup().value_or(systems).get().RemoveSubSystem(*system);
                 // std::cout << "Remove System：" << system->GetName() << std::endl;
             }
         }
         removingSystems.clear();
     }
-    void World::RemoveHeapItem(const Archetype* heapIndex, const int elementIndex)
+    void World::RemoveHeapItem(const Archetype& heapIndex, const int elementIndex)
     {
         //移除旧实体
         Heap& heap = GetEntityHeap(heapIndex);

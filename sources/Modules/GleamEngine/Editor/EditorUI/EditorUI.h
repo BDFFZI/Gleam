@@ -14,9 +14,9 @@ namespace Gleam
         static void DrawEntityButton(Entity entity);
         static void DrawEntity(Entity entity, const CustomGUI& componentGUI = {});
         static void DrawEntityPure(Entity entity, const CustomGUI& componentGUI);
-        static bool DrawSystem(System* system);
-        static void DrawSystemGroup(SystemGroup* systemGroup);
-        static void DrawSystemGroupContent(SystemGroup* systemGroup);
+        static bool DrawSystem(System& system);
+        static void DrawSystemGroup(SystemGroup& systemGroup);
+        static void DrawSystemGroupContent(SystemGroup& systemGroup);
         static void DrawWorld();
         static void DrawWorldUnfolding();
 

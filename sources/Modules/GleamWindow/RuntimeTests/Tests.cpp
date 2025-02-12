@@ -10,7 +10,7 @@
 
 using namespace Gleam;
 
-SystemEvent systemEvent = SystemEvent{PostUpdateSystem};
+SystemEvent systemEvent = SystemEvent{"MySystem", PostUpdateSystem};
 int2 windowPosition;
 float2 resolution;
 

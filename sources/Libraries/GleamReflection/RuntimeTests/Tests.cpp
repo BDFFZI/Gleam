@@ -19,18 +19,18 @@
 
 TEST(Reflection, BinarySerializer)
 {
-    Type* type = Type::GetType(typeid(TestData));
+    Type& type = Type::GetType(typeid(TestData));
 
     std::ofstream outStream("test.bin", std::ios::binary);
     BinaryWriter binaryWriter = {outStream};
 
-    type->serialize(binaryWriter, &data);
+    type.Serialize()(binaryWriter, &data);
     outStream.close();
 
     std::ifstream inStream("test.bin", std::ios::binary);
     BinaryReader binaryReader = {inStream};
     TestData newData = {};
-    type->deserialize(binaryReader, &newData);
+    type.Serialize()(binaryReader, &newData);
     inStream.close();
 
     ASSERT_EQ(newData, data);
@@ -38,13 +38,13 @@ TEST(Reflection, BinarySerializer)
 
 TEST(Reflection, JsonSerializer)
 {
-    Type* type = Type::GetType(typeid(TestData));
+    Type& type = Type::GetType(typeid(TestData));
 
     rapidjson::Document document;
     document.Parse("{}");
 
     JsonWriter jsonWriter = {document};
-    type->serialize(jsonWriter, &data);
+    type.Serialize()(jsonWriter, &data);
 
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter writer(buffer);
@@ -53,7 +53,7 @@ TEST(Reflection, JsonSerializer)
 
     JsonReader jsonReader = {document};
     TestData newData = {};
-    type->serialize(jsonReader, &newData);
+    type.Serialize()(jsonReader, &newData);
 
     ASSERT_EQ(newData, data);
 }
@@ -61,9 +61,13 @@ TEST(Reflection, JsonSerializer)
 
 TEST(Reflection, Type)
 {
-    Type* type = Type::GetType("C4BAB34E-B145-4297-8BA3-6DD1BD05110D");
-    std::cout << type->info->name() << '\n';
-    for (auto& fieldInfo : type->fieldInfos)
+    std::optional<std::reference_wrapper<Type>> optionalType = Type::GetType("C4BAB34E-B145-4297-8BA3-6DD1BD05110D");
+    if(optionalType.has_value() == false)
+        throw std::runtime_error("无法通过Uuid找到类型！");
+    Type& type = optionalType.value();
+
+    std::cout << type.TypeInfo()->name() << '\n';
+    for (auto& fieldInfo : type.FieldInfos())
     {
         std::cout << fieldInfo.name << '\t';
         std::cout << fieldInfo.type.name() << '\t';

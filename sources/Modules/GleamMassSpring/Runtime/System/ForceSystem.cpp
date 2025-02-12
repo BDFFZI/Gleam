@@ -11,10 +11,10 @@ void Gleam::ForceSystem::Update()
     {
         Point* pointA;
         MassPointPhysics* massPointPhysicsA;
-        springPhysics.pointA.Get(&pointA, &massPointPhysicsA);
+        springPhysics.pointA.Get(pointA, massPointPhysicsA);
         Point* pointB;
         MassPointPhysics* massPointPhysicsB;
-        springPhysics.pointB.Get(&pointB, &massPointPhysicsB);
+        springPhysics.pointB.Get(pointB, massPointPhysicsB);
 
         float3 elasticityVector_BToA = pointA->position - pointB->position;
         float3 elasticityDirection_BToA = normalize(elasticityVector_BToA);

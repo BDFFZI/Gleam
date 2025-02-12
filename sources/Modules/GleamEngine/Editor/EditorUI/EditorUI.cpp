@@ -51,11 +51,11 @@ namespace Gleam
                     componentGUI.at(componentType)(component);
                 else
                 {
-                    Type* type = Type::GetType(componentType);
-                    if (type != nullptr)
+                    Type& type = Type::GetType(componentType);
+                    if (type.Serialize())
                     {
                         EditorUISerializer editorUiSerializer = {componentName};
-                        type->serialize(editorUiSerializer, component);
+                        type.Serialize()(editorUiSerializer, component);
                     }
                 }
             }
@@ -86,23 +86,23 @@ namespace Gleam
             ImGui::PopID();
         }
     }
-    void EditorUI::DrawSystemGroup(SystemGroup* systemGroup)
+    void EditorUI::DrawSystemGroup(SystemGroup& systemGroup)
     {
         //绘制内部子系统
         if (DrawSystem(systemGroup))
         {
-            ImGui::TreePush(systemGroup->GetName().c_str());
+            ImGui::TreePush(systemGroup.GetName().c_str());
             DrawSystemGroupContent(systemGroup);
             ImGui::TreePop();
         }
     }
-    bool EditorUI::DrawSystem(System* system)
+    bool EditorUI::DrawSystem(System& system)
     {
-        SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(system);
+        SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(&system);
 
         //下拉框
         bool collapsing = ImGui::CollapsingHeader(
-            std::format("##{}", system->GetName()).c_str(),
+            std::format("##{}", system.GetName()).c_str(),
             (systemGroup == nullptr || systemGroup->subSystemUpdateQueue.empty()
                  ? ImGuiTreeNodeFlags_Leaf : 0) //无子系统时不显示箭头
             | ImGuiTreeNodeFlags_AllowItemOverlap //支持叠加按钮
@@ -110,41 +110,41 @@ namespace Gleam
         //系统选中按钮
         ImGui::SameLine(); //放在下拉框旁边
         if (ImGui::Button(
-            system->GetName().c_str(),
+            system.GetName().c_str(),
             {ImGui::GetContentRegionAvail().x, 0} //按钮铺满当前行余下的所有空间
         ))
-            InspectorWindow.SetTarget(system);
+            InspectorWindow.SetTarget(&system);
 
         return collapsing;
     }
-    void EditorUI::DrawSystemGroupContent(SystemGroup* systemGroup)
+    void EditorUI::DrawSystemGroupContent(SystemGroup& systemGroup)
     {
         ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::GleamGreen());
-        for (const auto subSystem : systemGroup->subSystemStartQueue)
+        for (const auto subSystem : systemGroup.subSystemStartQueue)
         {
             if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
-                DrawSystemGroup(subSystemGroup);
+                DrawSystemGroup(*subSystemGroup);
             else
-                DrawSystem(subSystem);
+                DrawSystem(*subSystem);
         }
         ImGui::PopStyleColor();
 
         ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::GleamRed());
-        for (const auto subSystem : systemGroup->subSystemStopQueue)
+        for (const auto subSystem : systemGroup.subSystemStopQueue)
         {
             if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
-                DrawSystemGroup(subSystemGroup);
+                DrawSystemGroup(*subSystemGroup);
             else
-                DrawSystem(subSystem);
+                DrawSystem(*subSystem);
         }
         ImGui::PopStyleColor();
 
-        for (const auto subSystem : systemGroup->subSystemUpdateQueue)
+        for (const auto subSystem : systemGroup.subSystemUpdateQueue)
         {
             if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
-                DrawSystemGroup(subSystemGroup);
+                DrawSystemGroup(*subSystemGroup);
             else
-                DrawSystem(subSystem);
+                DrawSystem(*subSystem);
         }
     }
     void EditorUI::DrawWorld()
@@ -167,6 +167,10 @@ namespace Gleam
     }
     void EditorUI::DrawWorldUnfolding()
     {
+        if (ImGui::CollapsingHeader("Systems"))
+        {
+            DrawSystemGroupContent(World::GetSystems());
+        }
         if (ImGui::CollapsingHeader("Entities"))
         {
             for (auto& [archetype,heap] : World::GetEntities())
@@ -185,10 +189,6 @@ namespace Gleam
                     ImGui::TreePop();
                 }
             }
-        }
-        if (ImGui::CollapsingHeader("Systems"))
-        {
-            DrawSystemGroupContent(World::GetSystems());
         }
     }
 }

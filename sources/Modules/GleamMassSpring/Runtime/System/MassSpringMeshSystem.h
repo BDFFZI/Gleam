@@ -37,10 +37,10 @@ namespace Gleam
             {
                 Point pointA;
                 MassPointPhysics massPointPhysicsA;
-                springPhysics.pointA.Get(&pointA, &massPointPhysicsA);
+                springPhysics.pointA.Get(pointA, massPointPhysicsA);
                 Point pointB;
                 MassPointPhysics massPointPhysicsB;
-                springPhysics.pointB.Get(&pointB, &massPointPhysicsB);
+                springPhysics.pointB.Get(pointB, massPointPhysicsB);
 
                 springs.emplace_back(pointA.position, pointB.position);
             });

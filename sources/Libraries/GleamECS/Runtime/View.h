@@ -1,24 +1,17 @@
 ﻿#pragma once
 #include "World.h"
-#include "GleamMath/Runtime/LinearAlgebra/Matrix.h"
 
 namespace Gleam
 {
-    template <class TFunction, class... TComponents>
-    concept ViewIterator = requires(TFunction function, TComponents&... components) { function(components...); };
-
-    template <class TFunction, class... TComponents>
-    concept ViewIteratorWithEntity = requires(TFunction function, Entity& entity, TComponents&... components) { function(entity, components...); };
-
     template <class TViewFilter>
-    concept ViewFilter = requires(Archetype* archetype, bool isMatched)
+    concept ViewFilter = requires(Archetype& archetype, bool isMatched)
     {
         isMatched = TViewFilter::IsMatched(archetype);
     };
     class ViewAlways
     {
     public:
-        static bool IsMatched(Archetype* archetype)
+        static bool IsMatched(Archetype&)
         {
             return true;
         }
@@ -28,11 +21,11 @@ namespace Gleam
     class ViewNecessary
     {
     public:
-        static bool IsMatched(Archetype* archetype)
+        static bool IsMatched(Archetype& archetype)
         {
             std::type_index components[] = {typeid(TComponents)...};
             for (size_t i = 0; i < sizeof...(TComponents); ++i)
-                if (archetype->HasComponent(components[i]) == false)
+                if (archetype.HasComponent(components[i]) == false)
                     return false;
             return true;
         }
@@ -42,11 +35,11 @@ namespace Gleam
     class ViewExclusion
     {
     public:
-        static bool IsMatched(Archetype* archetype)
+        static bool IsMatched(Archetype& archetype)
         {
             std::type_index components[] = {typeid(TComponents)...};
             for (size_t i = 0; i < sizeof...(TComponents); ++i)
-                if (archetype->HasComponent(components[i]))
+                if (archetype.HasComponent(components[i]))
                     return false;
             return true;
         }
@@ -57,6 +50,12 @@ namespace Gleam
     class View
     {
     };
+
+    template <class TFunction, class... TComponents>
+    concept ViewIterator = requires(TFunction function, TComponents&... components) { function(components...); };
+
+    template <class TFunction, class... TComponents>
+    concept ViewIteratorWithEntity = requires(TFunction function, Entity& entity, TComponents&... components) { function(entity, components...); };
 
     /**
      * @brief 针对实体堆的检视工具
@@ -97,13 +96,14 @@ namespace Gleam
         {
             if (isQueried == false)
             {
-                for (auto& archetype : Archetype::GetAllArchetypes())
+                for (auto archetypeWrap : Archetype::GetAllArchetypes())
                 {
-                    if (ViewNecessary<TComponents...>::IsMatched(archetype.get())
-                        && TFilter::IsMatched(archetype.get()))
+                    Archetype& archetype = archetypeWrap.get();
+                    if (ViewNecessary<TComponents...>::IsMatched(archetype)
+                        && TFilter::IsMatched(archetype))
                     {
-                        targetArchetypes.emplace_back(archetype.get());
-                        targetComponentOffsets.emplace_back(archetype->MemoryMap<TComponents...>());
+                        targetArchetypes.emplace_back(&archetype);
+                        targetComponentOffsets.emplace_back(archetype.MemoryMap<TComponents...>());
                     }
                 }
 
@@ -119,7 +119,7 @@ namespace Gleam
             for (int i = 0; i < targetArchetypeCount; i++)
             {
                 const std::array<int, sizeof...(TComponents)>& componentOffset = targetComponentOffsets[i];
-                World::GetEntityHeap(targetArchetypes[i]).ForeachElements([function,componentOffset](std::byte* item)
+                World::GetEntityHeap(*targetArchetypes[i]).ForeachElements([function,componentOffset](std::byte* item)
                 {
                     if constexpr (ViewIterator<TFunction, TComponents...>)
                         function(*reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
@@ -132,7 +132,7 @@ namespace Gleam
         {
             int count = 0;
             for (int i = 0; i < targetArchetypeCount; i++)
-                count += World::GetEntityHeap(targetArchetypes[i]).GetCount();
+                count += World::GetEntityHeap(*targetArchetypes[i]).GetCount();
             return count;
         }
     };

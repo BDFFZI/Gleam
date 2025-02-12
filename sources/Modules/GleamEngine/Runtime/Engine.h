@@ -3,6 +3,7 @@
 #include <map>
 
 #include "GleamECS/Runtime/System.h"
+#include "GleamReflection/Runtime/Type.h"
 
 
 namespace Gleam
@@ -23,6 +24,9 @@ namespace Gleam
             TSystem system = {};
             if (system.GetName().empty())
                 system.GetName() = name;
+            Type type = Type::GetType(typeid(TSystem));
+            if (type.IsInitialized() == false)
+                Type::Init<TSystem>("", typeid(System));
             return std::move(system);
         }
 

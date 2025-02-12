@@ -4,6 +4,9 @@
 #include <set>
 #include <string>
 
+#ifdef GleamReflectionRuntime
+#include "GleamReflection/Runtime/Type.h"
+#endif
 
 namespace Gleam
 {
@@ -36,14 +39,19 @@ namespace Gleam
 
     protected:
         System(
-            std::string_view name = "",
-            std::optional<std::reference_wrapper<SystemGroup>> group = std::nullopt,
+            std::string_view name,
+            std::optional<std::reference_wrapper<SystemGroup>> group,
             int minOrder = std::numeric_limits<int32_t>::lowest(),
             int maxOrder = std::numeric_limits<int32_t>::max()
         );
+        System();
 
     private:
         friend class SystemEvent;
+
+#ifdef GleamReflectionRuntime
+        Gleam_MakeType_Friend
+#endif
 
         std::string name;
         std::optional<std::reference_wrapper<SystemGroup>> group;
@@ -51,6 +59,17 @@ namespace Gleam
         int maxOrder;
         int order;
     };
+
+#ifdef GleamReflectionRuntime
+    Gleam_MakeType(System, "")
+    {
+        Gleam_MakeType_AddField(minOrder);
+        Gleam_MakeType_AddField(maxOrder);
+        Gleam_MakeType_AddField(order);
+        Gleam_MakeType_AddField(group);
+        Gleam_MakeType_AddField(name);
+    }
+#endif
 
     class SystemEvent : public System
     {
@@ -114,9 +133,9 @@ namespace Gleam
          * 排除生命周期的影响，用该结果反向插入后可重建相同的系统组。
          * @return 
          */
-        std::vector<System*> GetSubSystems();
-        void AddSubSystem(System* system);
-        void RemoveSubSystem(System* system);
+        std::vector<std::reference_wrapper<System>> GetSubSystems();
+        void AddSubSystem(System& system);
+        void RemoveSubSystem(System& system);
 
         void Start() override;
         void Stop() override;

@@ -29,18 +29,33 @@ namespace Gleam
 
         void* GetTarget();
         std::type_index GetTargetType() const;
+        /**
+         * 值类型目标，检视窗口将托管该对象
+         * @tparam T 
+         * @param target 
+         */
         template <class T> requires std::is_trivial_v<T>
         void SetTarget(T target)
         {
             this->target = target;
             targetType = typeid(T);
         }
+        /**
+         * 引用类型目标，用户负责托管，必须确保检视期间目标有效
+         * @tparam T 
+         * @param target 
+         */
         template <class T>
         void SetTarget(T* target)
         {
             this->target = target;
             targetType = typeid(*target);
         }
+        /**
+         * 由std::weak_ptr托管的目标，检视窗口将借此自动检测指针有效性。
+         * @tparam T 
+         * @param target 
+         */
         template <class T>
         void SetTarget(const std::weak_ptr<T>& target)
         {

@@ -2,7 +2,6 @@
 #pragma once
 
 #include "VectorSwizzle.h"
-#include "GleamReflection/Runtime/Transferrer/DataTransferrer.h"
 
 namespace Gleam
 {
@@ -231,6 +230,8 @@ struct std::hash<Gleam::vector<Type, Number>> // NOLINT(cert-dcl58-cpp)
     }
 };
 
+#ifdef GleamReflectionRuntime
+#include "GleamReflection/Runtime/Transferrer/DataTransferrer.h"
 template <class Type, int Number>
 struct Gleam::DataTransferrer_Transfer<Gleam::vector<Type, Number>>
 {
@@ -242,3 +243,4 @@ struct Gleam::DataTransferrer_Transfer<Gleam::vector<Type, Number>>
         serializer.PopNode();
     }
 };
+#endif

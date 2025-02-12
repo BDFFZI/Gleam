@@ -14,7 +14,7 @@ namespace Gleam
         int indexAtHeap;
         std::byte* components;
 
-        EntityInfo(const Archetype* archetype, int indexAtHeap, std::byte* components);
+        EntityInfo(const Archetype& archetype, int indexAtHeap, std::byte* components);
         EntityInfo() = default;
     };
 
@@ -23,25 +23,25 @@ namespace Gleam
     public:
         //场景属性
         static std::unordered_map<const Archetype*, Heap>& GetEntities();
-        static SystemGroup* GetSystems();
+        static SystemGroup& GetSystems();
 
         //查询实体
         static bool HasEntity(Entity entity);
-        static Heap& GetEntityHeap(const Archetype* archetype);
+        static Heap& GetEntityHeap(const Archetype& archetype);
         //添加实体
-        static Entity AddEntity(const Archetype* archetype);
-        static void AddEntities(const Archetype* archetype, int count, Entity* outEntities = nullptr);
+        static Entity AddEntity(const Archetype& archetype);
+        static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
         //移除实体
         static void RemoveEntity(Entity& entity);
         static void RemoveAllEntities();
         //移动实体
-        static void MoveEntity(Entity entity, const Archetype* newArchetype);
+        static void MoveEntity(Entity entity, const Archetype& newArchetype);
         /**
          * 一种快速简单的实体移动，它假定新旧原型的数据存储布局是完全一样的，从而直接进行内存复制。
          * @param entity 
          * @param newArchetype 
          */
-        static void MoveEntitySimply(Entity entity, const Archetype* newArchetype);
+        static void MoveEntitySimply(Entity entity, const Archetype& newArchetype);
 
         static bool HasSystem(System& system);
         /**
@@ -89,24 +89,24 @@ namespace Gleam
             return *reinterpret_cast<TComponent*>(entityInfo.components + offset);
         }
         template <Component... TComponents>
-        static void GetComponents(const Entity entity, TComponents**... outComponents)
+        static void GetComponents(const Entity entity, TComponents*&... outComponents)
         {
             assert(entity != Entity::Null && "目标实体为空！");
             assert(entityInfos.contains(entity) && "目标实体不存在！");
 
             EntityInfo& entityInfo = entityInfos.at(entity);
             const Archetype& archetype = *entityInfo.archetype;
-            ((*outComponents = reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetComponentOffset(typeid(TComponents)))), ...);
+            ((outComponents = reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetComponentOffset(typeid(TComponents)))), ...);
         }
         template <Component... TComponents>
-        static void GetComponents(const Entity entity, TComponents*... outComponents)
+        static void GetComponents(const Entity entity, TComponents&... outComponents)
         {
             assert(entity != Entity::Null && "目标实体为空！");
             assert(entityInfos.contains(entity) && "目标实体不存在！");
 
             EntityInfo& entityInfo = entityInfos.at(entity);
             const Archetype& archetype = *entityInfo.archetype;
-            ((*outComponents = *reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetComponentOffset(typeid(TComponents)))), ...);
+            ((outComponents = *reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetComponentOffset(typeid(TComponents)))), ...);
         }
         template <Component... TComponents>
         static void SetComponents(const Entity entity, const TComponents&... components)
@@ -154,6 +154,6 @@ namespace Gleam
          * @param heapIndex 
          * @param elementIndex
          */
-        static void RemoveHeapItem(const Archetype* heapIndex, int elementIndex);
+        static void RemoveHeapItem(const Archetype& heapIndex, int elementIndex);
     };
 }

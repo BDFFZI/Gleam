@@ -50,6 +50,7 @@ namespace Gleam
         float3 ToEulerAngles() const;
     };
 
+#ifdef GleamReflectionRuntime
     Gleam_MakeType(Quaternion, "DBBF47A3-169D-464C-9664-D403454B2480")
     {
         Gleam_MakeType_AddField(x);
@@ -57,4 +58,5 @@ namespace Gleam
         Gleam_MakeType_AddField(z);
         Gleam_MakeType_AddField(w);
     }
+#endif
 }

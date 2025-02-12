@@ -18,11 +18,11 @@ namespace Gleam
             return target;
         }
 
-        void Get(TComponent**... components)
+        void Get(TComponent*&... components)
         {
             World::GetComponents(target, components...);
         }
-        void Get(TComponent*... components)
+        void Get(TComponent&... components)
         {
             World::GetComponents(target, components...);
         }

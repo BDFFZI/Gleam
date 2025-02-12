@@ -151,15 +151,15 @@ TEST(ECS, Archetype)
 {
     for (auto& archetype : Archetype::GetAllArchetypes())
     {
-        std::cout << archetype->ToString() << "\n";
-        std::cout << archetype->GetArchetypeSize() << "\n";
+        std::cout << to_string(archetype.get()) << "\n";
+        std::cout << archetype.get().GetArchetypeSize() << "\n";
     }
 
-    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype->GetArchetypeSize()));
-    physicsWithSpringArchetype->RunConstructor(data);
-    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype->GetComponentOffset(1));
-    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype->GetComponentOffset(2));
-    SpringPhysics& spring = *reinterpret_cast<SpringPhysics*>(data + physicsWithSpringArchetype->GetComponentOffset(3));
+    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype.GetArchetypeSize()));
+    physicsWithSpringArchetype.RunConstructor(data);
+    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype.GetComponentOffset(1));
+    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype.GetComponentOffset(2));
+    SpringPhysics& spring = *reinterpret_cast<SpringPhysics*>(data + physicsWithSpringArchetype.GetComponentOffset(3));
     ASSERT_EQ(transform, Transform());
     ASSERT_EQ(rigidBody, RigidBody());
     ASSERT_EQ(spring, SpringPhysics());
@@ -188,7 +188,7 @@ TEST(ECS, World)
     World::SetComponents(entities[1], inRigidBody, inSpring);
     RigidBody outRigidBody;
     SpringPhysics outSpring;
-    World::GetComponents(entities[1], &outRigidBody, &outSpring);
+    World::GetComponents(entities[1], outRigidBody, outSpring);
     ASSERT_EQ(outRigidBody, inRigidBody);
     ASSERT_EQ(outSpring, inSpring);
 

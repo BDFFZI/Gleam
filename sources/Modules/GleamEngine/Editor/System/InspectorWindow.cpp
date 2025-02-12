@@ -87,17 +87,14 @@ namespace Gleam
         {
             if (inspectorGUIs.contains(targetType))
                 inspectorGUIs[targetType](targetPtr);
-            else if (Type* type = Type::GetType(targetType))
-            {
-                //序列化每个元素
-                EditorUISerializer serializer = {"InspectionTarget"};
-                type->serialize(serializer, targetPtr);
-            }
             else
             {
-                //未知类型，当成字段整体传输给序列化器判断
                 EditorUISerializer serializer = {"InspectionTarget"};
-                serializer.Transfer(targetPtr, targetType);
+                Type& type = Type::GetType(targetType);
+                if (type.Serialize()) //序列化每个元素
+                    type.Serialize()(serializer, targetPtr);
+                else //未知类型，当成字段整体传输给序列化器判断
+                    serializer.Transfer(targetPtr, targetType);
             }
         }
 

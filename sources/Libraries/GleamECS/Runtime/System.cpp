@@ -5,7 +5,7 @@
 
 namespace Gleam
 {
-    System::System(const std::optional<std::reference_wrapper<SystemGroup>> group, std::string_view name)
+    System::System(const std::optional<std::reference_wrapper<SystemGroup>> group, const std::string_view name)
         : System(name, group)
     {
     }
@@ -48,6 +48,10 @@ namespace Gleam
           order(static_cast<int32_t>((static_cast<int64_t>(minOrder) + static_cast<int64_t>(maxOrder)) / 2))
     {
     }
+    System::System()
+        : System("", std::nullopt)
+    {
+    }
 
     std::function<void()>& SystemEvent::OnStart()
     {
@@ -75,9 +79,9 @@ namespace Gleam
         if (onUpdate) onUpdate();
     }
 
-    std::vector<System*> SystemGroup::GetSubSystems()
+    std::vector<std::reference_wrapper<System>> SystemGroup::GetSubSystems()
     {
-        std::vector<System*> outSubSystems;
+        std::vector<std::reference_wrapper<System>> outSubSystems;
 
         std::vector subSystemGroups = {this};
         while (!subSystemGroups.empty())
@@ -87,34 +91,35 @@ namespace Gleam
 
             for (auto* subSystem : systemGroup->subSystemStartQueue)
             {
-                outSubSystems.push_back(subSystem);
+                outSubSystems.emplace_back(*subSystem);
                 if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
                     subSystemGroups.push_back(subSystemGroup);
             }
 
             for (auto* subSystem : systemGroup->subSystemUpdateQueue)
             {
-                outSubSystems.push_back(subSystem);
+                outSubSystems.emplace_back(*subSystem);
                 if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
                     subSystemGroups.push_back(subSystemGroup);
             }
         }
         return outSubSystems;
     }
-    void SystemGroup::AddSubSystem(System* system)
+    void SystemGroup::AddSubSystem(System& system)
     {
-        subSystemStartQueue.insert(system);
+        subSystemStartQueue.insert(&system);
     }
-    void SystemGroup::RemoveSubSystem(System* system)
+    void SystemGroup::RemoveSubSystem(System& system)
     {
-        if (subSystemStartQueue.contains(system))
-            subSystemStartQueue.erase(system);
-        else if (subSystemUpdateQueue.contains(system))
+        System* systemPtr = &system;
+        if (subSystemStartQueue.contains(systemPtr))
+            subSystemStartQueue.erase(systemPtr);
+        else if (subSystemUpdateQueue.contains(systemPtr))
         {
-            subSystemUpdateQueue.erase(system);
-            subSystemStopQueue.insert(system);
+            subSystemUpdateQueue.erase(systemPtr);
+            subSystemStopQueue.insert(systemPtr);
         }
-        else if (subSystemStopQueue.contains(system))
+        else if (subSystemStopQueue.contains(systemPtr))
             throw std::runtime_error("不能重复移除系统！");
         else
             throw std::runtime_error("不能移除尚未添加过的系统！");

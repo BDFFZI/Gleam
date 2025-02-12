@@ -4,7 +4,7 @@
 
 namespace Gleam
 {
-    const std::vector<std::unique_ptr<Archetype>>& Archetype::GetAllArchetypes()
+    const std::vector<std::reference_wrapper<Archetype>>& Archetype::GetAllArchetypes()
     {
         return allArchetypes;
     }
@@ -53,21 +53,6 @@ namespace Gleam
         for (int i = 0; i < componentCount; ++i)
             componentInfos[i].moveConstructor(source + componentOffsets[i], destination + componentOffsets[i]);
     }
-    std::string Archetype::ToString() const
-    {
-        std::string result = {name};
-        for (int i = 0; i < componentCount; ++i)
-        {
-            result += std::format(
-                "\n{:20} {:5} {:5}",
-                componentInfos[i].type.name(),
-                componentOffsets[i],
-                componentInfos[i].size
-            );
-        }
-        return result;
-    }
-
     Archetype::Archetype(const std::string_view name, const std::vector<ComponentInfo>& componentInfos)
         : name(name),
           componentInfos(componentInfos)
@@ -82,5 +67,20 @@ namespace Gleam
 
         for (int i = 0; i < componentCount; i++)
             componentOffsetsMap.insert({this->componentInfos[i].type, componentOffsets[i]});
+    }
+
+    std::string to_string(const Archetype& archetype)
+    {
+        std::string result = {archetype.GetName()};
+        for (int i = 0; i < archetype.GetComponentCount(); ++i)
+        {
+            result += std::format(
+                "\n{:20} {:5} {:5}",
+                archetype.GetComponentInfo(i).type.name(),
+                archetype.GetComponentOffset(i),
+                archetype.GetComponentInfo(i).size
+            );
+        }
+        return result;
     }
 }

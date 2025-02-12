@@ -1,11 +1,11 @@
 ﻿#pragma once
 #include <format>
 #include <array>
+#include <functional>
 #include <string>
 #include <typeindex>
 #include <vector>
 #include <unordered_map>
-#include <unordered_set>
 
 #include "Entity.h"
 #include "Component.h"
@@ -18,51 +18,47 @@ namespace Gleam
     class Archetype
     {
     public:
-        static const std::vector<std::unique_ptr<Archetype>>& GetAllArchetypes();
-
-        template <Component... TComponents>
-            requires ArchetypeComponentList<TComponents...>
-        static Archetype* Register(const char* name)
+        static const std::vector<std::reference_wrapper<Archetype>>& GetAllArchetypes();
+        template <Component... TComponents> requires ArchetypeComponentList<TComponents...>
+        static Archetype Create(const char* name)
         {
-            std::unique_ptr<Archetype>& archetype = allArchetypes.emplace_back(new Archetype(
+            Archetype archetype = {
                 name,
                 std::initializer_list<ComponentInfo>{ComponentInfoMeta<TComponents>::GetInfo()...}
-            ));
-            return archetype.get();
+            };
+            allArchetypes.emplace_back(archetype);
+            return archetype;
         }
         template <Component... TComponents>
-        static Archetype* Register(const char* name, const Archetype* parent)
+        static Archetype Create(const char* name, const Archetype& parent)
         {
-            std::vector<ComponentInfo> componentInfos = parent->componentInfos;
+            std::vector<ComponentInfo> componentInfos = parent.componentInfos;
             componentInfos.insert(componentInfos.end(), {ComponentInfoMeta<TComponents>::GetInfo()...});
-            std::unique_ptr<Archetype>& archetype = allArchetypes.emplace_back(
-                new Archetype(name, componentInfos)
-            );
-            return archetype.get();
+
+            Archetype archetype = {name, componentInfos};
+            allArchetypes.emplace_back(archetype);
+            return archetype;
         }
 
         const std::string& GetName() const;
+        bool HasComponent(std::type_index component) const;
         int GetComponentCount() const;
         const ComponentInfo& GetComponentInfo(int index) const;
         int GetComponentOffset(int index) const;
-
-        bool HasComponent(std::type_index component) const;
         int GetComponentOffset(std::type_index component) const;
         int GetArchetypeSize() const;
+
         void RunConstructor(std::byte* ptr) const;
         void RunDestructor(std::byte* ptr) const;
         void RunMoveConstructor(std::byte* source, std::byte* destination) const;
-
         template <class... TComponents>
         std::array<int, sizeof...(TComponents)> MemoryMap() const
         {
             return {componentOffsetsMap.at(typeid(TComponents))...};
         }
 
-        std::string ToString() const;
-
     private:
-        inline static std::vector<std::unique_ptr<Archetype>> allArchetypes = {};
+        inline static std::vector<std::reference_wrapper<Archetype>> allArchetypes = {};
 
         std::string name;
         std::vector<ComponentInfo> componentInfos;
@@ -74,8 +70,10 @@ namespace Gleam
         Archetype(std::string_view name, const std::vector<ComponentInfo>& componentInfos);
     };
 
+    std::string to_string(const Archetype& archetype);
+
 #define Gleam_MakeArchetype(name,...)\
-inline const Gleam::Archetype* name = Gleam::Archetype::Register<Gleam::Entity,__VA_ARGS__>(#name);
+inline const Gleam::Archetype name = Gleam::Archetype::Create<Gleam::Entity,__VA_ARGS__>(#name);
 #define Gleam_MakeArchetypeChild(name,parent,...)\
-inline const Gleam::Archetype* name = Gleam::Archetype::Register<__VA_ARGS__>(#name,parent);
+inline const Gleam::Archetype name = Gleam::Archetype::Create<__VA_ARGS__>(#name,parent);
 }

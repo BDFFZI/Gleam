@@ -26,11 +26,11 @@ namespace Gleam
     }
     void DataTransferrer::Transfer(void* value, const std::type_index typeIndex)
     {
-        Type* type = Type::GetType(typeIndex);
-        if (type != nullptr)
+        Type& type = Type::GetType(typeIndex);
+        if (type.Serialize() != nullptr)
         {
             PushNode(nullptr, DataType::Class);
-            type->serialize(*this, value);
+            type.Serialize()(*this, value);
             PopNode();
         }
         else

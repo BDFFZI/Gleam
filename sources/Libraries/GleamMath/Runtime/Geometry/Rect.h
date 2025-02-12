@@ -30,6 +30,7 @@ namespace Gleam
         bool Contains(float2 point) const;
     };
 
+#ifdef GleamReflectionRuntime
     Gleam_MakeType(Rect, "CAD2E68E-EA4E-4848-9201-71CA36865003")
     {
         Gleam_MakeType_AddField(x);
@@ -37,4 +38,5 @@ namespace Gleam
         Gleam_MakeType_AddField(width);
         Gleam_MakeType_AddField(height);
     }
+#endif
 }
