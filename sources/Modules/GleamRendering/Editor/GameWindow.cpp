@@ -28,7 +28,7 @@ namespace Gleam
                 renderTextureID = UI::CreateTexture(*renderTexture);
             }
             //更新输入系统的焦点范围为GameWindow
-            InputSystem.SetFocusArea(Rect{windowPosition, windowSize});
+            InputSystem.SetFocusArea(Rectangle{windowPosition, windowSize});
         };
         World::AddSystem(preProcessSystem);
     }

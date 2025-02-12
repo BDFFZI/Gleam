@@ -3,18 +3,18 @@
 
 namespace Gleam
 {
-    struct Rect
+    struct Rectangle
     {
-        static Rect Zero;
+        static Rectangle Zero;
 
         float x, y;
         float width, height;
 
-        Rect();
-        Rect(float x, float y, float width, float height);
-        Rect(float2 position, float2 size);
+        Rectangle();
+        Rectangle(float x, float y, float width, float height);
+        Rectangle(float2 position, float2 size);
         explicit operator float4() const;
-        bool operator==(Rect rect) const;
+        bool operator==(Rectangle rect) const;
 
         float2 GetPosition() const { return {x, y}; }
         float2 GetSize() const { return {width, height}; }

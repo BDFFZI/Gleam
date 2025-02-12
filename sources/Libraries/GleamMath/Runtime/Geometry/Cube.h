@@ -3,9 +3,12 @@
 
 namespace Gleam
 {
-    struct Bounds
+    struct Cube
     {
-        float3 min;
-        float3 max;
+        float3 position;
+        float3 size;
+
+        bool IsContained(float3 point);
+        float3 Closest(float3 point);
     };
 }
