@@ -1,4 +1,5 @@
 #pragma once
+#include "GleamECS/Runtime/Entity.h"
 #include "GleamECS/Runtime/System.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamMath/Runtime/LinearAlgebra/Vector.h"
@@ -14,7 +15,10 @@ namespace Gleam
         PhysicsSystem(): SystemGroup(TimeSystem, OrderRelation::After)
         {
         }
-        
+
+        static Entity AddMassPoint(float3 position);
+        static Entity AddSpring(Entity massPointA, Entity massPointB);
+
         float3 GetGravity() const { return gravity; }
         float GetFixedDeltaTime() const { return fixedDeltaTime; }
 
@@ -22,7 +26,7 @@ namespace Gleam
         Gleam_MakeType_Friend
 
         float lastTime = 0;
-        float fixedDeltaTime = 0.01f;
+        float fixedDeltaTime = 0.005f;
         float3 gravity = {0.0f, -9.81f, 0.0f};
 
         void Update() override;

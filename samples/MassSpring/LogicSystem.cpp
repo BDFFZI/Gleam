@@ -110,7 +110,6 @@ void LogicSystem::Start()
             if (entity == fixedPoint)
             {
                 massPointPhysics.force = 0;
-                massPointPhysics.velocity = 0;
             }
         });
     };
