@@ -9,8 +9,8 @@
 #include "GleamRendering/Runtime/Component/LinesMesh.h"
 #include "GleamRendering/Runtime/Component/PointsMesh.h"
 #include "PhysicsSystem.h"
-#include "GleamMath/Runtime/Geometry/Point.h"
-#include "GleamMath/Runtime/Geometry/Segment.h"
+#include "GleamMath/Runtime/Geometry/Basic/Point.h"
+#include "GleamMath/Runtime/Geometry/Solid/Segment.h"
 
 namespace Gleam
 {

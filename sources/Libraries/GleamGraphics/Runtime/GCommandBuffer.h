@@ -2,7 +2,7 @@
 #include <stack>
 #include "GleamGL/Runtime/GLCommandBuffer.h"
 #include "GleamMath/Runtime/LinearAlgebra/Matrix.h"
-#include "GleamMath/Runtime/Geometry/Rectangle.h"
+#include "GleamMath/Runtime/Geometry/Plane/Rectangle.h"
 #include "Resource/GMaterial.h"
 #include "Resource/GMesh.h"
 #include "Resource/GRenderTarget/GRenderTexture.h"

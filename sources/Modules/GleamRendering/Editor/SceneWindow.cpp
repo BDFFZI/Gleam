@@ -145,7 +145,7 @@ namespace Gleam
         windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
         windowSize = UI::GetWindowContentRegionSize();
         //设置输入区域范围
-        inputSystem.SetFocusArea({windowPosition, windowSize});
+        inputSystem.SetFocusArea(Rectangle::CreateFromOrigin(windowPosition, windowSize));
 
         //绘制菜单选项
         if (ImGui::BeginMenuBar())

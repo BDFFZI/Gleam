@@ -6,7 +6,7 @@
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamMassSpring/Runtime/Component/MassPointPhysics.h"
 #include "GleamMassSpring/Runtime/Entity/Archetype.h"
-#include "GleamMath/Runtime/Geometry/Point.h"
+#include "GleamMath/Runtime/Geometry/Basic/Point.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 
 #ifdef GleamEngineEditor

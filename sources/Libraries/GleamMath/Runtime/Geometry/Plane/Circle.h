@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 #include "GleamMath/Runtime/LinearAlgebra/Vector.h"
 
 namespace Gleam
 {
-    struct Sphere
+    struct Circle
     {
-        float3 position;
+        float2 position;
         float radius;
     };
 }

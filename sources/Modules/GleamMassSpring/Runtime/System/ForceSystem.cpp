@@ -6,7 +6,7 @@
 
 void Gleam::ForceSystem::Update()
 {
-    //弹力
+    //弹簧力
     View<SpringPhysics>::Each([](SpringPhysics& springPhysics)
     {
         Point* pointA;
@@ -17,8 +17,9 @@ void Gleam::ForceSystem::Update()
         springPhysics.pointB.Get(pointB, massPointPhysicsB);
 
         float3 elasticityVector_BToA = pointA->position - pointB->position;
-        float3 elasticityDirection_BToA = normalize(elasticityVector_BToA);
         float3 elasticityMagnitude_BToA = length(elasticityVector_BToA);
+        float3 elasticityDirection_BToA = elasticityVector_BToA / elasticityMagnitude_BToA;
+        //胡克定律：弹力=弹力系数*方向*距离
         float3 elasticityBToA = springPhysics.elasticity * elasticityDirection_BToA * (elasticityMagnitude_BToA - springPhysics.length);
 
         float3 velocity_BToA = massPointPhysicsA->velocity - massPointPhysicsB->velocity;
@@ -33,4 +34,6 @@ void Gleam::ForceSystem::Update()
     {
         massPointPhysics.force += PhysicsSystem.GetGravity() * massPointPhysics.mass;
     });
+
+    //空气阻力
 }

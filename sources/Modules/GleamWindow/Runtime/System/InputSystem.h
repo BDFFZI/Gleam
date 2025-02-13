@@ -3,7 +3,7 @@
 #include "WindowSystem.h"
 #include "GleamECS/Runtime/System.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
-#include "GleamMath/Runtime/Geometry/Rectangle.h"
+#include "GleamMath/Runtime/Geometry/Plane/Rectangle.h"
 #include "GleamWindow/Runtime/InputEnum.h"
 
 namespace Gleam
@@ -32,7 +32,7 @@ namespace Gleam
     private:
         Gleam_MakeType_Friend
 
-        Rectangle focusArea = {0, 0, std::numeric_limits<float>::max(), std::numeric_limits<float>::max()};
+        Rectangle focusArea = {0, std::numeric_limits<float>::max()};
         bool isFocus = true;
         bool mouseButtonStates[3][2] = {};
         bool keyboardStates[349][2] = {};

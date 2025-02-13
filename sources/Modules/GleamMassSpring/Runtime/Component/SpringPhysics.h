@@ -1,9 +1,7 @@
 ﻿#pragma once
-// #include "GleamECS/Runtime/EntityRef.h"
 #include "MassPointPhysics.h"
-#include "GleamECS/Runtime/Entity.h"
 #include "GleamECS/Runtime/EntityRef.h"
-#include "GleamMath/Runtime/Geometry/Point.h"
+#include "GleamMath/Runtime/Geometry/Basic/Point.h"
 
 namespace Gleam
 {

@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Renderer.h"
-#include "GleamMath/Runtime/Geometry/Point.h"
+#include "GleamMath/Runtime/Geometry/Basic/Point.h"
 
 namespace Gleam
 {

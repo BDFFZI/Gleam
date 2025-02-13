@@ -1,7 +1,7 @@
 ﻿#include <gtest/gtest.h>
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
-#include "GleamMath/Runtime/Geometry/Segment.h"
+#include "GleamMath/Runtime/Geometry/Solid/Segment.h"
 
 /// 验证工具：https://www.math666.com/
 

@@ -3,7 +3,7 @@
 #include "GleamEngine/Runtime/Component/Transform.h"
 #include "GleamMassSpring/Runtime/Component/MassPointPhysics.h"
 #include "GleamMassSpring/Runtime/Component/SpringPhysics.h"
-#include "GleamMath/Runtime/Geometry/Point.h"
+#include "GleamMath/Runtime/Geometry/Basic/Point.h"
 
 #ifdef GleamRenderingRuntime
 #include "GleamRendering/Runtime/Entity/Archetype.h"

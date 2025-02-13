@@ -3,12 +3,17 @@
 
 namespace Gleam
 {
-    struct Cube
+    struct Line
     {
         float3 position;
-        float3 size;
-
-        bool IsContained(float3 point);
-        float3 Closest(float3 point);
+        float3 direction;
     };
+
+    struct Ray
+    {
+        float3 position;
+        float3 direction;
+    };
+
+
 }

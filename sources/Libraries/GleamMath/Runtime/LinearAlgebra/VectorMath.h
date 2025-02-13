@@ -46,14 +46,16 @@ a.data[i] Symbol b.data[i];\
 return a;\
 }
 
-#define Gleam_MakeVectorFunction_SymbolVV2V(Symbol,Type,Number)\
-constexpr vector<Type, Number> operator##Symbol##(const vector<Type, Number>& a, const vector<Type, Number>& b)\
+#define Gleam_MakeVectorFunction_SymbolVV2TV(Symbol,Type,ResultType,Number)\
+constexpr vector<ResultType, Number> operator##Symbol##(const vector<Type, Number>& a, const vector<Type, Number>& b)\
 {\
-    vector<Type, Number> result;\
-    for (int i = 0; i < (Number); i++)\
-        result.data[i] = a.data[i] Symbol b.data[i];\
-    return result;\
+vector<ResultType, Number> result;\
+for (int i = 0; i < (Number); i++)\
+result.data[i] = a.data[i] Symbol b.data[i];\
+return result;\
 }
+#define Gleam_MakeVectorFunction_SymbolVV2V(Symbol,Type,Number)\
+Gleam_MakeVectorFunction_SymbolVV2TV(Symbol,Type,Type,Number)
 
 #define Gleam_MakeVectorFunction_FunctionV2V(Function,Type,Number,NameSpace)\
 constexpr vector<Type, Number> Function##(const vector<Type, Number>& a)\
@@ -82,7 +84,7 @@ result.data[i] = std::Function(a.data[i], b.data[i], c.data[i]);\
 return result;\
 }
 
-#define Gleam_MakeVectorFunction_Equal(Type,Number)\
+#define Gleam_MakeVectorFunction_Compare(Type,Number)\
 constexpr vector<bool, Number> operator==(const vector<Type, Number>& a, const vector<Type, Number>& b)\
 {\
 vector<bool, Number> result;\
@@ -96,7 +98,11 @@ vector<bool, Number> result;\
 for (int i = 0; i < (Number); i++)\
 result.data[i] = !equal(a.data[i],b.data[i]);\
 return result;\
-}
+}\
+Gleam_MakeVectorFunction_SymbolVV2TV(<,Type,bool,Number)\
+Gleam_MakeVectorFunction_SymbolVV2TV(<=,Type,bool,Number)\
+Gleam_MakeVectorFunction_SymbolVV2TV(>,Type,bool,Number)\
+Gleam_MakeVectorFunction_SymbolVV2TV(>=,Type,bool,Number)
 
 #define Gleam_MakeVectorFunction_All(Type,Number)\
 constexpr bool all(const vector<Type, Number>& a)\
@@ -156,7 +162,7 @@ return length(a - b);\
      * @return 
      */
 #define Gleam_MakeVectorFunction_Lerp(Type,Number)\
-constexpr vector<Type, Number> lerp(const vector<Type, Number>& origin, const vector<Type, Number>& destination, const Type rate)\
+constexpr vector<Type, Number> lerp(const vector<Type, Number>& origin, const vector<Type, Number>& destination, const vector<Type, Number>& rate)\
 {\
     return origin + rate * (destination - origin);\
 }
@@ -203,7 +209,7 @@ Gleam_MakeVectorFunction_SymbolVV2V(+, Type, Number);\
 Gleam_MakeVectorFunction_SymbolVV2V(-, Type, Number);\
 Gleam_MakeVectorFunction_SymbolVV2V(*, Type, Number);\
 Gleam_MakeVectorFunction_SymbolVV2V(/, Type, Number);\
-Gleam_MakeVectorFunction_Equal(Type, Number);\
+Gleam_MakeVectorFunction_Compare(Type, Number);\
 Gleam_MakeVectorFunction_All(Type, Number);\
 Gleam_MakeVectorFunction_Any(Type, Number);
 
@@ -297,7 +303,7 @@ return str + ")";\
     Gleam_MakeVectorFunction_ToString(int, 2, "")
     Gleam_MakeVectorFunction_ToString(int, 3, "")
     Gleam_MakeVectorFunction_ToString(int, 4, "")
-    
+
     Gleam_MakeVectorFunction_All(bool, 2)
     Gleam_MakeVectorFunction_All(bool, 3)
     Gleam_MakeVectorFunction_All(bool, 4)

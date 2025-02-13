@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "Renderer.h"
-#include "GleamMath/Runtime/Geometry/Segment.h"
+#include "GleamMath/Runtime/Geometry/Solid/Segment.h"
+#include "GleamRendering/Runtime/Asset/Mesh.h"
 
 namespace Gleam
 {

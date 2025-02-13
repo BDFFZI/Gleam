@@ -61,8 +61,8 @@ void InputSystem::Update()
     }
 
     //鼠标位置
-    mousePosition[0] = CursorSystem.GetLockState() ? CursorSystem.GetLockPosition() - focusArea.GetPosition() : mousePosition[1];
-    mousePosition[1] = Window::GetMousePosition() - focusArea.GetPosition();
+    mousePosition[0] = CursorSystem.GetLockState() ? CursorSystem.GetLockPosition() - focusArea.GetMin() : mousePosition[1];
+    mousePosition[1] = Window::GetMousePosition() - focusArea.GetMin();
 
     //鼠标滚轮
     mouseScrollDelta = Window::GetMouseScrollDelta();

@@ -27,9 +27,9 @@ namespace Gleam
             int lineIndex = 0;
             for (auto line : linesRenderer.lines)
             {
-                lineVertices.emplace_back(line.positionA, 1.0f);
+                lineVertices.emplace_back(line.GetPointA(), 1.0f);
                 lineIndices.emplace_back(lineIndex++);
-                lineVertices.emplace_back(line.positionB, 1.0f);
+                lineVertices.emplace_back(line.GetPointB(), 1.0f);
                 lineIndices.emplace_back(lineIndex++);
             }
 
