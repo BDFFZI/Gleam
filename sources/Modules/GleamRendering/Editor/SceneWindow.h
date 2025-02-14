@@ -7,7 +7,6 @@
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamEngine/Runtime/Component/Transform.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
-#include "GleamRendering/Runtime/Component/Camera.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 
 namespace Gleam
@@ -24,12 +23,7 @@ namespace Gleam
         {
         }
 
-        const Camera& GetCamera() const;
-        const WorldToLocal& GetCameraWorldToLocal() const;
-        const ViewToClip& GetCameraViewToClip() const;
         int GetHandleOption() const;
-
-        float3 DrawHandle(float3 position);
 
     private:
         inline static std::unordered_map<std::type_index, std::function<void(void*)>> sceneGUIs = {};
@@ -47,9 +41,6 @@ namespace Gleam
         ImTextureID sceneCameraCanvasImID = nullptr;
         bool isDirty = true;
         //场景UI信息
-        Camera camera = {};
-        WorldToLocal cameraWorldToLocal = {};
-        ViewToClip cameraViewToClip = {};
         int handleOption = 1;
         //相机位置存档（重启时使用）
         LocalTransform cameraLocalTransform = {};

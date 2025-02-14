@@ -1,15 +1,14 @@
 #pragma once
-#include "GleamMassSpring/Runtime/Component/MassPointPhysics.h"
-#include "GleamRendering/Editor/SceneWindow.h"
-#include "ImGuizmo.h"
+#include "GleamRendering/Editor/Gizmos.h"
 
 namespace Gleam
 {
     inline void SceneGUI_MassPointPhysics(MassPointPhysics& massPointPhysics)
     {
-        SceneWindow_T& sceneWindow = SceneWindow_T::GetSceneWindowDrawing();
-        sceneWindow.DrawHandle()
+        Entity entity = EditorUI::GetEntityDrawing();
+        Point& point = World::GetComponent<Point>(entity);
+        point.position = Gizmos::DrawHandle(point.position);
     }
 
-    Gleam_MakeSceneGUI(MassPointPhysics,)
+    Gleam_MakeSceneGUI(MassPointPhysics, SceneGUI_MassPointPhysics)
 }

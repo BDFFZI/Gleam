@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include "GameWindow.h"
 #include "SceneWindow.h"
-#include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include <ImGuizmo.h>
+
+#include "Gizmos.h"
 
 namespace Gleam
 {
@@ -22,28 +23,10 @@ namespace Gleam
         static constexpr ImGuizmo::OPERATION options[] = {ImGuizmo::BOUNDS, ImGuizmo::TRANSLATE, ImGuizmo::ROTATE, ImGuizmo::SCALE};
         ImGuizmo::OPERATION imGuiOption = options[SceneWindow.GetHandleOption()];
         //绘制
-        float4x4 worldToView = SceneWindow.GetCameraWorldToLocal().value;
-        float4x4 viewToClip = SceneWindow.GetCameraViewToClip().value;
-        Manipulate(
-            reinterpret_cast<float*>(&worldToView),
-            reinterpret_cast<float*>(&viewToClip),
-            imGuiOption, ImGuizmo::LOCAL,
-            reinterpret_cast<float*>(&localToWorld.value)
-        );
-        //解析矩阵
         if (transform.has_value())
-        {
-            float3 position;
-            float3 rotation;
-            float3 scale;
-            DecomposeTRS(
-                localToWorld.value,
-                position, rotation, scale
-            );
-            transform.value()->position = position;
-            transform.value()->rotation = Quaternion::Euler(rotation);
-            transform.value()->scale = scale;
-        }
+            Gizmos::DrawHandle(imGuiOption, localToWorld.value, *transform.value());
+        else
+            Gizmos::DrawHandle(imGuiOption, localToWorld.value, std::nullopt);
     }
     Gleam_MakeSceneGUI(LocalToWorld, SceneGUI_LocalToWorld)
 

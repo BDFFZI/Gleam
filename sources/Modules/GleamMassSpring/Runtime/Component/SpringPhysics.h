@@ -10,8 +10,8 @@ namespace Gleam
         EntityRef<Point, MassPointPhysics> pointA;
         EntityRef<Point, MassPointPhysics> pointB;
         float length = 10;
-        float elasticity = 800;
-        float resistance = 0.08;
+        float elasticity = 1000;
+        float resistance = 0.2; //解决积分误差，使弹簧能够稳定并看起来更硬
     };
 
     Gleam_MakeType(SpringPhysics, "F08A937F-7E67-47F9-AFE2-8C2A55AF204E")
@@ -20,5 +20,6 @@ namespace Gleam
         Gleam_MakeType_AddField(pointB);
         Gleam_MakeType_AddField(length);
         Gleam_MakeType_AddField(elasticity);
+        Gleam_MakeType_AddField(resistance);
     }
 }

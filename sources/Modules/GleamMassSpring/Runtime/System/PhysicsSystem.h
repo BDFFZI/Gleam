@@ -26,7 +26,7 @@ namespace Gleam
         Gleam_MakeType_Friend
 
         float lastTime = 0;
-        float fixedDeltaTime = 0.005f;
+        float fixedDeltaTime = 0.01f;
         float3 gravity = {0.0f, -9.81f, 0.0f};
 
         void Update() override;

@@ -5,8 +5,8 @@
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamRendering/Runtime/Entity/Archetype.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
-#include <ImGuizmo.h>
 
+#include "Gizmos.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamWindow/Runtime/System/CursorSystem.h"
@@ -72,34 +72,11 @@ namespace Gleam
     {
         sceneGUIs.insert({typeIndex, drawSceneGUI});
     }
-    const Camera& SceneWindow::GetCamera() const
-    {
-        return camera;
-    }
-    const WorldToLocal& SceneWindow::GetCameraWorldToLocal() const
-    {
-        return cameraWorldToLocal;
-    }
-    const ViewToClip& SceneWindow::GetCameraViewToClip() const
-    {
-        return cameraViewToClip;
-    }
     int SceneWindow::GetHandleOption() const
     {
         return handleOption;
     }
 
-    float3 SceneWindow::DrawHandle(float3 position)
-    {
-        float4x4 localToWorld = float4x4::Translate(position);
-        Manipulate(
-            reinterpret_cast<float*>(&cameraWorldToLocal),
-            reinterpret_cast<float*>(&cameraWorldToLocal),
-            ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::LOCAL,
-            reinterpret_cast<float*>(&localToWorld)
-        );
-        return DecomposePosition(localToWorld);
-    }
 
     void SceneWindow::Start()
     {
@@ -200,17 +177,17 @@ namespace Gleam
             ImGui::Image(sceneCameraCanvasImID, windowSize);
 
         //绘制Gizmos
+        Camera camera = World::GetComponent<Camera>(sceneCamera);
+        WorldToLocal cameraWorldToLocal = World::GetComponent<WorldToLocal>(sceneCamera);
+        ViewToClip cameraViewToClip = World::GetComponent<ViewToClip>(sceneCamera);
+
         {
             ImGuizmo::BeginFrame();
             ImGuizmo::SetDrawlist(); //使Gizmos能绘制到场景画面前面
+            ImGuizmo::SetOrthographic(camera.orthographic);
             //设置绘制区域
             const float2 windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
             ImGuizmo::SetRect(windowPosition.x, windowPosition.y, windowSize.x, windowSize.y);
-            //获取并设置相机属性
-            camera = World::GetComponent<Camera>(sceneCamera);
-            cameraWorldToLocal = World::GetComponent<WorldToLocal>(sceneCamera);
-            cameraViewToClip = World::GetComponent<ViewToClip>(sceneCamera);
-            ImGuizmo::SetOrthographic(camera.orthographic);
             //绘制网格线
             {
                 float4x4 objectToWorld = float4x4::Identity();
@@ -227,6 +204,8 @@ namespace Gleam
         if (target != nullptr)
         {
             ImGui::SetCursorPos({});
+            Gizmos::WorldToView() = cameraWorldToLocal.value;
+            Gizmos::ViewToClip() = cameraViewToClip.value;
             if (sceneGUIs.contains(InspectorWindow.GetTargetType()))
                 sceneGUIs[InspectorWindow.GetTargetType()](target);
         }

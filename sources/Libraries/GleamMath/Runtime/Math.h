@@ -29,6 +29,10 @@ namespace Gleam
     {
         return std::atan(value);
     }
+    inline float sign(const float value)
+    {
+        return value > 0 ? 1.0f : value < 0.0f ? -1.0f : 0.0f;
+    }
 
     template <typename Type>
         requires std::is_arithmetic_v<Type>
@@ -37,6 +41,10 @@ namespace Gleam
     template <typename Type>
         requires std::is_arithmetic_v<Type>
     constexpr Type min(const Type a, const Type b) { return std::min(a, b); }
+
+    template <typename Type>
+        requires std::is_arithmetic_v<Type>
+    constexpr Type clamp(const Type a, const Type min, const Type max) { return std::clamp(a, min, max); }
 
     template <typename Type>
         requires std::is_arithmetic_v<Type>
