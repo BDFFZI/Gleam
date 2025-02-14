@@ -2,6 +2,7 @@
 #include "GleamECS/Runtime/World.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamMassSpring/Runtime/Entity/Archetype.h"
+#include "GleamMassSpring/Runtime/System/PhysicsSystem.h"
 
 #ifdef GleamEngineEditor
 #include "GleamEngine/Editor/Editor.h"
@@ -18,20 +19,14 @@ class TestSystem : public System
         World::AddEntity(SpringRendererArchetype);
 #endif
 
-        Entity pointA = World::AddEntity(MassPointArchetype);
+        Entity pointA = PhysicsSystem::AddMassPoint(0);
         MassPointPhysics massPointPhysics = {};
         massPointPhysics.drag = 1;
         World::SetComponents(pointA, massPointPhysics);
 
-        Entity pointB = World::AddEntity(MassPointArchetype);
-        Point point = {{20,0,0}};
-        World::SetComponents(pointB, point);
+        Entity pointB = PhysicsSystem::AddMassPoint({10, 0, 0});
 
-        Entity spring = World::AddEntity(SpringArchetype);
-        SpringPhysics springPhysics = {};
-        springPhysics.pointA = pointA;
-        springPhysics.pointB = pointB;
-        World::SetComponents(spring, springPhysics);
+        PhysicsSystem::AddSpring(pointA, pointB);
     }
 };
 Gleam_MakeGlobalSystem(TestSystem)

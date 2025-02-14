@@ -22,6 +22,11 @@ namespace Gleam
         float4x4 value;
     };
 
+    struct WorldToLocal
+    {
+        float4x4 value;
+    };
+
     Gleam_MakeType(LocalTransform, "10122F01-1004-4250-B5B0-B5E0F6B271F1")
     {
         Gleam_MakeType_AddField(position);
@@ -29,7 +34,12 @@ namespace Gleam
         Gleam_MakeType_AddField(scale);
     }
 
-    Gleam_MakeType(LocalToWorld, "07659F3B-B85C-4BE0-A2D0-289986D99034")
+    Gleam_MakeType(LocalToWorld, "")
+    {
+        Gleam_MakeType_AddField(value);
+    }
+
+    Gleam_MakeType(WorldToLocal, "")
     {
         Gleam_MakeType_AddField(value);
     }

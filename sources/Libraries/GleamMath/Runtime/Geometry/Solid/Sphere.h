@@ -6,6 +6,7 @@ namespace Gleam
     class Sphere
     {
     public:
+        Sphere();
         Sphere(float3 center, float radius);
 
         float3 GetCenter() const;

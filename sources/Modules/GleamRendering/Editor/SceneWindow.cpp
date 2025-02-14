@@ -60,6 +60,10 @@ namespace Gleam
         localTransform.rotation = Quaternion::Euler(eulerAngles);
     }
 
+    class SceneWindow& SceneWindow::GetSceneWindowDrawing()
+    {
+        return *sceneWindowDrawing;
+    }
     const CustomGUI& SceneWindow::GetCustomGUI()
     {
         return sceneGUIs;
@@ -72,14 +76,31 @@ namespace Gleam
     {
         return camera;
     }
-    const WorldToClip& SceneWindow::GetCameraTransform() const
+    const WorldToLocal& SceneWindow::GetCameraWorldToLocal() const
     {
-        return cameraTransform;
+        return cameraWorldToLocal;
+    }
+    const ViewToClip& SceneWindow::GetCameraViewToClip() const
+    {
+        return cameraViewToClip;
     }
     int SceneWindow::GetHandleOption() const
     {
         return handleOption;
     }
+
+    float3 SceneWindow::DrawHandle(float3 position)
+    {
+        float4x4 localToWorld = float4x4::Translate(position);
+        Manipulate(
+            reinterpret_cast<float*>(&cameraWorldToLocal),
+            reinterpret_cast<float*>(&cameraWorldToLocal),
+            ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::LOCAL,
+            reinterpret_cast<float*>(&localToWorld)
+        );
+        return DecomposePosition(localToWorld);
+    }
+
     void SceneWindow::Start()
     {
         windowSize = 0; //以便重启时能触发纹理重建
@@ -137,6 +158,8 @@ namespace Gleam
     }
     void SceneWindow::Update()
     {
+        sceneWindowDrawing = this;
+
         ImGui::Begin("SceneWindow", nullptr, ImGuiWindowFlags_MenuBar);
         //渲染纹理重建检查（别在获取窗口信息后执行！）
         if (any(windowSize != UI::GetWindowContentRegionSize()))
@@ -185,14 +208,15 @@ namespace Gleam
             ImGuizmo::SetRect(windowPosition.x, windowPosition.y, windowSize.x, windowSize.y);
             //获取并设置相机属性
             camera = World::GetComponent<Camera>(sceneCamera);
-            cameraTransform = World::GetComponent<WorldToClip>(sceneCamera);
+            cameraWorldToLocal = World::GetComponent<WorldToLocal>(sceneCamera);
+            cameraViewToClip = World::GetComponent<ViewToClip>(sceneCamera);
             ImGuizmo::SetOrthographic(camera.orthographic);
             //绘制网格线
             {
                 float4x4 objectToWorld = float4x4::Identity();
                 ImGuizmo::DrawGrid(
-                    reinterpret_cast<float*>(&cameraTransform.worldToView),
-                    reinterpret_cast<float*>(&cameraTransform.viewToClip),
+                    reinterpret_cast<float*>(&cameraWorldToLocal.value),
+                    reinterpret_cast<float*>(&cameraViewToClip.value),
                     reinterpret_cast<float*>(&objectToWorld), 10
                 );
             }

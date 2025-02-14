@@ -289,9 +289,13 @@ MakeMatrixFunction_Adjoint(Type,Row,Column)
 
         return degrees(vector<float, 3>{x, y, z});
     }
+    constexpr static float3 DecomposePosition(const float4x4& trs)
+    {
+        return trs._m03_m13_m23;
+    }
     constexpr static void DecomposeTRS(const float4x4& trs, float3& position, float3x3& rotation, float3& scale)
     {
-        position = trs._m03_m13_m23;
+        position = DecomposePosition(trs);
         float3x3 rs = static_cast<float3x3>(trs);
         float3x3 scale2 = mul(transpose(rs), rs);
         scale = sqrt(float3(scale2._m00, scale2._m11, scale2._m22));

@@ -3,6 +3,10 @@
 
 namespace Gleam
 {
+    Sphere::Sphere()
+        : center(0), radius(0)
+    {
+    }
     Sphere::Sphere(float3 center, float radius)
         : center(center), radius(radius)
     {

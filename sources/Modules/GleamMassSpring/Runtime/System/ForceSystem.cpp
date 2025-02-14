@@ -21,9 +21,13 @@ void Gleam::ForceSystem::Update()
         float3 elasticityMagnitude_BToA = length(elasticityVector_BToA);
         float3 elasticityDirection_BToA = elasticityVector_BToA / elasticityMagnitude_BToA;
         float3 elasticityBToA = springPhysics.elasticity * elasticityDirection_BToA * (elasticityMagnitude_BToA - springPhysics.length);
+        //阻力，衰竭一定的弹簧力以弥补积分误差
+        float3 forceBToA = massPointPhysicsB->lastForce - massPointPhysicsA->lastForce; //使B向A接近的力总和
+        float3 resistanceBToA = springPhysics.resistance * -elasticityDirection_BToA * dot(forceBToA, elasticityDirection_BToA); //B向A受到的阻力
+        // resistanceBToA = 0;
 
-        massPointPhysicsB->force += elasticityBToA;
-        massPointPhysicsA->force -= elasticityBToA;
+        massPointPhysicsB->force += elasticityBToA + resistanceBToA;
+        massPointPhysicsA->force -= elasticityBToA + resistanceBToA;
     });
 
     //重力

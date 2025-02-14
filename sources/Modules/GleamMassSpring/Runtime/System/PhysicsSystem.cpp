@@ -7,7 +7,7 @@
 
 namespace Gleam
 {
-    Entity PhysicsSystem::AddMassPoint(float3 position)
+    Entity PhysicsSystem::AddMassPoint(const float3 position)
     {
         Point point = Point{position};
         MassPointPhysics massPointPhysics = {};

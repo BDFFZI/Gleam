@@ -22,8 +22,8 @@ namespace Gleam
         static constexpr ImGuizmo::OPERATION options[] = {ImGuizmo::BOUNDS, ImGuizmo::TRANSLATE, ImGuizmo::ROTATE, ImGuizmo::SCALE};
         ImGuizmo::OPERATION imGuiOption = options[SceneWindow.GetHandleOption()];
         //绘制
-        float4x4 worldToView = SceneWindow.GetCameraTransform().worldToView;
-        float4x4 viewToClip = SceneWindow.GetCameraTransform().viewToClip;
+        float4x4 worldToView = SceneWindow.GetCameraWorldToLocal().value;
+        float4x4 viewToClip = SceneWindow.GetCameraViewToClip().value;
         Manipulate(
             reinterpret_cast<float*>(&worldToView),
             reinterpret_cast<float*>(&viewToClip),

@@ -10,9 +10,10 @@ namespace Gleam
         EntityRef<Point, MassPointPhysics> pointA;
         EntityRef<Point, MassPointPhysics> pointB;
         float length = 10;
-        float elasticity = 3000;
+        float elasticity = 800;
+        float resistance = 0.08;
     };
-    
+
     Gleam_MakeType(SpringPhysics, "F08A937F-7E67-47F9-AFE2-8C2A55AF204E")
     {
         Gleam_MakeType_AddField(pointA);

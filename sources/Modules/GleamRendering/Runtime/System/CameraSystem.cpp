@@ -8,12 +8,11 @@ namespace Gleam
 {
     void CameraSystem::Update()
     {
-        View<LocalToWorld, Camera, WorldToClip>::Each(
-            [](LocalToWorld& localToWorld, Camera& camera, WorldToClip& worldToClip)
+        View<Camera, ViewToClip>::Each(
+            [](Camera& camera, ViewToClip& worldToClip)
             {
                 float aspect = camera.renderTarget.value_or(RenderingSystem.GetDefaultRenderTarget())->GetAspect();
-                worldToClip.worldToView = inverse(localToWorld.value);
-                worldToClip.viewToClip =
+                worldToClip.value =
                     camera.orthographic
                         ? float4x4::Ortho(
                             camera.halfHeight * aspect,
@@ -25,7 +24,13 @@ namespace Gleam
                             aspect,
                             camera.nearClipPlane,
                             camera.farClipPlane);
-                worldToClip.value = mul(worldToClip.viewToClip, worldToClip.worldToView);
+            }
+        );
+
+        View<WorldToLocal, ViewToClip, WorldToClip>::Each(
+            [](WorldToLocal& worldToLocal, ViewToClip& viewToClip, WorldToClip& worldToClip)
+            {
+                worldToClip.value = mul(viewToClip.value, worldToLocal.value);
             }
         );
 
@@ -39,7 +44,8 @@ namespace Gleam
                     0, 0, 1, 0,
                     0, 0, 0, 1,
                 };
-                screenToWorld.value = mul(inverse(worldToClip.value), screenToWorld.screenToClip);
+                screenToWorld.clipToWorld = inverse(worldToClip.value);
+                screenToWorld.value = mul(screenToWorld.clipToWorld, screenToWorld.screenToClip);
             }
         );
     }

@@ -15,19 +15,25 @@ namespace Gleam
     class SceneWindow : public System
     {
     public:
+        static SceneWindow& GetSceneWindowDrawing();
         static const CustomGUI& GetCustomGUI();
         static void AddCustomGUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneGUI);
 
-        const Camera& GetCamera() const;
-        const WorldToClip& GetCameraTransform() const;
-        int GetHandleOption() const;
 
         SceneWindow(): System(EditorUISystem)
         {
         }
 
+        const Camera& GetCamera() const;
+        const WorldToLocal& GetCameraWorldToLocal() const;
+        const ViewToClip& GetCameraViewToClip() const;
+        int GetHandleOption() const;
+
+        float3 DrawHandle(float3 position);
+
     private:
         inline static std::unordered_map<std::type_index, std::function<void(void*)>> sceneGUIs = {};
+        inline static SceneWindow* sceneWindowDrawing = nullptr;
 
         float2 windowPosition = 0;
         float2 windowSize = 0;
@@ -42,7 +48,8 @@ namespace Gleam
         bool isDirty = true;
         //场景UI信息
         Camera camera = {};
-        WorldToClip cameraTransform = {};
+        WorldToLocal cameraWorldToLocal = {};
+        ViewToClip cameraViewToClip = {};
         int handleOption = 1;
         //相机位置存档（重启时使用）
         LocalTransform cameraLocalTransform = {};

@@ -18,16 +18,20 @@ namespace Gleam
         float4 background = 0;
     };
 
+    struct ViewToClip
+    {
+        float4x4 value;
+    };
+
     struct WorldToClip
     {
-        float4x4 worldToView;
-        float4x4 viewToClip;
         float4x4 value;
     };
 
     struct ScreenToWorld
     {
         float4x4 screenToClip;
+        float4x4 clipToWorld;
         float4x4 value;
     };
 
@@ -42,10 +46,8 @@ namespace Gleam
         Gleam_MakeType_AddField(background);
     }
 
-    Gleam_MakeType(WorldToClip, "")
+    Gleam_MakeType(ViewToClip, "")
     {
-        Gleam_MakeType_AddField(worldToView);
-        Gleam_MakeType_AddField(viewToClip);
         Gleam_MakeType_AddField(value);
     }
 

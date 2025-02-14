@@ -14,8 +14,13 @@ void Gleam::PositionSystem::Update()
         //Verlet积分法
         float3 lastPosition = massPointPhysics.lastPosition;
         massPointPhysics.lastPosition = point.position;
-        point.position = point.position
-            + (point.position - lastPosition) * (1 - massPointPhysics.drag) //始终存在误差问题，所以要用阻力修正
-            + acceleration * PhysicsSystem.GetFixedDeltaTime() * PhysicsSystem.GetFixedDeltaTime();
+        point.position = point.position + (
+            point.position - lastPosition + //位移
+            acceleration * PhysicsSystem.GetFixedDeltaTime() * PhysicsSystem.GetFixedDeltaTime() //加速度
+        ) * (1 - massPointPhysics.drag); //始终存在误差问题，所以要用阻力修正
+
+        float3 velocity = (point.position - lastPosition) / (2 * PhysicsSystem.GetFixedDeltaTime());
+        acceleration = velocity / PhysicsSystem.GetFixedDeltaTime() + acceleration;
+        massPointPhysics.lastForce = acceleration * massPointPhysics.mass * (1 - massPointPhysics.drag);
     });
 }

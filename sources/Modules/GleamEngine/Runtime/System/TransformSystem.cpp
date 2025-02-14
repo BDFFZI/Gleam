@@ -26,5 +26,10 @@ namespace Gleam
         View<LocalTransform, LocalToWorld, Parent>::Each([this](LocalTransform& local, LocalToWorld& localToWorld, Parent& parent)
         {
         });
+
+        View<LocalToWorld, WorldToLocal>::Each([](LocalToWorld& localToWorld, WorldToLocal& worldToLocal)
+        {
+            worldToLocal.value = inverse(localToWorld.value);
+        });
     }
 }

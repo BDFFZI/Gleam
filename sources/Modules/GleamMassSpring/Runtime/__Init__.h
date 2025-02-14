@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "System/CollisionSystem.h"
 #include "System/ForceSystem.h"
 #include "System/PhysicsSystem.h"
 #include "System/PositionSystem.h"
@@ -17,6 +18,7 @@ namespace Gleam
         PhysicsSystem,
         PositionSystem,
         ForceSystem,
+        CollisionSystem
     )
 
 #ifdef GleamRenderingRuntime

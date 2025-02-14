@@ -6,8 +6,9 @@ namespace Gleam
     struct MassPointPhysics
     {
         float3 lastPosition = 0;
+        float3 lastForce = 0;
         float mass = 1;
-        float drag = 0.1;
+        float drag = 0;
         float3 force = 0;
     };
 
