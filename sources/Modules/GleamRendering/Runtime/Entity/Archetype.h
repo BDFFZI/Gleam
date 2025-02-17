@@ -7,7 +7,7 @@
 
 namespace Gleam
 {
-    Gleam_MakeArchetypeChild(CameraArchetype, TransformObject, WorldToLocal, ViewToClip, Camera, WorldToClip)
+    Gleam_MakeArchetypeChild(CameraArchetype, TransformObject, WorldToLocal, ViewToClip, WorldToClip, Camera)
     Gleam_MakeArchetypeChild(PointRendererArchetype, TransformObject, PointsMesh, Renderer)
     Gleam_MakeArchetypeChild(LineRendererArchetype, TransformObject, LinesMesh, Renderer)
 }

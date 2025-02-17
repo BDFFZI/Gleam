@@ -14,15 +14,15 @@ using namespace Gleam; // NOLINT(clang-diagnostic-header-hygiene)
 
 struct TestCameraData
 {
-    float4 mousePositionWS;
+    float4 mousePositionCS;
 };
 
 Gleam_MakeType(TestCameraData, "")
 {
-    Gleam_MakeType_AddField(mousePositionWS);
+    Gleam_MakeType_AddField(mousePositionCS);
 }
 
-Gleam_MakeArchetypeChild(TestCameraArchetype, CameraArchetype, ScreenToWorld, TestCameraData)
+Gleam_MakeArchetypeChild(TestCameraArchetype, CameraArchetype, ScreenToClip, TestCameraData)
 
 class TestSystem : public System
 {
@@ -53,9 +53,9 @@ class TestSystem : public System
     }
     void Update() override
     {
-        View<ScreenToWorld, TestCameraData>::Each([](ScreenToWorld& screenToWorld, TestCameraData& testCameraData)
+        View<ScreenToClip, TestCameraData>::Each([](ScreenToClip& screenToClip, TestCameraData& testCameraData)
         {
-            testCameraData.mousePositionWS = mul(screenToWorld.value, float4(InputSystem.GetMousePosition(), 0, 1));
+            testCameraData.mousePositionCS = mul(screenToClip.value, float4(InputSystem.GetMousePosition(), 0, 1));
         });
     }
 };

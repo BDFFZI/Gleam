@@ -17,14 +17,14 @@ namespace Gleam
         World::SetComponents(entity, point, massPointPhysics);
         return entity;
     }
-    Entity PhysicsSystem::AddSpring(const Entity massPointA, const Entity massPointB)
+    Entity PhysicsSystem::AddSpring(const Entity massPointA, const Entity massPointB, const float elasticity)
     {
         Point pointA = World::GetComponent<Point>(massPointA);
         Point pointB = World::GetComponent<Point>(massPointB);
         float length = distance(pointA.position, pointB.position);
 
         Entity entity = World::AddEntity(SpringArchetype);
-        World::SetComponents(entity, SpringPhysics{massPointA, massPointB, length});
+        World::SetComponents(entity, SpringPhysics{massPointA, massPointB, length, elasticity});
         return entity;
     }
     void PhysicsSystem::Update()

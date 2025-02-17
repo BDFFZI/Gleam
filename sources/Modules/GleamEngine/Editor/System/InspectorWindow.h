@@ -23,10 +23,11 @@ namespace Gleam
             World::AddSystem(*inspectorWindow);
         }
 
-        InspectorWindow(): System(UISystem)
+        InspectorWindow(): System(EditorUISystem, DefaultOrder, MaxOrder)
         {
         }
 
+        Entity GetTargetEntity();
         void* GetTarget();
         std::type_index GetTargetType() const;
         /**

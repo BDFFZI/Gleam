@@ -11,16 +11,31 @@
 
 namespace Gleam
 {
-    void ComputeCollision(Point& point, MassPointPhysics& massPointPhysics, Collider& collider, float3 offset)
+    template <class TShape>
+        requires requires(TShape shape, float3 position)
+        {
+            shape.Contains(position);
+            shape.Extrudes(position);
+        }
+    void ComputeCollision(
+        LocalToWorld& localToWorld, WorldToLocal& worldToLocal, TShape shape, Collider collider,
+        Point& point, MassPointPhysics& massPointPhysics)
     {
-        float3 normal = normalize(offset);
+        float3 localPosition = mul(worldToLocal.value, float4(point.position, 1)).xyz;
+        if (shape.Contains(localPosition) == false)
+            return;
+
+        float3 localOffset = shape.Extrudes(localPosition) - localPosition;
+        float3 worldOffset = mul(static_cast<float3x3>(localToWorld.value), localOffset);
+
+        float3 normal = normalize(worldOffset);
         float3 normalForce = project(massPointPhysics.lastForce, normal);
         float3 tangentForce = massPointPhysics.lastForce - normalForce;
 
-        massPointPhysics.lastForce +=
+        massPointPhysics.force +=
             -normalForce * (1 + collider.elasticity) //反作用力
             - tangentForce * collider.friction; //摩擦力
-        point.position += offset;
+        point.position += worldOffset;
     }
 
     void CollisionSystem::Update()
@@ -31,10 +46,7 @@ namespace Gleam
                 View<Point, MassPointPhysics>::Each(
                     [&localToWorld,&worldToLocal,&cuboid,&collider](Point& point, MassPointPhysics& massPointPhysics)
                     {
-                        float3 localPosition = mul(worldToLocal.value, float4(point.position, 1)).xyz;
-                        float3 localOffset = cuboid.Extrudes(localPosition) - localPosition;
-                        float3 worldOffset = mul(static_cast<float3x3>(localToWorld.value), localOffset);
-                        ComputeCollision(point, massPointPhysics, collider, worldOffset);
+                        ComputeCollision(localToWorld, worldToLocal, cuboid, collider, point, massPointPhysics);
                     }
                 );
             }
@@ -46,10 +58,7 @@ namespace Gleam
                 View<Point, MassPointPhysics>::Each(
                     [&localToWorld,&worldToLocal,&sphere,&collider](Point& point, MassPointPhysics& massPointPhysics)
                     {
-                        float3 localPosition = mul(worldToLocal.value, float4(point.position, 1)).xyz;
-                        float3 localOffset = sphere.Extrudes(localPosition) - localPosition;
-                        float3 worldOffset = mul(static_cast<float3x3>(localToWorld.value), localOffset);
-                        ComputeCollision(point, massPointPhysics, collider, worldOffset);
+                        ComputeCollision(localToWorld, worldToLocal, sphere, collider, point, massPointPhysics);
                     }
                 );
             }

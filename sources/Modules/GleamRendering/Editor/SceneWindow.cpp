@@ -13,9 +13,8 @@
 
 namespace Gleam
 {
-    float3 eulerAngles;
     void ControlCamera(
-        class InputSystem& inputSystem, class TimeSystem& timeSystem,
+        class InputSystem& inputSystem, class TimeSystem& timeSystem, float3& eulerAngles,
         LocalTransform& localTransform, LocalToWorld localToWorld)
     {
         const float deltaTime = timeSystem.GetDeltaTime();
@@ -72,6 +71,14 @@ namespace Gleam
     {
         sceneGUIs.insert({typeIndex, drawSceneGUI});
     }
+    Entity SceneWindow::GetSceneCamera() const
+    {
+        return sceneCamera;
+    }
+    InputSystem_T& SceneWindow::GetSceneInputSystem()
+    {
+        return inputSystem;
+    }
     int SceneWindow::GetHandleOption() const
     {
         return handleOption;
@@ -80,24 +87,27 @@ namespace Gleam
 
     void SceneWindow::Start()
     {
-        windowSize = 0; //以便重启时能触发纹理重建
+        windowContentSize = 0; //以便重启时能触发纹理重建
         preProcessSystem.OnUpdate() = [this]
         {
             //重建渲染目标和纹理
-            if (isDirty && windowSize.x > 0 && windowSize.y > 0)
+            if (isDirty && windowContentSize.x > 0 && windowContentSize.y > 0)
             {
                 isDirty = false;
                 if (sceneCameraCanvasImID != nullptr)
                     UI::DeleteTexture(sceneCameraCanvasImID);
-                sceneCameraCanvas = std::make_unique<GRenderTexture>(static_cast<int2>(windowSize));
+                sceneCameraCanvas = std::make_unique<GRenderTexture>(static_cast<int2>(windowContentSize));
                 World::GetComponent<Camera>(sceneCamera).renderTarget = sceneCameraCanvas.get();
                 sceneCameraCanvasImID = UI::CreateTexture(*sceneCameraCanvas);
             }
             //相机控制
+            LocalTransform& cameraTransform = World::GetComponent<LocalTransform>(sceneCamera);
+            LocalToWorld& cameraLocalToWorld = World::GetComponent<LocalToWorld>(sceneCamera);
             if (inputSystem.GetMouseButtonDown(MouseButton::Right))
             {
                 CursorSystem.SetLockState(true);
                 CursorSystem.SetVisible(false);
+                eulerAngles = cameraTransform.rotation.ToEulerAngles();
             }
             else if (inputSystem.GetMouseButtonUp(MouseButton::Right))
             {
@@ -106,21 +116,18 @@ namespace Gleam
             }
             else if (inputSystem.GetMouseButton(MouseButton::Right))
             {
-                ControlCamera(
-                    inputSystem, timeSystem,
-                    World::GetComponent<LocalTransform>(sceneCamera),
-                    World::GetComponent<LocalToWorld>(sceneCamera)
-                );
-                cameraLocalTransform = World::GetComponent<LocalTransform>(sceneCamera);
+                ControlCamera(inputSystem, timeSystem, eulerAngles, cameraTransform, cameraLocalToWorld);
+                cameraTransformSaving = cameraTransform;
             }
         };
         World::AddSystem(preProcessSystem);
         World::AddSystem(inputSystem);
         World::AddSystem(timeSystem);
 
-        sceneCamera = World::AddEntity(CameraArchetype);
-        World::SetComponents(sceneCamera, cameraLocalTransform);
+        sceneCamera = World::AddEntity(SceneCameraArchetype);
+        World::SetComponents(sceneCamera, cameraTransformSaving);
 
+        ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
         ImGuizmo::AllowAxisFlip(false); //禁用手柄轴自动反转
         ImGuizmo::SetGizmoSizeClipSpace(0.2f); //设置手柄在剪辑空间的大小
     }
@@ -139,13 +146,13 @@ namespace Gleam
 
         ImGui::Begin("SceneWindow", nullptr, ImGuiWindowFlags_MenuBar);
         //渲染纹理重建检查（别在获取窗口信息后执行！）
-        if (any(windowSize != UI::GetWindowContentRegionSize()))
+        if (any(windowContentSize != UI::GetWindowContentRegionSize()))
             isDirty = true;
         //获取窗口信息
-        windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
-        windowSize = UI::GetWindowContentRegionSize();
+        windowContentPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
+        windowContentSize = UI::GetWindowContentRegionSize();
         //设置输入区域范围
-        inputSystem.SetFocusArea(Rectangle::CreateFromOrigin(windowPosition, windowSize));
+        inputSystem.SetFocusArea(Rectangle::CreateFromOrigin(windowContentPosition, windowContentSize));
 
         //绘制菜单选项
         if (ImGui::BeginMenuBar())
@@ -157,7 +164,7 @@ namespace Gleam
             }
             //手柄选项
             {
-                ImGui::SetNextItemWidth(windowSize.x * 0.5f);
+                ImGui::SetNextItemWidth(windowContentSize.x * 0.5f);
                 static const char* optionName[] = {"Hide", "Position", "Rotation", "Scale"};
                 ImGui::Combo("Handle", &handleOption, optionName, std::size(optionName));
                 if (inputSystem.GetMouseButton(MouseButton::Right) == false)
@@ -174,7 +181,7 @@ namespace Gleam
 
         //绘制相机画面
         if (sceneCameraCanvasImID != nullptr)
-            ImGui::Image(sceneCameraCanvasImID, windowSize);
+            ImGui::Image(sceneCameraCanvasImID, windowContentSize);
 
         //绘制Gizmos
         Camera camera = World::GetComponent<Camera>(sceneCamera);
@@ -185,9 +192,7 @@ namespace Gleam
             ImGuizmo::BeginFrame();
             ImGuizmo::SetDrawlist(); //使Gizmos能绘制到场景画面前面
             ImGuizmo::SetOrthographic(camera.orthographic);
-            //设置绘制区域
-            const float2 windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
-            ImGuizmo::SetRect(windowPosition.x, windowPosition.y, windowSize.x, windowSize.y);
+            ImGuizmo::SetRect(windowContentPosition.x, windowContentPosition.y, windowContentSize.x, windowContentSize.y); //设置绘制区域
             //绘制网格线
             {
                 float4x4 objectToWorld = float4x4::Identity();
@@ -196,6 +201,20 @@ namespace Gleam
                     reinterpret_cast<float*>(&cameraViewToClip.value),
                     reinterpret_cast<float*>(&objectToWorld), 10
                 );
+            }
+            //绘制右上角世界轴
+            float size = min(windowContentSize.x, windowContentSize.y) * 0.2f;
+            Rectangle rectangle = Rectangle::CreateFromOrigin({windowContentSize.x - size, 0}, {size});
+            ImGuizmo::ViewManipulate(
+                cameraWorldToLocal.value.data, 1,
+                windowContentPosition + rectangle.GetMin() + rectangle.GetSize(), -rectangle.GetSize(), 0x10FFFFFF);
+            if (rectangle.Contains(inputSystem.GetMousePosition()))
+            {
+                float3 position;
+                float3x3 rotation;
+                float3 scale;
+                DecomposeTRS(inverse(cameraWorldToLocal.value), position, rotation, scale);
+                World::GetComponent<LocalTransform>(sceneCamera).rotation = Quaternion::Matrix(rotation);
             }
         }
 

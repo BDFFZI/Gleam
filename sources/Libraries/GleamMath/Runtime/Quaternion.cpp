@@ -18,7 +18,12 @@ namespace Gleam
         float rad = radians(angle) / 2;
         return {cos(rad), sin(rad) * axis};
     }
-    
+    Quaternion Quaternion::Matrix(const float3x3& rotation)
+    {
+        //TODO 替换成真正的矩阵转欧拉角
+        return Euler(DecomposeRotation(rotation));
+    }
+
     Quaternion Quaternion::operator*(const Quaternion other) const
     {
         const float3 u = GetImaginaryPart();

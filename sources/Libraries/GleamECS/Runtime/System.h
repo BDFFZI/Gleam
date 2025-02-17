@@ -20,7 +20,12 @@ namespace Gleam
     class System
     {
     public:
-        explicit System(std::optional<std::reference_wrapper<SystemGroup>> group, std::string_view name = "");
+        static constexpr int32_t MinOrder = std::numeric_limits<int32_t>::lowest();
+        static constexpr int32_t MaxOrder = std::numeric_limits<int32_t>::max();
+        static constexpr int32_t DefaultOrder = 0;
+
+        System();
+        explicit System(std::optional<std::reference_wrapper<SystemGroup>> group, int minOrder = MinOrder, int maxOrder = MaxOrder, std::string_view name = "");
         System(System& system, OrderRelation orderRelation, std::string_view name = "");
         explicit System(SystemGroup& group);
         System(System&) = delete;
@@ -36,15 +41,6 @@ namespace Gleam
         virtual void Start();
         virtual void Update();
         virtual void Stop();
-
-    protected:
-        System(
-            std::string_view name,
-            std::optional<std::reference_wrapper<SystemGroup>> group,
-            int minOrder = std::numeric_limits<int32_t>::lowest(),
-            int maxOrder = std::numeric_limits<int32_t>::max()
-        );
-        System();
 
     private:
         friend class SystemEvent;
@@ -74,14 +70,8 @@ namespace Gleam
     class SystemEvent : public System
     {
     public:
-        SystemEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group)
-            : System(group, name)
-        {
-        }
-        SystemEvent(const std::string_view& name, System& system, const OrderRelation orderRelation)
-            : System(system, orderRelation, name)
-        {
-        }
+        SystemEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, int minOrder = MinOrder, int maxOrder = MaxOrder);
+        SystemEvent(const std::string_view& name, System& system, OrderRelation orderRelation);
         SystemEvent(SystemEvent&&) noexcept = default;
         SystemEvent& operator=(SystemEvent&&) = default;
 
@@ -112,18 +102,9 @@ namespace Gleam
     class SystemGroup : public System
     {
     public:
-        SystemGroup(const std::optional<std::reference_wrapper<SystemGroup>>& group, const std::string_view& name = "")
-            : System(group, name)
-        {
-        }
-        SystemGroup(System& system, const OrderRelation orderRelation, const std::string_view& name = "")
-            : System(system, orderRelation, name)
-        {
-        }
-        explicit SystemGroup(SystemGroup& group)
-            : System(group)
-        {
-        }
+        SystemGroup(const std::optional<std::reference_wrapper<SystemGroup>>& group, int minOrder = MinOrder, int maxOrder = MaxOrder, const std::string_view& name = "");
+        SystemGroup(System& system, OrderRelation orderRelation, const std::string_view& name = "");
+        explicit SystemGroup(SystemGroup& group);
         SystemGroup(SystemGroup&&) noexcept = default;
         SystemGroup& operator=(SystemGroup&&) = default;
 

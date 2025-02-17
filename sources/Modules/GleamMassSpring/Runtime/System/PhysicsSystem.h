@@ -17,7 +17,7 @@ namespace Gleam
         }
 
         static Entity AddMassPoint(float3 position);
-        static Entity AddSpring(Entity massPointA, Entity massPointB);
+        static Entity AddSpring(Entity massPointA, Entity massPointB, float elasticity = 1000);
 
         float3 GetGravity() const { return gravity; }
         float GetFixedDeltaTime() const { return fixedDeltaTime; }

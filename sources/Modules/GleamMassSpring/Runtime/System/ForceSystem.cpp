@@ -20,17 +20,17 @@ void Gleam::ForceSystem::Update()
         float3 offset_BToA = pointA->position - pointB->position;
         float offsetMagnitude_BToA = length(offset_BToA);
         float3 offsetDirection_BToA = offset_BToA / offsetMagnitude_BToA;
-        float elasticity_BToA = springPhysics.elasticity * (offsetMagnitude_BToA - springPhysics.length);
-        float3 elasticityVector_BToA = offsetDirection_BToA * elasticity_BToA;
+        float3 elasticity_BToA = offsetDirection_BToA * springPhysics.elasticity * (offsetMagnitude_BToA - springPhysics.length);
+        massPointPhysicsB->force += elasticity_BToA;
+        massPointPhysicsA->force -= elasticity_BToA;
 
-        //阻力，衰竭一定的弹簧力以弥补积分误差
+        //阻力，衰竭一定的弹簧力以弥补积分误差（采用半隐式欧拉的方法计算，减少误差）
         float3 forceB = massPointPhysicsB->lastForce + massPointPhysicsB->force;
         float3 forceA = massPointPhysicsA->lastForce + massPointPhysicsA->force;
-        float forceBToA = dot(forceB - forceA, offsetDirection_BToA); //使B向A接近的力总和
-        float3 resistanceBToA = -offsetDirection_BToA * springPhysics.resistance * forceBToA;
-
-        massPointPhysicsB->force += elasticityVector_BToA + resistanceBToA;
-        massPointPhysicsA->force -= elasticityVector_BToA + resistanceBToA;
+        float force_BToA = dot(forceB - forceA, offsetDirection_BToA); //使B向A接近的力总和
+        float3 resistance_BToA = -offsetDirection_BToA * springPhysics.resistance * force_BToA;
+        massPointPhysicsB->force += resistance_BToA;
+        massPointPhysicsA->force -= resistance_BToA;
     });
 
     //重力

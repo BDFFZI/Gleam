@@ -18,8 +18,8 @@ namespace Gleam
 {
     Gleam_MakeArchetype(MassPointArchetype, Point, MassPointPhysics);
     Gleam_MakeArchetype(SpringArchetype, SpringPhysics);
-    Gleam_MakeArchetypeChild(CuboidCollider, TransformObject, Cuboid, Collider)
-    Gleam_MakeArchetypeChild(SphereCollider, TransformObject, Sphere, Collider)
+    Gleam_MakeArchetypeChild(CuboidCollider, TransformObject, WorldToLocal, Cuboid, Collider)
+    Gleam_MakeArchetypeChild(SphereCollider, TransformObject, WorldToLocal, Sphere, Collider)
 
 #ifdef GleamRenderingRuntime
     Gleam_MakeArchetypeChild(MassPointRendererArchetype, PointRendererArchetype, MassSpringMesh);

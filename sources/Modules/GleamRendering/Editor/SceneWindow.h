@@ -7,10 +7,13 @@
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamEngine/Runtime/Component/Transform.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
+#include "GleamRendering/Runtime/Entity/Archetype.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 
 namespace Gleam
 {
+    Gleam_MakeArchetypeChild(SceneCameraArchetype, CameraArchetype, ScreenToClip)
+
     class SceneWindow : public System
     {
     public:
@@ -23,14 +26,16 @@ namespace Gleam
         {
         }
 
+        Entity GetSceneCamera() const;
+        InputSystem_T& GetSceneInputSystem();
         int GetHandleOption() const;
 
     private:
         inline static std::unordered_map<std::type_index, std::function<void(void*)>> sceneGUIs = {};
         inline static SceneWindow* sceneWindowDrawing = nullptr;
 
-        float2 windowPosition = 0;
-        float2 windowSize = 0;
+        float2 windowContentPosition = 0;
+        float2 windowContentSize = 0;
         //预建资源
         SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", PostUpdateSystem);
         class InputSystem inputSystem = Engine::CreateSystem<InputSystem_T>("SceneWindow_Input");
@@ -43,7 +48,9 @@ namespace Gleam
         //场景UI信息
         int handleOption = 1;
         //相机位置存档（重启时使用）
-        LocalTransform cameraLocalTransform = {};
+        LocalTransform cameraTransformSaving = {};
+        //旋转信息存档，解决万向锁问题
+        float3 eulerAngles;
 
         void Start() override;
         void Stop() override;

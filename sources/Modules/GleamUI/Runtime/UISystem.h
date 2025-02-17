@@ -3,7 +3,7 @@
 #include "GleamPresentation/Runtime/PresentationSystem.h"
 #include "GleamECS/Runtime/System.h"
 
-#ifdef Gleam_Rendering
+#ifdef GleamRenderingRuntime
 #include "GleamRendering/Runtime/System/RenderingSystem.h"
 #define Order RenderingSystem,OrderRelation::After
 #else

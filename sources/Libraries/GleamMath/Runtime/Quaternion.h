@@ -9,6 +9,7 @@ namespace Gleam
         static consteval Quaternion Identity() { return {0, 0, 0, 1}; }
         static Quaternion Euler(float3 eulerAngles);
         static Quaternion AngleAxis(float3 axis, float angle);
+        static Quaternion Matrix(const float3x3& rotation);
 
         float x, y, z, w;
 
@@ -49,6 +50,7 @@ namespace Gleam
         float3x3 ToRotationMatrix() const;
         float3 ToEulerAngles() const;
     };
+
 
 #ifdef GleamReflectionRuntime
     Gleam_MakeType(Quaternion, "DBBF47A3-169D-464C-9664-D403454B2480")

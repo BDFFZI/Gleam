@@ -5,21 +5,27 @@
 
 namespace Gleam
 {
-    System::System(const std::optional<std::reference_wrapper<SystemGroup>> group, const std::string_view name)
-        : System(name, group)
+    System::System()
+        : System(std::nullopt)
+    {
+    }
+    System::System(
+        const std::optional<std::reference_wrapper<SystemGroup>> group,
+        const int minOrder, const int maxOrder, const std::string_view name)
+        : name(name), group(group), minOrder(minOrder), maxOrder(maxOrder),
+          order(static_cast<int32_t>((static_cast<int64_t>(minOrder) + static_cast<int64_t>(maxOrder)) / 2))
     {
     }
     System::System(System& system, const OrderRelation orderRelation, const std::string_view name)
-        : System(name, system.GetGroup(),
+        : System(system.GetGroup(),
                  orderRelation == OrderRelation::Before ? system.minOrder : system.order,
-                 orderRelation == OrderRelation::Before ? system.order : system.maxOrder)
+                 orderRelation == OrderRelation::Before ? system.order : system.maxOrder, name)
     {
     }
     System::System(SystemGroup& group)
-        : System(std::optional<std::reference_wrapper<SystemGroup>>(group), "")
+        : System(std::optional<std::reference_wrapper<SystemGroup>>(group))
     {
     }
-
     std::string& System::GetName()
     {
         return name;
@@ -32,7 +38,6 @@ namespace Gleam
     {
         return order;
     }
-
     void System::Start()
     {
     }
@@ -43,16 +48,14 @@ namespace Gleam
     {
     }
 
-    System::System(const std::string_view name, const std::optional<std::reference_wrapper<SystemGroup>> group, const int minOrder, const int maxOrder)
-        : name(name), group(group), minOrder(minOrder), maxOrder(maxOrder),
-          order(static_cast<int32_t>((static_cast<int64_t>(minOrder) + static_cast<int64_t>(maxOrder)) / 2))
-    {
-    }
-    System::System()
-        : System("", std::nullopt)
-    {
-    }
 
+    SystemEvent::SystemEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, const int minOrder, const int maxOrder)
+        : System(group, minOrder, maxOrder, name)
+    {
+    }
+    SystemEvent::SystemEvent(const std::string_view& name, System& system, const OrderRelation orderRelation): System(system, orderRelation, name)
+    {
+    }
     std::function<void()>& SystemEvent::OnStart()
     {
         return onStart;
@@ -65,7 +68,6 @@ namespace Gleam
     {
         return onUpdate;
     }
-
     void SystemEvent::Start()
     {
         if (onStart) onStart();
@@ -79,6 +81,17 @@ namespace Gleam
         if (onUpdate) onUpdate();
     }
 
+    SystemGroup::SystemGroup(const std::optional<std::reference_wrapper<SystemGroup>>& group, const int minOrder, const int maxOrder, const std::string_view& name)
+        : System(group, minOrder, maxOrder, name)
+    {
+    }
+    SystemGroup::SystemGroup(System& system, const OrderRelation orderRelation, const std::string_view& name)
+        : System(system, orderRelation, name)
+    {
+    }
+    SystemGroup::SystemGroup(SystemGroup& group): System(group)
+    {
+    }
     std::vector<std::reference_wrapper<System>> SystemGroup::GetSubSystems()
     {
         std::vector<std::reference_wrapper<System>> outSubSystems;
@@ -124,7 +137,6 @@ namespace Gleam
         else
             throw std::runtime_error("不能移除尚未添加过的系统！");
     }
-
     void SystemGroup::Start()
     {
         if (subSystemStartQueue.empty() == false)

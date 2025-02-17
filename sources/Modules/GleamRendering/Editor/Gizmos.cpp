@@ -34,7 +34,7 @@ namespace Gleam
         //解析矩阵
         if (transform.has_value())
         {
-            LocalTransform transformValue = transform.value().get();
+            LocalTransform& transformValue = transform.value().get();
             float3 position;
             float3 rotation;
             float3 scale;
@@ -46,5 +46,11 @@ namespace Gleam
             transformValue.rotation = Quaternion::Euler(rotation);
             transformValue.scale = scale;
         }
+    }
+    void Gizmos::DrawCuboid(Cuboid cuboid)
+    {
+    }
+    void Gizmos::DrawSphere(Sphere sphere)
+    {
     }
 }

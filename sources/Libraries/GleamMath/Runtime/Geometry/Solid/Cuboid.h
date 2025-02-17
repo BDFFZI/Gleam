@@ -21,7 +21,19 @@ namespace Gleam
         float3 Extrudes(float3 point);
 
     private:
+#ifdef GleamReflectionRuntime
+        Gleam_MakeType_Friend
+#endif
+        
         float3 min;
         float3 max;
     };
+
+#ifdef GleamReflectionRuntime
+    Gleam_MakeType(Cuboid,"26AC0C74-919F-42AA-8DB8-70C82ADB2F39")
+    {
+        Gleam_MakeType_AddField(min);
+        Gleam_MakeType_AddField(max);
+    }
+#endif
 }

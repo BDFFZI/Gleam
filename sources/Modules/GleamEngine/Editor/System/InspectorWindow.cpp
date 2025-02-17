@@ -19,6 +19,13 @@ namespace Gleam
         inspectorGUIs.insert({typeIndex, drawInspectorGUI});
     }
 
+    Entity InspectorWindow::GetTargetEntity()
+    {
+        if (GetTargetType() == typeid(Entity))
+            return *std::get<0>(target)._Cast<Entity>();
+
+        return Entity::Null;
+    }
     void* InspectorWindow::GetTarget()
     {
         void* targetPtr;

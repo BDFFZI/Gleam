@@ -53,12 +53,12 @@ class TestSystem : public System
                 for (int j = 0, x = 0; j < 5; j++, x += length)
                 {
                     massPoints[i][j] = PhysicsSystem::AddMassPoint(
-                        float3{static_cast<float>(x), static_cast<float>(y), 20}
+                        float3{static_cast<float>(x), 0, 20 + static_cast<float>(y)}
                     );
                 }
 
-            World::SetComponents(massPoints[2][0], fixedPoint);
-            World::SetComponents(massPoints[2][4], fixedPoint);
+            World::SetComponents(massPoints[0][0], fixedPoint);
+            World::SetComponents(massPoints[0][4], fixedPoint);
 
             //添加弹簧
             for (int y = 0; y < 5; y++)
@@ -71,15 +71,22 @@ class TestSystem : public System
                         PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y + 1][x]);
                     //斜向结构
                     if (x + 1 < 5 && y + 1 < 5) //右下
-                        PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y + 1][x + 1]);
+                        PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y + 1][x + 1], 1500);
                     if (x + 1 < 5 && y - 1 >= 0) //右上
-                        PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y - 1][x + 1]);
+                        PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y - 1][x + 1], 1500);
                     //抗弯折弹簧
                     if (x + 2 < 5)
-                        PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y][x + 2]);
+                        PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y][x + 2], 500);
                     if (y + 2 < 5)
-                        PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y + 2][x]);
+                        PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y + 2][x], 500);
                 }
+        }
+
+        //碰撞
+        for (int i = 0; i < 3; i++)
+        {
+            Entity collider = World::AddEntity(SphereCollider);
+            World::SetComponents(collider, LocalTransform{float3{0, -10, i * 10.0f}}, Sphere{0, 5});
         }
     }
 };

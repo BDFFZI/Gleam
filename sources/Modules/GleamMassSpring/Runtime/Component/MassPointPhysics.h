@@ -8,7 +8,7 @@ namespace Gleam
         float3 lastPosition = 0;
         float3 lastForce = 0;
         float mass = 1;
-        float drag = 0.005f; //避免因牛顿第一定律导致的始终匀速运动
+        float drag = 0.01f; //避免因牛顿第一定律导致的始终匀速运动
         float3 force = 0;
     };
 

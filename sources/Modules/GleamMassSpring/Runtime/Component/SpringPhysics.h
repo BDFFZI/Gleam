@@ -11,7 +11,7 @@ namespace Gleam
         EntityRef<Point, MassPointPhysics> pointB;
         float length = 10;
         float elasticity = 1000;
-        float resistance = 0.2; //解决积分误差，使弹簧能够稳定并看起来更硬
+        float resistance = 0.1; //解决积分误差，使弹簧能够稳定并看起来更硬
     };
 
     Gleam_MakeType(SpringPhysics, "F08A937F-7E67-47F9-AFE2-8C2A55AF204E")

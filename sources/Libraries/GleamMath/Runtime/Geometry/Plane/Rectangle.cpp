@@ -61,4 +61,8 @@ namespace Gleam
     {
         return all(point > min) && all(point < max);
     }
+    std::string to_string(const Rectangle& rectangle)
+    {
+        return to_string(rectangle.GetMin()) + to_string(rectangle.GetMax());
+    }
 }

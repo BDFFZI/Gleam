@@ -18,23 +18,6 @@ namespace Gleam
         float4 background = 0;
     };
 
-    struct ViewToClip
-    {
-        float4x4 value;
-    };
-
-    struct WorldToClip
-    {
-        float4x4 value;
-    };
-
-    struct ScreenToWorld
-    {
-        float4x4 screenToClip;
-        float4x4 clipToWorld;
-        float4x4 value;
-    };
-
     Gleam_MakeType(Camera, "AE2D3669-EC8B-4E5C-99AE-460E7253BD59")
     {
         Gleam_MakeType_AddField(orthographic);
@@ -46,14 +29,33 @@ namespace Gleam
         Gleam_MakeType_AddField(background);
     }
 
+    struct ViewToClip
+    {
+        float4x4 value;
+    };
+
     Gleam_MakeType(ViewToClip, "")
     {
         Gleam_MakeType_AddField(value);
     }
 
-    Gleam_MakeType(ScreenToWorld, "")
+    struct WorldToClip
     {
-        Gleam_MakeType_AddField(screenToClip);
+        float4x4 value;
+    };
+
+    Gleam_MakeType(WorldToClip, "")
+    {
+        Gleam_MakeType_AddField(value);
+    }
+
+    struct ScreenToClip
+    {
+        float4x4 value;
+    };
+
+    Gleam_MakeType(ScreenToClip, "")
+    {
         Gleam_MakeType_AddField(value);
     }
 }

@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <string>
+
 #include "GleamMath/Runtime/LinearAlgebra/Vector.h"
 
 namespace Gleam
@@ -31,6 +33,8 @@ namespace Gleam
         float2 min;
         float2 max;
     };
+
+    std::string to_string(const Rectangle& rectangle);
 
 #ifdef GleamReflectionRuntime
     Gleam_MakeType(Rectangle, "CAD2E68E-EA4E-4848-9201-71CA36865003")
