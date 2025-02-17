@@ -3,13 +3,14 @@
 #include "SceneWindow.h"
 #include <ImGuizmo.h>
 
-#include "Gizmos.h"
+#include "Handles.h"
 
 namespace Gleam
 {
     Gleam_AddEditorSystems(
         GameWindow,
-        SceneWindow
+        SceneWindow,
+        Handles::GetInstance()
     )
 
     inline void SceneGUI_LocalToWorld(LocalToWorld& localToWorld)
@@ -24,9 +25,9 @@ namespace Gleam
         ImGuizmo::OPERATION imGuiOption = options[SceneWindow.GetHandleOption()];
         //绘制
         if (transform.has_value())
-            Gizmos::DrawHandle(imGuiOption, localToWorld.value, *transform.value());
+            Handles::DrawHandle(imGuiOption, localToWorld.value, *transform.value());
         else
-            Gizmos::DrawHandle(imGuiOption, localToWorld.value, std::nullopt);
+            Handles::DrawHandle(imGuiOption, localToWorld.value, std::nullopt);
     }
     Gleam_MakeSceneGUI(LocalToWorld, SceneGUI_LocalToWorld)
 

@@ -6,7 +6,7 @@
 #include "GleamRendering/Runtime/Entity/Archetype.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 
-#include "Gizmos.h"
+#include "Handles.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamWindow/Runtime/System/CursorSystem.h"
@@ -189,7 +189,6 @@ namespace Gleam
         ViewToClip cameraViewToClip = World::GetComponent<ViewToClip>(sceneCamera);
 
         {
-            ImGuizmo::BeginFrame();
             ImGuizmo::SetDrawlist(); //使Gizmos能绘制到场景画面前面
             ImGuizmo::SetOrthographic(camera.orthographic);
             ImGuizmo::SetRect(windowContentPosition.x, windowContentPosition.y, windowContentSize.x, windowContentSize.y); //设置绘制区域
@@ -223,8 +222,8 @@ namespace Gleam
         if (target != nullptr)
         {
             ImGui::SetCursorPos({});
-            Gizmos::WorldToView() = cameraWorldToLocal.value;
-            Gizmos::ViewToClip() = cameraViewToClip.value;
+            Handles::WorldToView() = cameraWorldToLocal.value;
+            Handles::ViewToClip() = cameraViewToClip.value;
             if (sceneGUIs.contains(InspectorWindow.GetTargetType()))
                 sceneGUIs[InspectorWindow.GetTargetType()](target);
         }

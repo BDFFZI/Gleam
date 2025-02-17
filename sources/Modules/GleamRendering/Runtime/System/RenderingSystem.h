@@ -26,6 +26,7 @@ namespace Gleam
 
         RendererInfo() = default;
         RendererInfo(const float4x4& localToWorld, Renderer& renderer);
+        RendererInfo(const float4x4& localToWorld, RenderQueue renderQueue, Material& material, Mesh& mesh);
 
         bool operator<(const RendererInfo& other) const;
     };
@@ -39,6 +40,8 @@ namespace Gleam
 
         GRenderTarget* GetDefaultRenderTarget() const;
         void SetDefaultRenderTarget(GRenderTarget* renderTarget);
+
+        void AddRendererInfo(const RendererInfo& rendererInfo);
 
     private:
         GRenderTarget* defaultRenderTarget = nullptr;

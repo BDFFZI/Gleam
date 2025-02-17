@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 
-#include "Entity.h"
-#include "System.h"
+#include "GleamECS/Runtime/Entity.h"
+#include "GleamECS/Runtime/System.h"
 
 namespace Gleam
 {

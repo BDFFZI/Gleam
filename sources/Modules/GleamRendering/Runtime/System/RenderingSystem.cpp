@@ -19,9 +19,15 @@ namespace Gleam
     RendererInfo::RendererInfo(const float4x4& localToWorld, Renderer& renderer)
         : localToWorld(localToWorld)
     {
+        assert(renderer.material.has_value() && renderer.mesh.has_value() && "渲染资源不完整！");
+
         renderQueue = renderer.material.value()->GetRenderQueue();
         material = renderer.material.value();
         mesh = renderer.mesh.value();
+    }
+    RendererInfo::RendererInfo(const float4x4& localToWorld, const RenderQueue renderQueue, Material& material, Mesh& mesh)
+        : localToWorld(localToWorld), renderQueue(renderQueue), material(&material), mesh(&mesh)
+    {
     }
     bool RendererInfo::operator<(const RendererInfo& other) const
     {
@@ -36,6 +42,10 @@ namespace Gleam
     {
         defaultRenderTarget = renderTarget;
     }
+    void RenderingSystem::AddRendererInfo(const RendererInfo& rendererInfo)
+    {
+        rendererInfos.insert(rendererInfo);
+    }
 
     void RenderingSystem::Start()
     {
@@ -44,18 +54,16 @@ namespace Gleam
     void RenderingSystem::Update()
     {
         //统计渲染对象
-        cameraInfos.clear();
         View<Camera, WorldToClip>::Each([this](auto& camera, auto& cameraTransform)
         {
             cameraInfos.emplace(camera, cameraTransform);
         });
-        rendererInfos.clear();
         View<LocalToWorld, Renderer>::Each([this](auto& localToWorld, auto& renderer)
         {
             if (renderer.material.has_value() && renderer.mesh.has_value())
                 rendererInfos.emplace(localToWorld.value, renderer);
         });
-        //渲染
+        //录制渲染命令
         CommandBuffer& commandBuffer = CommandBufferPool::Apply();
         commandBuffer.BeginRecording();
         for (const auto& cameraInfo : cameraInfos)
@@ -74,6 +82,9 @@ namespace Gleam
         commandBuffer.EndRecording();
         //执行渲染命令
         PresentationSystem.GetPresentGLCommandBuffer().ExecuteSubCommands(commandBuffer);
+        //清除渲染资源
         CommandBufferPool::Release(commandBuffer);
+        cameraInfos.clear();
+        rendererInfos.clear();
     }
 }

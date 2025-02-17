@@ -1,27 +1,35 @@
-#pragma once
-#include "GleamUI/Runtime/UI.h"
-#include <ImGuizmo.h>
-
-#include "GleamEngine/Runtime/Component/Transform.h"
+﻿#pragma once
+#include "GleamECS/Runtime/System.h"
 #include "GleamMath/Runtime/Geometry/Solid/Cuboid.h"
 #include "GleamMath/Runtime/Geometry/Solid/Sphere.h"
-#include "GleamMath/Runtime/LinearAlgebra/Matrix.h"
+#include "GleamRendering/Runtime/System/RenderingSystem.h"
 
 namespace Gleam
 {
-    class Gizmos
+    class Gizmos : public System
     {
     public:
-        static float4x4& WorldToView();
-        static float4x4& ViewToClip();
+        static Gizmos& GetInstance();
 
-        static float3 DrawHandle(float3 position);
-        static void DrawHandle(ImGuizmo::OPERATION operation, float4x4 localToWorld, std::optional<std::reference_wrapper<LocalTransform>> transform);
+        static float4x4& LocalToWorld();
         static void DrawCuboid(Cuboid cuboid);
         static void DrawSphere(Sphere sphere);
 
     private:
-        inline static float4x4 worldToView = float4x4::Identity();
-        inline static float4x4 viewToClip = float4x4::Identity();
+        Gleam_Engine_Friend
+        
+        inline static float4x4 localToWorld = float4x4::Identity();
+        inline static std::unique_ptr<GShader> lineMeshShader = nullptr;
+        inline static std::unique_ptr<Material> lineMeshMaterial = nullptr;
+        inline static std::unique_ptr<Mesh> cubeMesh;
+        inline static std::unique_ptr<Mesh> sphereMesh;
+
+        Gizmos(): System(RenderingSystem, OrderRelation::Before)
+        {
+        }
+
+        void Start() override;
+        void Stop() override;
+        void Update() override;
     };
 }

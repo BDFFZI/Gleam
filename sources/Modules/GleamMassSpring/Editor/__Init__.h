@@ -1,5 +1,5 @@
 #pragma once
-#include "GleamRendering/Editor/Gizmos.h"
+#include "GleamRendering/Editor/Handles.h"
 #include "System/PointSelector.h"
 
 namespace Gleam
@@ -10,7 +10,7 @@ namespace Gleam
     {
         Entity entity = EditorUI::GetEntityDrawing();
         Point& point = World::GetComponent<Point>(entity);
-        point.position = Gizmos::DrawHandle(point.position);
+        point.position = Handles::DrawHandle(point.position);
     }
 
     Gleam_MakeSceneGUI(Point, SceneGUI_Point)

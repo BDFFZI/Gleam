@@ -48,6 +48,10 @@ namespace Gleam
         inline static bool isStopping = false;
     };
 
+#define Gleam_Engine_Friend\
+    Gleam_MakeType_Friend\
+    friend class Engine;
+
     ///利用如下宏实现关系到程序整个运行周期的事件，如库初始化。
     ///这些事件与System中的Start和Stop不同，System在程序运行中可能多次Start和Stop，
     ///且System::Stop在实体回收前执行，如果在Stop逆初始化库，这可能导致实体中需要该库的数据可能无法正常回收。
