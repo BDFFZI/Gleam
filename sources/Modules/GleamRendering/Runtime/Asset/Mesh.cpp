@@ -10,6 +10,7 @@ namespace Gleam
         SetPositions(rawMesh.positions);
         SetIndices(rawMesh.triangles);
 
+        if (!rawMesh.colors.empty())SetColors(rawMesh.colors);
         if (!rawMesh.normals.empty())SetNormals(rawMesh.normals);
         if (!rawMesh.tangents.empty())SetTangents(rawMesh.tangents);
         if (!rawMesh.uvs.empty()) SetUVs(rawMesh.uvs);

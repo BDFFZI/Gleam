@@ -27,7 +27,8 @@ class ShaderIncluder : public shaderc::CompileOptions::IncluderInterface
         {
             std::filesystem::path requestingPath(requesting_source);
             std::filesystem::path requestedPath = requestingPath.parent_path() / requested_source;
-            includedString = File::ReadAllText(requestedPath.string());
+            if (exists(requestedPath))
+                includedString = File::ReadAllText(requestedPath.string());
         }
 
         char* includedC_String = new char[includedString.length()];

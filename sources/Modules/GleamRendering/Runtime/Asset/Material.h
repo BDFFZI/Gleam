@@ -1,5 +1,6 @@
 #pragma once
 #include "GleamGraphics/Runtime/Resource/GMaterial.h"
+#include "GleamRendering/Runtime/RenderingConfig.h"
 
 namespace Gleam
 {
@@ -15,15 +16,24 @@ namespace Gleam
     class Material : public GMaterial
     {
     public:
-        explicit Material(GShader& shader)
-            : GMaterial(shader)
+        explicit Material(GShader& shader, GSAssetLayout& assetLayout = Graphics::GetGraphicsConfig().defaultGSAssetLayout)
+            : GMaterial(assetLayout)
         {
+            AddPass("", shader);
+            SetBuffer(1, materialInfoBuffer);
+            SetMaterialInfo(MaterialInfo{});
         }
 
         int GetRenderQueue() const;
         void SetRenderQueue(int renderQueue);
 
+        void SetMaterialInfo(const MaterialInfo& materialInfo) const;
+        void SetAlbedoTex(GTexture& albedoTex);
+        void SetMetallicGlossTex(GTexture& metallicGlossTex);
+        void SetNormalTex(GTexture& normalTex);
+
     private:
         int renderQueue = RenderQueue_Opaque;
+        GBuffer materialInfoBuffer = GBuffer{sizeof(MaterialInfo)};
     };
 }

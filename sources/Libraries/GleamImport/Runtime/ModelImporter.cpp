@@ -31,18 +31,16 @@ struct std::hash<ObjVertex>
 
 RawMesh ModelImporter::ImportObj(const std::string& filePath)
 {
-    RawMesh mesh = {};
-
-    static std::unordered_map<ObjVertex, uint32_t> uniqueVertices{};
-
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
-
     if (!LoadObj(&attrib, &shapes, &materials, &warn, &err, filePath.c_str()))
         throw std::runtime_error(warn + err);
 
+    RawMesh mesh = {};
+    std::unordered_map<ObjVertex, uint32_t> uniqueVertices{};
+    
     for (const auto& shape : shapes)
     {
         for (const auto& index : shape.mesh.indices)

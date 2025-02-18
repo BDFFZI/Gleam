@@ -6,35 +6,26 @@
 
 namespace Gleam
 {
-    void CommandBuffer::EndRecording()
+    void CommandBuffer::SetWorldInfo(const WorldInfo& worldInfo) const
     {
-        GCommandBuffer::EndRecording();
-        matrixVP = float4x4::Identity();
+        worldInfoBuffer.SetData(&worldInfo);
     }
-    void CommandBuffer::SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix)
+    void CommandBuffer::SetObjectInfo(const ObjectInfo& objectInfo)
     {
-        matrixVP = mul(projMatrix, viewMatrix);
-    }
-    void CommandBuffer::SetViewProjectionMatrices(const float4x4& matrixVP)
-    {
-        this->matrixVP = matrixVP;
-    }
-    void CommandBuffer::SetViewProjectionMatricesToIdentity()
-    {
-        SetViewProjectionMatrices(float4x4::Identity());
+        objectInfoBuffer = objectInfo;
     }
 
-    void CommandBuffer::Draw(GMesh& mesh, const float4x4& modelMatrix, GMaterial& material)
+    void CommandBuffer::Draw(GMesh& mesh, GMaterial& material, const uint32_t instanceCount)
     {
-        float4x4 matrixMVP = mul(matrixVP, modelMatrix);
-        material.SetPushConstant(0, &matrixMVP);
-        DrawMesh(mesh, material);
+        material.SetBuffer(0, worldInfoBuffer);
+        material.SetPushConstant(0, &objectInfoBuffer);
+        DrawMesh(mesh, material, "", instanceCount);
     }
     void CommandBuffer::Blit(GTexture* source, GRenderTarget* destination)
     {
         SetRenderTarget(*destination);
-        SetViewProjectionMatricesToIdentity();
-        Rendering::GetBlitMaterial()->SetTexture(0, *source);
-        Draw(*Rendering::GetFullScreenMesh(), float4x4::Identity(), *Rendering::GetBlitMaterial());
+        SetObjectInfo(ObjectInfo{float4x4::Identity()});
+        Rendering::GetBlitMaterial()->SetAlbedoTex(*source);
+        Draw(*Rendering::GetFullScreenMesh(), *Rendering::GetBlitMaterial());
     }
 }

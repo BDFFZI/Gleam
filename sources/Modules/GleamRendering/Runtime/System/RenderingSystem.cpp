@@ -1,15 +1,17 @@
 ﻿#include "RenderingSystem.h"
 
 #include "GleamECS/Runtime/View.h"
+#include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamGraphics/Runtime/SwapChain.h"
+#include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamRendering/Runtime/Component/Camera.h"
 #include "GleamRendering/Runtime/CommandBufferPool.h"
 #include "GleamRendering/Runtime/Rendering.h"
 
 namespace Gleam
 {
-    CameraInfo::CameraInfo(Camera& camera, WorldToClip& cameraTransform)
-        : camera(&camera), cameraTransform(&cameraTransform)
+    CameraInfo::CameraInfo(Camera& camera, WorldToClip& worldToClip)
+        : camera(&camera), worldToClip(&worldToClip)
     {
     }
     bool CameraInfo::operator<(const CameraInfo& other) const
@@ -25,8 +27,8 @@ namespace Gleam
         material = renderer.material.value();
         mesh = renderer.mesh.value();
     }
-    RendererInfo::RendererInfo(const float4x4& localToWorld, const RenderQueue renderQueue, Material& material, Mesh& mesh)
-        : localToWorld(localToWorld), renderQueue(renderQueue), material(&material), mesh(&mesh)
+    RendererInfo::RendererInfo(const float4x4& localToWorld, const RenderQueue renderQueue, Material& material, Mesh& mesh, const uint32_t instanceID)
+        : localToWorld(localToWorld), renderQueue(renderQueue), material(&material), mesh(&mesh), instanceCount(instanceID)
     {
     }
     bool RendererInfo::operator<(const RendererInfo& other) const
@@ -68,15 +70,16 @@ namespace Gleam
         commandBuffer.BeginRecording();
         for (const auto& cameraInfo : cameraInfos)
         {
+            commandBuffer.SetWorldInfo(WorldInfo{TimeSystem.GetTime()});
             //设置相机参数
             GRenderTarget* renderTarget = cameraInfo.camera->renderTarget.value_or(defaultRenderTarget);
             commandBuffer.SetRenderTarget(*renderTarget);
             commandBuffer.ClearRenderTarget(cameraInfo.camera->background);
-            commandBuffer.SetViewProjectionMatrices(cameraInfo.cameraTransform->value);
             //绘制每个渲染器
             for (const auto& rendererInfo : rendererInfos)
             {
-                commandBuffer.Draw(*rendererInfo.mesh, rendererInfo.localToWorld, *rendererInfo.material);
+                commandBuffer.SetObjectInfo(ObjectInfo{mul(cameraInfo.worldToClip->value, rendererInfo.localToWorld)});
+                commandBuffer.Draw(*rendererInfo.mesh, *rendererInfo.material, rendererInfo.instanceCount);
             }
         }
         commandBuffer.EndRecording();

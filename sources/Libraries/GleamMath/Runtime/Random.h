@@ -12,7 +12,7 @@ namespace Gleam
         /**
          * 返回一个0-1的小数
          */
-        static float Value() { return Range(0.0f, 1.0f); }
+        static float Value();
         /**
          * 返回一个随机颜色值
          * @param alphaMin 

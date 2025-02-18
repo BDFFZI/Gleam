@@ -1,6 +1,15 @@
 #include "PresentationSystem.h"
 #include "GleamGraphics/Runtime/SwapChain.h"
 
+GLCommandBuffer& Gleam::PresentationSystem::GetPresentGLCommandBuffer() const
+{
+    return *presentGLCommandBuffer;
+}
+Gleam::GCommandBuffer& Gleam::PresentationSystem::GetPresentGCommandBuffer() const
+{
+    return *presentGCommandBuffer;
+}
+
 void Gleam::PresentationSystem::Start()
 {
     presentGCommandBuffer = std::make_unique<GCommandBuffer>("PresentGCommandBuffer");
@@ -10,7 +19,7 @@ void Gleam::PresentationSystem::Start()
 void Gleam::PresentationSystem::Stop()
 {
     SystemGroup::Stop();
-    
+
     presentGCommandBuffer.reset();
 }
 void Gleam::PresentationSystem::Update()

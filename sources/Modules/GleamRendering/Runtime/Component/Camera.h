@@ -1,6 +1,6 @@
 #pragma once
 #include "GleamMath/Runtime/LinearAlgebra/Vector.h"
-#include "GleamGraphics/Runtime/Graphics.h"
+#include "GleamGraphics/Runtime/Resource/GRenderTarget/GRenderTarget.h"
 
 namespace Gleam
 {

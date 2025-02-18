@@ -3,14 +3,26 @@
 #include "SceneWindow.h"
 #include <ImGuizmo.h>
 
+#include "Gizmos.h"
 #include "Handles.h"
 
 namespace Gleam
 {
+    Gleam_AddStartEvent(InitGizmosLibrary, InitGraphicsLibraryOrder+1)
+    {
+        Gizmos::Init();
+    }
+
+    Gleam_AddStopEvent(UnInitGizmosLibrary, UnInitGraphicsLibraryOrder-1)
+    {
+        Gizmos::UnInit();
+    }
+
     Gleam_AddEditorSystems(
         GameWindow,
         SceneWindow,
-        Handles::GetInstance()
+        Handles::GetInstance(),
+        GizmosSystem::GetInstance()
     )
 
     inline void SceneGUI_LocalToWorld(LocalToWorld& localToWorld)

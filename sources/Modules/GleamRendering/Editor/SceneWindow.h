@@ -50,7 +50,7 @@ namespace Gleam
         //相机位置存档（重启时使用）
         LocalTransform cameraTransformSaving = {};
         //旋转信息存档，解决万向锁问题
-        float3 eulerAngles;
+        float3 eulerAngles = {};
 
         void Start() override;
         void Stop() override;

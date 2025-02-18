@@ -10,3 +10,17 @@ GBuffer::GBuffer(size_t size, VkBufferUsageFlags usage)
     );
     glBufferAddress = glBuffer->MapMemory();
 }
+
+const GLBuffer& GBuffer::GetGLBuffer() const
+{
+    return *glBuffer;
+}
+size_t GBuffer::GetSize() const
+{
+    return glBuffer->size;
+}
+
+void GBuffer::SetData(const void* data) const
+{
+    memcpy(glBufferAddress, data, glBuffer->size);
+}

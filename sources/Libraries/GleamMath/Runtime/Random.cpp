@@ -22,6 +22,10 @@ namespace Gleam
         std::uniform_int_distribution random(min, max);
         return random(engine);
     }
+    float Random::Value()
+    {
+        return Range(0.0f, 1.0f);
+    }
     float4 Random::ColorHSV(const float alphaMin, const float alphaMax)
     {
         return float4{
@@ -34,9 +38,9 @@ namespace Gleam
     float3 Random::OnUnitSphere()
     {
         return normalize(float3{
-            Value(),
-            Value(),
-            Value(),
+            Value() - 0.5f,
+            Value() - 0.5f,
+            Value() - 0.5f,
         });
     }
     float3 Random::InsideUnitSphere()

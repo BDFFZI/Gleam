@@ -260,7 +260,7 @@ class PrintSystem : public System
 {
 public:
     PrintSystem(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group)
-        : System(group, name)
+        : System(group, MinOrder, MaxOrder, name)
     {
     }
     PrintSystem(const std::string_view& name, System& system, const OrderRelation orderRelation)
@@ -286,7 +286,7 @@ class PrintSystemGroup : public SystemGroup
 {
 public:
     PrintSystemGroup(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group)
-        : SystemGroup(group, name)
+        : SystemGroup(group, MinOrder, MaxOrder, name)
     {
     }
     PrintSystemGroup(const std::string_view& name, System& system, const OrderRelation orderRelation)

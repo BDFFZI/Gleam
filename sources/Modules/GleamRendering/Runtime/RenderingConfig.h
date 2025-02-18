@@ -21,15 +21,19 @@ namespace Gleam
 
     struct WorldInfo
     {
-        alignas(16) float4x4 WorldToView;
-        alignas(16) float4x4 ViewToClip;
-        alignas(16) float Time;
+        alignas(4) float time;
     };
 
     struct ObjectInfo
     {
-        alignas(16) float4x4 LocalToWorld;
-        alignas(16) float4 color;
+        alignas(16) float4x4 localToClip;
+    };
+
+    struct MaterialInfo
+    {
+        alignas(16) float4 albedo = 1;
+        alignas(4) float metallic = 0;
+        alignas(4) float smoothness = 0.5;
     };
 
     class RenderingConfig
@@ -60,6 +64,7 @@ namespace Gleam
         //着色器资源布局
         inline static const std::vector<GLDescriptorBinding> DescriptorBindings = {
             {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL}, //WorldInfo
+            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}, //MaterialInfo
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}, //AlbedoTex（rgb：颜色，a：透明度）
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}, //MetallicGlossTex（rgb：金属度，a：光泽度）
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}, //NormalTex（rgb：法线）

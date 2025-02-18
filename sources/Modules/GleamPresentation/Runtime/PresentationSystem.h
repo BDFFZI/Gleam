@@ -24,14 +24,14 @@ namespace Gleam
          * 该缓冲区由系统自动控制录制的启用和结束。
          * @return 
          */
-        GLCommandBuffer& GetPresentGLCommandBuffer() const { return *presentGLCommandBuffer; }
+        GLCommandBuffer& GetPresentGLCommandBuffer() const;
         /**
          * 默认分配的公共子命令缓冲区，以方便用户快速绘制。
          *
          * 该缓冲区由系统自动控制录制的启用和结束，并会在呈现命令缓冲区执行前调用该缓冲区，
          * @return 
          */
-        GCommandBuffer& GetPresentGCommandBuffer() const { return *presentGCommandBuffer; }
+        GCommandBuffer& GetPresentGCommandBuffer() const;
 
     private:
         friend class PresentationSystem;

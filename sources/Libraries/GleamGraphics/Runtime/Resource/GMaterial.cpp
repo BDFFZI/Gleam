@@ -69,6 +69,8 @@ namespace Gleam
 
     void GMaterial::SetBuffer(const int slotIndex, const GBuffer& buffer)
     {
+        assert(slotIndex < static_cast<int>(descriptorSetsUpload.size()) && "槽位索引超出预设的布局范围！");
+
         VkDescriptorBufferInfo* bufferInfo = const_cast<VkDescriptorBufferInfo*>(descriptorSetsUpload[slotIndex].pBufferInfo);
         bufferInfo->buffer = buffer.GetGLBuffer().buffer;
         bufferInfo->offset = 0;
@@ -77,6 +79,8 @@ namespace Gleam
     }
     void GMaterial::SetTexture(const int slotIndex, const GTexture& texture)
     {
+        assert(slotIndex < static_cast<int>(descriptorSetsUpload.size()) && "槽位索引超出预设的布局范围！");
+
         VkDescriptorImageInfo* imageInfo = const_cast<VkDescriptorImageInfo*>(descriptorSetsUpload[slotIndex].pImageInfo);
         imageInfo->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         imageInfo->imageView = texture.GetGLImageView().imageView;
@@ -85,6 +89,8 @@ namespace Gleam
     }
     void GMaterial::SetPushConstant(const int slotIndex, const void* data)
     {
+        assert(slotIndex < static_cast<int>(pushConstantsUpload.size()) && "槽位索引超出预设的布局范围！");
+
         std::memcpy(pushConstantsUpload[slotIndex].data(), data, assetLayout->GetPushConstantRanges()[slotIndex].size);
         isDirty = true;
     }

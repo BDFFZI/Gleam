@@ -6,30 +6,67 @@
 
 namespace Gleam
 {
-    class Gizmos : public System
+    class Gizmos
     {
     public:
-        static Gizmos& GetInstance();
+        static void Init();
+        static void UnInit();
 
         static float4x4& LocalToWorld();
-        static void DrawCuboid(Cuboid cuboid);
-        static void DrawSphere(Sphere sphere);
+        static float4& Color();
+
+        static void DrawCuboid(const Cuboid& cuboid);
+        static void DrawSphere(const Sphere& sphere);
+        static void DrawWireCuboid(const Cuboid& cuboid);
+        static void DrawWireSphere(const Sphere& sphere);
+
+    private:
+        friend class GizmosSystem;
+
+        struct GizmoInfo
+        {
+            float4x4 localToWorld;
+            float4 albedo;
+        };
+
+        struct GizmoQueue
+        {
+            std::unique_ptr<Material> material = nullptr;
+            std::unique_ptr<GBuffer> buffer = nullptr;
+            std::vector<GizmoInfo> instances = {};
+
+            void Flush();
+            void Clear();
+            void Destroy();
+        };
+
+        inline static std::unique_ptr<GSAssetLayout> assetLayout = nullptr;
+        inline static std::unique_ptr<GShader> gizmoShader = nullptr;
+        inline static std::unique_ptr<GShader> wireGizmoShader = nullptr;
+        inline static std::unique_ptr<Mesh> cubeMesh = nullptr;
+        inline static std::unique_ptr<Mesh> sphereMesh = nullptr;
+        inline static float4x4 localToWorld = float4x4::Identity();
+        inline static float4 color = float4::White();
+
+        inline static GizmoQueue cuboidQueue = {};
+        inline static GizmoQueue sphereQueue = {};
+        inline static GizmoQueue wireCuboidQueue = {};
+        inline static GizmoQueue wireSphereQueue = {};
+
+        static void Draw(GizmoQueue& instanceQueue, Mesh& mesh);
+    };
+
+    class GizmosSystem : public System
+    {
+    public:
+        static GizmosSystem& GetInstance();
 
     private:
         Gleam_Engine_Friend
-        
-        inline static float4x4 localToWorld = float4x4::Identity();
-        inline static std::unique_ptr<GShader> lineMeshShader = nullptr;
-        inline static std::unique_ptr<Material> lineMeshMaterial = nullptr;
-        inline static std::unique_ptr<Mesh> cubeMesh;
-        inline static std::unique_ptr<Mesh> sphereMesh;
 
-        Gizmos(): System(RenderingSystem, OrderRelation::Before)
+        GizmosSystem(): System(RenderingSystem, OrderRelation::Before)
         {
         }
-
-        void Start() override;
-        void Stop() override;
         void Update() override;
     };
 }

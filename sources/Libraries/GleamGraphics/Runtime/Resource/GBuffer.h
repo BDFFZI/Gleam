@@ -14,9 +14,10 @@ namespace Gleam
     public:
         explicit GBuffer(size_t size, VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
-        void SetData(const void* data) const { memcpy(glBufferAddress, data, glBuffer->size); }
+        const GLBuffer& GetGLBuffer() const;
+        size_t GetSize() const;
 
-        const GLBuffer& GetGLBuffer() const { return *glBuffer; }
+        void SetData(const void* data) const;
 
     private:
         std::unique_ptr<GLBuffer> glBuffer;

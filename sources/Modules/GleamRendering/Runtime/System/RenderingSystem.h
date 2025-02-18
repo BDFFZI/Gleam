@@ -10,10 +10,10 @@ namespace Gleam
     struct CameraInfo
     {
         Camera* camera;
-        WorldToClip* cameraTransform;
+        WorldToClip* worldToClip;
 
         CameraInfo() = default;
-        CameraInfo(Camera& camera, WorldToClip& cameraTransform);
+        CameraInfo(Camera& camera, WorldToClip& worldToClip);
         bool operator<(const CameraInfo& other) const;
     };
 
@@ -23,10 +23,11 @@ namespace Gleam
         int renderQueue;
         Material* material;
         Mesh* mesh;
+        uint32_t instanceCount = 1;
 
         RendererInfo() = default;
         RendererInfo(const float4x4& localToWorld, Renderer& renderer);
-        RendererInfo(const float4x4& localToWorld, RenderQueue renderQueue, Material& material, Mesh& mesh);
+        RendererInfo(const float4x4& localToWorld, RenderQueue renderQueue, Material& material, Mesh& mesh, uint32_t instanceID = 1);
 
         bool operator<(const RendererInfo& other) const;
     };

@@ -1,21 +1,20 @@
 #pragma once
 #include "GleamGraphics/Runtime/GCommandBuffer.h"
+#include "GleamRendering/Runtime/RenderingConfig.h"
 
 namespace Gleam
 {
     class CommandBuffer : public GCommandBuffer
     {
     public:
-        void EndRecording() override;
+        void SetWorldInfo(const WorldInfo& worldInfo) const;
+        void SetObjectInfo(const ObjectInfo& objectInfo);
 
-        void SetViewProjectionMatrices(const float4x4& viewMatrix, const float4x4& projMatrix);
-        void SetViewProjectionMatrices(const float4x4& matrixVP);
-        void SetViewProjectionMatricesToIdentity();
-
-        void Draw(GMesh& mesh, const float4x4& modelMatrix, GMaterial& material);
+        void Draw(GMesh& mesh, GMaterial& material, uint32_t instanceCount = 1);
         void Blit(GTexture* source, GRenderTarget* destination);
 
     private:
-        float4x4 matrixVP = float4x4::Identity();
+        GBuffer worldInfoBuffer = GBuffer{sizeof(WorldInfo)};
+        ObjectInfo objectInfoBuffer;
     };
 }

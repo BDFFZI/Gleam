@@ -111,6 +111,7 @@ GLDevice::GLDevice(const GLInstance& glInstance, const GLSurface& glSurface, con
     VkPhysicalDeviceFeatures necessaryFeatures = {};
     necessaryFeatures.samplerAnisotropy = VK_TRUE; //需支持各向异性
     necessaryFeatures.sampleRateShading = VK_TRUE; //需支持着色多重采样（改善来自纹理中的锯齿）
+    necessaryFeatures.fillModeNonSolid = VK_TRUE; //支持基于管线状态的点线绘制
     //设备必须支持的功能特征2（随着版本更新，后来添加到vulkan核心的新功能）
     void* necessaryFeatures2;
     VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeatures = {};
