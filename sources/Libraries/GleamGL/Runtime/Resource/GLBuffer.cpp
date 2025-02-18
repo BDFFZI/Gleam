@@ -1,5 +1,6 @@
 #include "GLBuffer.h"
 
+#include <assert.h>
 #include <stdexcept>
 
 #include "../GL.h"
@@ -28,6 +29,8 @@ std::unique_ptr<GLBuffer> GLBuffer::CreateUniformBuffer(size_t size)
 GLBuffer::GLBuffer(const size_t size, const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties)
     : size(size)
 {
+    assert(size > 0 && "分配的内存大小必须大于0！");
+
     //创建缓冲区
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;

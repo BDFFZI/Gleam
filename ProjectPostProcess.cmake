@@ -24,8 +24,9 @@ foreach(ProjectName ${AllProjects})
 
     # 统计所有依赖资源
     set(ALLResourcesPaths "")
+    list(APPEND RealDependencies ${ProjectName}) # 自身也可能有资源文件
 
-    foreach(dependency ${${ProjectName}Dependencies})
+    foreach(dependency ${RealDependencies})
         # 查看依赖的Resources文件
         file(GLOB_RECURSE ResourcesPaths LIST_DIRECTORIES true "${${dependency}Source}/[!.]")
         list(FILTER ResourcesPaths INCLUDE REGEX "Resources$")

@@ -22,7 +22,8 @@ namespace Gleam
             writeDescriptorSet.descriptorType = descriptorType;
             writeDescriptorSet.descriptorCount = 1;
 
-            if (descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) //缓冲区资源
+            if (descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
+                descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER) //缓冲区资源
                 writeDescriptorSet.pBufferInfo = new VkDescriptorBufferInfo();
             else if (descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) //纹理资源
                 writeDescriptorSet.pImageInfo = new VkDescriptorImageInfo();
@@ -43,6 +44,9 @@ namespace Gleam
         {
             if (descriptorSetsUpload[i].descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
                 SetTexture(static_cast<int>(i), Graphics::GetDefaultTexture2D());
+            if (descriptorSetsUpload[i].descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
+                descriptorSetsUpload[i].descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
+                SetBuffer(static_cast<int>(i), Graphics::GetDefaultBuffer());
         }
     }
     GMaterial::GMaterial(GShader& pass)
@@ -55,7 +59,8 @@ namespace Gleam
     {
         for (auto& descriptor : descriptorSetsUpload)
         {
-            if (descriptor.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+            if (descriptor.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
+                descriptor.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
                 delete descriptor.pBufferInfo;
             else if (descriptor.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
                 delete descriptor.pImageInfo;

@@ -1,5 +1,4 @@
 ﻿#include <thread>
-#include <gtest/gtest.h>
 
 #include "GleamGraphics/Runtime/GCommandBuffer.h"
 #include "GleamGraphics/Runtime/Graphics.h"
@@ -45,6 +44,7 @@ std::unique_ptr<Mesh> cubeMesh;
 std::unique_ptr<GShader> shader;
 std::unique_ptr<GShader> lineShader;
 std::unique_ptr<GTexture2D> imageTexture2D;
+std::unique_ptr<GBuffer> buffer; //用于实现实例化渲染
 std::unique_ptr<GMaterial> material;
 std::unique_ptr<GMaterial> lineMaterial;
 std::unique_ptr<GRenderTexture> renderTexture;
@@ -90,6 +90,8 @@ void CreateAssets()
     lineMaterial = std::make_unique<GMaterial>(*lineShader);
     //图片纹理
     imageTexture2D = std::make_unique<GTexture2D>("Resources/GleamGraphicsRuntimeTests/texture.jpg");
+    //存储矩阵的缓冲区
+    buffer = std::make_unique<GBuffer>(sizeof(float4x4) * 4, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
 
     //渲染纹理
     renderTexture = std::make_unique<GRenderTexture>(
@@ -101,7 +103,7 @@ void CreateAssets()
 void DeleteAssets()
 {
     renderTexture.reset();
-
+    buffer.reset();
     imageTexture2D.reset();
 
     lineShader.reset();
@@ -124,8 +126,9 @@ void TestViewport(GCommandBuffer& commandBuffer)
     commandBuffer.ClearRenderTarget(float4(0.5, 0, 0, 1));
     commandBuffer.SetViewportToFullscreen();
 }
-void TestMaterialAndCubeMesh(GCommandBuffer& commandBuffer, float4x4 matrixVP)
+void TestMaterialAndCubeMesh(GCommandBuffer& commandBuffer, const float4x4& matrixVP)
 {
+    float4x4 matrixMVPs[4];
     for (int i = 0; i < 4; ++i)
     {
         float4x4 matrixM = float4x4::TRS(
@@ -133,21 +136,23 @@ void TestMaterialAndCubeMesh(GCommandBuffer& commandBuffer, float4x4 matrixVP)
             {-90, 0, 0},
             static_cast<float>(i + 1) / 4.0f
         );
-
-        float4x4 matrixMVP = mul(matrixVP, matrixM);
-        material->SetTexture(0, *imageTexture2D);
-        material->SetPushConstant(0, &matrixMVP);
-        commandBuffer.DrawMesh(*cubeMesh, *material);
-        material->SetTexture(0, Graphics::GetDefaultTexture2D());
+        matrixMVPs[i] = mul(matrixVP, matrixM);
     }
+    buffer->SetData(&matrixMVPs);
+
+    material->SetTexture(0, *imageTexture2D);
+    material->SetPushConstant(0, &matrixMVPs); //首个实例还是使用推送常量
+    material->SetBuffer(1, *buffer); //其他实例使用缓冲区值
+    commandBuffer.DrawMesh(*cubeMesh, *material, "", 4);
+    material->SetTexture(0, Graphics::GetDefaultTexture2D());
 }
-void TestWireCubeMesh(GCommandBuffer& commandBuffer, float4x4 matrixVP)
+void TestWireCubeMesh(GCommandBuffer& commandBuffer, const float4x4& matrixVP)
 {
     float4x4 matrixMVP = mul(matrixVP, float4x4::TRS(0, float3{0}, 2));
     lineMaterial->SetPushConstant(0, &matrixMVP);
     commandBuffer.DrawMesh(*cubeMesh, *lineMaterial);
 }
-void TestRenderTarget(GCommandBuffer& commandBuffer, float4x4 matrixVP)
+void TestRenderTarget(GCommandBuffer& commandBuffer, const float4x4& matrixVP)
 {
     commandBuffer.SetRenderTarget(*renderTexture);
     TestMaterialAndCubeMesh(commandBuffer, matrixVP);
@@ -214,8 +219,7 @@ void Update(GLFWwindow* glfwWindow)
     SwapChain::WaitPresent();
 }
 
-// TEST(Presentation, Graphics)
-void main()
+int main()
 {
     constexpr uint32_t WIDTH = 1920 / 3;
     constexpr uint32_t HEIGHT = 1080 / 3;
@@ -235,7 +239,10 @@ void main()
         graphicsConfig->presentColorFormat, graphicsConfig->presentDepthStencilFormat
     };
     graphicsConfig->defaultGSAssetLayout = GSAssetLayout{
-        std::vector<GLDescriptorBinding>{{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}},
+        std::vector<GLDescriptorBinding>{
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+            {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}
+        },
         std::vector<VkPushConstantRange>{{VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float4x4)}}
     };
     Graphics::Initialize(gl, std::move(graphicsConfig));
@@ -248,4 +255,6 @@ void main()
 
     Graphics::UnInitialize();
     GL::UnInitialize();
+
+    return 0;
 }

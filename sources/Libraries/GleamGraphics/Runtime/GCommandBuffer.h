@@ -55,7 +55,7 @@ namespace Gleam
         void SetViewport(int32_t x, int32_t y, uint32_t width, uint32_t height);
         void SetViewportToFullscreen();
 
-        void DrawMesh(GMesh& mesh, GMaterial& material, const std::string_view& shaderPass = "");
+        void DrawMesh(GMesh& mesh, GMaterial& material, const std::string_view& shaderPass = "", uint32_t instanceCount = 1);
         void ClearRenderTarget(const std::optional<float4>& color = 0.0f, const std::optional<float>& depth = 1.0f) const;
 
     private:

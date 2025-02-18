@@ -8,22 +8,27 @@ struct Vertex
 };
 
 [[vk::push_constant]]
-cbuffer PushConstant
+cbuffer ObjectInfo
 {
-    float4x4 MatrixMVP;
+    float4x4 LocalToWorld;
+    float4 color;
 }
 
-Texture2D AlbedoTex : register(t0); //rgb：颜色，a：透明度
-SamplerState AlbedoTexSampler : register(s0);
-Texture2D MetallicGlossTex : register(t1); //rgb：金属度，a：光泽度
-SamplerState MetallicGlossTexSampler : register(s1);
-Texture2D NormalTex : register(t1); //rgb：法线
-SamplerState NormalTexSampler : register(s1);
+cbuffer WorldInfo : register(b0)
+{
+    float4x4 WorldToView;
+    float4x4 ViewToClip;
+    float Time;
+}
+
+Texture2D AlbedoTex : register(t1); //rgb：颜色，a：透明度
+SamplerState AlbedoTexSampler : register(s1);
+Texture2D MetallicGlossTex : register(t2); //rgb：金属度，a：光泽度
+SamplerState MetallicGlossTexSampler : register(s2);
+Texture2D NormalTex : register(t3); //rgb：法线
+SamplerState NormalTexSampler : register(s3);
 
 float4 TransformObjectToClip(float3 positionOS)
 {
-    float3x3 a = 0;
-    float4x4 b = 0;
-    float3x3 c = (float3x3)b;
-    return mul(MatrixMVP, float4(positionOS, 1));
+    return mul(LocalToWorld, float4(positionOS, 1));
 }

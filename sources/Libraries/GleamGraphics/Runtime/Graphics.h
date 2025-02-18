@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <cassert>
 #include "GleamGL/Runtime/GL.h"
-#include "Resource/GRenderTarget/GRenderTarget.h"
+#include "Resource/GBuffer.h"
 #include "Resource/GTexture/GTexture2D.h"
 #include "Resource/GShader/GSLayout.h"
 
@@ -44,12 +44,14 @@ namespace Gleam
         }
         static GLImageSampler& GetDefaultGLImageSampler() { return *defaultGLImageSampler; }
         static GTexture2D& GetDefaultTexture2D() { return *defaultTexture2D; }
+        static GBuffer& GetDefaultBuffer() { return *defaultUniformBuffer; }
 
     private:
         //预创建的默认资源
         inline static std::unique_ptr<GraphicsConfig> graphicsConfig = {};
         inline static std::unique_ptr<GLImageSampler> defaultGLImageSampler = {};
         inline static std::unique_ptr<GTexture2D> defaultTexture2D = {};
+        inline static std::unique_ptr<GBuffer> defaultUniformBuffer = {};
 
         Graphics() = default;
     };

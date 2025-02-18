@@ -19,9 +19,17 @@ namespace Gleam
         float3 tangent;
     };
 
-    struct PushConstant
+    struct WorldInfo
     {
-        alignas(16) float4x4 MatrixMVP;
+        alignas(16) float4x4 WorldToView;
+        alignas(16) float4x4 ViewToClip;
+        alignas(16) float Time;
+    };
+
+    struct ObjectInfo
+    {
+        alignas(16) float4x4 LocalToWorld;
+        alignas(16) float4 color;
     };
 
     class RenderingConfig
@@ -51,12 +59,13 @@ namespace Gleam
         };
         //着色器资源布局
         inline static const std::vector<GLDescriptorBinding> DescriptorBindings = {
+            {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL}, //WorldInfo
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}, //AlbedoTex（rgb：颜色，a：透明度）
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}, //MetallicGlossTex（rgb：金属度，a：光泽度）
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}, //NormalTex（rgb：法线）
         };
         inline static const std::vector<VkPushConstantRange> PushConstantRanges = {
-            {VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(PushConstant)} //MatrixMVP
+            {VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ObjectInfo)}
         };
 
         static std::unique_ptr<GraphicsConfig> CreateGraphicsConfig()

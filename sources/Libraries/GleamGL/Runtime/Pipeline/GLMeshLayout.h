@@ -13,6 +13,7 @@ struct GLVertexInput
 {
     std::vector<VkVertexInputBindingDescription2EXT> bindingDescription2EXTs;
     std::vector<VkVertexInputAttributeDescription2EXT> attributeDescription2EXTs;
+    //创建GLPipeline所需的顶点布局状态信息
     std::vector<VkVertexInputBindingDescription> bindingDescriptions;
     std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
     VkPipelineVertexInputStateCreateInfo vertexInputState = {};

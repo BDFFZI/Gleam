@@ -12,6 +12,7 @@ Graphics Graphics::Initialize(GL&, std::unique_ptr<GraphicsConfig>&& defaultPres
     graphicsConfig = std::move(defaultPreset);
     defaultGLImageSampler = std::make_unique<GLImageSampler>();
     defaultTexture2D = std::make_unique<GTexture2D>(1.0f);
+    defaultUniformBuffer = std::make_unique<GBuffer>(1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
     SwapChain::Initialize(
         graphicsConfig->presentColorFormat,
         graphicsConfig->presentDepthStencilFormat,
@@ -26,6 +27,7 @@ void Graphics::UnInitialize()
     graphicsConfig.reset();
     defaultGLImageSampler.reset();
     defaultTexture2D.reset();
+    defaultUniformBuffer.reset();
 
     SwapChain::UnInitialize();
 }

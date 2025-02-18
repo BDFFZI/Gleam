@@ -6,12 +6,14 @@ cbuffer PushConstant
 
 Texture2D albedoTex : register(t0);
 SamplerState albedoTexSampler : register(s0);
+StructuredBuffer<float4x4> matrixMVPs : register(b1); //实例化渲染用
 
 struct Vertex
 {
     float3 position : POSITION;
     float2 uv : TEXCOORD;
     float4 color : COLOR;
+    uint instanceID : SV_InstanceID;
 };
 
 struct Fragment
@@ -24,7 +26,10 @@ struct Fragment
 Fragment VertexShader(Vertex vertex)
 {
     Fragment output;
-    output.positionCS = mul(MatrixMVP, float4(vertex.position, 1));
+    if (vertex.instanceID == 0)
+        output.positionCS = mul(MatrixMVP, float4(vertex.position, 1));
+    else
+        output.positionCS = mul(matrixMVPs[vertex.instanceID], float4(vertex.position, 1));
     output.uv = vertex.uv;
     output.color = vertex.color;
     return output;

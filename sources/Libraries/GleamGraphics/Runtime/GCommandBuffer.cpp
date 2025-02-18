@@ -103,7 +103,7 @@ void GCommandBuffer::SetViewportToFullscreen()
 }
 
 
-void GCommandBuffer::DrawMesh(GMesh& mesh, GMaterial& material, const std::string_view& shaderPass)
+void GCommandBuffer::DrawMesh(GMesh& mesh, GMaterial& material, const std::string_view& shaderPass, const uint32_t instanceCount)
 {
     mesh.BindToPipeline(glCommandBuffer, currentMesh);
     material.BindToPipeline(glCommandBuffer, currentMaterial);
@@ -115,7 +115,7 @@ void GCommandBuffer::DrawMesh(GMesh& mesh, GMaterial& material, const std::strin
         for (const auto& [passName,shader] : material.GetPasses())
         {
             shader->BindToPipeline(glCommandBuffer, currentShader);
-            glCommandBuffer.DrawIndexed(mesh.GetGLIndexCount());
+            glCommandBuffer.DrawIndexed(mesh.GetGLIndexCount(), instanceCount);
             currentShader = shader;
         }
     }
@@ -126,7 +126,7 @@ void GCommandBuffer::DrawMesh(GMesh& mesh, GMaterial& material, const std::strin
             if (passName == shaderPass)
             {
                 shader->BindToPipeline(glCommandBuffer, currentShader);
-                glCommandBuffer.DrawIndexed(mesh.GetGLIndexCount());
+                glCommandBuffer.DrawIndexed(mesh.GetGLIndexCount(), instanceCount);
                 currentShader = shader;
             }
         }

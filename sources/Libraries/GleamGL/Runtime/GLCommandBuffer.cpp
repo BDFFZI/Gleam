@@ -16,7 +16,7 @@ void GLCommandBuffer::ExecuteSingleTimeCommands(const std::function<void(const G
 }
 
 GLCommandBuffer::GLCommandBuffer(const VkCommandBufferLevel level)
-    : level(level), isSubmitting(false)
+    : level(level), isSubmitting(false), isRecording(false)
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -351,10 +351,10 @@ void GLCommandBuffer::SetInputAssembly(const GLInputAssembly& inputAssembly) con
     vkCmdSetPrimitiveRestartEnable(commandBuffer, inputAssembly.inputAssemblyState.primitiveRestartEnable);
 }
 
-void GLCommandBuffer::DrawIndexed(const uint32_t indicesCount) const
+void GLCommandBuffer::DrawIndexed(const uint32_t indicesCount, const uint32_t instanceCount) const
 {
     assert(indicesCount != 0 && "绘制的索引数量不应为0！");
-    vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, indicesCount, instanceCount, 0, 0, 0);
 }
 void GLCommandBuffer::ClearAttachments(const VkRect2D rect, const std::optional<VkClearColorValue>& color, const std::optional<VkClearDepthStencilValue> depthStencil) const
 {

@@ -105,7 +105,7 @@ public:
     */
     void SetVertexInputEXT(const GLVertexInput& vertexInput) const;
     void SetInputAssembly(const GLInputAssembly& inputAssembly) const;
-    void DrawIndexed(uint32_t indicesCount) const;
+    void DrawIndexed(uint32_t indicesCount, uint32_t instanceCount = 1) const;
     /**
      * 对当前绑定的帧缓冲区内容进行清除
      */
