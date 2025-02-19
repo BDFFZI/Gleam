@@ -17,19 +17,31 @@ class TestSystem : public System
         MassPointPhysics fixedPoint = {};
         fixedPoint.drag = 1;
 
-        //质点和弹力碰撞
+        //碰撞弹性系数
         {
             Entity point = PhysicsSystem::AddMassPoint(float3{-10, 0, 0});
             World::SetComponents(point, MassPointPhysics{1, 0});
             Entity collider = World::AddEntity(CuboidCollider);
             World::SetComponents(
                 collider,
-                LocalTransform{float3{-10, -10, 0}},
+                LocalTransform{float3{-10, -10, 0}, Quaternion::Euler(float3{0, 0, 0})},
                 Collider{0, 1},
                 Cuboid::Create(0, 10)
             );
         }
 
+        //碰撞摩擦系数
+        {
+            Entity point = PhysicsSystem::AddMassPoint(float3{-10, 0, 10});
+            World::SetComponents(point, MassPointPhysics{1, 0});
+            Entity collider = World::AddEntity(CuboidCollider);
+            World::SetComponents(
+                collider,
+                LocalTransform{float3{-10, -10, 10}, Quaternion::Euler(float3{40, 0, 0})},
+                Collider{1, 0},
+                Cuboid::Create(0, 10)
+            );
+        }
 
         //弹簧
         {

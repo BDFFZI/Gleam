@@ -47,6 +47,7 @@ namespace Gleam
         bool isDirty = true;
         //场景UI信息
         int handleOption = 1;
+        bool showSceneUI = true;
         //相机位置存档（重启时使用）
         LocalTransform cameraTransformSaving = {};
         //旋转信息存档，解决万向锁问题

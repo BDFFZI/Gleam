@@ -3,11 +3,7 @@
 
 namespace Gleam
 {
-    Handles& Handles::GetInstance()
-    {
-        static Handles instance = Engine::CreateSystem<Handles>();
-        return instance;
-    }
+
     float4x4& Handles::WorldToView()
     {
         return worldToView;
@@ -53,8 +49,5 @@ namespace Gleam
         }
     }
 
-    void Handles::Update()
-    {
-        ImGuizmo::BeginFrame();
-    }
+
 }

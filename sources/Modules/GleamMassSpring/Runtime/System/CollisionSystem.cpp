@@ -8,6 +8,7 @@
 #include "GleamMath/Runtime/Geometry/Solid/Cuboid.h"
 #include "GleamMath/Runtime/Geometry/Solid/Sphere.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
+#include "GleamRendering/Editor/Gizmos.h"
 
 namespace Gleam
 {
@@ -33,10 +34,14 @@ namespace Gleam
         float3 normalForce = project(massPointLastState.lastForce, normal);
         float3 tangentForce = massPointLastState.lastForce - normalForce;
 
-        massPointPhysics.force +=
-            -normalForce * (1 + collider.elasticity) //反作用力
-            - tangentForce * collider.friction; //摩擦力
+        ///抵消质点施加的力，并位移到表面。
+        ///位移到表面导致每次弹回时都有额外的偏移，因此力不平衡，当弹力为1时会越弹越大，而不是保持高度。
+        ///但不位移到表面会导致，不满足碰撞约束，且质点抖动或下陷。因为虽然力平衡了，但碰撞前质点已被位移。
         point.position += worldOffset;
+        massPointLastState.lastPosition = point.position;
+        //其他反作用力
+        massPointPhysics.force += -normalForce * collider.elasticity; //弹力
+        massPointPhysics.force += -tangentForce * collider.friction; //摩擦力
     }
 
     void CollisionSystem::Update()

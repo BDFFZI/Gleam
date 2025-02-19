@@ -2,7 +2,6 @@
 #include "PhysicsSystem.h"
 #include "PositionSystem.h"
 #include "GleamECS/Runtime/System.h"
-#include "GleamMassSpring/Runtime/Component/Collider.h"
 
 namespace Gleam
 {

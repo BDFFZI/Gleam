@@ -1,12 +1,10 @@
 #include "PointSelectionSystem.h"
 
-#include <iostream>
-
 #include "GleamECS/Runtime/View.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamMath/Runtime/Geometry/Basic/Point.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
-#include "GleamRendering/Editor/SceneWindow.h"
+#include "GleamRendering/Editor/System/SceneWindow.h"
 #include "GleamRendering/Runtime/Component/Camera.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 

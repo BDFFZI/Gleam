@@ -29,14 +29,7 @@ namespace Gleam
     }
     void PhysicsSystem::Update()
     {
-        float currentTime = TimeSystem.GetTime();
-        float deltaTime = currentTime - lastTime;
-        while (deltaTime >= fixedDeltaTime)
-        {
+        for (int i = 0; i < TimeSystem.GetFixedDeltaCount(); i++)
             SystemGroup::Update();
-
-            deltaTime -= fixedDeltaTime;
-            lastTime += fixedDeltaTime;
-        }
     }
 }

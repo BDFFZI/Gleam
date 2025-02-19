@@ -6,9 +6,9 @@
 #include "GleamRendering/Runtime/Entity/Archetype.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 
-#include "Handles.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
+#include "GleamRendering/Editor/Handles.h"
 #include "GleamWindow/Runtime/System/CursorSystem.h"
 
 namespace Gleam
@@ -126,10 +126,6 @@ namespace Gleam
 
         sceneCamera = World::AddEntity(SceneCameraArchetype);
         World::SetComponents(sceneCamera, cameraTransformSaving);
-
-        ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
-        ImGuizmo::AllowAxisFlip(false); //禁用手柄轴自动反转
-        ImGuizmo::SetGizmoSizeClipSpace(0.2f); //设置手柄在剪辑空间的大小
     }
     void SceneWindow::Stop()
     {
@@ -158,23 +154,25 @@ namespace Gleam
         if (ImGui::BeginMenuBar())
         {
             // 查看场景相机
-            if (ImGui::MenuItem("EditorCamera"))
-            {
+            if (ImGui::MenuItem("Camera"))
                 InspectorWindow::Show(sceneCamera);
-            }
-            //手柄选项
-            {
-                ImGui::SetNextItemWidth(windowContentSize.x * 0.5f);
-                static const char* optionName[] = {"Hide", "Position", "Rotation", "Scale"};
-                ImGui::Combo("Handle", &handleOption, optionName, std::size(optionName));
-                if (inputSystem.GetMouseButton(MouseButton::Right) == false)
-                {
-                    if (ImGui::IsKeyPressed(ImGuiKey_Q))handleOption = 0;
-                    if (ImGui::IsKeyPressed(ImGuiKey_W))handleOption = 1;
-                    if (ImGui::IsKeyPressed(ImGuiKey_E))handleOption = 2;
-                    if (ImGui::IsKeyPressed(ImGuiKey_R))handleOption = 3;
-                }
-            }
+            // 显示SceneUI（如手柄，网格等）
+            ImGui::Checkbox("SceneUI", &showSceneUI);
+          
+            // //手柄选项
+            // {
+            //     ImGui::SetNextItemWidth(windowContentSize.x * 0.5f);
+            //     static const char* optionName[] = {"Hide", "Position", "Rotation", "Scale"};
+            //     ImGui::Combo("Handle", &handleOption, optionName, std::size(optionName));
+            //     if (inputSystem.GetMouseButton(MouseButton::Right) == false)
+            //     {
+            //         if (ImGui::IsKeyPressed(ImGuiKey_Q))handleOption = 0;
+            //         if (ImGui::IsKeyPressed(ImGuiKey_W))handleOption = 1;
+            //         if (ImGui::IsKeyPressed(ImGuiKey_E))handleOption = 2;
+            //         if (ImGui::IsKeyPressed(ImGuiKey_R))handleOption = 3;
+            //     }
+            // }
+
 
             ImGui::EndMenuBar();
         }
@@ -184,14 +182,16 @@ namespace Gleam
             ImGui::Image(sceneCameraCanvasImID, windowContentSize);
 
         //绘制Gizmos
-        Camera camera = World::GetComponent<Camera>(sceneCamera);
-        WorldToLocal cameraWorldToLocal = World::GetComponent<WorldToLocal>(sceneCamera);
-        ViewToClip cameraViewToClip = World::GetComponent<ViewToClip>(sceneCamera);
-
+        if (showSceneUI)
         {
+            Camera camera = World::GetComponent<Camera>(sceneCamera);
+            WorldToLocal cameraWorldToLocal = World::GetComponent<WorldToLocal>(sceneCamera);
+            ViewToClip cameraViewToClip = World::GetComponent<ViewToClip>(sceneCamera);
+
             ImGuizmo::SetDrawlist(); //使Gizmos能绘制到场景画面前面
             ImGuizmo::SetOrthographic(camera.orthographic);
             ImGuizmo::SetRect(windowContentPosition.x, windowContentPosition.y, windowContentSize.x, windowContentSize.y); //设置绘制区域
+
             //绘制网格线
             {
                 float4x4 objectToWorld = float4x4::Identity();
@@ -215,17 +215,17 @@ namespace Gleam
                 DecomposeTRS(inverse(cameraWorldToLocal.value), position, rotation, scale);
                 World::GetComponent<LocalTransform>(sceneCamera).rotation = Quaternion::Matrix(rotation);
             }
-        }
 
-        //绘制自定义UI和Gizmos
-        void* target = InspectorWindow.GetTarget();
-        if (target != nullptr)
-        {
-            ImGui::SetCursorPos({});
-            Handles::WorldToView() = cameraWorldToLocal.value;
-            Handles::ViewToClip() = cameraViewToClip.value;
-            if (sceneGUIs.contains(InspectorWindow.GetTargetType()))
-                sceneGUIs[InspectorWindow.GetTargetType()](target);
+            //绘制自定义UI或Gizmos
+            void* target = InspectorWindow.GetTarget();
+            if (target != nullptr)
+            {
+                ImGui::SetCursorPos({});
+                Handles::WorldToView() = cameraWorldToLocal.value;
+                Handles::ViewToClip() = cameraViewToClip.value;
+                if (sceneGUIs.contains(InspectorWindow.GetTargetType()))
+                    sceneGUIs[InspectorWindow.GetTargetType()](target);
+            }
         }
 
         ImGui::End();

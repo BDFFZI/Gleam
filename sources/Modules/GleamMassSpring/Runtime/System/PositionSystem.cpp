@@ -17,11 +17,11 @@ void Gleam::PositionSystem::Update()
         massPointLastState.lastPosition = point.position;
         point.position = point.position + (
             point.position - lastPosition + //位移
-            acceleration * PhysicsSystem.GetFixedDeltaTime() * PhysicsSystem.GetFixedDeltaTime() //加速度
+            acceleration * TimeSystem.GetFixedDeltaTime() * TimeSystem.GetFixedDeltaTime() //加速度
         ) * (1 - massPointPhysics.drag); //始终存在误差问题，所以要用阻力修正
 
-        float3 velocity = (point.position - lastPosition) / (2 * PhysicsSystem.GetFixedDeltaTime());
-        acceleration = velocity / PhysicsSystem.GetFixedDeltaTime() + acceleration;
+        float3 velocity = (point.position - lastPosition) / (2 * TimeSystem.GetFixedDeltaTime());
+        acceleration = velocity / TimeSystem.GetFixedDeltaTime() + acceleration;
         massPointLastState.lastForce = acceleration * massPointPhysics.mass * (1 - massPointPhysics.drag);
     });
 }

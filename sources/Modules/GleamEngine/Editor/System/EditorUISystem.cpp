@@ -1,6 +1,7 @@
 ﻿#include "EditorUISystem.h"
 
 #include "GleamEngine/Editor/Editor.h"
+#include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamUI/Runtime/UI.h"
 #include "GleamUtility/Runtime/String.h"
 
@@ -17,9 +18,23 @@ namespace Gleam
         //增加船坞功能
         ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
         //绘制菜单项
-        ImGui::PushStyleColor(ImGuiCol_MenuBarBg, Editor::IsPlaying() ? float4::DarkGreen() : float4::Blue());
+        // ImGui::PushStyleColor(ImGuiCol_MenuBarBg, Editor::IsPlaying() ? float4::DarkGreen() : float4::Blue());
         if (ImGui::BeginMainMenuBar())
         {
+            //系统菜单项
+            bool isPlaying = Editor::IsPlaying();
+            if (ImGui::Checkbox("IsPlaying", &isPlaying))
+                Editor::IsPlaying() = isPlaying;
+            bool isPausing = !TimeSystem.GetAutoStepTime();
+            if (ImGui::Checkbox("IsPausing", &isPausing))
+                TimeSystem.SetAutoStepTime(!isPausing);
+            if (ImGui::Button("NextFrame"))
+            {
+                TimeSystem.SetAutoStepTime(false);
+                TimeSystem.SetStepTime(TimeSystem.GetFixedDeltaTime());
+            }
+
+            //自定义菜单项
             for (auto& [name,func] : editorMenus)
             {
                 String::Split(name, "/", path);
@@ -28,8 +43,8 @@ namespace Gleam
 
             ImGui::EndMainMenuBar();
         }
-        ImGui::PopStyleColor();
-        
+        // ImGui::PopStyleColor();
+
         //绘制其他界面
         SystemGroup::Update();
     }

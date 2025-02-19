@@ -46,16 +46,16 @@ namespace Gleam
         if (localLength.x > localLength.y)
         {
             if (localLength.x > localLength.z)
-                return {localPoint.x > 1 ? max.x : min.x, point.y, point.z};
+                return {localPoint.x > 0 ? max.x : min.x, point.y, point.z};
             else
-                return {point.x, point.y, localPoint.z > 1 ? max.z : min.z};
+                return {point.x, point.y, localPoint.z > 0 ? max.z : min.z};
         }
         else
         {
             if (localLength.y > localLength.z)
-                return {point.x, localPoint.y > 1 ? max.y : min.y, point.z};
+                return {point.x, localPoint.y > 0 ? max.y : min.y, point.z};
             else
-                return {point.x, point.y, localPoint.z > 1 ? max.z : min.z};
+                return {point.x, point.y, localPoint.z > 0 ? max.z : min.z};
         }
     }
 }

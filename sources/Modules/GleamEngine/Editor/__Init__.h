@@ -49,12 +49,6 @@ namespace Gleam
         InspectorWindow,
     )
 
-    inline void EditorMenu_Play()
-    {
-        Editor::IsPlaying() = !Editor::IsPlaying();
-    }
-    Gleam_MakeEditorMenu("Edit/Play | Pause", EditorMenu_Play)
-
     inline void InspectorGUI_LocalTransform(LocalTransform& localTransform)
     {
         EditorUISerializer serializer = {"LocalTransform"};
