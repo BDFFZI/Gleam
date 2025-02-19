@@ -11,7 +11,6 @@
 
 #ifdef GleamRenderingRuntime
 #include "GleamRendering/Runtime/Entity/Archetype.h"
-#include "GleamMassSpring/Runtime/Component/MassSpringMesh.h"
 #endif
 
 namespace Gleam
@@ -20,9 +19,4 @@ namespace Gleam
     Gleam_MakeArchetype(SpringArchetype, SpringPhysics);
     Gleam_MakeArchetypeChild(CuboidCollider, TransformObject, WorldToLocal, Cuboid, Collider)
     Gleam_MakeArchetypeChild(SphereCollider, TransformObject, WorldToLocal, Sphere, Collider)
-
-#ifdef GleamRenderingRuntime
-    Gleam_MakeArchetypeChild(MassPointRendererArchetype, PointRendererArchetype, MassSpringMesh);
-    Gleam_MakeArchetypeChild(SpringRendererArchetype, LineRendererArchetype, MassSpringMesh);
-#endif
 }

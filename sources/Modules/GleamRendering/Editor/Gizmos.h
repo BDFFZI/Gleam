@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "GleamECS/Runtime/System.h"
+#include "GleamMath/Runtime/Geometry/Basic/Point.h"
 #include "GleamMath/Runtime/Geometry/Solid/Cuboid.h"
+#include "GleamMath/Runtime/Geometry/Solid/Segment.h"
 #include "GleamMath/Runtime/Geometry/Solid/Sphere.h"
 #include "GleamRendering/Runtime/System/RenderingSystem.h"
 
@@ -12,13 +14,16 @@ namespace Gleam
         static void Init();
         static void UnInit();
 
-        static float4x4& LocalToWorld();
-        static float4& Color();
+        static void PushLocalToWorld(const float4x4& localToWorld);
+        static void PopLocalToWorld();
 
-        static void DrawCuboid(const Cuboid& cuboid);
-        static void DrawSphere(const Sphere& sphere);
-        static void DrawWireCuboid(const Cuboid& cuboid);
-        static void DrawWireSphere(const Sphere& sphere);
+        static void DrawPoint(const Point& point, const float4& color = float4::White());
+        static void DrawPoint(const float3& point, const float4& color = float4::White());
+        static void DrawSegment(const Segment& segment, const float4& color = float4::White());
+        static void DrawCuboid(const Cuboid& cuboid, const float4& color = float4::White());
+        static void DrawSphere(const Sphere& sphere, const float4& color = float4::White());
+        static void DrawWireCuboid(const Cuboid& cuboid, const float4& color = float4::White());
+        static void DrawWireSphere(const Sphere& sphere, const float4& color = float4::White());
 
     private:
         friend class GizmosSystem;
@@ -45,13 +50,16 @@ namespace Gleam
         inline static std::unique_ptr<GShader> wireGizmoShader = nullptr;
         inline static std::unique_ptr<Mesh> cubeMesh = nullptr;
         inline static std::unique_ptr<Mesh> sphereMesh = nullptr;
-        inline static float4x4 localToWorld = float4x4::Identity();
-        inline static float4 color = float4::White();
+        inline static std::vector<float4x4> localToWorlds = {float4x4::Identity()};
 
         inline static GizmoQueue cuboidQueue = {};
         inline static GizmoQueue sphereQueue = {};
         inline static GizmoQueue wireCuboidQueue = {};
         inline static GizmoQueue wireSphereQueue = {};
+        inline static std::unique_ptr<Mesh> pointsMesh = nullptr;
+        inline static std::unique_ptr<Material> pointsMaterial = nullptr;
+        inline static std::unique_ptr<Mesh> linesMesh = nullptr;
+        inline static std::unique_ptr<Material> linesMaterial = nullptr;
 
         static void Draw(GizmoQueue& instanceQueue, Mesh& mesh);
     };
@@ -64,9 +72,13 @@ namespace Gleam
     private:
         Gleam_Engine_Friend
 
+        SystemEvent postProcessSystem = SystemEvent("GizmosSystem_PostProcess", RenderingSystem, OrderRelation::After);
+
         GizmosSystem(): System(RenderingSystem, OrderRelation::Before)
         {
         }
+        void Start() override;
+        void Stop() override;
         void Update() override;
     };
 }

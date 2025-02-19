@@ -79,6 +79,14 @@ namespace Gleam
             return &GetComponent<TComponent>(entity);
         }
         template <Component TComponent>
+        static bool TryGetComponent(const Entity entity, TComponent*& component)
+        {
+            if (HasComponent<TComponent>(entity) == false)
+                return false;
+            component = &GetComponent<TComponent>(entity);
+            return true;
+        }
+        template <Component TComponent>
         static TComponent& GetComponent(const Entity entity)
         {
             assert(entity != Entity::Null && "目标实体为空！");

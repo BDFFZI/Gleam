@@ -14,11 +14,6 @@ class TestSystem : public System
 {
     void Start() override
     {
-#ifdef GleamRenderingRuntime
-        World::AddEntity(MassPointRendererArchetype);
-        World::AddEntity(SpringRendererArchetype);
-#endif
-
         MassPointPhysics fixedPoint = {};
         fixedPoint.drag = 1;
 

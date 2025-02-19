@@ -9,7 +9,7 @@ namespace Gleam
     {
     public:
         GMaterial(GSAssetLayout& assetLayout = Graphics::GetGraphicsConfig().defaultGSAssetLayout);
-        GMaterial(GShader& pass);
+        GMaterial(const GShader& pass);
         virtual ~GMaterial();
 
         GMaterial(const GMaterial&) = delete;
@@ -22,14 +22,14 @@ namespace Gleam
         void SetPushConstant(int slotIndex, const void* data);
         void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const GMaterial* lastMaterial);
 
-        void AddPass(const std::string& passName, GShader& shader);
-        const std::vector<std::tuple<std::string, GShader*>>& GetPasses();
+        void AddPass(const std::string& passName, const GShader& shader);
+        const std::vector<std::tuple<std::string, const GShader*>>& GetPasses();
 
     protected:
         GSAssetLayout* assetLayout;
         std::vector<VkWriteDescriptorSet> descriptorSetsUpload;
         std::vector<std::vector<std::byte>> pushConstantsUpload;
-        std::vector<std::tuple<std::string, GShader*>> passes;
+        std::vector<std::tuple<std::string, const GShader*>> passes;
         bool isDirty;
     };
 }

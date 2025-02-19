@@ -6,10 +6,10 @@
 
 namespace Gleam
 {
-    class PointSelector : public System
+    class PointSelectionSystem : public System
     {
     public:
-        PointSelector(): System(InspectorWindow, OrderRelation::Before)
+        PointSelectionSystem(): System(InspectorWindow, OrderRelation::Before)
         {
         }
 
@@ -20,9 +20,9 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(PointSelector)
+    Gleam_MakeGlobalSystem(PointSelectionSystem)
 
-    Gleam_MakeType(PointSelector_T, "")
+    Gleam_MakeType(PointSelectionSystem_T, "")
     {
         Gleam_MakeType_AddField(optionalEntities);
     }

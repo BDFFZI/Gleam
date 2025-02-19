@@ -1,5 +1,6 @@
 ﻿#include "Gizmos.h"
 
+#include "GleamECS/Runtime/World.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamRendering/Runtime/Rendering.h"
 
@@ -9,69 +10,109 @@ namespace Gleam
 {
     void Gizmos::Init()
     {
+        //着色器代码布局
         GSCodeLayout codeLayout = GSCodeLayout{"Resources/GleamRenderingEditor/Gizmo.hlsl"};
-        GSStateLayout stateLayout = Graphics::GetGraphicsConfig().defaultGSStateLayout;
+        //着色器资源布局
         std::vector<GLDescriptorBinding> descriptorBindings = RenderingConfig::DescriptorBindings;
         descriptorBindings.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
         assetLayout = std::make_unique<GSAssetLayout>(descriptorBindings, RenderingConfig::PushConstantRanges);
-        gizmoShader = std::make_unique<GShader>(codeLayout, stateLayout, *assetLayout);
+        //线框着色状态布局
+        GSStateLayout stateLayout = Graphics::GetGraphicsConfig().defaultGSStateLayout;
         stateLayout.rasterization.polygonMode = VK_POLYGON_MODE_LINE;
+        //创建着色器
+        gizmoShader = std::make_unique<GShader>(codeLayout, Graphics::GetGraphicsConfig().defaultGSStateLayout, *assetLayout);
         wireGizmoShader = std::make_unique<GShader>(codeLayout, stateLayout, *assetLayout);
 
+        //创建点线材质
+        pointsMaterial = std::make_unique<Material>(Rendering::GetDefaultPointShader());
+        linesMaterial = std::make_unique<Material>(Rendering::GetDefaultLineShader());
+
+        //创建原型网格
         cubeMesh = std::make_unique<Mesh>(ModelImporter::ImportObj("Resources/GleamRenderingEditor/Cube.obj"));
         sphereMesh = std::make_unique<Mesh>(ModelImporter::ImportObj("Resources/GleamRenderingEditor/Sphere.obj"));
 
+        //创建渲染数据容器
         cuboidQueue = {std::make_unique<Material>(*gizmoShader, *assetLayout)};
         sphereQueue = {std::make_unique<Material>(*gizmoShader, *assetLayout)};
         wireCuboidQueue = {std::make_unique<Material>(*wireGizmoShader, *assetLayout)};
         wireSphereQueue = {std::make_unique<Material>(*wireGizmoShader, *assetLayout)};
+        pointsMesh = std::make_unique<Mesh>(true);
+        linesMesh = std::make_unique<Mesh>(true);
     }
     void Gizmos::UnInit()
     {
         assetLayout.reset();
         gizmoShader.reset();
         wireGizmoShader.reset();
+
         cubeMesh.reset();
         sphereMesh.reset();
+
         cuboidQueue.Destroy();
         sphereQueue.Destroy();
         wireCuboidQueue.Destroy();
         wireSphereQueue.Destroy();
-    }
-    float4x4& Gizmos::LocalToWorld()
-    {
-        return localToWorld;
-    }
-    float4& Gizmos::Color()
-    {
-        return color;
+        pointsMesh.reset();
+        pointsMaterial.reset();
+        linesMesh.reset();
+        linesMaterial.reset();
     }
 
-    void Gizmos::DrawCuboid(const Cuboid& cuboid)
+    void Gizmos::PushLocalToWorld(const float4x4& localToWorld)
+    {
+        localToWorlds.push_back(localToWorld);
+    }
+    void Gizmos::PopLocalToWorld()
+    {
+        localToWorlds.pop_back();
+    }
+    void Gizmos::DrawPoint(const Point& point, const float4& color)
+    {
+        pointsMesh->GetVertices().emplace_back(Vertex{
+            mul(localToWorlds.back(), float4(point.position, 1)).xyz, color
+        }); // NOLINT(clang-diagnostic-missing-field-initializers)
+        pointsMesh->GetIndices().emplace_back(pointsMesh->GetIndices().size());
+    }
+    void Gizmos::DrawPoint(const float3& point, const float4& color)
+    {
+        DrawPoint(Point{point}, color);
+    }
+    void Gizmos::DrawSegment(const Segment& segment, const float4& color)
+    {
+        linesMesh->GetVertices().insert(
+            linesMesh->GetVertices().end(), {
+                Vertex{mul(localToWorlds.back(), float4(segment.GetPointA(), 1)).xyz, color}, // NOLINT(clang-diagnostic-missing-field-initializers)
+                Vertex{mul(localToWorlds.back(), float4(segment.GetPointB(), 1)).xyz, color} // NOLINT(clang-diagnostic-missing-field-initializers)
+            });
+        linesMesh->GetIndices().emplace_back(linesMesh->GetIndices().size());
+        linesMesh->GetIndices().emplace_back(linesMesh->GetIndices().size());
+    }
+
+    void Gizmos::DrawCuboid(const Cuboid& cuboid, const float4& color)
     {
         cuboidQueue.instances.emplace_back(
-            mul(localToWorld, float4x4::TRS(cuboid.GetCenter(), float3{0}, cuboid.GetSize())),
+            mul(localToWorlds.back(), float4x4::TRS(cuboid.GetCenter(), float3{0}, cuboid.GetSize())),
             color
         );
     }
-    void Gizmos::DrawSphere(const Sphere& sphere)
+    void Gizmos::DrawSphere(const Sphere& sphere, const float4& color)
     {
         sphereQueue.instances.emplace_back(
-            mul(localToWorld, float4x4::TRS(sphere.GetCenter(), float3{0}, sphere.GetRadius())),
+            mul(localToWorlds.back(), float4x4::TRS(sphere.GetCenter(), float3{0}, sphere.GetRadius() * 2)),
             color
         );
     }
-    void Gizmos::DrawWireCuboid(const Cuboid& cuboid)
+    void Gizmos::DrawWireCuboid(const Cuboid& cuboid, const float4& color)
     {
         wireCuboidQueue.instances.emplace_back(
-            mul(localToWorld, float4x4::TRS(cuboid.GetCenter(), float3{0}, cuboid.GetSize())),
+            mul(localToWorlds.back(), float4x4::TRS(cuboid.GetCenter(), float3{0}, cuboid.GetSize())),
             color
         );
     }
-    void Gizmos::DrawWireSphere(const Sphere& sphere)
+    void Gizmos::DrawWireSphere(const Sphere& sphere, const float4& color)
     {
         wireSphereQueue.instances.emplace_back(
-            mul(localToWorld, float4x4::TRS(sphere.GetCenter(), float3{0}, sphere.GetRadius())),
+            mul(localToWorlds.back(), float4x4::TRS(sphere.GetCenter(), float3{0}, sphere.GetRadius() * 2)),
             color
         );
     }
@@ -115,11 +156,40 @@ namespace Gleam
         return instance;
     }
 
+    void GizmosSystem::Start()
+    {
+        postProcessSystem.OnUpdate() = []
+        {
+            Gizmos::pointsMesh->SetVertices({});
+            Gizmos::pointsMesh->SetIndices({});
+            Gizmos::linesMesh->SetVertices({});
+            Gizmos::linesMesh->SetIndices({});
+        };
+        World::AddSystem(postProcessSystem);
+    }
+    void GizmosSystem::Stop()
+    {
+        World::RemoveSystem(postProcessSystem);
+    }
     void GizmosSystem::Update()
     {
         Gizmos::Draw(Gizmos::cuboidQueue, *Gizmos::cubeMesh);
         Gizmos::Draw(Gizmos::sphereQueue, *Gizmos::sphereMesh);
         Gizmos::Draw(Gizmos::wireCuboidQueue, *Gizmos::cubeMesh);
         Gizmos::Draw(Gizmos::wireSphereQueue, *Gizmos::sphereMesh);
+        if (!Gizmos::pointsMesh->GetIndices().empty())
+        {
+            Gizmos::pointsMesh->SetDirty();
+            RenderingSystem.AddRendererInfo(RendererInfo{
+                float4x4::Identity(), RenderQueue_Opaque, *Gizmos::pointsMaterial, *Gizmos::pointsMesh
+            });
+        }
+        if (!Gizmos::linesMesh->GetIndices().empty())
+        {
+            Gizmos::linesMesh->SetDirty();
+            RenderingSystem.AddRendererInfo(RendererInfo{
+                float4x4::Identity(), RenderQueue_Opaque, *Gizmos::linesMaterial, *Gizmos::linesMesh
+            });
+        }
     }
 }

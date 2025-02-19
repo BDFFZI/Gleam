@@ -6,6 +6,10 @@ namespace Gleam
     struct Point
     {
         float3 position;
+
+        Point();
+        Point(float3 position);
+        Point(float x, float y, float z);
     };
 
 #ifdef GleamReflectionRuntime

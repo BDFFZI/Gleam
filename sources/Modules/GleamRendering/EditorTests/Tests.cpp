@@ -1,6 +1,7 @@
 ﻿#include "GleamECS/Runtime/View.h"
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamMath/Runtime/Random.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamRendering/Editor/Gizmos.h"
@@ -60,15 +61,13 @@ class TestSystem : public System
 
         Random::seed = 0;
         for (int i = 0; i < 5; i++)
-        {
-            Gizmos::Color() = Random::ColorHSV();
-            Gizmos::DrawWireCuboid(Cuboid::Create({Random::OnUnitSphere() * 5}, {Random::OnUnitSphere()}));
-        }
+            Gizmos::DrawWireCuboid(Cuboid::Create({Random::OnUnitSphere() * 5}, {Random::OnUnitSphere()}), Random::ColorHSV());
         for (int i = 0; i < 5; i++)
-        {
-            Gizmos::Color() = Random::ColorHSV();
-            Gizmos::DrawSphere(Sphere({Random::OnUnitSphere() * 5}, {Random::Value()}));
-        }
+            Gizmos::DrawSphere(Sphere({Random::OnUnitSphere() * 5}, {Random::Value()}), Random::ColorHSV());
+        Gizmos::PushLocalToWorld(float4x4::TRS(float3{-1, 0, 0}, float3{-90, 0, 0}, abs(std::sin(TimeSystem.GetTime())) + 1));
+        Gizmos::DrawPoint(Point{1, 1, 0}, float4::Red());
+        Gizmos::DrawSegment(Segment{{1, 0, 0}, {1, 1, 1}}, float4::Red());
+        Gizmos::PopLocalToWorld();
     }
 };
 Gleam_MakeGlobalSystem(TestSystem)

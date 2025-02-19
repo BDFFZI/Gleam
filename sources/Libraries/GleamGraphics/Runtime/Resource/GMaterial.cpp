@@ -49,7 +49,7 @@ namespace Gleam
                 SetBuffer(static_cast<int>(i), Graphics::GetDefaultBuffer());
         }
     }
-    GMaterial::GMaterial(GShader& pass)
+    GMaterial::GMaterial(const GShader& pass)
         : GMaterial()
     {
         AddPass("", pass);
@@ -112,11 +112,11 @@ namespace Gleam
             isDirty = false;
         }
     }
-    void GMaterial::AddPass(const std::string& passName, GShader& shader)
+    void GMaterial::AddPass(const std::string& passName, const GShader& shader)
     {
         passes.emplace_back(passName, &shader);
     }
-    const std::vector<std::tuple<std::string, GShader*>>& GMaterial::GetPasses()
+    const std::vector<std::tuple<std::string, const GShader*>>& GMaterial::GetPasses()
     {
         return passes;
     }

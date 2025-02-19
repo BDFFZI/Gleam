@@ -16,7 +16,7 @@ namespace Gleam
     class Material : public GMaterial
     {
     public:
-        explicit Material(GShader& shader, GSAssetLayout& assetLayout = Graphics::GetGraphicsConfig().defaultGSAssetLayout)
+        explicit Material(const GShader& shader, GSAssetLayout& assetLayout = Graphics::GetGraphicsConfig().defaultGSAssetLayout)
             : GMaterial(assetLayout)
         {
             AddPass("", shader);

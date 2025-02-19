@@ -1,4 +1,4 @@
-#include "PointSelector.h"
+#include "PointSelectionSystem.h"
 
 #include <iostream>
 
@@ -12,7 +12,7 @@
 
 namespace Gleam
 {
-    void PointSelector::Update()
+    void PointSelectionSystem::Update()
     {
         InputSystem_T& inputSystem = SceneWindow.GetSceneInputSystem();
 

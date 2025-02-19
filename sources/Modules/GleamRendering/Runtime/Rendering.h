@@ -13,6 +13,8 @@ namespace Gleam
 
         static const std::unique_ptr<Material>& GetDefaultPointMaterial();
         static const std::unique_ptr<Material>& GetDefaultLineMaterial();
+        static const GShader& GetDefaultPointShader();
+        static const GShader& GetDefaultLineShader();
         static const std::unique_ptr<Mesh>& GetFullScreenMesh();
         static const std::unique_ptr<Material>& GetBlitMaterial();
 

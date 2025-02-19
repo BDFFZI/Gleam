@@ -67,6 +67,14 @@ namespace Gleam
     {
         return defaultLineMaterial;
     }
+    const GShader& Rendering::GetDefaultPointShader()
+    {
+        return *defaultPointShader;
+    }
+    const GShader& Rendering::GetDefaultLineShader()
+    {
+        return *defaultLineShader;
+    }
     const std::unique_ptr<Mesh>& Rendering::GetFullScreenMesh()
     {
         return fullScreenMesh;
