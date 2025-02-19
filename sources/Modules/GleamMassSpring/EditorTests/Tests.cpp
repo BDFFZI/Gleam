@@ -17,6 +17,20 @@ class TestSystem : public System
         MassPointPhysics fixedPoint = {};
         fixedPoint.drag = 1;
 
+        //质点和弹力碰撞
+        {
+            Entity point = PhysicsSystem::AddMassPoint(float3{-10, 0, 0});
+            World::SetComponents(point, MassPointPhysics{1, 0});
+            Entity collider = World::AddEntity(CuboidCollider);
+            World::SetComponents(
+                collider,
+                LocalTransform{float3{-10, -10, 0}},
+                Collider{0, 1},
+                Cuboid::Create(0, 10)
+            );
+        }
+
+
         //弹簧
         {
             Entity pointA = PhysicsSystem::AddMassPoint(float3{0, 0, 0});

@@ -9,13 +9,9 @@
 #include "GleamMath/Runtime/Geometry/Solid/Cuboid.h"
 #include "GleamMath/Runtime/Geometry/Solid/Sphere.h"
 
-#ifdef GleamRenderingRuntime
-#include "GleamRendering/Runtime/Entity/Archetype.h"
-#endif
-
 namespace Gleam
 {
-    Gleam_MakeArchetype(MassPointArchetype, Point, MassPointPhysics);
+    Gleam_MakeArchetype(MassPointArchetype, Point, MassPointPhysics, MassPointLastState);
     Gleam_MakeArchetype(SpringArchetype, SpringPhysics);
     Gleam_MakeArchetypeChild(CuboidCollider, TransformObject, WorldToLocal, Cuboid, Collider)
     Gleam_MakeArchetypeChild(SphereCollider, TransformObject, WorldToLocal, Sphere, Collider)

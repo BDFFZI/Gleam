@@ -16,13 +16,8 @@ namespace Gleam
         });
         View<SpringPhysics>::Each([this](SpringPhysics& springPhysics)
         {
-            Point pointA;
-            MassPointPhysics massPointPhysicsA;
-            springPhysics.pointA.Get(pointA, massPointPhysicsA);
-            Point pointB;
-            MassPointPhysics massPointPhysicsB;
-            springPhysics.pointB.Get(pointB, massPointPhysicsB);
-
+            Point pointA = World::GetComponent<Point>(springPhysics.pointA);
+            Point pointB = World::GetComponent<Point>(springPhysics.pointB);
             Gizmos::DrawSegment(Segment{pointA.position, pointB.position});
         });
     }

@@ -82,6 +82,18 @@ namespace Gleam
             Query();
             return Count_Inner();
         }
+        static void Fetch(std::vector<Entity>& result)
+        {
+            Query();
+            for (int i = 0; i < targetArchetypeCount; i++)
+            {
+                Heap& heap = World::GetEntityHeap(*targetArchetypes[i]);
+                heap.ForeachElements([&result](std::byte* item)
+                {
+                    result.push_back(*reinterpret_cast<Entity*>(item));
+                });
+            }
+        }
 
     private:
         inline static bool isQueried = false;

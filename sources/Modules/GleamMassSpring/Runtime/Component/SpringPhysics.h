@@ -7,8 +7,8 @@ namespace Gleam
 {
     struct SpringPhysics
     {
-        EntityRef<Point, MassPointPhysics> pointA;
-        EntityRef<Point, MassPointPhysics> pointB;
+        Entity pointA;
+        Entity pointB;
         float length = 10;
         float elasticity = 1000;
         float resistance = 0.1; //解决积分误差，使弹簧能够稳定并看起来更硬

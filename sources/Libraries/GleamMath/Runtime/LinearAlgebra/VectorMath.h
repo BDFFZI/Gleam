@@ -144,6 +144,11 @@ return ::sqrt(lengthsq(a));\
 constexpr vector<Type, Number> normalize(const vector<Type, Number>& a)\
 {\
 return a / length(a);\
+}\
+constexpr vector<Type, Number> normalizesafe(const vector<Type, Number>& a,const vector<Type, Number>& defaultValue = {})\
+{\
+    Type len = dot(a,a);\
+    return len > std::numeric_limits<float>::epsilon() ? a * rsqrt(len) : defaultValue;\
 }
 
 #define Gleam_MakeVectorFunction_Distance(Type,Number)\
