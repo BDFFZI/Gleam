@@ -1,6 +1,7 @@
 ﻿#include "InputSystem.h"
 
 #include "CursorSystem.h"
+#include "GleamMath/Runtime/Geometry/Geometry.h"
 #include "GleamWindow/Runtime/Window.h"
 
 using namespace Gleam;
@@ -61,15 +62,15 @@ void InputSystem::Update()
     }
 
     //鼠标位置
-    mousePosition[0] = CursorSystem.GetLockState() ? CursorSystem.GetLockPosition() - focusArea.GetMin() : mousePosition[1];
-    mousePosition[1] = Window::GetMousePosition() - focusArea.GetMin();
+    mousePosition[0] = CursorSystem.GetLockState() ? CursorSystem.GetLockPosition() - focusArea.min : mousePosition[1];
+    mousePosition[1] = Window::GetMousePosition() - focusArea.min;
 
     //鼠标滚轮
     mouseScrollDelta = Window::GetMouseScrollDelta();
 
     //更新焦点状态
     if (Window::GetIsMouseDown())
-        isFocus = focusArea.Contains(Window::GetMousePosition());
+        isFocus = Geometry::Contains(focusArea, Window::GetMousePosition());
 
     //根据焦点状态调整输入信息
     if (isFocus == false)

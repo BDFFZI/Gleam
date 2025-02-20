@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "GleamECS/Runtime/System.h"
-#include "GleamMath/Runtime/Geometry/Basic/Point.h"
-#include "GleamMath/Runtime/Geometry/Solid/Cuboid.h"
-#include "GleamMath/Runtime/Geometry/Solid/Segment.h"
-#include "GleamMath/Runtime/Geometry/Solid/Sphere.h"
+#include "GleamMath/Runtime/Geometry/3D/Point.h"
+#include "GleamMath/Runtime/Geometry/3D/Cuboid.h"
+#include "GleamMath/Runtime/Geometry/3D/Line.h"
+#include "GleamMath/Runtime/Geometry/3D/Sphere.h"
 #include "GleamRendering/Runtime/System/RenderingSystem.h"
 
 namespace Gleam

@@ -3,7 +3,7 @@
 #include "WindowSystem.h"
 #include "GleamECS/Runtime/System.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
-#include "GleamMath/Runtime/Geometry/Plane/Rectangle.h"
+#include "GleamMath/Runtime/Geometry/2D/Rectangle.h"
 #include "GleamWindow/Runtime/InputEnum.h"
 
 namespace Gleam

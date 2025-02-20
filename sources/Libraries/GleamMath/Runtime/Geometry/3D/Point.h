@@ -3,17 +3,15 @@
 
 namespace Gleam
 {
-    struct Line
+    struct Point
     {
         float3 position;
-        float3 direction;
     };
 
-    struct Ray
+#ifdef GleamReflectionRuntime
+    Gleam_MakeType(Point, "")
     {
-        float3 position;
-        float3 direction;
-    };
-
-
+        Gleam_MakeType_AddField(position);
+    }
+#endif
 }

@@ -81,8 +81,8 @@ namespace Gleam
     {
         linesMesh->GetVertices().insert(
             linesMesh->GetVertices().end(), {
-                Vertex{mul(localToWorlds.back(), float4(segment.GetPointA(), 1)).xyz, color}, // NOLINT(clang-diagnostic-missing-field-initializers)
-                Vertex{mul(localToWorlds.back(), float4(segment.GetPointB(), 1)).xyz, color} // NOLINT(clang-diagnostic-missing-field-initializers)
+                Vertex{mul(localToWorlds.back(), float4(segment.pointA, 1)).xyz, color}, // NOLINT(clang-diagnostic-missing-field-initializers)
+                Vertex{mul(localToWorlds.back(), float4(segment.pointB, 1)).xyz, color} // NOLINT(clang-diagnostic-missing-field-initializers)
             });
         linesMesh->GetIndices().emplace_back(linesMesh->GetIndices().size());
         linesMesh->GetIndices().emplace_back(linesMesh->GetIndices().size());
@@ -98,7 +98,7 @@ namespace Gleam
     void Gizmos::DrawSphere(const Sphere& sphere, const float4& color)
     {
         sphereQueue.instances.emplace_back(
-            mul(localToWorlds.back(), float4x4::TRS(sphere.GetCenter(), float3{0}, sphere.GetRadius() * 2)),
+            mul(localToWorlds.back(), float4x4::TRS(sphere.center, float3{0}, sphere.radius * 2)),
             color
         );
     }
@@ -112,7 +112,7 @@ namespace Gleam
     void Gizmos::DrawWireSphere(const Sphere& sphere, const float4& color)
     {
         wireSphereQueue.instances.emplace_back(
-            mul(localToWorlds.back(), float4x4::TRS(sphere.GetCenter(), float3{0}, sphere.GetRadius() * 2)),
+            mul(localToWorlds.back(), float4x4::TRS(sphere.center, float3{0}, sphere.radius * 2)),
             color
         );
     }

@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "EditorUI.h"
+#include "CustomUI.h"
 #include "Gizmos.h"
 #include "System/GameWindow.h"
 #include "System/GizmosSystem.h"
@@ -25,11 +25,11 @@ namespace Gleam
         GizmosSystem::GetInstance()
     )
 
-    Gleam_MakeSceneGUI(Entity, SceneGUI_Entity)
-    Gleam_MakeSceneGUI(LocalToWorld, SceneGUI_LocalToWorld)
-    Gleam_MakeSceneGUI(Point, SceneGUI_Point)
-    Gleam_MakeInspectorGUI(Point, InspectorGUI_Point)
-    Gleam_MakeInspectorGUI(Segment, InspectorGUI_Segment)
-    Gleam_MakeInspectorGUI(Cuboid, InspectorGUI_Cuboid)
-    Gleam_MakeInspectorGUI(Sphere, InspectorGUI_Sphere)
+    Gleam_MakeSceneUI(Entity, SceneUI_Entity)
+    Gleam_MakeSceneUI(LocalToWorld, SceneUI_LocalToWorld)
+    Gleam_MakeSceneUI(Point, SceneUI_Point)
+    Gleam_MakeInspectorUI(Point, InspectorUI_Point)
+    Gleam_MakeInspectorUI(Segment, InspectorUI_Segment)
+    Gleam_MakeInspectorUI(Cuboid, InspectorUI_Cuboid)
+    Gleam_MakeInspectorUI(Sphere, InspectorUI_Sphere)
 }

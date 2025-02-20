@@ -49,7 +49,7 @@ namespace Gleam
         InspectorWindow,
     )
 
-    inline void InspectorGUI_LocalTransform(LocalTransform& localTransform)
+    inline void InspectorUI_LocalTransform(LocalTransform& localTransform)
     {
         EditorUISerializer serializer = {"LocalTransform"};
         serializer.TransferField("position", localTransform.position);
@@ -58,23 +58,23 @@ namespace Gleam
         localTransform.rotation = Quaternion::Euler(eulerAngles);
         serializer.TransferField("scale", localTransform.scale);
     }
-    Gleam_MakeInspectorGUI(LocalTransform, InspectorGUI_LocalTransform)
+    Gleam_MakeInspectorUI(LocalTransform, InspectorUI_LocalTransform)
 
-    inline void InspectorGUI_Entity(const Entity entity)
+    inline void InspectorUI_Entity(const Entity entity)
     {
         if (World::HasEntity(entity))
         {
             EditorUI::DrawEntity(
                 entity,
-                InspectorWindow::UseDebugGUI() ? CustomGUI{} : InspectorWindow::GetCustomGUI()
+                InspectorWindow::UseDebugGUI() ? CustomUI{} : InspectorWindow::GetCustomUI()
             );
         }
     }
-    Gleam_MakeInspectorGUI(Entity, InspectorGUI_Entity)
+    Gleam_MakeInspectorUI(Entity, InspectorUI_Entity)
 
-    inline void InspectorGUI_System(System& system)
+    inline void InspectorUI_System(System& system)
     {
         ImGui::Text("System");
     }
-    Gleam_MakeInspectorGUI(System, InspectorGUI_System)
+    Gleam_MakeInspectorUI(System, InspectorUI_System)
 }

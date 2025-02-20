@@ -5,9 +5,9 @@
 #include "GleamMassSpring/Runtime/Component/Collider.h"
 #include "GleamMassSpring/Runtime/Component/MassPointPhysics.h"
 #include "GleamMassSpring/Runtime/Component/SpringPhysics.h"
-#include "GleamMath/Runtime/Geometry/Basic/Point.h"
-#include "GleamMath/Runtime/Geometry/Solid/Cuboid.h"
-#include "GleamMath/Runtime/Geometry/Solid/Sphere.h"
+#include "GleamMath/Runtime/Geometry/3D/Point.h"
+#include "GleamMath/Runtime/Geometry/3D/Cuboid.h"
+#include "GleamMath/Runtime/Geometry/3D/Sphere.h"
 
 namespace Gleam
 {

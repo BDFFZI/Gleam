@@ -13,8 +13,8 @@ namespace Gleam
     {
     public:
         static bool& UseDebugGUI();
-        static const CustomGUI& GetCustomGUI();
-        static void AddCustomGUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorGUI);
+        static const CustomUI& GetCustomUI();
+        static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorUI);
         template <class... Args>
         static void Show(Args... args)
         {
@@ -66,7 +66,7 @@ namespace Gleam
         void SetTarget(const std::variant<std::any, void*, std::weak_ptr<void>>& target, std::type_index targetType);
 
     private:
-        inline static CustomGUI inspectorGUIs = {};
+        inline static CustomUI inspectorGUIs = {};
         inline static bool useDebugGUI = false;
 
         std::variant<std::any, void*, std::weak_ptr<void>> target;
@@ -77,7 +77,7 @@ namespace Gleam
     };
     Gleam_MakeGlobalSystem(InspectorWindow)
 
-#define Gleam_MakeInspectorGUI(type,drawInspectorGUI)\
-    Gleam_MakeInitEvent(){InspectorWindow::AddCustomGUI(typeid(type),\
-    [](void* target){drawInspectorGUI(*static_cast<type##*>(target));});}
+#define Gleam_MakeInspectorUI(type,drawInspectorUI)\
+    Gleam_MakeInitEvent(){InspectorWindow::AddCustomUI(typeid(type),\
+    [](void* target){drawInspectorUI(*static_cast<type##*>(target));});}
 }

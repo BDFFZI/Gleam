@@ -18,8 +18,8 @@ namespace Gleam
     {
     public:
         static SceneWindow& GetSceneWindowDrawing();
-        static const CustomGUI& GetCustomGUI();
-        static void AddCustomGUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneGUI);
+        static const CustomUI& GetCustomUI();
+        static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneUI);
 
 
         SceneWindow(): System(EditorUISystem)
@@ -59,7 +59,7 @@ namespace Gleam
     };
     Gleam_MakeGlobalSystem(SceneWindow)
 
-#define Gleam_MakeSceneGUI(type,drawSceneGUI)\
-    Gleam_MakeInitEvent(){SceneWindow::AddCustomGUI(typeid(type),\
-    [](void* target){drawSceneGUI(*static_cast<type##*>(target));});}
+#define Gleam_MakeSceneUI(type,drawSceneUI)\
+    Gleam_MakeInitEvent(){SceneWindow::AddCustomUI(typeid(type),\
+    [](void* target){drawSceneUI(*static_cast<type##*>(target));});}
 }

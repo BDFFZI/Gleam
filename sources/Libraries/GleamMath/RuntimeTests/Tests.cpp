@@ -1,16 +1,25 @@
 ﻿#include <gtest/gtest.h>
+
+#include "GleamMath/Runtime/Geometry/Geometry.h"
+#include "GleamMath/Runtime/Geometry/3D/Line.h"
+#include "GleamMath/Runtime/Geometry/3D/Plane.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
-#include "GleamMath/Runtime/Geometry/Solid/Segment.h"
 
 /// 验证工具：https://www.math666.com/
 
 using namespace Gleam;
 
-TEST(Math, Segement)
+TEST(Math, Geometry)
 {
-    Segment line = {0, 1};
-    ASSERT_TRUE(equal(line.GetLength(),1.7320508f));
+    Segment segment = {0, 1};
+    ASSERT_TRUE(equal(segment.GetLength(),1.7320508f));
+
+    Plane plane = {float3(1, 0.5, 1), float3(0, 1, 0)};
+    Line line = {float3(1, 1, 1), normalize(float3(1, 1, 1))};
+    float3 point;
+    Geometry::Intersects(plane, line, point);
+    ASSERT_EQ(to_string(point), "(0.500000,0.500000,0.500000)");
 }
 
 TEST(Math, Vector)
@@ -43,7 +52,9 @@ TEST(Math, VectorMath)
     ASSERT_EQ(to_string(cross(vector,vector2)), "(-2.000000,13.000000,-8.000000)");
     ASSERT_FLOAT_EQ(angle(vector,vector2), 27.96183f);
     ASSERT_EQ(to_string(project(vector,normalize(vector2))), "(2.259740,1.506494,1.883117)");
+    ASSERT_EQ(to_string(project(vector,normalizesafe(vector2))), "(2.259740,1.506494,1.883117)");
     ASSERT_EQ(to_string(rotate(vector,normalize(vector2),90.0f)), "(2.487662,0.025006,2.794801)");
+    ASSERT_EQ(to_string(project(vector,normalizesafe(float3{0}))), "(0.000000,0.000000,0.000000)");
 }
 
 TEST(Math, Matrix)

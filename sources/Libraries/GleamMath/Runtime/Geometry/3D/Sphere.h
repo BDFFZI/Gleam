@@ -3,23 +3,8 @@
 
 namespace Gleam
 {
-    class Sphere
+    struct Sphere
     {
-    public:
-        Sphere();
-        Sphere(float3 center, float radius);
-
-        float3 GetCenter() const;
-        float GetRadius() const;
-
-        bool Contains(float3 point) const;
-        float3 Extrudes(float3 point) const;
-
-    private:
-#ifdef GleamReflectionRuntime
-        Gleam_MakeType_Friend
-#endif
-        
         float3 center;
         float radius;
     };

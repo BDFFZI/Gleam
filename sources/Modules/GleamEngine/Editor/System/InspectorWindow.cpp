@@ -10,13 +10,13 @@ namespace Gleam
     {
         return useDebugGUI;
     }
-    const CustomGUI& InspectorWindow::GetCustomGUI()
+    const CustomUI& InspectorWindow::GetCustomUI()
     {
         return inspectorGUIs;
     }
-    void InspectorWindow::AddCustomGUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorGUI)
+    void InspectorWindow::AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorUI)
     {
-        inspectorGUIs.insert({typeIndex, drawInspectorGUI});
+        inspectorGUIs.insert({typeIndex, drawInspectorUI});
     }
 
     Entity InspectorWindow::GetTargetEntity()

@@ -5,8 +5,8 @@
 #include "GleamMassSpring/Runtime/Component/Collider.h"
 #include "GleamMassSpring/Runtime/Component/MassPointPhysics.h"
 #include "GleamMassSpring/Runtime/Component/SpringPhysics.h"
-#include "GleamMath/Runtime/Geometry/Basic/Point.h"
-#include "GleamRendering/Editor/EditorUI.h"
+#include "GleamMath/Runtime/Geometry/3D/Point.h"
+#include "GleamRendering/Editor/CustomUI.h"
 #include "GleamRendering/Editor/Gizmos.h"
 
 namespace Gleam

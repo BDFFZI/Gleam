@@ -8,6 +8,7 @@
 
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
+#include "GleamMath/Runtime/Geometry/Geometry.h"
 #include "GleamRendering/Editor/Handles.h"
 #include "GleamWindow/Runtime/System/CursorSystem.h"
 
@@ -63,13 +64,13 @@ namespace Gleam
     {
         return *sceneWindowDrawing;
     }
-    const CustomGUI& SceneWindow::GetCustomGUI()
+    const CustomUI& SceneWindow::GetCustomUI()
     {
         return sceneGUIs;
     }
-    void SceneWindow::AddCustomGUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneGUI)
+    void SceneWindow::AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneUI)
     {
-        sceneGUIs.insert({typeIndex, drawSceneGUI});
+        sceneGUIs.insert({typeIndex, drawSceneUI});
     }
     Entity SceneWindow::GetSceneCamera() const
     {
@@ -158,7 +159,7 @@ namespace Gleam
                 InspectorWindow::Show(sceneCamera);
             // 显示SceneUI（如手柄，网格等）
             ImGui::Checkbox("SceneUI", &showSceneUI);
-          
+
             // //手柄选项
             // {
             //     ImGui::SetNextItemWidth(windowContentSize.x * 0.5f);
@@ -206,8 +207,8 @@ namespace Gleam
             Rectangle rectangle = Rectangle::CreateFromOrigin({windowContentSize.x - size, 0}, {size});
             ImGuizmo::ViewManipulate(
                 cameraWorldToLocal.value.data, 1,
-                windowContentPosition + rectangle.GetMin() + rectangle.GetSize(), -rectangle.GetSize(), 0x10FFFFFF);
-            if (rectangle.Contains(inputSystem.GetMousePosition()))
+                windowContentPosition + rectangle.min + rectangle.GetSize(), -rectangle.GetSize(), 0x10FFFFFF);
+            if (Geometry::Contains(rectangle, inputSystem.GetMousePosition()))
             {
                 float3 position;
                 float3x3 rotation;

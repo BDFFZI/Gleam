@@ -24,7 +24,7 @@ namespace Gleam
             ImGui::EndDragDropSource();
         }
     }
-    void EditorUI::DrawEntity(const Entity entity, const CustomGUI& componentGUI)
+    void EditorUI::DrawEntity(const Entity entity, const CustomUI& componentGUI)
     {
         drawing = entity;
 
@@ -62,7 +62,7 @@ namespace Gleam
             ImGui::PopID();
         }
     }
-    void EditorUI::DrawEntityPure(const Entity entity, const CustomGUI& componentGUI)
+    void EditorUI::DrawEntityPure(const Entity entity, const CustomUI& componentGUI)
     {
         drawing = entity;
 
@@ -190,5 +190,14 @@ namespace Gleam
                 }
             }
         }
+    }
+    void EditorUI::DrawDefaultInspectorUI(void* target, const std::type_index targetType)
+    {
+        EditorUISerializer serializer = {"InspectionTarget"};
+        Type& type = Type::GetType(targetType);
+        if (type.Serialize()) //序列化每个元素
+            type.Serialize()(serializer, target);
+        else //未知类型，当成字段整体传输给序列化器判断
+            serializer.Transfer(target, targetType);
     }
 }

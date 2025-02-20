@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "GleamMath/Runtime/Geometry/Solid/Segment.h"
+#include "GleamMath/Runtime/Geometry/3D/Line.h"
 #include "GleamRendering/Runtime/Asset/Mesh.h"
 
 namespace Gleam

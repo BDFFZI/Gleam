@@ -3,7 +3,7 @@
 #include "GleamECS/Runtime/View.h"
 #include "GleamMassSpring/Runtime/Component/MassPointPhysics.h"
 #include "GleamMassSpring/Runtime/Entity/Archetype.h"
-#include "GleamMath/Runtime/Geometry/Basic/Point.h"
+#include "GleamMath/Runtime/Geometry/3D/Point.h"
 
 void Gleam::PositionSystem::Update()
 {

@@ -1,4 +1,4 @@
-#include "EditorUI.h"
+#include "CustomUI.h"
 
 #include "Gizmos.h"
 #include "Handles.h"
@@ -35,12 +35,12 @@ namespace Gleam
         }
     }
 
-    void SceneGUI_Entity(const Entity entity)
+    void SceneUI_Entity(const Entity entity)
     {
         if (World::HasEntity(entity))
-            EditorUI::DrawEntityPure(entity, SceneWindow::GetCustomGUI());
+            EditorUI::DrawEntityPure(entity, SceneWindow::GetCustomUI());
     }
-    void SceneGUI_LocalToWorld(LocalToWorld& localToWorld)
+    void SceneUI_LocalToWorld(LocalToWorld& localToWorld)
     {
         //获取实体和组件
         Entity entity = EditorUI::GetEntityDrawing();
@@ -56,15 +56,16 @@ namespace Gleam
         else
             Handles::DrawHandle(imGuiOption, localToWorld.value, std::nullopt);
     }
-    void SceneGUI_Point(Point& point)
+    void SceneUI_Point(Point& point)
     {
         if (World::HasComponent<LocalToWorld>(EditorUI::GetEntityDrawing()))
             return;
 
         point.position = Handles::DrawHandle(point.position);
     }
-    void InspectorGUI_Point(Point& point)
+    void InspectorUI_Point(Point& point)
     {
+        EditorUI::DrawDefaultInspectorUI(&point, typeid(point));
         if (LocalToWorld* localToWorld; World::TryGetComponent(EditorUI::GetEntityDrawing(), localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
@@ -76,8 +77,9 @@ namespace Gleam
             Gizmos::DrawPoint(point.position);
         }
     }
-    void InspectorGUI_Segment(Segment& segment)
+    void InspectorUI_Segment(Segment& segment)
     {
+        EditorUI::DrawDefaultInspectorUI(&segment, typeid(segment));
         if (LocalToWorld* localToWorld; World::TryGetComponent(EditorUI::GetEntityDrawing(), localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
@@ -90,12 +92,14 @@ namespace Gleam
         }
     }
 
-    void InspectorGUI_Cuboid(Cuboid& cuboid)
+    void InspectorUI_Cuboid(Cuboid& cuboid)
     {
+        EditorUI::DrawDefaultInspectorUI(&cuboid, typeid(cuboid));
         DrawCuboid(EditorUI::GetEntityDrawing(), cuboid);
     }
-    void InspectorGUI_Sphere(Sphere& sphere)
+    void InspectorUI_Sphere(Sphere& sphere)
     {
+        EditorUI::DrawDefaultInspectorUI(&sphere, typeid(sphere));
         DrawSphere(EditorUI::GetEntityDrawing(), sphere);
     }
 }

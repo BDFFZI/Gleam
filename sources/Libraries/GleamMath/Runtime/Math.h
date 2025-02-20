@@ -77,5 +77,8 @@ namespace Gleam
 
     template <typename Type>
         requires std::is_arithmetic_v<Type>
-    constexpr bool equal(const Type a, const Type b) { return abs(a - b) <= std::numeric_limits<Type>::epsilon(); }
+    constexpr bool equal(const Type a, const Type b)
+    {
+        return abs(a - b) <= std::numeric_limits<Type>::epsilon();
+    }
 }
