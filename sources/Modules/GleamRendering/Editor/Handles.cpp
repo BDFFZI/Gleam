@@ -3,7 +3,6 @@
 
 namespace Gleam
 {
-
     float4x4& Handles::WorldToView()
     {
         return worldToView;
@@ -15,7 +14,7 @@ namespace Gleam
     float3 Handles::DrawHandle(const float3 position)
     {
         float4x4 localToWorld = float4x4::Translate(position);
-        Manipulate(
+        ImGuizmo::Manipulate(
             reinterpret_cast<float*>(&worldToView),
             reinterpret_cast<float*>(&viewToClip),
             ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::LOCAL,
@@ -26,7 +25,7 @@ namespace Gleam
     void Handles::DrawHandle(ImGuizmo::OPERATION operation, float4x4 localToWorld, std::optional<std::reference_wrapper<LocalTransform>> transform)
     {
         //绘制
-        Manipulate(
+        ImGuizmo::Manipulate(
             reinterpret_cast<float*>(&worldToView),
             reinterpret_cast<float*>(&viewToClip),
             operation, ImGuizmo::LOCAL,
@@ -48,6 +47,4 @@ namespace Gleam
             transformValue.scale = scale;
         }
     }
-
-
 }

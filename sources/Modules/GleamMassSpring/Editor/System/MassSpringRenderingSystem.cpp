@@ -11,8 +11,16 @@
 
 namespace Gleam
 {
+    void MassSpringRenderingSystem::SetIsEnabled(const bool state)
+    {
+        isEnabled = state;
+    }
+    
     void MassSpringRenderingSystem::Update()
     {
+        if (isEnabled == false)
+            return;
+
         View<Point, MassPointPhysics, MassPointLastState>::Each([](Entity& entity, Point& point, MassPointPhysics& pointPhysics, MassPointLastState& massPointLastState)
         {
             Gizmos::DrawPoint(point, float4{1, 1 - pointPhysics.drag, 1 - pointPhysics.drag, 1});

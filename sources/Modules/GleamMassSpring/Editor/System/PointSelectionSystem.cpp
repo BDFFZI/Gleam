@@ -4,6 +4,7 @@
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamMath/Runtime/Geometry/3D/Point.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
+#include "GleamRendering/Editor/Handles.h"
 #include "GleamRendering/Editor/System/SceneWindow.h"
 #include "GleamRendering/Runtime/Component/Camera.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
@@ -18,24 +19,25 @@ namespace Gleam
         float4x4 screenToClip = World::GetComponent<ScreenToClip>(SceneWindow.GetSceneCamera()).value;
         float2 mousePositionNDC = mul(screenToClip, float4(inputSystem.GetMousePosition(), 0, 1)).xy;
 
-        optionalEntities.clear();
+        optionalEntity = Entity::Null;
+        optionalEntityZ = 1;
         View<Point>::Each([this,&worldToClip,mousePositionNDC](const Entity entity, const Point& point)
         {
             float4 pointPositionCS = mul(worldToClip, float4(point.position, 1));
-            float2 pointPositionNDC = pointPositionCS.xy / pointPositionCS.w;
+            float3 pointPositionNDC = pointPositionCS.xyz / pointPositionCS.w;
 
-            if (distance(mousePositionNDC, pointPositionNDC) < 0.03f)
-                optionalEntities.push_back(entity);
+            if (pointPositionNDC.z > 0 && pointPositionNDC.z < 1 && distance(mousePositionNDC, pointPositionNDC.xy) < 0.03f)
+            {
+                if (pointPositionNDC.z < optionalEntityZ)
+                {
+                    optionalEntity = entity;
+                    optionalEntityZ = pointPositionNDC.z;
+                }
+            }
         });
 
-        if (!optionalEntities.empty() && inputSystem.GetMouseButtonDown(MouseButton::Left))
-        {
-            Entity currentPoint = InspectorWindow.GetTargetEntity();
-            auto it = std::ranges::find(optionalEntities, currentPoint);
-            if (it == optionalEntities.end() || it + 1 == optionalEntities.end())
-                InspectorWindow.SetTarget(optionalEntities[0]);
-            else
-                InspectorWindow.SetTarget(*(it + 1));
-        }
+        //取消选择
+        if (inputSystem.GetMouseButton(MouseButton::Left) && !ImGuizmo::IsUsingAny())
+            InspectorWindow.SetTarget(optionalEntity);
     }
 }

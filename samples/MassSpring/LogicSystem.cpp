@@ -34,8 +34,8 @@ void LogicSystem::OnCreatePoint() const
 {
     if (InputSystem.GetMouseButtonDown(MouseButton::Left))
     {
-        const Entity entity = World::AddEntity(MassPointArchetype);
-        World::SetComponents(entity, Point{mousePositionWS});
+        // ReSharper disable once CppDeclaratorNeverUsed
+        Entity entity = PhysicsSystem::AddMassPoint(mousePositionWS, drag, mass);
 #ifdef GleamEngineEditor
         InspectorWindow.SetTarget(entity);
 #endif
@@ -76,17 +76,7 @@ void LogicSystem::OnCreateSpring()
         if (InputSystem.GetMouseButtonDown(MouseButton::Left))
         {
             if (coveringPoint != Entity::Null && coveringPoint != springPointA)
-            {
-                Point pointA = World::GetComponent<Point>(springPointA);
-                Point pointB = World::GetComponent<Point>(coveringPoint);
-                Entity entity = World::AddEntity(SpringArchetype);
-                World::SetComponents(
-                    entity, SpringPhysics{
-                        springPointA,
-                        coveringPoint,
-                        distance(pointA.position, pointB.position),
-                    });
-            }
+                PhysicsSystem::AddSpring(springPointA, coveringPoint, elasticity);
 
             springPointA = Entity::Null;
             World::RemoveEntity(tempLine);
@@ -133,7 +123,7 @@ void LogicSystem::Update()
     coveringPoint = Entity::Null;
     View<Point>::Each([this](const Entity entity, const Point& point)
     {
-        if (distance(point.position, mousePositionWS) < 1)
+        if (distance(point.position, mousePositionWS) < 2)
             coveringPoint = entity;
     });
 
@@ -150,4 +140,7 @@ void LogicSystem::Update()
     }
 
     TimeSystem.SetTimeScale(simulating ? 1 : 0);
+
+    for (Entity collider : AssetSystem.colliders)
+        World::SetComponents(collider, Collider{colliderFriction, colliderElasticity});
 }

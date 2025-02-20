@@ -6,6 +6,10 @@
 
 using namespace Gleam;
 
+bool InputSystem::GetIsFocus() const
+{
+    return isFocus;
+}
 bool InputSystem::GetMouseButtonDown(MouseButton mouseButton) const
 {
     const uint8_t index = static_cast<uint8_t>(mouseButton);

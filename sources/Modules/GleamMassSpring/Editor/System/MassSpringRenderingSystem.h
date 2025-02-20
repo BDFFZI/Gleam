@@ -10,8 +10,19 @@ namespace Gleam
         {
         }
 
+        void SetIsEnabled(bool state);
+
     private:
+        Gleam_MakeType_Friend
+
+        bool isEnabled = false;
+
         void Update() override;
     };
     Gleam_MakeGlobalSystem(MassSpringRenderingSystem)
+
+    Gleam_MakeType(MassSpringRenderingSystem_T, "")
+    {
+        Gleam_MakeType_AddField(isEnabled);
+    }
 }

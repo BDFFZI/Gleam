@@ -9,14 +9,15 @@ namespace Gleam
     class PointSelectionSystem : public System
     {
     public:
-        PointSelectionSystem(): System(InspectorWindow, OrderRelation::Before)
+        PointSelectionSystem(): System(EditorUISystem, MaxOrder, MaxOrder)
         {
         }
 
     private:
         Gleam_MakeType_Friend
 
-        std::vector<Entity> optionalEntities;
+        Entity optionalEntity = Entity::Null;
+        float optionalEntityZ = 1;
 
         void Update() override;
     };
@@ -24,6 +25,6 @@ namespace Gleam
 
     Gleam_MakeType(PointSelectionSystem_T, "")
     {
-        Gleam_MakeType_AddField(optionalEntities);
+        Gleam_MakeType_AddField(optionalEntity);
     }
 }

@@ -11,7 +11,7 @@ namespace Gleam
         View<Camera, ViewToClip>::Each(
             [](Camera& camera, ViewToClip& worldToClip)
             {
-                float aspect = camera.renderTarget.value_or(RenderingSystem.GetDefaultRenderTarget())->GetAspect();
+                float aspect = camera.renderTarget.value_or(RenderingSystem.GetDefaultRenderTarget()).get().GetAspect();
                 worldToClip.value =
                     camera.orthographic
                         ? float4x4::Ortho(
@@ -36,13 +36,20 @@ namespace Gleam
 
         View<Camera, ScreenToClip>::Each([](Camera& camera, ScreenToClip& screenToClip)
         {
-            GRenderTarget* renderTarget = camera.renderTarget.value_or(RenderingSystem.GetDefaultRenderTarget());
+            GRenderTarget& renderTarget = camera.renderTarget.value_or(RenderingSystem.GetDefaultRenderTarget());
             screenToClip.value = float4x4{
-                2 / static_cast<float>(renderTarget->width), 0, 0, -1.0f,
-                0, -2 / static_cast<float>(renderTarget->height), 0, 1.0f,
+                2 / static_cast<float>(renderTarget.width), 0, 0, -1.0f,
+                0, -2 / static_cast<float>(renderTarget.height), 0, 1.0f,
                 0, 0, 1, 0,
                 0, 0, 0, 1,
             };
         });
+
+        View<ScreenToClip, WorldToClip, ScreenToWorld>::Each(
+            [](ScreenToClip& screenToClip, WorldToClip& worldToClip, ScreenToWorld& screenToWorld)
+            {
+                screenToWorld.value = mul(inverse(worldToClip.value), screenToClip.value);
+            }
+        );
     }
 }

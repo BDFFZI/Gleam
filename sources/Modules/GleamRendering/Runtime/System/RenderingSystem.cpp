@@ -36,13 +36,13 @@ namespace Gleam
         return renderQueue < other.renderQueue;
     }
 
-    GRenderTarget* RenderingSystem::GetDefaultRenderTarget() const
+    GRenderTarget& RenderingSystem::GetDefaultRenderTarget() const
     {
-        return defaultRenderTarget;
+        return *defaultRenderTarget;
     }
-    void RenderingSystem::SetDefaultRenderTarget(GRenderTarget* renderTarget)
+    void RenderingSystem::SetDefaultRenderTarget(GRenderTarget& renderTarget)
     {
-        defaultRenderTarget = renderTarget;
+        defaultRenderTarget = &renderTarget;
     }
     void RenderingSystem::AddRendererInfo(const RendererInfo& rendererInfo)
     {
@@ -72,8 +72,8 @@ namespace Gleam
         {
             commandBuffer.SetWorldInfo(WorldInfo{TimeSystem.GetTime()});
             //设置相机参数
-            GRenderTarget* renderTarget = cameraInfo.camera->renderTarget.value_or(defaultRenderTarget);
-            commandBuffer.SetRenderTarget(*renderTarget);
+            GRenderTarget& renderTarget = cameraInfo.camera->renderTarget.value_or(*defaultRenderTarget);
+            commandBuffer.SetRenderTarget(renderTarget);
             commandBuffer.ClearRenderTarget(cameraInfo.camera->background);
             //绘制每个渲染器
             for (const auto& rendererInfo : rendererInfos)

@@ -7,14 +7,17 @@
 
 namespace Gleam
 {
-    Entity PhysicsSystem::AddMassPoint(const float3 position)
+    Entity PhysicsSystem::AddMassPoint(const float3 position, float drag, float mass)
     {
         Point point = Point{position};
         MassPointLastState massPointLastState = {};
         massPointLastState.lastPosition = position;
+        MassPointPhysics massPointPhysics = {};
+        massPointPhysics.drag = drag;
+        massPointPhysics.mass = mass;
 
         const Entity entity = World::AddEntity(MassPointArchetype);
-        World::SetComponents(entity, point, massPointLastState);
+        World::SetComponents(entity, point, massPointLastState, massPointPhysics);
         return entity;
     }
     Entity PhysicsSystem::AddSpring(const Entity massPointA, const Entity massPointB, const float elasticity)

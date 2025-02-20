@@ -1,6 +1,7 @@
 #include "GleamECS/Runtime/System.h"
 #include "GleamECS/Runtime/World.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
+#include "GleamMassSpring/Editor/System/MassSpringRenderingSystem.h"
 #include "GleamMassSpring/Runtime/Entity/Archetype.h"
 #include "GleamMassSpring/Runtime/System/PhysicsSystem.h"
 
@@ -14,6 +15,8 @@ class TestSystem : public System
 {
     void Start() override
     {
+        MassSpringRenderingSystem.SetIsEnabled(true);
+
         MassPointPhysics fixedPoint = {};
         fixedPoint.drag = 1;
 
@@ -46,9 +49,10 @@ class TestSystem : public System
         //弹簧
         {
             Entity pointA = PhysicsSystem::AddMassPoint(float3{0, 0, 0});
-            Entity pointB = PhysicsSystem::AddMassPoint(float3{10, 0, 0});
+            Entity pointB = PhysicsSystem::AddMassPoint(float3{5, 0, 0});
 
             World::SetComponents(pointA, fixedPoint);
+            World::SetComponents(pointB, MassPointPhysics{1, 0});
 
             PhysicsSystem::AddSpring(pointA, pointB);
         }
@@ -104,7 +108,7 @@ class TestSystem : public System
         }
 
         //碰撞
-        for (int i = 0; i < 3; i++)
+        for (int i = 1; i < 3; i++)
         {
             Entity collider = World::AddEntity(SphereCollider);
             World::SetComponents(collider, LocalTransform{float3{0, -10, i * 10.0f}}, Sphere{0, 5});

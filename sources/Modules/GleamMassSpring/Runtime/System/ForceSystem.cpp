@@ -30,7 +30,7 @@ void Gleam::ForceSystem::Update()
         massPointPhysicsB->force += elasticity_BToA;
         massPointPhysicsA->force -= elasticity_BToA;
 
-        //阻力，衰竭一定的弹簧力以弥补积分误差（采用半隐式欧拉的方法计算，减少误差）
+        //阻力，衰竭一定的弹簧力以弥补积分误差（阻力多或少都会导致问题，为什么？）
         float3 forceB = massPointLastStateB->lastForce + massPointPhysicsB->force;
         float3 forceA = massPointLastStateA->lastForce + massPointPhysicsA->force;
         float force_BToA = dot(forceB - forceA, offsetDirection_BToA); //使B向A接近的力总和

@@ -39,13 +39,13 @@ namespace Gleam
         {
         }
 
-        GRenderTarget* GetDefaultRenderTarget() const;
-        void SetDefaultRenderTarget(GRenderTarget* renderTarget);
+        GRenderTarget& GetDefaultRenderTarget() const;
+        void SetDefaultRenderTarget(GRenderTarget& renderTarget);
 
         void AddRendererInfo(const RendererInfo& rendererInfo);
 
     private:
-        GRenderTarget* defaultRenderTarget = nullptr;
+        GRenderTarget* defaultRenderTarget = {};
         std::multiset<CameraInfo> cameraInfos;
         std::multiset<RendererInfo> rendererInfos;
 

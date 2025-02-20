@@ -65,7 +65,7 @@ class TestSystem : public System
         for (int i = 0; i < 5; i++)
             Gizmos::DrawSphere(Sphere({Random::OnUnitSphere() * 5}, {Random::Value()}), Random::ColorHSV());
         Gizmos::PushLocalToWorld(float4x4::TRS(float3{-1, 0, 0}, float3{-90, 0, 0}, abs(std::sin(TimeSystem.GetTime())) + 1));
-        Gizmos::DrawPoint(Point{1, 1, 0}, float4::Red());
+        Gizmos::DrawPoint(float3{1, 1, 0}, float4::Red());
         Gizmos::DrawSegment(Segment{{1, 0, 0}, {1, 1, 1}}, float4::Red());
         Gizmos::PopLocalToWorld();
     }

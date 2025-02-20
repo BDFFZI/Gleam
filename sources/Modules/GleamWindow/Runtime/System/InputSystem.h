@@ -18,6 +18,7 @@ namespace Gleam
         {
         }
 
+        bool GetIsFocus() const;
         bool GetMouseButtonDown(MouseButton mouseButton) const;
         bool GetMouseButton(MouseButton mouseButton) const;
         bool GetMouseButtonUp(MouseButton mouseButton) const;

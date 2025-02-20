@@ -15,49 +15,88 @@
 namespace Gleam
 {
     void ControlCamera(
-        class InputSystem& inputSystem, class TimeSystem& timeSystem, float3& eulerAngles,
-        LocalTransform& localTransform, LocalToWorld localToWorld)
+        class InputSystem& inputSystem, class TimeSystem& timeSystem,
+        LocalTransform& localTransform, LocalToWorld localToWorld, Camera& camera,
+        float& moveSpeed)
     {
+        //用于旋转时保持欧拉角信息，以解决万向锁导致的旋转退化问题
+        static float3 eulerAngles = 0;
+
         const float deltaTime = timeSystem.GetDeltaTime();
-        const auto moveSpeed = static_cast<float>(4 * (inputSystem.GetKey(KeyCode::LeftShift) ? 3 : 1));
+        const float moveDelta = deltaTime * static_cast<float>(4 * (inputSystem.GetKey(KeyCode::LeftShift) ? 3 : 1)) * moveSpeed;
 
         float3 right = localToWorld.GetRight();
         float3 up = localToWorld.GetUp();
         float3 forward = localToWorld.GetForward();
 
-        //位置调整
-        float3 position = localTransform.position;
-        if (inputSystem.GetKey(KeyCode::W))
+        if (inputSystem.GetMouseButtonDown(MouseButton::Right))
         {
-            position += forward * deltaTime * moveSpeed;
+            CursorSystem.SetLockState(true);
+            CursorSystem.SetVisible(false);
+            eulerAngles = localTransform.rotation.ToEulerAngles();
         }
-        if (inputSystem.GetKey(KeyCode::S))
+        else if (inputSystem.GetMouseButtonUp(MouseButton::Right))
         {
-            position += -forward * deltaTime * moveSpeed;
+            CursorSystem.SetLockState(false);
+            CursorSystem.SetVisible(true);
         }
-        if (inputSystem.GetKey(KeyCode::A))
+        else if (inputSystem.GetMouseButton(MouseButton::Right))
         {
-            position += -right * deltaTime * moveSpeed;
-        }
-        if (inputSystem.GetKey(KeyCode::D))
-        {
-            position += right * deltaTime * moveSpeed;
-        }
-        if (inputSystem.GetKey(KeyCode::Q))
-        {
-            position += -up * deltaTime * moveSpeed;
-        }
-        if (inputSystem.GetKey(KeyCode::E))
-        {
-            position += up * deltaTime * moveSpeed;
-        }
-        localTransform.position = position;
+            //速度调整
+            moveSpeed = clamp(moveSpeed + inputSystem.GetMouseScrollDelta().y * deltaTime * 10, 0.01f, 3.0f);
 
-        //视角调整
-        const float2 mouseMoveDelta = inputSystem.GetMouseMoveDelta();
-        eulerAngles.x += mouseMoveDelta.y * deltaTime * 50;
-        eulerAngles.y += mouseMoveDelta.x * deltaTime * 50;
-        localTransform.rotation = Quaternion::Euler(eulerAngles);
+            //位置调整
+            float3 position = localTransform.position;
+            if (inputSystem.GetKey(KeyCode::W))
+            {
+                position += forward * moveDelta;
+            }
+            if (inputSystem.GetKey(KeyCode::S))
+            {
+                position += -forward * moveDelta;
+            }
+            if (inputSystem.GetKey(KeyCode::A))
+            {
+                position += -right * moveDelta;
+            }
+            if (inputSystem.GetKey(KeyCode::D))
+            {
+                position += right * moveDelta;
+            }
+            if (inputSystem.GetKey(KeyCode::Q))
+            {
+                position += -up * moveDelta;
+            }
+            if (inputSystem.GetKey(KeyCode::E))
+            {
+                position += up * moveDelta;
+            }
+            localTransform.position = position;
+
+            //视角调整
+            const float2 mouseMoveDelta = inputSystem.GetMouseMoveDelta();
+            eulerAngles.x += mouseMoveDelta.y * deltaTime * 50;
+            eulerAngles.y += mouseMoveDelta.x * deltaTime * 50;
+            localTransform.rotation = Quaternion::Euler(eulerAngles);
+        }
+        else
+        {
+            //鼠标滚轮视角缩放
+            if (inputSystem.GetIsFocus())
+            {
+                if (camera.orthographic)
+                    camera.halfHeight = max(1.0f, camera.halfHeight - inputSystem.GetMouseScrollDelta().y * moveDelta * 30);
+                else
+                    localTransform.position += forward * inputSystem.GetMouseScrollDelta().y * moveDelta * 30;
+            }
+
+            //鼠标中间平移
+            if (inputSystem.GetMouseButton(MouseButton::Middle))
+            {
+                localTransform.position += right * -inputSystem.GetMouseMoveDelta().x * moveDelta;
+                localTransform.position += up * inputSystem.GetMouseMoveDelta().y * moveDelta;
+            }
+        }
     }
 
     class SceneWindow& SceneWindow::GetSceneWindowDrawing()
@@ -80,6 +119,10 @@ namespace Gleam
     {
         return inputSystem;
     }
+    TimeSystem_T& SceneWindow::GetSceneTimeSystem()
+    {
+        return timeSystem;
+    }
     int SceneWindow::GetHandleOption() const
     {
         return handleOption;
@@ -98,28 +141,17 @@ namespace Gleam
                 if (sceneCameraCanvasImID != nullptr)
                     UI::DeleteTexture(sceneCameraCanvasImID);
                 sceneCameraCanvas = std::make_unique<GRenderTexture>(static_cast<int2>(windowContentSize));
-                World::GetComponent<Camera>(sceneCamera).renderTarget = sceneCameraCanvas.get();
+                World::GetComponent<Camera>(sceneCamera).renderTarget = *sceneCameraCanvas;
                 sceneCameraCanvasImID = UI::CreateTexture(*sceneCameraCanvas);
             }
             //相机控制
+            Camera& camera = World::GetComponent<Camera>(sceneCamera);
             LocalTransform& cameraTransform = World::GetComponent<LocalTransform>(sceneCamera);
             LocalToWorld& cameraLocalToWorld = World::GetComponent<LocalToWorld>(sceneCamera);
-            if (inputSystem.GetMouseButtonDown(MouseButton::Right))
-            {
-                CursorSystem.SetLockState(true);
-                CursorSystem.SetVisible(false);
-                eulerAngles = cameraTransform.rotation.ToEulerAngles();
-            }
-            else if (inputSystem.GetMouseButtonUp(MouseButton::Right))
-            {
-                CursorSystem.SetLockState(false);
-                CursorSystem.SetVisible(true);
-            }
-            else if (inputSystem.GetMouseButton(MouseButton::Right))
-            {
-                ControlCamera(inputSystem, timeSystem, eulerAngles, cameraTransform, cameraLocalToWorld);
-                cameraTransformSaving = cameraTransform;
-            }
+            ControlCamera(inputSystem, timeSystem, cameraTransform, cameraLocalToWorld, camera, moveSpeed);
+            cameraTransformSaving = cameraTransform;
+            cameraSaving = camera;
+            cameraSaving.renderTarget = std::nullopt;
         };
         World::AddSystem(preProcessSystem);
         World::AddSystem(inputSystem);
@@ -127,6 +159,7 @@ namespace Gleam
 
         sceneCamera = World::AddEntity(SceneCameraArchetype);
         World::SetComponents(sceneCamera, cameraTransformSaving);
+        World::SetComponents(sceneCamera, cameraSaving);
     }
     void SceneWindow::Stop()
     {
@@ -154,11 +187,16 @@ namespace Gleam
         //绘制菜单选项
         if (ImGui::BeginMenuBar())
         {
-            // 查看场景相机
-            if (ImGui::MenuItem("Camera"))
+            ImGui::PushItemWidth(windowContentSize.x / 5);
+            //相机属性
+            if (ImGui::Button("Camera"))
                 InspectorWindow::Show(sceneCamera);
+            ImGui::Checkbox("Ortho", &World::GetComponent<Camera>(sceneCamera).orthographic);
+            ImGui::DragFloat("Speed", &moveSpeed);
             // 显示SceneUI（如手柄，网格等）
             ImGui::Checkbox("SceneUI", &showSceneUI);
+
+            ImGui::PopItemWidth();
 
             // //手柄选项
             // {
@@ -177,6 +215,7 @@ namespace Gleam
 
             ImGui::EndMenuBar();
         }
+
 
         //绘制相机画面
         if (sceneCameraCanvasImID != nullptr)

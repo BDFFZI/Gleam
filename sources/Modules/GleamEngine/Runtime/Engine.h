@@ -19,11 +19,17 @@ namespace Gleam
          * @return 
          */
         template <typename TSystem> requires std::derived_from<TSystem, System>
-        static TSystem CreateSystem(const std::string_view name = typeid(TSystem).name())
+        static TSystem CreateSystem(const std::string_view name = "")
         {
             TSystem system = {};
-            if (system.GetName().empty())
+            if (!name.empty())
                 system.GetName() = name;
+            else if (system.GetName().empty())
+            {
+                std::string defaultName = std::string(typeid(TSystem).name());
+                defaultName = defaultName.substr(defaultName.find_last_of(' ') + 1);
+                system.GetName() = defaultName;
+            }
             Type type = Type::GetType(typeid(TSystem));
             if (type.IsInitialized() == false)
                 Type::Init<TSystem>("", typeid(System));

@@ -2,6 +2,7 @@
 
 #include <imgui_impl_vulkan.h>
 
+#include "SceneWindow.h"
 #include "GleamECS/Runtime/View.h"
 #include "GleamECS/Runtime/World.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
@@ -22,7 +23,7 @@ namespace Gleam
             {
                 isDirty = false;
                 renderTexture = std::make_unique<GRenderTexture>(static_cast<int2>(windowSize));
-                RenderingSystem.SetDefaultRenderTarget(renderTexture.get());
+                RenderingSystem.SetDefaultRenderTarget(*renderTexture);
                 if (renderTextureID != nullptr)
                     UI::DeleteTexture(renderTextureID);
                 renderTextureID = UI::CreateTexture(*renderTexture);
@@ -68,7 +69,7 @@ namespace Gleam
         }
         //帧率信息
         static float deltaTime = 0;
-        deltaTime = std::lerp(deltaTime, TimeSystem.GetDeltaTimeReal(), 0.05f);
+        deltaTime = std::lerp(deltaTime, SceneWindow.GetSceneTimeSystem().GetDeltaTimeReal(), 0.3f);
         ImGui::SetCursorPos(cursor);
         ImGui::TextColored(
             float4::Magenta(),
