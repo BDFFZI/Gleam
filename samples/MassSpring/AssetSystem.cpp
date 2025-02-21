@@ -43,52 +43,53 @@ void AssetSystem::Start()
         });
 
     //添加质点
-    Entity massPoints[5][5];
+    Entity particles[5][5];
     constexpr int length = 4;
     for (int i = 0, y = -8; i < 5; i++, y += length)
         for (int j = 0, x = -8; j < 5; j++, x += length)
         {
-            massPoints[i][j] = PhysicsSystem::AddMassPoint(
+            particles[i][j] = PhysicsSystem::AddMassPoint(
                 float3{static_cast<float>(x), static_cast<float>(y), 1}, 0.01f
             );
         }
     //添加弹簧
+    float elasticity = 0.5f;
     for (int y = 0; y < 5; y++)
         for (int x = 0; x < 5; x++)
         {
             //维持内部结构
             if (x + 1 < 5)
-                PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y][x + 1], 1000);
+                PhysicsSystem::AddSpring(particles[y][x], particles[y][x + 1], elasticity);
             if (y + 1 < 5)
-                PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y + 1][x], 1000);
+                PhysicsSystem::AddSpring(particles[y][x], particles[y + 1][x], elasticity);
             if (x + 1 < 5 && y + 1 < 5) //右下
-                PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y + 1][x + 1], 1000);
+                PhysicsSystem::AddSpring(particles[y][x], particles[y + 1][x + 1], elasticity);
             if (x + 1 < 5 && y - 1 >= 0) //右上
-                PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y - 1][x + 1], 1000);
+                PhysicsSystem::AddSpring(particles[y][x], particles[y - 1][x + 1], elasticity);
             //维持整体横向结构
             if (x == 0)
-                PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y][4], 1000);
+                PhysicsSystem::AddSpring(particles[y][x], particles[y][4], elasticity);
             if (y == 0)
-                PhysicsSystem::AddSpring(massPoints[y][x], massPoints[4][x], 1000);
+                PhysicsSystem::AddSpring(particles[y][x], particles[4][x], elasticity);
             //维持整体斜向结构
             if (x == 0)
             {
                 if (y != 0) //右上
-                    PhysicsSystem::AddSpring(massPoints[y][x], massPoints[0][y], 1000);
+                    PhysicsSystem::AddSpring(particles[y][x], particles[0][y], elasticity);
                 if (y != 4) //右下
-                    PhysicsSystem::AddSpring(massPoints[y][x], massPoints[4][4 - y], 1000);
+                    PhysicsSystem::AddSpring(particles[y][x], particles[4][4 - y], elasticity);
             }
             if (x == 4)
             {
                 if (y != 0 && y != 4) //左上
-                    PhysicsSystem::AddSpring(massPoints[y][x], massPoints[0][4 - y], 1000);
+                    PhysicsSystem::AddSpring(particles[y][x], particles[0][4 - y], elasticity);
                 if (y != 4 && y != 0) //左下
-                    PhysicsSystem::AddSpring(massPoints[y][x], massPoints[4][y], 1000);
+                    PhysicsSystem::AddSpring(particles[y][x], particles[4][y], elasticity);
             }
             //辅助弹簧（移除后仍然能维持结构，但加上效果更真实）
             if (x + 2 < 5)
-                PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y][x + 2], 1000);
+                PhysicsSystem::AddSpring(particles[y][x], particles[y][x + 2], elasticity);
             if (y + 2 < 5)
-                PhysicsSystem::AddSpring(massPoints[y][x], massPoints[y + 2][x], 1000);
+                PhysicsSystem::AddSpring(particles[y][x], particles[y + 2][x], elasticity);
         }
 }

@@ -27,7 +27,6 @@ namespace Gleam
 
     Gleam_MakeSceneUI(Entity, SceneUI_Entity)
     Gleam_MakeSceneUI(LocalToWorld, SceneUI_LocalToWorld)
-    Gleam_MakeSceneUI(Point, SceneUI_Point)
     Gleam_MakeInspectorUI(Point, InspectorUI_Point)
     Gleam_MakeInspectorUI(Segment, InspectorUI_Segment)
     Gleam_MakeInspectorUI(Cuboid, InspectorUI_Cuboid)

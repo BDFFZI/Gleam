@@ -2,32 +2,25 @@
 
 #include "GleamECS/Runtime/World.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
-#include "GleamMassSpring/Runtime/Component/MassPointPhysics.h"
+#include "GleamMassSpring/Runtime/Component/Particle.h"
 #include "GleamMassSpring/Runtime/Entity/Archetype.h"
 
 namespace Gleam
 {
-    Entity PhysicsSystem::AddMassPoint(const float3 position, float drag, float mass)
+    Entity PhysicsSystem::AddMassPoint(const float3 position, const float drag, const float mass)
     {
-        Point point = Point{position};
-        MassPointLastState massPointLastState = {};
-        massPointLastState.lastPosition = position;
-        MassPointPhysics massPointPhysics = {};
-        massPointPhysics.drag = drag;
-        massPointPhysics.mass = mass;
-
         const Entity entity = World::AddEntity(MassPointArchetype);
-        World::SetComponents(entity, point, massPointLastState, massPointPhysics);
+        World::SetComponents(entity, Particle{position, position, mass, drag});
         return entity;
     }
-    Entity PhysicsSystem::AddSpring(const Entity massPointA, const Entity massPointB, const float elasticity)
+    Entity PhysicsSystem::AddSpring(const Entity particleA, const Entity particleB, const float elasticity)
     {
-        Point pointA = World::GetComponent<Point>(massPointA);
-        Point pointB = World::GetComponent<Point>(massPointB);
+        Particle& pointA = World::GetComponent<Particle>(particleA);
+        Particle& pointB = World::GetComponent<Particle>(particleB);
         float length = distance(pointA.position, pointB.position);
 
         Entity entity = World::AddEntity(SpringArchetype);
-        World::SetComponents(entity, SpringPhysics{massPointA, massPointB, length, elasticity});
+        World::SetComponents(entity, Spring{particleA, particleB, length, elasticity});
         return entity;
     }
     void PhysicsSystem::Update()

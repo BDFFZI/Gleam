@@ -3,8 +3,8 @@
 #include "GleamECS/Runtime/View.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamMassSpring/Runtime/Component/Collider.h"
-#include "GleamMassSpring/Runtime/Component/MassPointPhysics.h"
-#include "GleamMassSpring/Runtime/Component/SpringPhysics.h"
+#include "GleamMassSpring/Runtime/Component/Particle.h"
+#include "GleamMassSpring/Runtime/Component/Spring.h"
 #include "GleamMath/Runtime/Geometry/3D/Point.h"
 #include "GleamRendering/Editor/CustomUI.h"
 #include "GleamRendering/Editor/Gizmos.h"
@@ -21,17 +21,17 @@ namespace Gleam
         if (isEnabled == false)
             return;
 
-        View<Point, MassPointPhysics, MassPointLastState>::Each([](Entity& entity, Point& point, MassPointPhysics& pointPhysics, MassPointLastState& massPointLastState)
+        View<Particle>::Each([](Entity& entity,Particle& particle)
         {
-            Gizmos::DrawPoint(point, float4{1, 1 - pointPhysics.drag, 1 - pointPhysics.drag, 1});
+            Gizmos::DrawPoint(particle.position, float4{1, 1 - particle.drag, 1 - particle.drag, 1});
             if (entity == InspectorWindow.GetTargetEntity())
-                Gizmos::DrawPoint(massPointLastState.lastPosition, float4::Blue());
+                Gizmos::DrawPoint(particle.lastPosition, float4::Blue());
         });
-        View<SpringPhysics>::Each([](SpringPhysics& springPhysics)
+        View<Spring>::Each([](Spring& springPhysics)
         {
-            Point pointA = World::GetComponent<Point>(springPhysics.pointA);
-            Point pointB = World::GetComponent<Point>(springPhysics.pointB);
-            Gizmos::DrawSegment(Segment{pointA.position, pointB.position});
+            Particle& particleA = World::GetComponent<Particle>(springPhysics.particleA);
+            Particle& particleB = World::GetComponent<Particle>(springPhysics.particleB);
+            Gizmos::DrawSegment(Segment{particleA.position, particleB.position});
         });
         View<Cuboid, Collider>::Each([](Entity& entity, Cuboid& cuboid, Collider&)
         {

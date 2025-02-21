@@ -2,46 +2,40 @@
 
 #include "GleamECS/Runtime/View.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
-#include "GleamMassSpring/Runtime/Component/SpringPhysics.h"
+#include "GleamMassSpring/Runtime/Component/Spring.h"
 
 void Gleam::ForceSystem::Update()
 {
     //弹簧力
-    View<SpringPhysics>::Each([](SpringPhysics& springPhysics)
+    View<Spring>::Each([](Spring& spring)
     {
-        Point* pointA;
-        MassPointPhysics* massPointPhysicsA;
-        MassPointLastState* massPointLastStateA;
-        World::GetComponents(springPhysics.pointA, pointA, massPointPhysicsA, massPointLastStateA);
-        Point* pointB;
-        MassPointPhysics* massPointPhysicsB;
-        MassPointLastState* massPointLastStateB;
-        World::GetComponents(springPhysics.pointB, pointB, massPointPhysicsB, massPointLastStateB);
+        Particle& particleA = World::GetComponent<Particle>(spring.particleA);
+        Particle& particleB = World::GetComponent<Particle>(spring.particleB);
 
-        //胡克定律：弹力=方向*弹力系数*距离
-        float3 offset_BToA = pointA->position - pointB->position;
-        float offsetSqrMagnitude_BToA = dot(offset_BToA, offset_BToA);
-        if (offsetSqrMagnitude_BToA < std::numeric_limits<float>::epsilon())
-            return;
-
-        float offsetMagnitude_BToA = std::sqrt(offsetSqrMagnitude_BToA);
-        float3 offsetDirection_BToA = offset_BToA / offsetMagnitude_BToA;
-        float3 elasticity_BToA = offsetDirection_BToA * springPhysics.elasticity * (offsetMagnitude_BToA - springPhysics.length);
-        massPointPhysicsB->force += elasticity_BToA;
-        massPointPhysicsA->force -= elasticity_BToA;
-
-        //阻力，衰竭一定的弹簧力以弥补积分误差（阻力多或少都会导致问题，为什么？）
-        float3 forceB = massPointLastStateB->lastForce + massPointPhysicsB->force;
-        float3 forceA = massPointLastStateA->lastForce + massPointPhysicsA->force;
-        float force_BToA = dot(forceB - forceA, offsetDirection_BToA); //使B向A接近的力总和
-        float3 resistance_BToA = -offsetDirection_BToA * springPhysics.resistance * force_BToA;
-        massPointPhysicsB->force += resistance_BToA;
-        massPointPhysicsA->force -= resistance_BToA;
+        //空气阻力不能为0是因为后面会用他做除法，来判断两端质点的位移权重
+        float dragA = max(std::numeric_limits<float>::epsilon(), 1 - particleA.drag);
+        float dragB = max(std::numeric_limits<float>::epsilon(), 1 - particleB.drag);
+        //使用质点结算速度后的位置信息，这种基于隐式欧拉的计算方法可以提高模拟稳定性，因为它能考虑到与当前其他力的相互作用，从而能模拟一定的弹簧阻力
+        float3 positionA = particleA.position + (particleA.position - particleA.lastPosition) * dragA;
+        float3 positionB = particleA.position + (particleA.position - particleA.lastPosition) * dragB;
+        //计算最佳约束点，最佳约束点即完全满足弹簧长度要求的位置，质点到此位置时将不会受到任何弹力
+        float3 vector = positionA - positionB;
+        float tendency = length(vector) - spring.length;
+        float3 direction = normalize(vector) * sign(tendency); //最佳约束位置所在方向
+        float distance = std::abs(tendency); //离最佳约束位置的距离
+        //计算因弹簧弹力性质影响的实际约束点。正因为不会一次性抵达最佳约束点，所以在会有弹来弹去的效果。
+        //实际约束点最远不能超过最佳约束点1倍距离，因为大于1后每次迭代只会越来越远，最终弹簧将崩溃。
+        float move = std::lerp(0.0f, 2 * distance, spring.elasticity * 0.5f);
+        //弹簧会使两端质点一起位移来满足约束要求。要考虑两端质点阻力不同，分配不同的位移权重，
+        //以便在阻力影响下也能正确达到约束位置，同时这也可以防止固定点被拉拽。
+        float moveWeight = std::lerp(0.0f, 1.0f, dragB / (dragB + dragA));
+        particleB.position += move * moveWeight / particleB.mass * direction;
+        particleA.position += move * (1 - moveWeight) / particleA.mass * -direction;
     });
 
     //重力
-    View<MassPointPhysics>::Each([](MassPointPhysics& massPointPhysics)
+    View<Particle>::Each([](Particle& particle)
     {
-        massPointPhysics.force += PhysicsSystem.GetGravity() * massPointPhysics.mass;
+        particle.position += PhysicsSystem.GetGravity() * TimeSystem.GetFixedDeltaTime() * TimeSystem.GetFixedDeltaTime();
     });
 }

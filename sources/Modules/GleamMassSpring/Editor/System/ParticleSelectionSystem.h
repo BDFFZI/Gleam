@@ -6,10 +6,10 @@
 
 namespace Gleam
 {
-    class PointSelectionSystem : public System
+    class ParticleSelectionSystem : public System
     {
     public:
-        PointSelectionSystem(): System(EditorUISystem, MaxOrder, MaxOrder)
+        ParticleSelectionSystem(): System(EditorUISystem, MaxOrder, MaxOrder)
         {
         }
 
@@ -21,9 +21,9 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(PointSelectionSystem)
+    Gleam_MakeGlobalSystem(ParticleSelectionSystem)
 
-    Gleam_MakeType(PointSelectionSystem_T, "")
+    Gleam_MakeType(ParticleSelectionSystem_T, "")
     {
         Gleam_MakeType_AddField(optionalEntity);
     }

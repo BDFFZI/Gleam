@@ -1,8 +1,8 @@
-#include "PointSelectionSystem.h"
+#include "ParticleSelectionSystem.h"
 
 #include "GleamECS/Runtime/View.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
-#include "GleamMath/Runtime/Geometry/3D/Point.h"
+#include "GleamMassSpring/Runtime/Component/Particle.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamRendering/Editor/Handles.h"
 #include "GleamRendering/Editor/System/SceneWindow.h"
@@ -11,7 +11,7 @@
 
 namespace Gleam
 {
-    void PointSelectionSystem::Update()
+    void ParticleSelectionSystem::Update()
     {
         InputSystem_T& inputSystem = SceneWindow.GetSceneInputSystem();
 
@@ -21,7 +21,7 @@ namespace Gleam
 
         optionalEntity = Entity::Null;
         optionalEntityZ = 1;
-        View<Point>::Each([this,&worldToClip,mousePositionNDC](const Entity entity, const Point& point)
+        View<Particle>::Each([this,&worldToClip,mousePositionNDC](const Entity entity, const Particle& point)
         {
             float4 pointPositionCS = mul(worldToClip, float4(point.position, 1));
             float3 pointPositionNDC = pointPositionCS.xyz / pointPositionCS.w;

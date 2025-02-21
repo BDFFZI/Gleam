@@ -56,13 +56,7 @@ namespace Gleam
         else
             Handles::DrawHandle(imGuiOption, localToWorld.value, std::nullopt);
     }
-    void SceneUI_Point(Point& point)
-    {
-        if (World::HasComponent<LocalToWorld>(EditorUI::GetEntityDrawing()))
-            return;
 
-        point.position = Handles::DrawHandle(point.position);
-    }
     void InspectorUI_Point(Point& point)
     {
         EditorUI::DrawDefaultInspectorUI(&point, typeid(point));
@@ -91,7 +85,6 @@ namespace Gleam
             Gizmos::DrawSegment(segment);
         }
     }
-
     void InspectorUI_Cuboid(Cuboid& cuboid)
     {
         EditorUI::DrawDefaultInspectorUI(&cuboid, typeid(cuboid));

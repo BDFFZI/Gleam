@@ -13,7 +13,6 @@ namespace Gleam
 
     void SceneUI_Entity(Entity entity);
     void SceneUI_LocalToWorld(LocalToWorld& localToWorld);
-    void SceneUI_Point(Point& point);
 
     void InspectorUI_Point(Point& point);
     void InspectorUI_Segment(Segment& segment);

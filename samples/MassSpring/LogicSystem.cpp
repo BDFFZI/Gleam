@@ -4,7 +4,7 @@
 #include "GleamWindow/Runtime/System/InputSystem.h"
 #include "GleamECS/Runtime/View.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
-#include "GleamMassSpring/Runtime/Component/MassPointPhysics.h"
+#include "GleamMassSpring/Runtime/Component/Particle.h"
 #include "GleamMassSpring/Runtime/Entity/Archetype.h"
 #include "GleamMath/Runtime/Geometry/3D/Point.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
@@ -48,9 +48,9 @@ void LogicSystem::OnDeletePoint()
     if (InputSystem.GetMouseButtonDown(MouseButton::Left) && coveringPoint != Entity::Null)
     {
         lines.clear();
-        View<SpringPhysics>::Each([this](const Entity entity, SpringPhysics& springPhysics)
+        View<Spring>::Each([this](const Entity entity, Spring& springPhysics)
         {
-            if (springPhysics.pointA == coveringPoint || springPhysics.pointB == coveringPoint)
+            if (springPhysics.particleA == coveringPoint || springPhysics.particleB == coveringPoint)
                 lines.push_back(entity);
         });
         for (Entity entity : lines)
@@ -95,11 +95,11 @@ void LogicSystem::Start()
 {
     fixedPointSystem.OnUpdate() = [this]
     {
-        View<Point, MassPointPhysics>::Each([this](const Entity entity, Point& point, MassPointPhysics& massPointPhysics)
+        View<Point, Particle>::Each([this](const Entity entity, Point& point, Particle& particle)
         {
             if (entity == fixedPoint)
             {
-                massPointPhysics.force = 0;
+                particle.force = 0;
             }
         });
     };

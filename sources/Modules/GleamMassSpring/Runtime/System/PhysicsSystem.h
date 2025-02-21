@@ -17,7 +17,7 @@ namespace Gleam
         }
 
         static Entity AddMassPoint(float3 position, float drag = 0.01f, float mass = 1);
-        static Entity AddSpring(Entity massPointA, Entity massPointB, float elasticity = 1000);
+        static Entity AddSpring(Entity particleA, Entity particleB, float elasticity = 0.5f);
 
         float3 GetGravity() const { return gravity; }
 

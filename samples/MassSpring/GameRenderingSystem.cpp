@@ -14,24 +14,24 @@ void GameRenderingSystem::Update()
 {
     using namespace Gleam;
 
-    massPoints.clear();
-    View<Point, MassPointPhysics>::Each([this](Point& point, MassPointPhysics& pointPhysics)
+    particles.clear();
+    View<Point, Particle>::Each([this](Point& point, Particle& pointPhysics)
     {
-        massPoints.push_back(point);
+        particles.push_back(point);
     });
     springs.clear();
-    View<SpringPhysics>::Each([this](SpringPhysics& springPhysics)
+    View<Spring>::Each([this](Spring& springPhysics)
     {
         Point pointA;
-        MassPointPhysics massPointPhysicsA;
-        World::GetComponents(springPhysics.pointA, pointA, massPointPhysicsA);
+        Particle particleA;
+        World::GetComponents(springPhysics.particleA, pointA, particleA);
         Point pointB;
-        MassPointPhysics massPointPhysicsB;
-        World::GetComponents(springPhysics.pointB, pointB, massPointPhysicsB);
+        Particle particleB;
+        World::GetComponents(springPhysics.particleB, pointB, particleB);
 
         springs.emplace_back(pointA.position, pointB.position);
     });
 
-    World::GetComponent<PointsMesh>(pointsRenderer).points = massPoints;
+    World::GetComponent<PointsMesh>(pointsRenderer).points = particles;
     World::GetComponent<LinesMesh>(linesRenderer).lines = springs;
 }
