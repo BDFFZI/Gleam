@@ -16,6 +16,7 @@ private:
     friend class LogicSystem;
 
     Gleam::Entity cameraEntity = Gleam::Entity::Null;
+    Gleam::Entity centerParticle = Gleam::Entity::Null;
     std::vector<Gleam::Entity> colliders;
 
     void Start() override;

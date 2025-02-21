@@ -24,6 +24,7 @@ void GameUISystem::Update()
     ImGui::DragFloat("SpringElasticity", &LogicSystem.elasticity, 1.0f, 0.0f);
     ImGui::SliderFloat("ColliderFriction", &LogicSystem.colliderFriction, 0.0f, 1.0f);
     ImGui::SliderFloat("ColliderElasticity", &LogicSystem.colliderElasticity, 0.0f, 1.0f);
+    ImGui::Checkbox("Test", &LogicSystem.test);
     //退出游戏按钮
     if (ImGui::Button("ExitGame"))
         Engine::Stop();

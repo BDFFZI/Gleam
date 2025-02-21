@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "PhysicsSystem.h"
+#include "PositionSystem.h"
 #include "GleamECS/Runtime/System.h"
 
 namespace Gleam
@@ -7,7 +8,7 @@ namespace Gleam
     class ForceSystem : public System
     {
     public:
-        ForceSystem(): System(PhysicsSystem)
+        ForceSystem(): System(PositionSystem, OrderRelation::Before)
         {
         }
 

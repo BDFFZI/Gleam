@@ -15,21 +15,16 @@ void GameRenderingSystem::Update()
     using namespace Gleam;
 
     particles.clear();
-    View<Point, Particle>::Each([this](Point& point, Particle& pointPhysics)
+    View<Particle>::Each([this](Particle& particle)
     {
-        particles.push_back(point);
+        particles.push_back({particle.position});
     });
     springs.clear();
     View<Spring>::Each([this](Spring& springPhysics)
     {
-        Point pointA;
-        Particle particleA;
-        World::GetComponents(springPhysics.particleA, pointA, particleA);
-        Point pointB;
-        Particle particleB;
-        World::GetComponents(springPhysics.particleB, pointB, particleB);
-
-        springs.emplace_back(pointA.position, pointB.position);
+        Particle& particleA = World::GetComponent<Particle>(springPhysics.particleA);
+        Particle& particleB = World::GetComponent<Particle>(springPhysics.particleB);
+        springs.emplace_back(particleA.position, particleB.position);
     });
 
     World::GetComponent<PointsMesh>(pointsRenderer).points = particles;

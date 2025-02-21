@@ -24,7 +24,7 @@ class TestSystem : public System
 
         //碰撞弹性系数
         {
-            Entity point = PhysicsSystem::AddMassPoint(float3{-10, 0, 0}, 0);
+            Entity point = PhysicsSystem::AddParticle(float3{-10, 0, 0}, 0);
             Entity collider = World::AddEntity(CuboidCollider);
             World::SetComponents(
                 collider,
@@ -36,7 +36,7 @@ class TestSystem : public System
 
         //碰撞摩擦系数
         {
-            Entity point = PhysicsSystem::AddMassPoint(float3{-10, 0, 10}, 0);
+            Entity point = PhysicsSystem::AddParticle(float3{-10, 0, 10}, 0);
             Entity collider = World::AddEntity(CuboidCollider);
             World::SetComponents(
                 collider,
@@ -48,19 +48,19 @@ class TestSystem : public System
 
         //弹簧
         {
-            Entity pointA = PhysicsSystem::AddMassPoint(float3{0, 0, 0});
-            Entity pointB = PhysicsSystem::AddMassPoint(float3{5, 0, 0}, 0);
+            Entity pointA = PhysicsSystem::AddParticle(float3{0, 0, 0});
+            Entity pointB = PhysicsSystem::AddParticle(float3{5, 0, 0}, 0);
 
             FixedParticle(pointA);
 
             PhysicsSystem::AddSpring(pointA, pointB);
         }
-
+        
         //软绳
         {
             Entity points[5];
             for (int i = 0; i < 5; i++)
-                points[i] = PhysicsSystem::AddMassPoint(float3{i * 2.0f, 0, 10});
+                points[i] = PhysicsSystem::AddParticle(float3{i * 2.0f, 0, 10});
 
             FixedParticle(points[0]);
 
@@ -76,7 +76,7 @@ class TestSystem : public System
             for (int i = 0, y = 0; i < 5; i++, y += length)
                 for (int j = 0, x = 0; j < 5; j++, x += length)
                 {
-                    particles[i][j] = PhysicsSystem::AddMassPoint(
+                    particles[i][j] = PhysicsSystem::AddParticle(
                         float3{static_cast<float>(x), 0, 20 + static_cast<float>(y)}
                     );
                 }

@@ -48,7 +48,7 @@ void AssetSystem::Start()
     for (int i = 0, y = -8; i < 5; i++, y += length)
         for (int j = 0, x = -8; j < 5; j++, x += length)
         {
-            particles[i][j] = PhysicsSystem::AddMassPoint(
+            particles[i][j] = PhysicsSystem::AddParticle(
                 float3{static_cast<float>(x), static_cast<float>(y), 1}, 0.01f
             );
         }
@@ -92,4 +92,5 @@ void AssetSystem::Start()
             if (y + 2 < 5)
                 PhysicsSystem::AddSpring(particles[y][x], particles[y + 2][x], elasticity);
         }
+    centerParticle = particles[2][2];
 }
