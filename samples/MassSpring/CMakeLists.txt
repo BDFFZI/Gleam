@@ -1,12 +1,7 @@
 addProject()
 
-linkModule(LightWindow)
-linkModule(LightUtility)
-linkModule(LightGraphics)
-linkModule(LightMath)
-linkModule(LightECS)
-linkModule(LightUI)
-linkModule(LightReflection)
+linkLibrary(GleamMassSpringRuntime ${ProjectName})
+linkLibrary(GleamRenderingRuntime ${ProjectName})
+linkLibrary(GleamUIRuntime ${ProjectName})
 
-find_package(magic_enum CONFIG REQUIRED)
-target_link_libraries("${ProjectName}" PRIVATE magic_enum::magic_enum)
+linkLibrary(GleamMassSpringRuntime ${ProjectName})

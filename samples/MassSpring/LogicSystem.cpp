@@ -1,148 +1,163 @@
 #include "LogicSystem.h"
 
-#include "Archetype.hpp"
-#include "Editor/InspectorWindow.h"
-#include "LightWindow/Runtime/Input.h"
-#include "LightWindow/Runtime/Window.h"
-#include "LightECS/Runtime/View.hpp"
-#include "LightWindow/Runtime/Time.h"
+#include "AssetSystem.h"
+#include "GleamWindow/Runtime/System/InputSystem.h"
+#include "GleamECS/Runtime/View.h"
+#include "GleamEngine/Runtime/System/TimeSystem.h"
+#include "GleamMassSpring/Runtime/Component/Particle.h"
+#include "GleamMassSpring/Runtime/Entity/Archetype.h"
+#include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 
-#include "Public/Component.hpp"
-#include "Rendering/RenderingSystem.h"
+#ifdef GleamEngineEditor
+#include "GleamEngine/Editor/System/InspectorWindow.h"
+#endif
 
-using namespace Light;
+using namespace Gleam;
 
-void LogicSystem::Start()
+void LogicSystem::OnMoveParticle()
 {
-    Input::PushInputHandler(inputHandler);
-}
-void LogicSystem::Stop()
-{
-    if (Input::TopInputHandler() == inputHandler)
-        Input::PopInputHandler(inputHandler);
-}
-
-void LogicSystem::OnMovePoint()
-{
-    if (Input::GetMouseButtonDown(MouseButton::Left))
+    static float lastDrag = 0;
+    if (InputSystem.GetMouseButtonDown(MouseButton::Left))
     {
-        fixedPoint = coveringPoint;
-        InspectorWindow.target = fixedPoint;
+        fixedParticle = coveringParticle;
+        if (World::HasEntity(fixedParticle))
+        {
+            Particle& particle = World::GetComponent<Particle>(fixedParticle);
+            lastDrag = particle.drag;
+            particle.drag = 1;
+        }
+#ifdef GleamEngineEditor
+        InspectorWindow.SetTarget(fixedParticle);
+#endif
     }
-
-    if (Input::GetMouseButtonUp(MouseButton::Left))
-        fixedPoint = Entity::Null;
-
-    if (fixedPoint != Entity::Null)
-        World::GetComponent<Point>(fixedPoint).position = mousePositionWS;
-}
-void LogicSystem::OnCreatePoint() const
-{
-    if (Input::GetMouseButtonDown(MouseButton::Left))
+    else if (InputSystem.GetMouseButtonUp(MouseButton::Left))
     {
-        const Entity entity = World::AddEntity(MassPointArchetype, Point{mousePositionWS});
-        InspectorWindow.target = entity;
+        if (World::HasEntity(fixedParticle))
+        {
+            World::GetComponent<Particle>(fixedParticle).drag = lastDrag;
+        }
+        fixedParticle = Entity::Null;
+    }
+}
+void LogicSystem::OnCreateParticle() const
+{
+    if (InputSystem.GetMouseButtonDown(MouseButton::Left))
+    {
+        // ReSharper disable once CppDeclaratorNeverUsed
+        Entity entity = PhysicsSystem::AddParticle(mousePositionWS, drag, mass);
+#ifdef GleamEngineEditor
+        InspectorWindow.SetTarget(entity);
+#endif
     }
 }
 
 std::vector<Entity> lines;
-void LogicSystem::OnDeletePoint()
+void LogicSystem::OnDeleteParticle()
 {
-    if (Input::GetMouseButtonDown(MouseButton::Left) && coveringPoint != Entity::Null)
+    if (InputSystem.GetMouseButtonDown(MouseButton::Left) && coveringParticle != Entity::Null)
     {
         lines.clear();
-        View<SpringPhysics>::Each([this](const Entity entity, SpringPhysics& springPhysics)
+        View<Spring>::Each([this](const Entity entity, Spring& springPhysics)
         {
-            if (springPhysics.pointA == coveringPoint || springPhysics.pointB == coveringPoint)
+            if (springPhysics.particleA == coveringParticle || springPhysics.particleB == coveringParticle)
                 lines.push_back(entity);
         });
         for (Entity entity : lines)
             World::RemoveEntity(entity);
-        World::RemoveEntity(coveringPoint);
+        World::RemoveEntity(coveringParticle);
     }
 }
 void LogicSystem::OnCreateSpring()
 {
-    if (springPointA == Entity::Null)
+    if (springParticleA == Entity::Null)
     {
-        if (Input::GetMouseButtonDown(MouseButton::Left))
+        if (InputSystem.GetMouseButtonDown(MouseButton::Left))
         {
-            if (coveringPoint != Entity::Null)
+            if (coveringParticle != Entity::Null)
             {
-                springPointA = coveringPoint;
-                tempLine = World::AddEntity(LineArchetype);
+                springParticleA = coveringParticle;
+                tempLine = World::AddEntity(LineRendererArchetype);
             }
         }
     }
     else
     {
-        if (Input::GetMouseButtonDown(MouseButton::Left))
+        if (InputSystem.GetMouseButtonDown(MouseButton::Left))
         {
-            if (coveringPoint != Entity::Null && coveringPoint != springPointA)
-            {
-                Point pointA = World::GetComponent<Point>(springPointA);
-                Point pointB = World::GetComponent<Point>(coveringPoint);
-                World::AddEntity(
-                    SpringArchetype,
-                    SpringPhysics{
-                        springPointA,
-                        coveringPoint,
-                        distance(pointA.position, pointB.position),
-                    });
-            }
+            if (coveringParticle != Entity::Null && coveringParticle != springParticleA)
+                PhysicsSystem::AddSpring(springParticleA, coveringParticle, elasticity);
 
-            springPointA = Entity::Null;
+            springParticleA = Entity::Null;
             World::RemoveEntity(tempLine);
         }
     }
 
     if (tempLine != Entity::Null)
     {
-        Point pointA = World::GetComponent<Point>(springPointA);
-        World::SetComponents(tempLine, Line{pointA.position, mousePositionWS});
+        Particle particleA = World::GetComponent<Particle>(springParticleA);
+        World::GetComponent<LinesMesh>(tempLine).lines = {
+            Segment{particleA.position, mousePositionWS}
+        };
     }
 }
-
+void LogicSystem::Start()
+{
+    physicsSystemEvent.OnUpdate() = [this] { FixedUpdate(); };
+    World::AddSystem(physicsSystemEvent);
+}
+void LogicSystem::Stop()
+{
+    World::RemoveSystem(physicsSystemEvent);
+}
 void LogicSystem::Update()
 {
-    //将输入回调处理权释放给UI
-    if (Input::GetKeyDown(KeyCode::LeftAlt))
+    //获取鼠标位置
+    ScreenToWorld screenToWorld = World::GetComponent<ScreenToWorld>(AssetSystem.GetCameraEntity());
+    mousePositionWS = float3(mul(screenToWorld.value, float4(InputSystem.GetMousePosition(), 0, 1)).xy, 1);
+    //获取当前鼠标覆盖的顶点
+    coveringParticle = Entity::Null;
+    View<Particle>::Each([this](const Entity entity, const Particle& particle)
     {
-        if (Input::TopInputHandler() == inputHandler)
-            Input::PopInputHandler(inputHandler);
-        else
-            Input::PushInputHandler(inputHandler);
+        if (distance(particle.position, mousePositionWS) < 2)
+            coveringParticle = entity;
+    });
+
+    switch (editMode)
+    {
+    case EditMode::MoveParticle: OnMoveParticle();
+        break;
+    case EditMode::CreateParticle: OnCreateParticle();
+        break;
+    case EditMode::DeleteParticle: OnDeleteParticle();
+        break;
+    case EditMode::CreateSpring: OnCreateSpring();
+        break;
     }
 
-    //根据当前数值状态运行游戏逻辑
-    if (Input::TopInputHandler() == inputHandler)
-    {
-        if (Input::GetKeyDown(KeyCode::Space))
-            simulating = true;
-        if (Input::GetKeyUp(KeyCode::Space))
-            simulating = false;
-        //获取鼠标位置
-        mousePositionWS = RenderingSystem.ScreenToWorldPoint(Input::GetMousePosition());
-        //获取当前鼠标覆盖的顶点
-        coveringPoint = Entity::Null;
-        View<Point>::Each([this](const Entity entity, const Point& point)
-        {
-            if (distance(point.position, mousePositionWS) < 1)
-                coveringPoint = entity;
-        });
+    TimeSystem.SetTimeScale(simulatedSpeed);
 
-        switch (editMode)
-        {
-        case EditMode::MovePoint: OnMovePoint();
-            break;
-        case EditMode::CreatePoint: OnCreatePoint();
-            break;
-        case EditMode::DeletePoint: OnDeletePoint();
-            break;
-        case EditMode::CreateSpring: OnCreateSpring();
-            break;
-        }
+    for (Entity collider : AssetSystem.colliders)
+        World::SetComponents(collider, Collider{colliderFriction, colliderElasticity});
+}
+void LogicSystem::FixedUpdate() const
+{
+    if (World::HasEntity(fixedParticle))
+    {
+        Particle& particle = World::GetComponent<Particle>(fixedParticle);
+        particle.position = mousePositionWS;
     }
 
-    Time::SetTimeScale(simulating ? 1 : 0);
+    if (test)
+    {
+        Particle& particle = World::GetComponent<Particle>(AssetSystem.centerParticle);
+        particle.drag = 1;
+        float time = TimeSystem.GetTime() * 20;
+        particle.position = float3{std::cos(time) * 50, std::sin(time) * 60, 1};
+    }
+
+    View<Particle>::Each([](Particle& particle)
+    {
+        particle.position.z = 1;
+        particle.lastPosition.z = 1;
+    });
 }

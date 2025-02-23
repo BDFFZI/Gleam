@@ -10,6 +10,7 @@
     "stb",
     "tinyobjloader",
     "stduuid",
+    "rapidjson",
     {
       "name": "imgui",
       "features": [
@@ -17,6 +18,7 @@
         "vulkan-binding",
         "glfw-binding"
       ]
-    }
+    },
+    "imguizmo"
   ]
 }
