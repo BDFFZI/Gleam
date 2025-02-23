@@ -20,7 +20,6 @@ class LogicSystem : public Gleam::System
     friend class GameUISystem;
 
     EditMode editMode = EditMode::MoveParticle;
-    bool simulating = true;
     float simulatedSpeed = 1;
     Gleam::float3 mousePositionWS = 0;
     Gleam::Entity coveringParticle = Gleam::Entity::Null; //鼠标当前位置所在的点

@@ -111,11 +111,6 @@ void LogicSystem::Stop()
 }
 void LogicSystem::Update()
 {
-    //根据当前数值状态运行游戏逻辑
-    if (InputSystem.GetKeyDown(KeyCode::Space))
-        simulating = true;
-    if (InputSystem.GetKeyUp(KeyCode::Space))
-        simulating = false;
     //获取鼠标位置
     ScreenToWorld screenToWorld = World::GetComponent<ScreenToWorld>(AssetSystem.GetCameraEntity());
     mousePositionWS = float3(mul(screenToWorld.value, float4(InputSystem.GetMousePosition(), 0, 1)).xy, 1);
@@ -139,7 +134,7 @@ void LogicSystem::Update()
         break;
     }
 
-    TimeSystem.SetTimeScale(simulating ? simulatedSpeed : 0);
+    TimeSystem.SetTimeScale(simulatedSpeed);
 
     for (Entity collider : AssetSystem.colliders)
         World::SetComponents(collider, Collider{colliderFriction, colliderElasticity});
