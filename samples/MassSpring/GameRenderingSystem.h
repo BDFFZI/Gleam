@@ -4,11 +4,12 @@
 #include "GleamMassSpring/Runtime/Component/Spring.h"
 #include "GleamRendering/Runtime/Component/LinesMesh.h"
 #include "GleamRendering/Runtime/Component/PointsMesh.h"
+#include "GleamRendering/Runtime/System/RenderingSystem.h"
 
 class GameRenderingSystem : public Gleam::System
 {
 public:
-    GameRenderingSystem(): System(LogicSystem, Gleam::OrderRelation::After)
+    GameRenderingSystem(): System(Gleam::RenderingSystem, Gleam::OrderRelation::Before)
     {
     }
 

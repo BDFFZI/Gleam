@@ -139,7 +139,7 @@ void LogicSystem::Update()
         break;
     }
 
-    TimeSystem.SetTimeScale(simulating ? 1 : 0);
+    TimeSystem.SetTimeScale(simulating ? simulatedSpeed : 0);
 
     for (Entity collider : AssetSystem.colliders)
         World::SetComponents(collider, Collider{colliderFriction, colliderElasticity});

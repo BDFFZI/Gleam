@@ -6,14 +6,14 @@ Gleam_AddSystems(
     AssetSystem,
     LogicSystem,
     GameUISystem,
-    GameRenderingSystem
+    // GameRenderingSystem
 )
 
 #ifdef GleamEngineEditor
 #include "GleamEngine/Editor/Editor.h"
 Gleam_AddEditorSystems(
     AssetSystem,
-    GameRenderingSystem
+    // GameRenderingSystem
 )
 #endif
 

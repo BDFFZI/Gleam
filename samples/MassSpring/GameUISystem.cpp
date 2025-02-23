@@ -19,6 +19,7 @@ void GameUISystem::Update()
     };
     ImGui::Combo("EditMode", reinterpret_cast<int*>(&LogicSystem.editMode), editModeOptions, std::size(editModeOptions));
     ImGui::Checkbox("Simulating", &LogicSystem.simulating);
+    ImGui::SliderFloat("SimulatedSpeed", &LogicSystem.simulatedSpeed, 0.0f, 3.0f);
     ImGui::SliderFloat("MassPointDrag", &LogicSystem.drag, 0.0f, 1.0f);
     ImGui::DragFloat("MassPointMass", &LogicSystem.mass, 0.1f, 0.0f);
     ImGui::DragFloat("SpringElasticity", &LogicSystem.elasticity, 1.0f, 0.0f);

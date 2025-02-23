@@ -25,19 +25,20 @@ namespace Gleam
         //基本碰撞检测
         float3 localPosition = mul(worldToLocal.value, float4(particle.position, 1)).xyz;
         float3 localCheckPoint = localPosition;
-        bool isCollided = Geometry::Contains(shape, localCheckPoint);
+        bool isCollided = Geometry::Contains(shape, localCheckPoint, 0.0001f);
 
         //ccd（连续碰撞检测）
         //由于碰撞约束的存在，在PositionSystem更新后，上次位置始终在碰撞体外，因为间隔期间只有碰撞约束会直接修改上次位置（人为除外）。
         //因此出现这种情况时，是因为质点同时陷入了多个碰撞体中。
         //而此时用ccd计算出来的点便会与其他碰撞约束冲突的，故只有上次位置不在碰撞内时才使用ccd。
         float3 localLastPosition = mul(worldToLocal.value, float4(particle.lastPosition, 1)).xyz;
-        if (Geometry::Contains(shape, localLastPosition) == false)
+        bool isCompleteCollision = Geometry::Contains(shape, localLastPosition, 0.0001f);
+        if (isCompleteCollision == false)
         {
             for (int i = 1; i < ccdMaxCount; i++)
             {
                 float3 newLocalCheckPoint = lerp(localCheckPoint, localLastPosition, 0.5f);
-                if (Geometry::Contains(shape, newLocalCheckPoint))
+                if (Geometry::Contains(shape, newLocalCheckPoint, 0.0001f))
                 {
                     localCheckPoint = newLocalCheckPoint;
                     isCollided = true;
@@ -48,28 +49,25 @@ namespace Gleam
         if (isCollided == false)
             return;
 
-        //获取碰撞体表面“形变”信息
+        //获取形变方向信息
         float3 localOffset = Geometry::Extrudes(shape, localCheckPoint) - localCheckPoint;
-        if (dot(localOffset, localOffset) < std::numeric_limits<float>::epsilon())
-            return;
         float3 worldOffset = mul(static_cast<float3x3>(localToWorld.value), localOffset);
-        float3 worldCheckPoint = mul(localToWorld.value, float4(localCheckPoint, 1)).xyz;
-
-        //计算当前质点持有的力信息
         float3 deformationDirection = normalize(worldOffset);
+
+        //获取质点持有的力信息
         float3 movement = particle.position - particle.lastPosition;
         float3 normalMovement = project(movement, deformationDirection);
         float3 tangentMovement = movement - normalMovement;
 
-        //求解满足约束的质点位置
-        float3 constrainedPosition = 0; //最合适的满足碰撞约束的质点位置
-        float3 movementDirection = normalizesafe(movement);
-        if (std::abs(dot(deformationDirection, movementDirection)) < 0.1) //初始在碰撞内或完全在表面滑动
+        //求解最合适的满足碰撞约束的质点位置
+        float3 constrainedPosition;
+        float3 worldCheckPoint = mul(localToWorld.value, float4(localCheckPoint, 1)).xyz;
+        if (isCompleteCollision) //粒子并非撞击碰撞体，不存在进入点，故按边缘最近点推移。
             constrainedPosition = worldCheckPoint + worldOffset;
         else //撞击碰撞体，回到质点撞击前所在的碰撞表面
             constrainedPosition = Geometry::Intersects(
                 Plane{worldCheckPoint + worldOffset, deformationDirection},
-                Line{particle.lastPosition, movementDirection});
+                Line{particle.lastPosition, normalize(movement)});
 
         //移动到初始约束位置并暂时清空力（移动到约束位置的过程不需要记录为速度，力会在后续根据碰撞材质重新添加）
         //若要符合能量守恒还要额外位移来抵消嵌入的距离，但这容易导致其他约束的模拟效果不稳定。
