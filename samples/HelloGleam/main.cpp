@@ -1,5 +1,5 @@
 #include <GleamEngine/Runtime/Engine.h> //引入 Gleam 的 Engine 功能
-#include "GleamECS/Runtime/World.h"// 引入World功能
+#include <GleamECS/Runtime/World.h>// 引入World功能
 #include <iostream>
 
 class MySystem : public Gleam::System// 实现System类
