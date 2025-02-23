@@ -49,7 +49,7 @@ namespace Gleam
         //场景UI信息
         int handleOption = 1;
         bool showSceneUI = true;
-        float moveSpeed = 1;
+        float moveSpeed = 1.5;
         //相机位置存档（重启时使用）
         LocalTransform cameraTransformSaving = {};
         Camera cameraSaving = {};

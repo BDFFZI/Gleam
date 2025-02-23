@@ -16,7 +16,6 @@ namespace Gleam
         maxDeltaTime = 0.1f;
         fixedDeltaTime = 0.01f;
         timeScale = 1;
-        autoStepTime = true;
         stepTime = 0;
 
         frameCount = -1;

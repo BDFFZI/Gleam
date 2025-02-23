@@ -15,6 +15,11 @@ namespace Gleam
     {
         postProcessSystem.OnUpdate() = []
         {
+            //清空绘制队列
+            Gizmos::cuboidQueue.Clear();
+            Gizmos::sphereQueue.Clear();
+            Gizmos::wireCuboidQueue.Clear();
+            Gizmos::wireSphereQueue.Clear();
             Gizmos::pointsMesh->SetVertices({});
             Gizmos::pointsMesh->SetIndices({});
             Gizmos::linesMesh->SetVertices({});

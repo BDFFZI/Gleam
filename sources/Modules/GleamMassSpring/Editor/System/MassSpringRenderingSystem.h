@@ -15,7 +15,7 @@ namespace Gleam
     private:
         Gleam_MakeType_Friend
 
-        bool isEnabled = false;
+        bool isEnabled = true;
 
         void Update() override;
     };

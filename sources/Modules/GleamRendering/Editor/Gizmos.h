@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "GleamECS/Runtime/System.h"
 #include "GleamMath/Runtime/Geometry/3D/Point.h"
 #include "GleamMath/Runtime/Geometry/3D/Cuboid.h"
 #include "GleamMath/Runtime/Geometry/3D/Line.h"
@@ -17,13 +16,15 @@ namespace Gleam
         static void PushLocalToWorld(const float4x4& localToWorld);
         static void PopLocalToWorld();
 
-        static void DrawPoint(const Point& point, const float4& color = float4::White());
-        static void DrawPoint(const float3& point, const float4& color = float4::White());
-        static void DrawSegment(const Segment& segment, const float4& color = float4::White());
-        static void DrawCuboid(const Cuboid& cuboid, const float4& color = float4::White());
-        static void DrawSphere(const Sphere& sphere, const float4& color = float4::White());
-        static void DrawWireCuboid(const Cuboid& cuboid, const float4& color = float4::White());
-        static void DrawWireSphere(const Sphere& sphere, const float4& color = float4::White());
+        static void Draw(const Point& point, const float4& color = float4::White());
+        static void Draw(const float3& point, const float4& color = float4::White());
+        static void Draw(const Segment& segment, const float4& color = float4::White());
+        static void Draw(const Cuboid& cuboid, const float4& color = float4::White());
+        static void Draw(const Rectangle& rectangle, const float4& color = float4::White());
+        static void Draw(const Sphere& sphere, const float4& color = float4::White());
+        static void DrawWire(const Cuboid& cuboid, const float4& color = float4::White());
+        static void DrawWire(const Rectangle& rectangle, const float4& color = float4::White());
+        static void DrawWire(const Sphere& sphere, const float4& color = float4::White());
 
     private:
         friend class GizmosSystem;

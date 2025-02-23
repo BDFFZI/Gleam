@@ -1,14 +1,14 @@
 #pragma once
+#include "LogicSystem.h"
 #include "GleamMassSpring/Runtime/Component/Particle.h"
 #include "GleamMassSpring/Runtime/Component/Spring.h"
-#include "GleamMassSpring/Runtime/System/PhysicsSystem.h"
 #include "GleamRendering/Runtime/Component/LinesMesh.h"
 #include "GleamRendering/Runtime/Component/PointsMesh.h"
 
 class GameRenderingSystem : public Gleam::System
 {
 public:
-    GameRenderingSystem(): System(Gleam::PhysicsSystem, Gleam::OrderRelation::After)
+    GameRenderingSystem(): System(LogicSystem, Gleam::OrderRelation::After)
     {
     }
 

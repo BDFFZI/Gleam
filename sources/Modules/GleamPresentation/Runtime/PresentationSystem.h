@@ -4,7 +4,6 @@
 #include "GleamGL/Runtime/GLCommandBuffer.h"
 #include "GleamGraphics/Runtime/GCommandBuffer.h"
 #include "GleamEngine/Runtime/System/UpdateSystem.h"
-#include "GleamWindow/Runtime/Window.h"
 
 namespace Gleam
 {
@@ -14,7 +13,7 @@ namespace Gleam
     class PresentationSystem : public SystemGroup
     {
     public:
-        PresentationSystem(): SystemGroup(PostUpdateSystem, OrderRelation::After)
+        PresentationSystem(): SystemGroup(PostUpdateSystem, DefaultOrder, MaxOrder)
         {
         }
 

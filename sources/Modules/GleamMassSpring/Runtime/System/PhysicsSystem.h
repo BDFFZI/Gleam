@@ -19,19 +19,8 @@ namespace Gleam
         static Entity AddParticle(float3 position, float drag = 0.01f, float mass = 1);
         static Entity AddSpring(Entity particleA, Entity particleB, float elasticity = 0.5f);
 
-        float3 GetGravity() const { return gravity; }
-
     private:
-        Gleam_MakeType_Friend
-
-        float3 gravity = {0.0f, -9.81f, 0.0f};
-
         void Update() override;
     };
     Gleam_MakeGlobalSystem(PhysicsSystem)
-
-    Gleam_MakeType(PhysicsSystem_T, "")
-    {
-        Gleam_MakeType_AddField(gravity);
-    }
 }

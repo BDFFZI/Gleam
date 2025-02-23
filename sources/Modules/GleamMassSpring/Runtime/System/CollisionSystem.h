@@ -1,6 +1,5 @@
 ﻿#pragma once
-#include "PhysicsSystem.h"
-#include "PositionSystem.h"
+#include "ForceSystem.h"
 #include "GleamECS/Runtime/System.h"
 
 namespace Gleam
@@ -8,12 +7,21 @@ namespace Gleam
     class CollisionSystem : public System
     {
     public:
-        CollisionSystem(): System(PositionSystem, OrderRelation::After)
+        CollisionSystem(): System(ForceSystem, OrderRelation::After)
         {
         }
 
     private:
+        Gleam_MakeType_Friend
+
+        int ccdMaxCount = 3;
+
         void Update() override;
     };
     Gleam_MakeGlobalSystem(CollisionSystem)
+
+    Gleam_MakeType(CollisionSystem_T, "")
+    {
+        Gleam_MakeType_AddField(ccdMaxCount);
+    }
 }

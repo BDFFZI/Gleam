@@ -1,11 +1,10 @@
 #pragma once
-#include <iostream>
 
 #include "GleamECS/Runtime/Entity.h"
 #include "GleamECS/Runtime/System.h"
+#include "GleamMassSpring/Runtime/System/CollisionSystem.h"
 #include "GleamMassSpring/Runtime/System/ForceSystem.h"
 #include "GleamMassSpring/Runtime/System/PhysicsSystem.h"
-#include "GleamMassSpring/Runtime/System/PositionSystem.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 
 enum class EditMode
@@ -27,14 +26,14 @@ class LogicSystem : public Gleam::System
     Gleam::Entity fixedParticle = Gleam::Entity::Null; //移动点模式下的移动点
     Gleam::Entity springParticleA = Gleam::Entity::Null; //创建弹簧时的弹簧A点
     Gleam::Entity tempLine = Gleam::Entity::Null; //创建弹簧时临时的可视化线
-    Gleam::SystemEvent physicsSystemEvent = {"PhysicsSystemEvent", Gleam::PhysicsSystem, MinOrder, MinOrder,};
+    Gleam::SystemEvent physicsSystemEvent = {"PhysicsSystemEvent", Gleam::CollisionSystem, Gleam::OrderRelation::Before};
 
     float drag = 0.01f;
     float mass = 1;
-    float elasticity = 1000;
+    float elasticity = 0.75f;
     float colliderFriction = 0.5f;
     float colliderElasticity = 0.5f;
-    bool test;
+    bool test = false;
 
     void OnMoveParticle();
     void OnCreateParticle() const;
@@ -44,5 +43,6 @@ class LogicSystem : public Gleam::System
     void Start() override;
     void Stop() override;
     void Update() override;
+    void FixedUpdate() const;
 };
 Gleam_MakeGlobalSystem(LogicSystem)

@@ -111,9 +111,12 @@ namespace Gleam
         ImGui::SameLine(); //放在下拉框旁边
         if (ImGui::Button(
             system.GetName().c_str(),
-            {ImGui::GetContentRegionAvail().x, 0} //按钮铺满当前行余下的所有空间
+            {ImGui::GetContentRegionAvail().x - ImGui::GetTextLineHeightWithSpacing() * 1.5f, 0} //按钮铺满当前行余下的所有空间
         ))
             InspectorWindow.SetTarget(&system);
+        //系统引用计数
+        ImGui::SameLine();
+        ImGui::Text("%i", World::systemUsageCount[&system]);
 
         return collapsing;
     }

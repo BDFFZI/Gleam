@@ -8,30 +8,43 @@
 
 namespace Gleam
 {
-    void DrawCuboid(const Entity entity, Cuboid& cuboid, const float4& color)
+    void DrawRectangle(const Entity entity, const Rectangle& rectangle, const float4& color)
     {
         if (LocalToWorld* localToWorld; World::TryGetComponent(entity, localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
-            Gizmos::DrawWireCuboid(cuboid, color);
+            Gizmos::DrawWire(rectangle, color);
             Gizmos::PopLocalToWorld();
         }
         else
         {
-            Gizmos::DrawWireCuboid(cuboid, color);
+            Gizmos::DrawWire(rectangle, color);
         }
     }
-    void DrawSphere(const Entity entity, Sphere& sphere, const float4& color)
+    void DrawCuboid(const Entity entity, const Cuboid& cuboid, const float4& color)
     {
         if (LocalToWorld* localToWorld; World::TryGetComponent(entity, localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
-            Gizmos::DrawWireSphere(sphere, color);
+            Gizmos::DrawWire(cuboid, color);
             Gizmos::PopLocalToWorld();
         }
         else
         {
-            Gizmos::DrawWireSphere(sphere, color);
+            Gizmos::DrawWire(cuboid, color);
+        }
+    }
+    void DrawSphere(const Entity entity, const Sphere& sphere, const float4& color)
+    {
+        if (LocalToWorld* localToWorld; World::TryGetComponent(entity, localToWorld))
+        {
+            Gizmos::PushLocalToWorld(localToWorld->value);
+            Gizmos::DrawWire(sphere, color);
+            Gizmos::PopLocalToWorld();
+        }
+        else
+        {
+            Gizmos::DrawWire(sphere, color);
         }
     }
 
@@ -63,12 +76,12 @@ namespace Gleam
         if (LocalToWorld* localToWorld; World::TryGetComponent(EditorUI::GetEntityDrawing(), localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
-            Gizmos::DrawPoint(point.position);
+            Gizmos::Draw(point.position);
             Gizmos::PopLocalToWorld();
         }
         else
         {
-            Gizmos::DrawPoint(point.position);
+            Gizmos::Draw(point.position);
         }
     }
     void InspectorUI_Segment(Segment& segment)
@@ -77,18 +90,23 @@ namespace Gleam
         if (LocalToWorld* localToWorld; World::TryGetComponent(EditorUI::GetEntityDrawing(), localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
-            Gizmos::DrawSegment(segment);
+            Gizmos::Draw(segment);
             Gizmos::PopLocalToWorld();
         }
         else
         {
-            Gizmos::DrawSegment(segment);
+            Gizmos::Draw(segment);
         }
     }
     void InspectorUI_Cuboid(Cuboid& cuboid)
     {
         EditorUI::DrawDefaultInspectorUI(&cuboid, typeid(cuboid));
         DrawCuboid(EditorUI::GetEntityDrawing(), cuboid);
+    }
+    void InspectorUI_Rectangle(Rectangle& rectangle)
+    {
+        EditorUI::DrawDefaultInspectorUI(&rectangle, typeid(rectangle));
+        DrawRectangle(EditorUI::GetEntityDrawing(), rectangle);
     }
     void InspectorUI_Sphere(Sphere& sphere)
     {

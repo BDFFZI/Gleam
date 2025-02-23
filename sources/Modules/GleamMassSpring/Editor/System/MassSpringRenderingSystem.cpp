@@ -1,5 +1,4 @@
 ﻿#include "MassSpringRenderingSystem.h"
-
 #include "GleamECS/Runtime/View.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamMassSpring/Runtime/Component/Collider.h"
@@ -15,23 +14,26 @@ namespace Gleam
     {
         isEnabled = state;
     }
-    
+
     void MassSpringRenderingSystem::Update()
     {
         if (isEnabled == false)
             return;
 
-        View<Particle>::Each([](Entity& entity,Particle& particle)
+        View<Particle>::Each([](Particle& particle)
         {
-            Gizmos::DrawPoint(particle.position, float4{1, 1 - particle.drag, 1 - particle.drag, 1});
-            if (entity == InspectorWindow.GetTargetEntity())
-                Gizmos::DrawPoint(particle.lastPosition, float4::Blue());
+            Gizmos::Draw(particle.lastPosition, float4::Blue());
+            Gizmos::Draw(particle.position, float4{1, 1 - particle.drag, 1 - particle.drag, 1});
         });
         View<Spring>::Each([](Spring& springPhysics)
         {
             Particle& particleA = World::GetComponent<Particle>(springPhysics.particleA);
             Particle& particleB = World::GetComponent<Particle>(springPhysics.particleB);
-            Gizmos::DrawSegment(Segment{particleA.position, particleB.position});
+            Gizmos::Draw(Segment{particleA.position, particleB.position});
+        });
+        View<Rectangle, Collider>::Each([](Entity& entity, Rectangle& rectangle, Collider&)
+        {
+            DrawRectangle(entity, rectangle, float4::DarkGreen());
         });
         View<Cuboid, Collider>::Each([](Entity& entity, Cuboid& cuboid, Collider&)
         {

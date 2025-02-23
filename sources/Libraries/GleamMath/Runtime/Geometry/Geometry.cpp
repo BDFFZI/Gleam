@@ -4,38 +4,58 @@
 
 namespace Gleam
 {
-    bool Geometry::Contains(const Rectangle& rectangle, const float2 point)
+    bool Geometry::Contains(const Rectangle& rectangle, const float2 point, const float padding)
     {
-        return all(point > rectangle.min) && all(point < rectangle.max);
+        return all(point - rectangle.min > padding) && all(rectangle.max - point > padding);
     }
-    bool Geometry::Contains(const Cuboid& cuboid, const float3 point)
+    bool Geometry::Contains(const Rectangle& rectangle, const float3 point, const float padding)
     {
-        return all(point > cuboid.min) && all(point < cuboid.max);
+        return Contains(rectangle, point.xy, padding);
     }
-    bool Geometry::Contains(const Sphere& sphere, const float3 point)
+    bool Geometry::Contains(const Cuboid& cuboid, const float3 point, const float padding)
+    {
+        return all(point - cuboid.min > padding) && all(cuboid.max - point > padding);
+    }
+    bool Geometry::Contains(const Sphere& sphere, const float3 point, const float padding)
     {
         float3 localPoint = point - sphere.center;
-        return lengthsq(localPoint) < sphere.radius * sphere.radius;
+        return lengthsq(localPoint) < (sphere.radius - padding) * (sphere.radius - padding);
+    }
+
+    float2 Geometry::Extrudes(const Rectangle& rectangle, float2 point)
+    {
+        float2 distanceToMin = point - rectangle.min;
+        float2 distanceToMax = rectangle.max - point;
+        float2 distanceToFrame = min(distanceToMin, distanceToMax);
+
+        if (distanceToFrame.x < distanceToFrame.y)
+            return {distanceToMin.x < distanceToMax.x ? rectangle.min.x : rectangle.max.x, point.y};
+        else
+            return {point.x, distanceToMin.y < distanceToMax.y ? rectangle.min.y : rectangle.max.y};
+    }
+    float3 Geometry::Extrudes(const Rectangle& rectangle, float3 point)
+    {
+        return {Extrudes(rectangle, point.xy), point.z};
     }
     float3 Geometry::Extrudes(const Cuboid& cuboid, float3 point)
     {
-        float3 halfSize = cuboid.GetSize() * 0.5f;
-        float3 localPoint = (point - cuboid.GetCenter()) / halfSize;
-        float3 localLength = abs(localPoint);
+        float3 distanceToMin = point - cuboid.min;
+        float3 distanceToMax = cuboid.max - point;
+        float3 distanceToFrame = min(distanceToMin, distanceToMax);
 
-        if (localLength.x > localLength.y)
+        if (distanceToFrame.x < distanceToFrame.y)
         {
-            if (localLength.x > localLength.z)
-                return {localPoint.x > 0 ? cuboid.max.x : cuboid.min.x, point.y, point.z};
+            if (distanceToFrame.x < distanceToFrame.z)
+                return {distanceToMin.x < distanceToMax.x ? cuboid.min.x : cuboid.max.x, point.y, point.z};
             else
-                return {point.x, point.y, localPoint.z > 0 ? cuboid.max.z : cuboid.min.z};
+                return {point.x, point.y, distanceToMin.z < distanceToMax.z ? cuboid.min.z : cuboid.max.z};
         }
         else
         {
-            if (localLength.y > localLength.z)
-                return {point.x, localPoint.y > 0 ? cuboid.max.y : cuboid.min.y, point.z};
+            if (distanceToFrame.y < distanceToFrame.z)
+                return {point.x, distanceToMin.y < distanceToMax.y ? cuboid.min.y : cuboid.max.y, point.z};
             else
-                return {point.x, point.y, localPoint.z > 0 ? cuboid.max.z : cuboid.min.z};
+                return {point.x, point.y, distanceToMin.z < distanceToMax.z ? cuboid.min.z : cuboid.max.z};
         }
     }
     float3 Geometry::Extrudes(const Sphere& sphere, float3 point)

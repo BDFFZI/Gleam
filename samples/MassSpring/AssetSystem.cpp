@@ -17,14 +17,14 @@ void AssetSystem::Start()
     camera.orthographic = true;
     camera.halfHeight = 50;
     //添加碰撞
-    Entity collider1 = World::AddEntity(CuboidCollider);
-    World::SetComponents(collider1, Cuboid{float3{-90, -100, 0}, float3{90, -50, 2}});
-    Entity collider2 = World::AddEntity(CuboidCollider);
-    World::SetComponents(collider2, Cuboid{float3{-100, -90, 0}, float3{-50, 90, 2}});
-    Entity collider3 = World::AddEntity(CuboidCollider);
-    World::SetComponents(collider3, Cuboid{float3{50, -90, 0}, float3{100, 90, 2}});
-    Entity collider4 = World::AddEntity(CuboidCollider);
-    World::SetComponents(collider4, Cuboid::Create(float3{0, 0, 0}, 25), LocalTransform{{0, -50, 2}, Quaternion::Euler({0, 0, 45})});
+    Entity collider1 = World::AddEntity(RectangleCollider);
+    World::SetComponents(collider1, Rectangle{float2{-90, -100}, float2{90, -50}});
+    Entity collider2 = World::AddEntity(RectangleCollider);
+    World::SetComponents(collider2, Rectangle{float2{-100, -90}, float2{-50, 90}});
+    Entity collider3 = World::AddEntity(RectangleCollider);
+    World::SetComponents(collider3, Rectangle{float2{50, -90}, float2{100, 90}});
+    Entity collider4 = World::AddEntity(RectangleCollider);
+    World::SetComponents(collider4, Rectangle::CreateFromCenter(float2{0, 0}, float2(100, 100)), LocalTransform{{0, -50 - 70.71f + 17.67f, 0}, Quaternion::Euler({0, 0, 45})});
     colliders.emplace_back(collider1);
     colliders.emplace_back(collider2);
     colliders.emplace_back(collider3);
@@ -53,10 +53,10 @@ void AssetSystem::Start()
             );
         }
     //添加弹簧
-    float elasticity = 0.5f;
     for (int y = 0; y < 5; y++)
         for (int x = 0; x < 5; x++)
         {
+            constexpr float elasticity = 0.75f;
             //维持内部结构
             if (x + 1 < 5)
                 PhysicsSystem::AddSpring(particles[y][x], particles[y][x + 1], elasticity);

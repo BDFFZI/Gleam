@@ -9,7 +9,7 @@ namespace Gleam
 {
     Entity PhysicsSystem::AddParticle(const float3 position, const float drag, const float mass)
     {
-        const Entity entity = World::AddEntity(MassPointArchetype);
+        const Entity entity = World::AddEntity(ParticleArchetype);
         World::SetComponents(entity, Particle{position, position, mass, drag});
         return entity;
     }

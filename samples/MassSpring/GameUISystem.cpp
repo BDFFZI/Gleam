@@ -33,7 +33,7 @@ void GameUISystem::Update()
     //显示鼠标位置
     ImGui::DragFloat2("MousePositionWS", LogicSystem.mousePositionWS.data);
     //显示鼠标所在的点
-    int pointID = static_cast<int>(LogicSystem.coveringPoint);
+    int pointID = static_cast<int>(LogicSystem.coveringParticle);
     ImGui::DragInt("CoveringPoint", &pointID);
 #endif
 }

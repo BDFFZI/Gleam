@@ -10,6 +10,6 @@ namespace Gleam
         ParticleSelectionSystem,
         MassSpringRenderingSystem
     )
-
+    
     Gleam_MakeSceneUI(Particle, SceneUI_Particle)
 }

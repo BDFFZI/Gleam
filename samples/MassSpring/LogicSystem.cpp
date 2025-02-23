@@ -38,9 +38,6 @@ void LogicSystem::OnMoveParticle()
         }
         fixedParticle = Entity::Null;
     }
-
-    if (World::HasEntity(fixedParticle))
-        World::GetComponent<Particle>(fixedParticle).position = mousePositionWS;
 }
 void LogicSystem::OnCreateParticle() const
 {
@@ -105,15 +102,7 @@ void LogicSystem::OnCreateSpring()
 }
 void LogicSystem::Start()
 {
-    physicsSystemEvent.OnUpdate() = [this]
-    {
-        if (test == false)
-            return;
-        Particle& particle = World::GetComponent<Particle>(AssetSystem.centerParticle);
-        particle.drag = 1;
-        float time = TimeSystem.GetTime() * 20;
-        particle.position = float3{std::cos(time) * 50, std::sin(time) * 60, 1};
-    };
+    physicsSystemEvent.OnUpdate() = [this] { FixedUpdate(); };
     World::AddSystem(physicsSystemEvent);
 }
 void LogicSystem::Stop()
@@ -154,4 +143,26 @@ void LogicSystem::Update()
 
     for (Entity collider : AssetSystem.colliders)
         World::SetComponents(collider, Collider{colliderFriction, colliderElasticity});
+}
+void LogicSystem::FixedUpdate() const
+{
+    if (World::HasEntity(fixedParticle))
+    {
+        Particle& particle = World::GetComponent<Particle>(fixedParticle);
+        particle.position = mousePositionWS;
+    }
+
+    if (test)
+    {
+        Particle& particle = World::GetComponent<Particle>(AssetSystem.centerParticle);
+        particle.drag = 1;
+        float time = TimeSystem.GetTime() * 20;
+        particle.position = float3{std::cos(time) * 50, std::sin(time) * 60, 1};
+    }
+
+    View<Particle>::Each([](Particle& particle)
+    {
+        particle.position.z = 1;
+        particle.lastPosition.z = 1;
+    });
 }

@@ -66,18 +66,18 @@ namespace Gleam
     {
         localToWorlds.pop_back();
     }
-    void Gizmos::DrawPoint(const Point& point, const float4& color)
+    void Gizmos::Draw(const Point& point, const float4& color)
     {
         pointsMesh->GetVertices().emplace_back(Vertex{
             mul(localToWorlds.back(), float4(point.position, 1)).xyz, color
         }); // NOLINT(clang-diagnostic-missing-field-initializers)
         pointsMesh->GetIndices().emplace_back(pointsMesh->GetIndices().size());
     }
-    void Gizmos::DrawPoint(const float3& point, const float4& color)
+    void Gizmos::Draw(const float3& point, const float4& color)
     {
-        DrawPoint(Point{point}, color);
+        Draw(Point{point}, color);
     }
-    void Gizmos::DrawSegment(const Segment& segment, const float4& color)
+    void Gizmos::Draw(const Segment& segment, const float4& color)
     {
         linesMesh->GetVertices().insert(
             linesMesh->GetVertices().end(), {
@@ -88,28 +88,36 @@ namespace Gleam
         linesMesh->GetIndices().emplace_back(linesMesh->GetIndices().size());
     }
 
-    void Gizmos::DrawCuboid(const Cuboid& cuboid, const float4& color)
+    void Gizmos::Draw(const Cuboid& cuboid, const float4& color)
     {
         cuboidQueue.instances.emplace_back(
             mul(localToWorlds.back(), float4x4::TRS(cuboid.GetCenter(), float3{0}, cuboid.GetSize())),
             color
         );
     }
-    void Gizmos::DrawSphere(const Sphere& sphere, const float4& color)
+    void Gizmos::Draw(const Rectangle& rectangle, const float4& color)
+    {
+        Draw(Cuboid{float3{rectangle.min, 0}, float3{rectangle.max, 0}}, color);
+    }
+    void Gizmos::Draw(const Sphere& sphere, const float4& color)
     {
         sphereQueue.instances.emplace_back(
             mul(localToWorlds.back(), float4x4::TRS(sphere.center, float3{0}, sphere.radius * 2)),
             color
         );
     }
-    void Gizmos::DrawWireCuboid(const Cuboid& cuboid, const float4& color)
+    void Gizmos::DrawWire(const Cuboid& cuboid, const float4& color)
     {
         wireCuboidQueue.instances.emplace_back(
             mul(localToWorlds.back(), float4x4::TRS(cuboid.GetCenter(), float3{0}, cuboid.GetSize())),
             color
         );
     }
-    void Gizmos::DrawWireSphere(const Sphere& sphere, const float4& color)
+    void Gizmos::DrawWire(const Rectangle& rectangle, const float4& color)
+    {
+        DrawWire(Cuboid{float3{rectangle.min, 0}, float3{rectangle.max, 0}}, color);
+    }
+    void Gizmos::DrawWire(const Sphere& sphere, const float4& color)
     {
         wireSphereQueue.instances.emplace_back(
             mul(localToWorlds.back(), float4x4::TRS(sphere.center, float3{0}, sphere.radius * 2)),
@@ -149,6 +157,4 @@ namespace Gleam
             instanceQueue.Clear();
         }
     }
-
-
 }
