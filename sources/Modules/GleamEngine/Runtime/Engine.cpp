@@ -1,7 +1,6 @@
 ﻿#include "Engine.h"
-#include <ranges>
-
 #include "GleamECS/Runtime/World.h"
+
 
 namespace Gleam
 {
@@ -20,25 +19,6 @@ namespace Gleam
     std::vector<std::reference_wrapper<System>>& Engine::RuntimeSystems()
     {
         return runtimeSystems;
-    }
-    void Engine::Start()
-    {
-        for (auto system : runtimeSystems)
-            World::AddSystem(system);
-
-        for (auto& event : startEvents | std::views::values)
-            event();
-
-        while (!isStopping)
-        {
-            World::Update();
-            for (auto& event : updateEvents | std::views::values)
-                event();
-        }
-        World::Clear();
-
-        for (auto& event : stopEvents | std::views::values)
-            event();
     }
     void Engine::Stop()
     {

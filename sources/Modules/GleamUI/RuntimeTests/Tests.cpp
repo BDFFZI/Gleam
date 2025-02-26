@@ -46,6 +46,19 @@ private:
         ImGui::Image(textureID, float2(50));
         UI::DragFloat4x4("matrix", &matrix);
 
+        std::unordered_map<std::string, float> map = {
+            {"Test1/Test1", 2},
+            {"Test1", 1},
+            {"Test2", 3},
+        };
+        for (auto& [path,value] : map)
+        {
+            // if(ImGui::TreeNode())
+            // {
+            //     ImGui::TreePop();
+            // }
+        }
+
         //逻辑处理
         if (InputSystem.GetKeyDown(KeyCode::Esc))
             Engine::Stop();

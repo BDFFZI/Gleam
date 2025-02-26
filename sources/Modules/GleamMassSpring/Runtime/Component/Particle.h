@@ -1,6 +1,5 @@
 ﻿#pragma once
-#include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
-#include "GleamEngine/Runtime/System/TimeSystem.h"
+#include "GleamMath/Runtime/LinearAlgebra/Vector.h"
 
 namespace Gleam
 {

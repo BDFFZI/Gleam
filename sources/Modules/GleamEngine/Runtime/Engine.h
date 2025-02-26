@@ -3,8 +3,12 @@
 #include <map>
 
 #include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/World.h"
 #include "GleamReflection/Runtime/Type.h"
 
+#ifdef GleamEngineEditor
+#include "GleamEngine/Editor/Profiler.h"
+#endif
 
 namespace Gleam
 {
@@ -41,7 +45,32 @@ namespace Gleam
         static void AddUpdateEvent(const std::function<void()>& event, int order = 0);
         static std::vector<std::reference_wrapper<System>>& RuntimeSystems();
 
-        static void Start();
+        static void Start()
+        {
+            for (auto system : runtimeSystems)
+                World::AddSystem(system);
+
+            for (auto& event : startEvents | std::views::values)
+                event();
+
+            while (!isStopping)
+            {
+#ifdef GleamEngineEditor
+                Profiler::Begin("Update");
+                World::Update();
+                Profiler::End();
+#else
+                World::Update();
+#endif
+
+                for (auto& event : updateEvents | std::views::values)
+                    event();
+            }
+            World::Clear();
+
+            for (auto& event : stopEvents | std::views::values)
+                event();
+        }
         static void Stop();
 
     private:

@@ -6,6 +6,7 @@
 #include "System/HierarchyWindow.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamUI/Runtime/UI.h"
+#include "System/ProfilerWindow.h"
 
 namespace Gleam
 {
@@ -43,10 +44,16 @@ namespace Gleam
         lastIsPlaying = Editor::IsPlaying();
     }
 
+    Gleam_AddUpdateEvent(FetchProfile, 1)
+    {
+        ProfilerWindow.SetProfile(Profiler::FlushProfile());
+    }
+
     Gleam_AddEditorSystems(
         EditorUISystem,
         HierarchyWindow,
         InspectorWindow,
+        ProfilerWindow,
     )
 
     inline void InspectorUI_LocalTransform(LocalTransform& localTransform)

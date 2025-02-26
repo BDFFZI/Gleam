@@ -1,11 +1,16 @@
 ﻿#pragma once
 #include <functional>
 #include <optional>
+#include <ranges>
 #include <set>
 #include <string>
 
 #ifdef GleamReflectionRuntime
 #include "GleamReflection/Runtime/Type.h"
+#endif
+
+#ifdef GleamEngineEditor
+#include "GleamEngine/Editor/Profiler.h"
 #endif
 
 namespace Gleam
@@ -120,7 +125,32 @@ namespace Gleam
 
         void Start() override;
         void Stop() override;
-        void Update() override;
+        void Update() override
+        {
+            if (subSystemStopQueue.empty() == false)
+            {
+                for (System* system : std::ranges::reverse_view(subSystemStopQueue))
+                    system->Stop();
+                subSystemStopQueue.clear();
+            }
+
+            if (subSystemStartQueue.empty() == false)
+            {
+                for (System* system : subSystemStartQueue)
+                    system->Start();
+                subSystemUpdateQueue.insert(subSystemStartQueue.begin(), subSystemStartQueue.end());
+                subSystemStartQueue.clear();
+            }
+
+            for (System* system : subSystemUpdateQueue)
+            {
+#ifdef GleamEngineEditor
+                std::string& name = system->GetName();
+                Gleam_ProfilerSample(name);
+#endif
+                system->Update();
+            }
+        }
 
     private:
         friend class EditorUI;
