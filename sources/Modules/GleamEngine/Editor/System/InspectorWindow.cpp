@@ -98,8 +98,8 @@ namespace Gleam
             {
                 EditorUISerializer serializer = {"InspectionTarget"};
                 Type& type = Type::GetType(targetType);
-                if (type.Serialize()) //序列化每个元素
-                    type.Serialize()(serializer, targetPtr);
+                if (type.GetSerialize()) //序列化每个元素
+                    type.GetSerialize()(serializer, targetPtr);
                 else //未知类型，当成字段整体传输给序列化器判断
                     serializer.Transfer(targetPtr, targetType);
             }

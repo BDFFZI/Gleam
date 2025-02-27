@@ -12,11 +12,15 @@
 namespace Gleam
 {
     template <typename T>
-    struct Type_Construct
+    struct Type_Raii
     {
-        static void Invoke(void* address)
+        static void Construct(void* address)
         {
             new(address) T();
+        }
+        static void Destruct(void* address)
+        {
+            static_cast<T*>(address)->T::~T();
         }
     };
     template <typename T,Transferrer TTransferrer>
@@ -30,7 +34,7 @@ namespace Gleam
     class DataTransferrer;
     class Type
     {
-        using TypeConstruct = void (*)(void* address);
+        using TypeRaiiFunc = void (*)(void* address);
         using TypeSerialize = void (*)(DataTransferrer&, void*);
 
     public:
@@ -45,7 +49,7 @@ namespace Gleam
         template <typename T>
         static Type& Init(const std::string_view uuidStr, const std::optional<std::type_index> parent = std::nullopt)
         {
-            static TypeSerialize parentSerialize = GetType(parent.value_or(typeid(void))).Serialize();
+            static TypeSerialize parentSerialize = GetType(parent.value_or(typeid(void))).GetSerialize();
 
             Type& type = GetType(typeid(T));
             uuids::uuid uuid = uuids::uuid::from_string(uuidStr).value_or(type.uuid);
@@ -56,7 +60,8 @@ namespace Gleam
             type.uuid = uuid;
             type.typeInfo = &typeid(T);
             type.size = sizeof(T);
-            type.construct = Type_Construct<T>::Invoke;
+            type.construct = Type_Raii<T>::Construct;
+            type.destruct = Type_Raii<T>::Destruct;
 
             //根据传输器获取序列化函数
             if constexpr (requires() { Type_Transfer<T, DataTransferrer>::Invoke; }) //有自定义序列化函数
@@ -93,15 +98,17 @@ namespace Gleam
             return type;
         }
         static Type& GetType(std::type_index typeIndex);
+        static std::optional<std::reference_wrapper<Type>> GetType(uuids::uuid uuid);
         static std::optional<std::reference_wrapper<Type>> GetType(std::string_view uuidStr);
 
-        const type_info*& TypeInfo();
-        std::vector<FieldInfo>& FieldInfos();
-        std::optional<std::type_index>& Parent();
-        size_t& Size();
-        uuids::uuid& Uuid();
-        TypeConstruct& Construct();
-        TypeSerialize& Serialize();
+        const type_info* GetTypeInfo() const;
+        const std::vector<FieldInfo>& GetFieldInfos() const;
+        std::optional<std::type_index> GetParent() const;
+        size_t GetSize() const;
+        uuids::uuid GetUuid() const;
+        TypeRaiiFunc GetConstruct() const;
+        TypeRaiiFunc GetDestruct() const;
+        TypeSerialize GetSerialize() const;
 
         bool IsInitialized() const;
 
@@ -114,7 +121,8 @@ namespace Gleam
         std::optional<std::type_index> parent = std::nullopt;
         size_t size = 0;
         uuids::uuid uuid = {};
-        TypeConstruct construct = nullptr;
+        TypeRaiiFunc construct = nullptr;
+        TypeRaiiFunc destruct = nullptr;
         TypeSerialize serialize = nullptr;
     };
 }
@@ -125,7 +133,7 @@ namespace Gleam
 template <typename T,Transferrer TTransferrer>\
 friend struct ::Gleam::Type_Transfer;\
 template <typename T>\
-friend struct ::Gleam::Type_Construct;
+friend struct ::Gleam::Type_Raii;
 
 #define Gleam_MakeType(type,uuidStr,...)\
 inline const ::Gleam::Type& type##Type = ::Gleam::Type::Init<type>(uuidStr,__VA_ARGS__);\

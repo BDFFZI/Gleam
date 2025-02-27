@@ -120,4 +120,11 @@ namespace Gleam
     {
         serializer.Transfer(&value, typeid(TValue));
     }
+    //uuid采用字符串传递
+    inline void DataTransferrer_Transfer<uuids::uuid>::Invoke(DataTransferrer& serializer, uuids::uuid& value)
+    {
+        std::string str = to_string(value);
+        serializer.Transfer(str);
+        value = uuids::uuid::from_string(str).value_or(uuids::uuid{});
+    }
 }

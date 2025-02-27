@@ -8,6 +8,12 @@ namespace Gleam
             allTypes.insert({typeIndex, Type{}});
         return allTypes.at(typeIndex);
     }
+    std::optional<std::reference_wrapper<Type>> Type::GetType(const uuids::uuid uuid)
+    {
+        if (uuidToTypeIndex.contains(uuid) == false)
+            return std::nullopt;
+        return GetType(uuidToTypeIndex.at(uuid));
+    }
     std::optional<std::reference_wrapper<Type>> Type::GetType(const std::string_view uuidStr)
     {
         auto uuid = uuids::uuid::from_string(uuidStr);
@@ -18,23 +24,27 @@ namespace Gleam
         return GetType(uuidToTypeIndex.at(uuid.value()));
     }
 
-    uuids::uuid& Type::Uuid()
+    uuids::uuid Type::GetUuid() const
     {
         return uuid;
     }
-    const type_info*& Type::TypeInfo()
+    const type_info* Type::GetTypeInfo() const
     {
         return typeInfo;
     }
-    size_t& Type::Size()
+    size_t Type::GetSize() const
     {
         return size;
     }
-    Type::TypeConstruct& Type::Construct()
+    Type::TypeRaiiFunc Type::GetConstruct() const
     {
         return construct;
     }
-    Type::TypeSerialize& Type::Serialize()
+    Type::TypeRaiiFunc Type::GetDestruct() const
+    {
+        return destruct;
+    }
+    Type::TypeSerialize Type::GetSerialize() const
     {
         return serialize;
     }
@@ -42,11 +52,11 @@ namespace Gleam
     {
         return typeInfo != nullptr;
     }
-    std::vector<FieldInfo>& Type::FieldInfos()
+    const std::vector<FieldInfo>& Type::GetFieldInfos() const
     {
         return fieldInfos;
     }
-    std::optional<std::type_index>& Type::Parent()
+    std::optional<std::type_index> Type::GetParent() const
     {
         return parent;
     }

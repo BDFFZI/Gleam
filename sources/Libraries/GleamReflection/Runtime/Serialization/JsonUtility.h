@@ -6,7 +6,7 @@
 
 namespace Gleam
 {
-    class Json
+    class JsonUtility
     {
     public:
         static rapidjson::Document ToDocument(void* object, Type& type);

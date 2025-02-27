@@ -52,10 +52,10 @@ namespace Gleam
                 else
                 {
                     Type& type = Type::GetType(componentType);
-                    if (type.Serialize())
+                    if (type.GetSerialize())
                     {
                         EditorUISerializer editorUiSerializer = {componentName};
-                        type.Serialize()(editorUiSerializer, component);
+                        type.GetSerialize()(editorUiSerializer, component);
                     }
                 }
             }
@@ -198,8 +198,8 @@ namespace Gleam
     {
         EditorUISerializer serializer = {"InspectionTarget"};
         Type& type = Type::GetType(targetType);
-        if (type.Serialize()) //序列化每个元素
-            type.Serialize()(serializer, target);
+        if (type.GetSerialize()) //序列化每个元素
+            type.GetSerialize()(serializer, target);
         else //未知类型，当成字段整体传输给序列化器判断
             serializer.Transfer(target, targetType);
     }

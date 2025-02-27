@@ -11,7 +11,7 @@ namespace Gleam
         std::vector<Profile> children = {};
         int childrenCount = 0;
         Timer<std::chrono::microseconds> timer = {};
-        
+
         Profile& NextChild();
         void Initialize(std::string_view name);
     };
