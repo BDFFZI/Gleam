@@ -22,11 +22,12 @@ namespace Gleam
             if (isDirty && windowSize.x > 0 && windowSize.y > 0)
             {
                 isDirty = false;
-                renderTexture = std::make_unique<GRenderTexture>(static_cast<int2>(windowSize));
-                RenderingSystem.SetDefaultRenderTarget(*renderTexture);
+                SwapChain::WaitPresent();
                 if (renderTextureID != nullptr)
                     UI::DeleteTexture(renderTextureID);
+                renderTexture = std::make_unique<GRenderTexture>(static_cast<int2>(windowSize));
                 renderTextureID = UI::CreateTexture(*renderTexture);
+                RenderingSystem.SetDefaultRenderTarget(*renderTexture);
             }
             //更新输入系统的焦点范围为GameWindow
             InputSystem.SetFocusArea(Rectangle::CreateFromOrigin(windowPosition, windowSize));

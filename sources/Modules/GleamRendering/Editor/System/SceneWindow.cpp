@@ -8,6 +8,7 @@
 
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
+#include "GleamGraphics/Runtime/SwapChain.h"
 #include "GleamMath/Runtime/Geometry/Geometry.h"
 #include "GleamRendering/Editor/Handles.h"
 #include "GleamWindow/Runtime/System/CursorSystem.h"
@@ -138,11 +139,12 @@ namespace Gleam
             if (isDirty && windowContentSize.x > 0 && windowContentSize.y > 0)
             {
                 isDirty = false;
+                SwapChain::WaitPresent();
                 if (sceneCameraCanvasImID != nullptr)
                     UI::DeleteTexture(sceneCameraCanvasImID);
                 sceneCameraCanvas = std::make_unique<GRenderTexture>(static_cast<int2>(windowContentSize));
-                World::GetComponent<Camera>(sceneCamera).renderTarget = *sceneCameraCanvas;
                 sceneCameraCanvasImID = UI::CreateTexture(*sceneCameraCanvas);
+                World::GetComponent<Camera>(sceneCamera).renderTarget = *sceneCameraCanvas;
             }
             //相机控制
             Camera& camera = World::GetComponent<Camera>(sceneCamera);
