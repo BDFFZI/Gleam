@@ -16,8 +16,8 @@ namespace Gleam
     class DataTransferrer;
     ///扩展DataTransferrer传输函数。
     ///由于基于模板，因此针对各种类型扩展都非常方便，但也因此仅对直接调用有效，使用RTTI访问将绕过该函数。
-    ///建议仅用于扩展基本类型，例如向量之类等价于int,float这样被存放在class内的成员类型。
-    ///class类型通过会利用RTTI和Type来获取对应的序列化方法。
+    ///建议仅用于扩展基于模板的基础类型，例如向量，其通过模板实现，同时一般都作为类成员使用而不是独立存储。
+    ///其他类型一般情况下利用Type注册序列化函数即可，这样利用RTTI访问也可以成功序列化。
     template <typename TValue>
     struct DataTransferrer_Transfer
     {
@@ -106,6 +106,7 @@ namespace Gleam
         virtual void Transfer(char& value);
         virtual void Transfer(std::string& value) = 0;
         virtual void Transfer(std::vector<std::byte>& value) = 0;
+        virtual void Transfer(uuids::uuid& value);
         template <class TValue>
         void Transfer(TValue& value)
         {
@@ -119,12 +120,5 @@ namespace Gleam
     void DataTransferrer_Transfer<TValue>::Invoke(DataTransferrer& serializer, TValue& value)
     {
         serializer.Transfer(&value, typeid(TValue));
-    }
-    //uuid采用字符串传递
-    inline void DataTransferrer_Transfer<uuids::uuid>::Invoke(DataTransferrer& serializer, uuids::uuid& value)
-    {
-        std::string str = to_string(value);
-        serializer.Transfer(str);
-        value = uuids::uuid::from_string(str).value_or(uuids::uuid{});
     }
 }

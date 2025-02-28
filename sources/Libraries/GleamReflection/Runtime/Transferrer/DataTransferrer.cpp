@@ -72,4 +72,10 @@ namespace Gleam
         Transfer(wrap);
         value = static_cast<char>(wrap);
     }
+    void DataTransferrer::Transfer(uuids::uuid& value)
+    {
+        std::string wrap = to_string(value);
+        Transfer(wrap);
+        value = uuids::uuid::from_string(wrap).value_or(uuids::uuid{});
+    }
 }

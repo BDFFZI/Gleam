@@ -3,31 +3,35 @@
 
 namespace Gleam
 {
-    struct Asset
+    class Asset
     {
-        int id;
-        uuids::uuid type;
-        void* data = nullptr;
-        bool ownership = false;
+    public:
+        Asset();
+        Asset(int id, uuids::uuid type, void* data);
+        Asset(Asset&& asset) noexcept;
+        Asset& operator=(Asset&& asset) noexcept;
+        ~Asset();
 
-        ~Asset()
-        {
-            if (ownership)
-            {
-                Type::GetType(type).value().get().GetDestruct()(data);
-                std::free(data);
-            }
-        }
+        uuids::uuid GetTypeID() const;
+        void* GetData() const;
+    private:
+        Gleam_MakeType_Friend
+        friend class AssetBundle;
+
+        int id;
+        uuids::uuid typeID;
+        void* data;
+        bool ownership;
     };
 
     Gleam_MakeType(Asset, "")
     {
         Gleam_MakeType_AddField(id);
-        Gleam_MakeType_AddField(type);
+        Gleam_MakeType_AddField(typeID);
 
         if constexpr (std::derived_from<TTransferrer, DataTransferrer>)
         {
-            auto optionalType = Type::GetType(value.type);
+            auto optionalType = Type::GetType(value.typeID);
             if (optionalType.has_value())
             {
                 Type& type = optionalType.value().get();

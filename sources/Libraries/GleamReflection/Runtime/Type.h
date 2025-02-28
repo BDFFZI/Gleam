@@ -52,12 +52,12 @@ namespace Gleam
             static TypeSerialize parentSerialize = GetType(parent.value_or(typeid(void))).GetSerialize();
 
             Type& type = GetType(typeid(T));
-            uuids::uuid uuid = uuids::uuid::from_string(uuidStr).value_or(type.uuid);
+            uuids::uuid uuid = uuids::uuid::from_string(uuidStr).value_or(type.id);
             if (uuid.is_nil() == false)
                 uuidToTypeIndex.insert({uuid, typeid(T)});
 
+            type.id = uuid;
             type.parent = parent;
-            type.uuid = uuid;
             type.typeInfo = &typeid(T);
             type.size = sizeof(T);
             type.construct = Type_Raii<T>::Construct;
@@ -101,11 +101,11 @@ namespace Gleam
         static std::optional<std::reference_wrapper<Type>> GetType(uuids::uuid uuid);
         static std::optional<std::reference_wrapper<Type>> GetType(std::string_view uuidStr);
 
+        uuids::uuid GetID() const;
         const type_info* GetTypeInfo() const;
         const std::vector<FieldInfo>& GetFieldInfos() const;
         std::optional<std::type_index> GetParent() const;
         size_t GetSize() const;
-        uuids::uuid GetUuid() const;
         TypeRaiiFunc GetConstruct() const;
         TypeRaiiFunc GetDestruct() const;
         TypeSerialize GetSerialize() const;
@@ -116,11 +116,11 @@ namespace Gleam
         inline static std::unordered_map<std::type_index, Type> allTypes;
         inline static std::unordered_map<uuids::uuid, std::type_index> uuidToTypeIndex = {};
 
+        uuids::uuid id = {};
         const type_info* typeInfo = nullptr;
         std::vector<FieldInfo> fieldInfos = {};
         std::optional<std::type_index> parent = std::nullopt;
         size_t size = 0;
-        uuids::uuid uuid = {};
         TypeRaiiFunc construct = nullptr;
         TypeRaiiFunc destruct = nullptr;
         TypeSerialize serialize = nullptr;
@@ -136,6 +136,7 @@ template <typename T>\
 friend struct ::Gleam::Type_Raii;
 
 #define Gleam_MakeType(type,uuidStr,...)\
+inline const std::string type##Type##ID = uuidStr;\
 inline const ::Gleam::Type& type##Type = ::Gleam::Type::Init<type>(uuidStr,__VA_ARGS__);\
 template <Gleam::Transferrer TTransferrer>\
 struct ::Gleam::Type_Transfer<type, TTransferrer>\

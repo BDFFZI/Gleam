@@ -19,14 +19,12 @@ namespace Gleam
         auto uuid = uuids::uuid::from_string(uuidStr);
         if (uuid.has_value() == false)
             throw std::runtime_error("无法识别的UUID字符串！");
-        if (uuidToTypeIndex.contains(uuid.value()) == false)
-            return std::nullopt;
-        return GetType(uuidToTypeIndex.at(uuid.value()));
+        return GetType(uuid.value());
     }
 
-    uuids::uuid Type::GetUuid() const
+    uuids::uuid Type::GetID() const
     {
-        return uuid;
+        return id;
     }
     const type_info* Type::GetTypeInfo() const
     {

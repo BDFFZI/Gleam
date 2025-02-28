@@ -6,6 +6,7 @@ namespace Gleam
     class File
     {
     public:
-        static std::string ReadAllText(const std::string& filename);
+        static void WriteAllText(std::string_view filename, std::string_view content);
+        static std::string ReadAllText(std::string_view filename);
     };
 }
