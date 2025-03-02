@@ -12,15 +12,16 @@ namespace Gleam
         Asset& operator=(Asset&& asset) noexcept;
         ~Asset();
 
+        int GetID() const;
         uuids::uuid GetTypeID() const;
-        void* GetData() const;
+        void* GetDataRef() const;
     private:
         Gleam_MakeType_Friend
         friend class AssetBundle;
 
         int id;
         uuids::uuid typeID;
-        void* data;
+        void* dataRef;
         bool ownership;
     };
 
@@ -35,21 +36,21 @@ namespace Gleam
             if (optionalType.has_value())
             {
                 Type& type = optionalType.value().get();
-                if (value.data == nullptr)
+                if (value.dataRef == nullptr)
                 {
-                    value.data = std::malloc(type.GetSize());
-                    type.GetConstruct()(value.data);
+                    value.dataRef = std::malloc(type.GetSize());
+                    type.GetConstruct()(value.dataRef);
                     value.ownership = true;
                 }
 
                 transferrer.PushNode("data", DataType::Class);
-                type.GetSerialize()(transferrer, value.data);
+                type.GetSerialize()(transferrer, value.dataRef);
                 transferrer.PopNode();
             }
         }
         else
         {
-            Gleam_MakeType_AddField(data);
+            Gleam_MakeType_AddField(dataRef);
         }
     }
 }

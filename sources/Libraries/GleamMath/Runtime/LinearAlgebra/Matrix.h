@@ -26,8 +26,8 @@ namespace Gleam
             vector<Type, 3> rad = radians(degree);
             float cosY = ::cos(rad.y);
             float sinY = ::sin(rad.y);
-            float cosX = cos(rad.x);
-            float sinX = sin(rad.x);
+            float cosX = ::cos(rad.x);
+            float sinX = ::sin(rad.x);
             float cosZ = ::cos(rad.z);
             float sinZ = ::sin(rad.z);
 

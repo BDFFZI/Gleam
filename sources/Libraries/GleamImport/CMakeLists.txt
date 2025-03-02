@@ -1,7 +1,7 @@
 addPackage()
 
 linkLibrary(GleamMathRuntime "${PackageName}Runtime")
-linkLibrary(GleamUtilityRuntime "${PackageName}RuntimeTests")
+linkLibrary(GleamUtilityRuntime "${PackageName}Runtime")
 
 find_package(Stb REQUIRED)
 target_include_directories("${PackageName}Runtime" PRIVATE ${Stb_INCLUDE_DIR})

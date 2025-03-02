@@ -4,25 +4,24 @@
 
 using namespace Gleam;
 
-struct TestClass
+struct CustomField
 {
     std::string name;
     float4x4 data;
 
-    bool operator==(const TestClass& other) const
+    bool operator==(const CustomField& other) const
     {
         return name == other.name && all(data == other.data);
     }
 };
 
-Gleam_MakeType(TestClass, "")
+Gleam_MakeType(CustomField, "")
 {
     Gleam_MakeType_AddField(name);
     Gleam_MakeType_AddField(data);
 }
 
-
-struct TestData
+struct CustomParent
 {
     bool boolValue;
     char charValue;
@@ -31,13 +30,28 @@ struct TestData
     std::string stringValue;
     std::vector<std::byte> bytesValue;
     float3 customValue;
+};
+
+Gleam_MakeType(CustomParent, "")
+{
+    Gleam_MakeType_AddField(boolValue);
+    Gleam_MakeType_AddField(charValue);
+    Gleam_MakeType_AddField(intValue);
+    Gleam_MakeType_AddField(floatValue);
+    Gleam_MakeType_AddField(stringValue);
+    Gleam_MakeType_AddField(bytesValue);
+    Gleam_MakeType_AddField(customValue);
+}
+
+struct CustomData : CustomParent
+{
     std::vector<int> vectorValue;
     std::vector<bool> boolVectorValue;
     std::vector<std::string> stringVectorValue;
     std::vector<float3> customVectorValue;
-    std::vector<TestClass> customClassVectorValue;
+    std::vector<CustomField> customClassVectorValue;
 
-    friend bool operator==(const TestData& lhs, const TestData& rhs)
+    friend bool operator==(const CustomData& lhs, const CustomData& rhs)
     {
         return lhs.boolValue == rhs.boolValue
             && lhs.charValue == rhs.charValue
@@ -61,16 +75,9 @@ struct TestData
     }
 };
 
-
-Gleam_MakeType(TestData, "C4BAB34E-B145-4297-8BA3-6DD1BD05110D")
+Gleam_MakeType2(CustomData, "C4BAB34E-B145-4297-8BA3-6DD1BD05110D", CustomParent)
 {
-    Gleam_MakeType_AddField(boolValue);
-    Gleam_MakeType_AddField(charValue);
-    Gleam_MakeType_AddField(intValue);
-    Gleam_MakeType_AddField(floatValue);
-    Gleam_MakeType_AddField(stringValue);
-    Gleam_MakeType_AddField(bytesValue);
-    Gleam_MakeType_AddField(customValue);
+    Gleam_MakeType_AddParentField();
     Gleam_MakeType_AddField(vectorValue);
     Gleam_MakeType_AddField(boolVectorValue);
     Gleam_MakeType_AddField(stringVectorValue);
@@ -78,7 +85,7 @@ Gleam_MakeType(TestData, "C4BAB34E-B145-4297-8BA3-6DD1BD05110D")
     Gleam_MakeType_AddField(customClassVectorValue);
 }
 
-inline TestData data = {
+inline CustomData data = {
     //基础类型
     true, 'A', 1, 0.5f, "Hello World!",
     {static_cast<std::byte>(1), static_cast<std::byte>(2), static_cast<std::byte>(3), static_cast<std::byte>(4)},

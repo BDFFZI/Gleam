@@ -71,7 +71,7 @@ namespace Gleam
         pointsMesh->GetVertices().emplace_back(Vertex{
             mul(localToWorlds.back(), float4(point.position, 1)).xyz, color
         }); // NOLINT(clang-diagnostic-missing-field-initializers)
-        pointsMesh->GetIndices().emplace_back(pointsMesh->GetIndices().size());
+        pointsMesh->GetIndices().emplace_back(static_cast<uint32_t>(pointsMesh->GetIndices().size()));
     }
     void Gizmos::Draw(const float3& point, const float4& color)
     {
@@ -84,8 +84,8 @@ namespace Gleam
                 Vertex{mul(localToWorlds.back(), float4(segment.pointA, 1)).xyz, color}, // NOLINT(clang-diagnostic-missing-field-initializers)
                 Vertex{mul(localToWorlds.back(), float4(segment.pointB, 1)).xyz, color} // NOLINT(clang-diagnostic-missing-field-initializers)
             });
-        linesMesh->GetIndices().emplace_back(linesMesh->GetIndices().size());
-        linesMesh->GetIndices().emplace_back(linesMesh->GetIndices().size());
+        linesMesh->GetIndices().emplace_back(static_cast<uint32_t>(linesMesh->GetIndices().size()));
+        linesMesh->GetIndices().emplace_back(static_cast<uint32_t>(linesMesh->GetIndices().size()));
     }
 
     void Gizmos::Draw(const Cuboid& cuboid, const float4& color)

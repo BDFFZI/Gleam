@@ -9,5 +9,14 @@ inline void InitEvent##id##id2()
 //如果无法正常触发初始化，尝试在全局空间使用，命名空间中的全局变量可能不被初始化
 #define Gleam_MakeInitEvent() Gleam_MakeInitEvent_Inner(__COUNTER__,__LINE__)
 
-#define Arg1(a,...) a
-#define Arg2(a,b,...) b
+namespace Gleam
+{
+    template <class T = void>
+    using MacroT = T;
+
+    template <class V>
+    V MacroV(V v = {})
+    {
+        return std::move(v);
+    }
+}

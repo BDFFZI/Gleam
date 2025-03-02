@@ -62,12 +62,16 @@ TEST(Reflection, Asset)
 
     jsonReader.TransferField("assets", newAssets);
 
-    ASSERT_EQ(static_cast<TestAsset*>(assets[0].GetData())->name, static_cast<TestAsset*>(newAssets[0].GetData())->name);
-    ASSERT_EQ(static_cast<TestAsset*>(assets[1].GetData())->name, static_cast<TestAsset*>(newAssets[1].GetData())->name);
+    ASSERT_EQ(static_cast<TestAsset*>(assets[0].GetDataRef())->name, static_cast<TestAsset*>(newAssets[0].GetDataRef())->name);
+    ASSERT_EQ(static_cast<TestAsset*>(assets[1].GetDataRef())->name, static_cast<TestAsset*>(newAssets[1].GetDataRef())->name);
 }
 
-void main()
+// void main()
+TEST(Reflection, AssetBundle)
 {
+    uuids::uuid assetBundleID = uuids::uuid::from_string("c57022f0-53a7-4b6b-99d5-41a1e5c8f51e").value();
+    uuids::uuid assetBundle2ID = uuids::uuid::from_string("c492a4ff-b846-4596-8a8d-09e25cba9b08").value();
+
     //创建、保存、卸载资源包
     {
         TestAsset testAsset[] = {
@@ -76,11 +80,11 @@ void main()
             {"Asset3"}
         };
 
-        AssetBundle& assetBundle = AssetBundle::Create(uuids::uuid::from_string("c57022f0-53a7-4b6b-99d5-41a1e5c8f51e").value());
+        AssetBundle& assetBundle = AssetBundle::Create(assetBundleID);
         assetBundle.AddAsset(&testAsset[0], Type::GetType(typeid(TestAsset)));
         assetBundle.AddAsset(&testAsset[1], Type::GetType(typeid(TestAsset)));
 
-        AssetBundle& assetBundle2 = AssetBundle::Create(uuids::uuid::from_string("c492a4ff-b846-4596-8a8d-09e25cba9b08").value());
+        AssetBundle& assetBundle2 = AssetBundle::Create(assetBundle2ID);
         assetBundle2.AddAsset(&testAsset[2], Type::GetType(typeid(TestAsset)));
 
         testAsset[1].dependency = &testAsset[2];
@@ -91,28 +95,65 @@ void main()
         uuids::uuid uuid = AssetBundle::GetIDFromJson("Assets/assetBundle2.asset");
         ASSERT_EQ(uuid, assetBundle2.GetID());
 
-        AssetBundle::Destroy(assetBundle);
-        AssetBundle::Destroy(assetBundle2);
+        AssetBundle::UnLoad(assetBundle);
+        AssetBundle::UnLoad(assetBundle2);
     }
 
     //加载资源包
     {
-        AssetBundle& assetBundle = AssetBundle::Load(uuids::uuid::from_string("c57022f0-53a7-4b6b-99d5-41a1e5c8f51e").value());
-        for (const Asset& asset : assetBundle.GetAssets())
+        TestAsset testAsset[] = {
+            {"Asset1"},
+            {"Asset2"},
+            {"Asset3"}
+        };
+
+        AssetBundle& assetBundle = AssetBundle::Load(assetBundleID);
+        for (int i = 0; const Asset& asset : assetBundle.GetAssets())
         {
-            std::cout << Type::GetType(asset.GetTypeID()).value().get().GetTypeInfo()->name() << std::endl;
-            TestAsset& testAsset = *static_cast<TestAsset*>(asset.GetData());
-            std::cout << testAsset.name << std::endl;
-            std::cout << testAsset.dependency << std::endl;
-            if (testAsset.dependency != nullptr)
-                std::cout << testAsset.dependency->name << std::endl;
+            Type& type = Type::GetType(asset.GetTypeID()).value().get();
+            ASSERT_EQ(&type, &TestAssetType);
+            TestAsset& data = *static_cast<TestAsset*>(asset.GetDataRef());
+            ASSERT_EQ(data.name, testAsset[i].name);
+            i++;
         }
+
+        //获取第二个自动加载的资源包
+        ASSERT_TRUE(AssetBundle::HasInMemory(assetBundle2ID)); //第二个资源包被依赖，自动加载
+        TestAsset& data3 = *static_cast<TestAsset*>(assetBundle.GetAssets()[1].GetDataRef())->dependency;
+        AssetRef assetRef = AssetBundle::GetAssetRef(&data3).value();
+        AssetBundle& assetBundle2 = AssetBundle::GetAssetBundle(assetRef.assetBundleID);
+
+        //测试内容重载
+        ASSERT_EQ(data3.name, testAsset[2].name);
+        data3.name += "Error";
+        AssetBundle::Load(assetRef.assetBundleID, true);
+        ASSERT_EQ(data3.name, testAsset[2].name);
+
+        //移动资源后保存
+        Asset asset = assetBundle.ExtractAsset(assetBundle.GetAssets()[1].GetID());
+        Asset asset2 = assetBundle2.ExtractAsset(assetBundle.GetAssets()[0].GetID());
+        assetBundle2.EmplaceAsset(std::move(asset));
+        assetBundle2.EmplaceAsset(std::move(asset2));
+        AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
+        data3.name = "NewAsset3";
+        AssetBundle::SaveJson("Assets/assetBundle2.asset", assetBundle2, false);
+        AssetBundle::DumpJson("Assets/assetBundle2.asset");
+
+        AssetBundle::UnLoad(assetBundle);
+        AssetBundle::UnLoad(assetBundle2);
+    }
+
+    //加载自依赖资源包
+    {
+        AssetBundle& assetBundle2 = AssetBundle::Load(assetBundle2ID);
+        ASSERT_TRUE(!AssetBundle::HasInMemory(assetBundleID)); //第一个资源包无依赖，不应加载
+        ASSERT_EQ(assetBundle2.GetData<TestAsset>(0).dependency->name, "NewAsset3");
     }
 }
 
 TEST(Reflection, BinarySerializer)
 {
-    Type& type = Type::GetType(typeid(TestData));
+    Type& type = Type::GetType(typeid(CustomData));
 
     std::ofstream outStream("test.bin", std::ios::binary);
     BinaryWriter binaryWriter = {outStream};
@@ -122,7 +163,7 @@ TEST(Reflection, BinarySerializer)
 
     std::ifstream inStream("test.bin", std::ios::binary);
     BinaryReader binaryReader = {inStream};
-    TestData newData = {};
+    CustomData newData = {};
     type.GetSerialize()(binaryReader, &newData);
     inStream.close();
 
@@ -131,7 +172,7 @@ TEST(Reflection, BinarySerializer)
 
 TEST(Reflection, JsonSerializer)
 {
-    Type& type = Type::GetType(typeid(TestData));
+    Type& type = Type::GetType(typeid(CustomData));
 
     rapidjson::Document document;
     document.Parse("{}");
@@ -145,7 +186,7 @@ TEST(Reflection, JsonSerializer)
     std::cout << buffer.GetString() << std::endl;
 
     JsonReader jsonReader = {document};
-    TestData newData = {};
+    CustomData newData = {};
     type.GetSerialize()(jsonReader, &newData);
 
     ASSERT_EQ(newData, data);

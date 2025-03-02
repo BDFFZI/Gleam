@@ -224,7 +224,7 @@ public:
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float>(currentTime - startTime).count();
         ConstantBuffer ubo;
-        ubo.model = float4x4::TRS(0, {-90, time * 90, 0}, 1);
+        ubo.model = float4x4::TRS(0, float3{-90, time * 90, 0}, 1);
         ubo.view = inverse(float4x4::TRS({2, 2, 2}, {32, -135, 0}, 1));
         ubo.proj = float4x4::Perspective(45.0f, static_cast<float>(glSwapChain->imageExtent.width) / static_cast<float>(glSwapChain->imageExtent.height), 0.1f, 10.0f);
         ubo.proj._m11 *= -1; //float4x4以Direct3D为准，输出的剪辑空间坐标y与vk相反，故需反转。
@@ -310,7 +310,8 @@ public:
     }
 };
 
-TEST(Presentation, GL)
+// TEST(Presentation, GL)
+void main()
 {
     constexpr uint32_t WIDTH = 800;
     constexpr uint32_t HEIGHT = 600;

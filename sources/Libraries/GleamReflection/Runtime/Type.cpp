@@ -42,6 +42,10 @@ namespace Gleam
     {
         return destruct;
     }
+    Type::TypeMove Type::GetMove() const
+    {
+        return move;
+    }
     Type::TypeSerialize Type::GetSerialize() const
     {
         return serialize;

@@ -17,8 +17,8 @@ TEST(Math, Geometry)
 
     Plane plane = {float3(1, 0.5, 1), float3(0, 1, 0)};
     Line line = {float3(1, 1, 1), normalize(float3(1, 1, 1))};
-    float3 point;
-    Geometry::Intersects(plane, line, point);
+    float3 point = Geometry::Intersects(plane, line);
+
     ASSERT_EQ(to_string(point), "(0.500000,0.500000,0.500000)");
 }
 

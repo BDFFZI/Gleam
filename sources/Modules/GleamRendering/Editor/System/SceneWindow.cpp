@@ -146,6 +146,14 @@ namespace Gleam
                 sceneCameraCanvasImID = UI::CreateTexture(*sceneCameraCanvas);
                 World::GetComponent<Camera>(sceneCamera).renderTarget = *sceneCameraCanvas;
             }
+            //快捷键修改手柄类型
+            if (inputSystem.GetMouseButton(MouseButton::Right) == false)
+            {
+                if (ImGui::IsKeyPressed(ImGuiKey_Q))handleOption = 0;
+                if (ImGui::IsKeyPressed(ImGuiKey_W))handleOption = 1;
+                if (ImGui::IsKeyPressed(ImGuiKey_E))handleOption = 2;
+                if (ImGui::IsKeyPressed(ImGuiKey_R))handleOption = 3;
+            }
             //相机控制
             Camera& camera = World::GetComponent<Camera>(sceneCamera);
             LocalTransform& cameraTransform = World::GetComponent<LocalTransform>(sceneCamera);
@@ -189,31 +197,27 @@ namespace Gleam
         //绘制菜单选项
         if (ImGui::BeginMenuBar())
         {
-            ImGui::PushItemWidth(windowContentSize.x / 5);
             //相机属性
-            if (ImGui::Button("Camera"))
-                InspectorWindow::Show(sceneCamera);
-            ImGui::Checkbox("Ortho", &World::GetComponent<Camera>(sceneCamera).orthographic);
-            ImGui::DragFloat("Speed", &moveSpeed);
+            if (ImGui::BeginMenu("Camera"))
+            {
+                if (ImGui::Button("Inspect"))
+                    InspectorWindow::Show(InspectorTarget{sceneCamera});
+                ImGui::Checkbox("Ortho", &World::GetComponent<Camera>(sceneCamera).orthographic);
+                ImGui::DragFloat("Speed", &moveSpeed);
+
+                ImGui::EndMenu();
+            }
+
             // 显示SceneUI（如手柄，网格等）
-            ImGui::Checkbox("SceneUI", &showSceneUI);
+            if (ImGui::BeginMenu("SceneUI"))
+            {
+                ImGui::Checkbox("Enable", &showSceneUI);
+                //手柄选项
+                static const char* optionName[] = {"Hide", "Position", "Rotation", "Scale"};
+                ImGui::Combo("Handle", &handleOption, optionName, std::size(optionName));
 
-            ImGui::PopItemWidth();
-
-            // //手柄选项
-            // {
-            //     ImGui::SetNextItemWidth(windowContentSize.x * 0.5f);
-            //     static const char* optionName[] = {"Hide", "Position", "Rotation", "Scale"};
-            //     ImGui::Combo("Handle", &handleOption, optionName, std::size(optionName));
-            //     if (inputSystem.GetMouseButton(MouseButton::Right) == false)
-            //     {
-            //         if (ImGui::IsKeyPressed(ImGuiKey_Q))handleOption = 0;
-            //         if (ImGui::IsKeyPressed(ImGuiKey_W))handleOption = 1;
-            //         if (ImGui::IsKeyPressed(ImGuiKey_E))handleOption = 2;
-            //         if (ImGui::IsKeyPressed(ImGuiKey_R))handleOption = 3;
-            //     }
-            // }
-
+                ImGui::EndMenu();
+            }
 
             ImGui::EndMenuBar();
         }
@@ -259,14 +263,14 @@ namespace Gleam
             }
 
             //绘制自定义UI或Gizmos
-            void* target = InspectorWindow.GetTarget();
-            if (target != nullptr)
+            if (InspectorWindow.GetTarget().has_value())
             {
                 ImGui::SetCursorPos({});
                 Handles::WorldToView() = cameraWorldToLocal.value;
                 Handles::ViewToClip() = cameraViewToClip.value;
-                if (sceneGUIs.contains(InspectorWindow.GetTargetType()))
-                    sceneGUIs[InspectorWindow.GetTargetType()](target);
+                auto [data,type] = InspectorWindow.GetTarget().value();
+                if (sceneGUIs.contains(type))
+                    sceneGUIs[type](data);
             }
         }
 

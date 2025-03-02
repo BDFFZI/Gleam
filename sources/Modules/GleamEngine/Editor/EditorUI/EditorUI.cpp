@@ -15,7 +15,8 @@ namespace Gleam
     {
         if (ImGui::Button(std::format("Entity:{}", static_cast<uint32_t>(entity)).c_str()))
         {
-            InspectorWindow.SetTarget(entity);
+            inspecting = entity;
+            InspectorWindow.SetTarget(InspectorTarget{inspecting});
         }
         if (ImGui::BeginDragDropSource())
         {
@@ -113,7 +114,7 @@ namespace Gleam
             system.GetName().c_str(),
             {ImGui::GetContentRegionAvail().x - ImGui::GetTextLineHeightWithSpacing() * 1.5f, 0} //按钮铺满当前行余下的所有空间
         ))
-            InspectorWindow.SetTarget(&system);
+            InspectorWindow.SetTarget(InspectorTarget{system});
         //系统引用计数
         ImGui::SameLine();
         ImGui::Text("%i", World::systemUsageCount[&system]);

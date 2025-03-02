@@ -17,7 +17,7 @@ namespace Gleam
 
         ImGui::SeparatorText("World");
         EditorUI::DrawWorldUnfolding();
-
+        
         ImGui::End();
     }
 }

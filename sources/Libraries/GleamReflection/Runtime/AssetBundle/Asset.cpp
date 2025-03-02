@@ -3,18 +3,18 @@
 namespace Gleam
 {
     Asset::Asset()
-        : id(0), typeID({}), data(nullptr), ownership(false)
+        : id(0), typeID({}), dataRef(nullptr), ownership(false)
     {
     }
     Asset::Asset(const int id, const uuids::uuid type, void* data)
-        : id(id), typeID(type), data(data), ownership(false)
+        : id(id), typeID(type), dataRef(data), ownership(false)
     {
     }
     Asset::Asset(Asset&& asset) noexcept
     {
         id = asset.id;
         typeID = asset.typeID;
-        data = asset.data;
+        dataRef = asset.dataRef;
         ownership = asset.ownership;
         asset.ownership = false;
     }
@@ -22,13 +22,13 @@ namespace Gleam
     {
         if (ownership)
         {
-            Type::GetType(typeID).value().get().GetDestruct()(data);
-            std::free(data);
+            Type::GetType(typeID).value().get().GetDestruct()(dataRef);
+            std::free(dataRef);
         }
 
         id = asset.id;
         typeID = asset.typeID;
-        data = asset.data;
+        dataRef = asset.dataRef;
         ownership = asset.ownership;
         asset.ownership = false;
         return *this;
@@ -37,16 +37,21 @@ namespace Gleam
     {
         if (ownership)
         {
-            Type::GetType(typeID).value().get().GetDestruct()(data);
-            std::free(data);
+            Type::GetType(typeID).value().get().GetDestruct()(dataRef);
+            std::free(dataRef);
         }
+    }
+
+    int Asset::GetID() const
+    {
+        return id;
     }
     uuids::uuid Asset::GetTypeID() const
     {
         return typeID;
     }
-    void* Asset::GetData() const
+    void* Asset::GetDataRef() const
     {
-        return data;
+        return dataRef;
     }
 }

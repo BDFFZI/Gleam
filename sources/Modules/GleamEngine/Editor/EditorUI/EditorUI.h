@@ -24,5 +24,6 @@ namespace Gleam
     private:
         inline static Entity drawing = Entity::Null;
         inline static Entity dragging = Entity::Null;
+        inline static Entity inspecting = Entity::Null;
     };
 }

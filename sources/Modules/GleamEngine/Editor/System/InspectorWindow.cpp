@@ -18,42 +18,23 @@ namespace Gleam
     {
         inspectorGUIs.insert({typeIndex, drawInspectorUI});
     }
+    void InspectorWindow::Show(InspectorTarget inspectorTarget)
+    {
+        InspectorWindow* inspectorWindow = new InspectorWindow();
+        inspectorWindow->SetTarget(inspectorTarget);
+        World::AddSystem(*inspectorWindow);
+    }
 
-    Entity InspectorWindow::GetTargetEntity()
-    {
-        if (GetTargetType() == typeid(Entity))
-            return *std::get<0>(target)._Cast<Entity>();
 
-        return Entity::Null;
-    }
-    void* InspectorWindow::GetTarget()
+    const std::optional<InspectorTarget>& InspectorWindow::GetTarget() const
     {
-        void* targetPtr;
-        switch (target.index())
-        {
-        case 0:
-            targetPtr = &std::get<std::any>(target);
-            break;
-        case 1:
-            targetPtr = std::get<void*>(target);
-            break;
-        case 2:
-            targetPtr = std::get<std::weak_ptr<void>>(target).lock().get();
-            break;
-        default:
-            throw std::runtime_error("不支持的目标种类！");
-        }
-        return targetPtr;
+        return target;
     }
-    std::type_index InspectorWindow::GetTargetType() const
-    {
-        return targetType;
-    }
-    void InspectorWindow::SetTarget(const std::variant<std::any, void*, std::weak_ptr<void>>& target, const std::type_index targetType)
+    void InspectorWindow::SetTarget(const std::optional<InspectorTarget>& target)
     {
         this->target = target;
-        this->targetType = targetType;
     }
+
     void InspectorWindow::Stop()
     {
         if (this != &Gleam::InspectorWindow)
@@ -78,8 +59,10 @@ namespace Gleam
         //绘制菜单项
         if (ImGui::BeginMenuBar())
         {
-            if (ImGui::MenuItem("Clone"))
-                Show(target, targetType);
+            if (ImGui::MenuItem("Clone") && target.has_value())
+                Show(target.value());
+            if (ImGui::MenuItem("Clear"))
+                SetTarget(std::nullopt);
             if (ImGui::BeginMenu("Debug"))
             {
                 ImGui::Checkbox("UseDebugGUI", &useDebugGUI);
@@ -89,19 +72,19 @@ namespace Gleam
             ImGui::EndMenuBar();
         }
         //绘制目标
-        void* targetPtr = GetTarget();
-        if (targetPtr != nullptr)
+        if (target.has_value())
         {
-            if (inspectorGUIs.contains(targetType))
-                inspectorGUIs[targetType](targetPtr);
+            auto [data, typeIndex] = target.value();
+            if (inspectorGUIs.contains(typeIndex))
+                inspectorGUIs[typeIndex](data);
             else
             {
                 EditorUISerializer serializer = {"InspectionTarget"};
-                Type& type = Type::GetType(targetType);
+                Type& type = Type::GetType(typeIndex);
                 if (type.GetSerialize()) //序列化每个元素
-                    type.GetSerialize()(serializer, targetPtr);
+                    type.GetSerialize()(serializer, data);
                 else //未知类型，当成字段整体传输给序列化器判断
-                    serializer.Transfer(targetPtr, targetType);
+                    serializer.Transfer(data, typeIndex);
             }
         }
 

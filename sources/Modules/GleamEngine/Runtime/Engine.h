@@ -112,6 +112,6 @@ using systemClass##_T = systemClass;\
 inline systemClass systemClass = Gleam::Engine::CreateSystem<systemClass##_T>(__VA_ARGS__);
 
     ///将系统添加到世界，并注册到运行时系统组
-#include "GleamUtility/Runtime/Program.h"
+#include "GleamUtility/Runtime/Macro.h"
 #define Gleam_AddSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::RuntimeSystems().insert(::Gleam::Engine::RuntimeSystems().end(),{__VA_ARGS__});}
 }
