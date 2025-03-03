@@ -6,9 +6,11 @@
 #include <typeindex>
 #include <vector>
 #include <unordered_map>
+#include <ranges>
 
 #include "Entity.h"
 #include "Component.h"
+#include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam
 {
@@ -18,56 +20,66 @@ namespace Gleam
     class Archetype
     {
     public:
-        static const std::vector<std::reference_wrapper<Archetype>>& GetAllArchetypes();
+        static auto GetAllArchetypes()
+        {
+            auto allArchetypes = idToArchetype | std::views::values | std::views::transform([](const Archetype* archetype)
+            {
+                return *archetype;
+            });
+            return allArchetypes;
+        }
+
         template <Component... TComponents> requires ArchetypeComponentList<TComponents...>
         static Archetype Create(const char* name)
         {
-            Archetype archetype = {
-                name,
-                std::initializer_list<ComponentInfo>{ComponentInfoMeta<TComponents>::GetInfo()...}
-            };
-            allArchetypes.emplace_back(archetype);
+            Archetype archetype = {name, {&Type::GetType(typeid(TComponents)).value().get()...}};
+            idToArchetype.emplace(archetype.id, &archetype);
             return archetype;
         }
         template <Component... TComponents>
         static Archetype Create(const char* name, const Archetype& parent)
         {
-            std::vector<ComponentInfo> componentInfos = parent.componentInfos;
-            componentInfos.insert(componentInfos.end(), {ComponentInfoMeta<TComponents>::GetInfo()...});
+            std::vector<const Type*> types = parent.componentTypes;
+            types.insert(types.end(), {&Type::GetType(typeid(TComponents)).value().get()...});
 
-            Archetype archetype = {name, componentInfos};
-            allArchetypes.emplace_back(archetype);
+            Archetype archetype = {name, types};
+            idToArchetype.emplace(archetype.id, &archetype);
             return archetype;
         }
 
         const std::string& GetName() const;
+        uuids::uuid GetID() const;
+        int GetSize() const;
+
         bool HasComponent(std::type_index component) const;
         int GetComponentCount() const;
-        const ComponentInfo& GetComponentInfo(int index) const;
+        const Type& GetComponentType(int index) const;
         int GetComponentOffset(int index) const;
         int GetComponentOffset(std::type_index component) const;
-        int GetArchetypeSize() const;
-
-        void RunConstructor(std::byte* ptr) const;
-        void RunDestructor(std::byte* ptr) const;
-        void RunMoveConstructor(std::byte* source, std::byte* destination) const;
         template <class... TComponents>
-        std::array<int, sizeof...(TComponents)> MemoryMap() const
+        std::array<int, sizeof...(TComponents)> GetComponentOffset() const
         {
-            return {componentOffsetsMap.at(typeid(TComponents))...};
+            return {GetComponentOffset(typeid(TComponents))...};
         }
 
+        void Construct(std::byte* address) const;
+        void Destruct(std::byte* address) const;
+        void MoveConstruct(std::byte* source, std::byte* destination) const;
+        void Move(std::byte* source, std::byte* destination) const;
+
     private:
-        inline static std::vector<std::reference_wrapper<Archetype>> allArchetypes = {};
+        inline static std::unordered_map<uuids::uuid, const Archetype*> idToArchetype = {};
 
         std::string name;
-        std::vector<ComponentInfo> componentInfos;
+        uuids::uuid id;
+        int size;
         int componentCount;
+        std::unordered_map<std::type_index, int> componentMapping;
+        std::vector<const Type*> componentTypes;
         std::vector<int> componentOffsets;
-        int archetypeSize;
-        std::unordered_map<std::type_index, int> componentOffsetsMap; //缓存组件偏移查询信息
 
-        Archetype(std::string_view name, const std::vector<ComponentInfo>& componentInfos);
+        Archetype(std::string_view name, std::vector<const Type*> componentTypes);
+        Archetype(Archetype&) = delete;
     };
 
     std::string to_string(const Archetype& archetype);

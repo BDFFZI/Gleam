@@ -52,19 +52,6 @@ Gleam_MakeType(CustomComponent2, "6DEF6625-C2B2-49D7-A045-251C30DEBD1D")
 {
     Gleam_MakeType_AddField(stringValue);
 }
-Gleam_MakeCombinedType(CustomArchetype, CustomComponent1Type, CustomComponent2Type)
-
-TEST(Reflection, CombinedType)
-{
-    std::cout << CustomArchetype.GetID() << '\n';
-    for (auto& fieldInfo : CustomArchetype.GetFields())
-    {
-        std::cout << fieldInfo.name << '\t';
-        std::cout << fieldInfo.type.name() << '\t';
-        std::cout << fieldInfo.offset << '\t';
-        std::cout << fieldInfo.size << '\n';
-    }
-}
 
 TEST(Reflection, Asset)
 {
@@ -139,7 +126,7 @@ TEST(Reflection, AssetBundle)
         AssetBundle& assetBundle = AssetBundle::Load(assetBundleID);
         for (int i = 0; const Asset& asset : assetBundle.GetAssets())
         {
-            Type& type = Type::GetType(asset.GetTypeID()).value().get();
+            const Type& type = Type::GetType(asset.GetTypeID()).value().get();
             ASSERT_EQ(&type, &TestAssetType);
             TestAsset& data = *static_cast<TestAsset*>(asset.GetDataRef());
             ASSERT_EQ(data.name, testAsset[i].name);
@@ -182,7 +169,7 @@ TEST(Reflection, AssetBundle)
 
 TEST(Reflection, BinarySerializer)
 {
-    Type& type = Type::GetType(typeid(CustomData)).value();
+    const Type& type = Type::GetType(typeid(CustomData)).value();
 
     std::ofstream outStream("test.bin", std::ios::binary);
     BinaryWriter binaryWriter = {outStream};
@@ -201,7 +188,7 @@ TEST(Reflection, BinarySerializer)
 
 TEST(Reflection, JsonSerializer)
 {
-    Type& type = Type::GetType(typeid(CustomData)).value();
+    const Type& type = Type::GetType(typeid(CustomData)).value();
 
     rapidjson::Document document;
     document.Parse("{}");
@@ -224,8 +211,9 @@ TEST(Reflection, JsonSerializer)
 
 TEST(Reflection, Type)
 {
-    Type& type = Type::GetType(CustomDataType.GetID()).value().get();
+    const Type& type = Type::GetType(CustomDataType.GetID()).value().get();
     std::cout << type.GetID() << '\n';
+    std::cout << type.GetName() << '\n';
     for (auto& fieldInfo : type.GetFields())
     {
         std::cout << fieldInfo.name << '\t';

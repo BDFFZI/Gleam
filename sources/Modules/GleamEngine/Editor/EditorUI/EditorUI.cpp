@@ -37,7 +37,7 @@ namespace Gleam
         for (int i = 1; i < archetype.GetComponentCount(); ++i)
         {
             //统计实体信息
-            const ComponentInfo& componentInfo = archetype.GetComponentInfo(i);
+            const ComponentInfo& componentInfo = archetype.GetComponentType(i);
             std::type_index componentType = componentInfo.type;
             const char* componentName = componentInfo.type.name();
             int componentOffset = archetype.GetComponentOffset(i);
@@ -73,7 +73,7 @@ namespace Gleam
         for (int i = 1; i < archetype.GetComponentCount(); ++i)
         {
             //统计实体信息
-            const ComponentInfo& componentInfo = archetype.GetComponentInfo(i);
+            const ComponentInfo& componentInfo = archetype.GetComponentType(i);
             std::type_index componentType = componentInfo.type;
             const char* componentName = componentInfo.type.name();
             int componentOffset = archetype.GetComponentOffset(i);

@@ -29,9 +29,9 @@ namespace Gleam
         auto optionalType = Type::GetType(typeIndex);
         if (optionalType.has_value())
         {
-            Type& type = optionalType.value();
+            const Type& type = optionalType.value();
             PushNode(nullptr, DataType::Class);
-            type.GetSerialize()(*this, value);
+            type.Serialize(*this, value);
             PopNode();
         }
         else

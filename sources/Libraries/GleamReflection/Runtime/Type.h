@@ -22,11 +22,11 @@ namespace Gleam
         {
             static_cast<T*>(address)->T::~T();
         }
-    };
-    template <typename T>
-    struct Type_Move
-    {
-        static void Invoke(void* source, void* destination)
+        static void MoveConstruct(void* source, void* destination)
+        {
+            new(destination) T(std::move(*static_cast<T*>(source)));
+        }
+        static void Move(void* source, void* destination)
         {
             *static_cast<T*>(destination) = std::move(*static_cast<T*>(source));
         }
@@ -41,10 +41,9 @@ namespace Gleam
     class DataTransferrer;
 
     /**
-     * 存储运行时类型信息
-     * 注意点1：使用uuid访问Type时，Type始终存在，只是默认情况下各项值都为空。
-     * 注意点2：此处的类型是C++语言内置类型的超集，意味着你可以伪造在C++中实际不存在的类型，因此该Type的标识符是用户自定的uuid而不是type_index。
-     * 但你依然可以用C++内置的RTTI快速创建Type，并利用type_index间接访问。
+     * 运行时类型信息。
+     * Type是RTTI的增强版，实现了包括RAII，序列化，反射等功能。
+     * Type可用uuid访问，uuid是为了解决type_index无法存储的问题。
      */
     class Type
     {
@@ -52,23 +51,25 @@ namespace Gleam
         /**
          * 基于模板、type_info创建Type，并建立type_index到Type的索引
          * @tparam T 
-         * @param typeID 
+         * @param id 
          * @param parent 
          * @return 
          */
         template <typename T>
-        static Type& Create(const uuids::uuid typeID, const std::optional<std::reference_wrapper<const Type>> parent = std::nullopt)
+        static Type Create(const uuids::uuid id, const std::optional<std::reference_wrapper<const Type>> parent = std::nullopt)
         {
-            typeIndexToID.insert({typeid(T), typeID}); //建立利用type_index间接访问的索引
+            assert(!indexToType.contains(typeid(T)) && "类型已创建！");
+            assert(!indexToType.contains(typeid(T)) && "编号已占用！");
 
-            assert(!allTypes.contains(typeID) && "已有相同编号的类型！");
-            Type& type = allTypes.insert({typeID, Type{}}).first->second;
-            type.id = typeID;
+            Type type = Type{};
+            type.index = typeid(T);
+            type.id = id;
             type.size = sizeof(T);
             type.parent = parent;
             type.construct = Type_Raii<T>::Construct;
             type.destruct = Type_Raii<T>::Destruct;
-            type.move = Type_Move<T>::Invoke;
+            type.moveConstruct = Type_Raii<T>::MoveConstruct;
+            type.move = Type_Raii<T>::Move;
 
             //利用传输器获取成员字段信息
             {
@@ -100,37 +101,41 @@ namespace Gleam
                 };
             }
 
+            //依赖RVO
+            indexToType.emplace(type.index, &type);
+            idToType.emplace(type.id, &type);
+
             return type;
         }
-        /**
-         * 利用多个Type组合来伪造一个新Type，用于实现原型序列化
-         * @param components 
-         * @return 
-         */
-        static Type& Create(std::initializer_list<std::reference_wrapper<const Type>> components);
 
-        static std::optional<std::reference_wrapper<Type>> GetType(uuids::uuid typeID);
-        static std::optional<std::reference_wrapper<Type>> GetType(std::type_index typeIndex);
+        static std::optional<std::reference_wrapper<const Type>> GetType(std::type_index typeIndex);
+        static std::optional<std::reference_wrapper<const Type>> GetType(uuids::uuid typeID);
 
+        std::string_view GetName() const;
+        std::type_index GetIndex() const;
         uuids::uuid GetID() const;
-        size_t GetSize() const;
+        int GetSize() const;
         std::optional<std::reference_wrapper<const Type>> GetParent() const;
         const std::vector<FieldInfo>& GetFields() const;
-        const std::function<void(void*)>& GetConstruct() const;
-        const std::function<void(void*)>& GetDestruct() const;
-        const std::function<void(void*, void*)>& GetMove() const;
-        const std::function<void(DataTransferrer&, void*)>& GetSerialize() const;
+
+        void Construct(void* address) const;
+        void Destruct(void* address) const;
+        void MoveConstruct(void* source, void* destination) const;
+        void Move(void* source, void* destination) const;
+        void Serialize(DataTransferrer& transferrer, void* address) const;
 
     private:
-        inline static std::unordered_map<uuids::uuid, Type> allTypes; //unordered_map扩容不会修改元素地址
-        inline static std::unordered_map<std::type_index, uuids::uuid> typeIndexToID = {};
+        inline static std::unordered_map<std::type_index, const Type*> indexToType = {}; //unordered_map扩容不会修改元素地址
+        inline static std::unordered_map<uuids::uuid, const Type*> idToType = {};
 
+        std::type_index index = typeid(void);
         uuids::uuid id = {};
-        size_t size = 0;
+        int size = 0;
         std::optional<std::reference_wrapper<const Type>> parent = std::nullopt;
         std::vector<FieldInfo> fields = {};
         std::function<void(void*)> construct = nullptr;
         std::function<void(void*)> destruct = nullptr;
+        std::function<void(void*, void*)> moveConstruct = nullptr;
         std::function<void(void*, void*)> move = nullptr;
         std::function<void(DataTransferrer&, void*)> serialize = nullptr;
     };
@@ -148,7 +153,7 @@ template <typename T>\
 friend struct ::Gleam::Type_Raii;
 
 #define Gleam_MakeType_Inner(type,uuidStr,parent,...)\
-inline const ::Gleam::Type& type##Type = ::Gleam::Type::Create<type>(\
+inline const ::Gleam::Type type##Type = ::Gleam::Type::Create<type>(\
 uuids::uuid::from_string(uuidStr).value(),\
 parent,\
 __VA_ARGS__);\
@@ -165,6 +170,3 @@ transferrer.TransferField(#field, value.field)
 
 #define Gleam_MakeType(type,uuidStr) Gleam_MakeType_Inner(type,uuidStr,std::nullopt)
 #define Gleam_MakeType2(type,uuidStr,parent) Gleam_MakeType_Inner(type,uuidStr,parent)
-
-#define Gleam_MakeCombinedType(typeName,...)\
-inline const ::Gleam::Type& typeName = ::Gleam::Type::Create({__VA_ARGS__});

@@ -97,7 +97,7 @@ namespace Gleam
 
     private:
         inline static bool isQueried = false;
-        inline static std::vector<Archetype*> targetArchetypes = {};
+        inline static std::vector<const Archetype*> targetArchetypes = {};
         inline static std::vector<std::array<int, sizeof...(TComponents)>> targetComponentOffsets = {};
         inline static int targetArchetypeCount = {};
 
@@ -108,14 +108,13 @@ namespace Gleam
         {
             if (isQueried == false)
             {
-                for (auto archetypeWrap : Archetype::GetAllArchetypes())
+                for ( auto archetype : Archetype::GetAllArchetypes())
                 {
-                    Archetype& archetype = archetypeWrap.get();
                     if (ViewNecessary<TComponents...>::IsMatched(archetype)
                         && TFilter::IsMatched(archetype))
                     {
                         targetArchetypes.emplace_back(&archetype);
-                        targetComponentOffsets.emplace_back(archetype.MemoryMap<TComponents...>());
+                        targetComponentOffsets.emplace_back(archetype.GetComponentOffset<TComponents...>());
                     }
                 }
 

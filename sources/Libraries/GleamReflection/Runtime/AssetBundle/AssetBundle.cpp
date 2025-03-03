@@ -31,7 +31,7 @@ namespace Gleam
         std::stringstream outStream;
         BinaryWriter binaryWriter = BinaryWriter(outStream);
 
-        AssetBundleType.GetSerialize()(binaryWriter, &assetBundle);
+        AssetBundleType.Serialize(binaryWriter, &assetBundle);
         File::WriteAllText(assetBundleDirectory + to_string(assetBundle.id), outStream.str());
     }
     AssetBundle& AssetBundle::Load(AssetBundle& newAssetBundle, const bool reload)
@@ -50,8 +50,8 @@ namespace Gleam
                 if (oldAssets.contains(asset.id)) //内存中已有该资源，替换值
                 {
                     Asset* oldAsset = oldAssets[asset.id];
-                    Type& type = Type::GetType(oldAsset->GetTypeID()).value().get();
-                    type.GetMove()(asset.dataRef, oldAsset->dataRef);
+                    const Type& type = Type::GetType(oldAsset->GetTypeID()).value().get();
+                    type.Move(asset.dataRef, oldAsset->dataRef);
                     oldAssets.erase(asset.id);
                 }
                 else //内存中没有，加入
@@ -72,7 +72,7 @@ namespace Gleam
 
         //资源包所有资源加载完毕后需二次同步指针，以解决同资源包的资源依赖，因加载顺序原因导致丢失引用的问题
         PointerTransferrer pointerTransferrer = {};
-        AssetBundleType.GetSerialize()(pointerTransferrer, &assetBundleSlot);
+        AssetBundleType.Serialize(pointerTransferrer, &assetBundleSlot);
 
         return assetBundleSlot;
     }
@@ -88,7 +88,7 @@ namespace Gleam
         std::ifstream inStream(assetBundleDirectory + to_string(assetBundleID), std::ios::in | std::ios::binary);
         BinaryReader binaryReader = BinaryReader(inStream);
         AssetBundle newAssetBundle = {};
-        AssetBundleType.GetSerialize()(binaryReader, &newAssetBundle);
+        AssetBundleType.Serialize(binaryReader, &newAssetBundle);
 
         return Load(newAssetBundle, reload);
     }
@@ -162,7 +162,7 @@ namespace Gleam
         rapidjson::Document document;
         document.Parse("{}");
         JsonWriter jsonWriter = JsonWriter(document);
-        AssetBundleType.GetSerialize()(jsonWriter, &assetBundle);
+        AssetBundleType.Serialize(jsonWriter, &assetBundle);
         std::string json = JsonUtility::DocumentToJson(document, true);
         File::WriteAllText(fileName, json);
 
@@ -182,7 +182,7 @@ namespace Gleam
         document.Parse(File::ReadAllText(fileName).c_str());
         JsonReader jsonReader = JsonReader(document);
         AssetBundle newAssetBundle = {};
-        AssetBundleType.GetSerialize()(jsonReader, &newAssetBundle);
+        AssetBundleType.Serialize(jsonReader, &newAssetBundle);
 
         return Load(newAssetBundle, reload);
     }
@@ -193,7 +193,7 @@ namespace Gleam
         document.Parse(File::ReadAllText(fileName).c_str());
         JsonReader jsonReader = JsonReader(document);
         AssetBundle newAssetBundle = {};
-        AssetBundleType.GetSerialize()(jsonReader, &newAssetBundle);
+        AssetBundleType.Serialize(jsonReader, &newAssetBundle);
         //转存为二进制文件
         Save(newAssetBundle);
     }

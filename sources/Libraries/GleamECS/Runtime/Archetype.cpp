@@ -2,71 +2,112 @@
 
 #include <cassert>
 
+#include "View.h"
+#include "GleamUtility/Runtime/md5.h"
+
 namespace Gleam
 {
-    const std::vector<std::reference_wrapper<Archetype>>& Archetype::GetAllArchetypes()
-    {
-        return allArchetypes;
-    }
-
     const std::string& Archetype::GetName() const
     {
         return name;
+    }
+    uuids::uuid Archetype::GetID() const
+    {
+        return id;
+    }
+    int Archetype::GetSize() const
+    {
+        return size;
+    }
+
+    bool Archetype::HasComponent(const std::type_index component) const
+    {
+        return componentMapping.contains(component);
     }
     int Archetype::GetComponentCount() const
     {
         return componentCount;
     }
-    const ComponentInfo& Archetype::GetComponentInfo(const int index) const
+    const Type& Archetype::GetComponentType(const int index) const
     {
-        return componentInfos[index];
+        return *componentTypes[index];
     }
     int Archetype::GetComponentOffset(const int index) const
     {
         return componentOffsets[index];
     }
-    bool Archetype::HasComponent(const std::type_index component) const
-    {
-        return componentOffsetsMap.contains(component);
-    }
     int Archetype::GetComponentOffset(const std::type_index component) const
     {
-        assert(componentOffsetsMap.contains(component) && "此原型不包含目标组件！");
-        return componentOffsetsMap.at(component);
+        assert(componentMapping.contains(component) && "此原型不包含目标组件！");
+
+        return componentOffsets[componentMapping.at(component)];
     }
-    int Archetype::GetArchetypeSize() const
-    {
-        return archetypeSize;
-    }
-    void Archetype::RunConstructor(std::byte* ptr) const
+
+
+    void Archetype::Construct(std::byte* address) const
     {
         for (int i = 0; i < componentCount; ++i)
-            componentInfos[i].constructor(ptr + componentOffsets[i]);
+        {
+            componentTypes[i]->Construct(address);
+            address += componentTypes[i]->GetSize();
+        }
     }
-    void Archetype::RunDestructor(std::byte* ptr) const
+    void Archetype::Destruct(std::byte* address) const
     {
         for (int i = 0; i < componentCount; ++i)
-            componentInfos[i].destructor(ptr + componentOffsets[i]);
+        {
+            componentTypes[i]->Destruct(address);
+            address += componentTypes[i]->GetSize();
+        }
     }
-    void Archetype::RunMoveConstructor(std::byte* source, std::byte* destination) const
+    void Archetype::MoveConstruct(std::byte* source, std::byte* destination) const
     {
         for (int i = 0; i < componentCount; ++i)
-            componentInfos[i].moveConstructor(source + componentOffsets[i], destination + componentOffsets[i]);
+        {
+            componentTypes[i]->MoveConstruct(source, destination);
+            source += componentTypes[i]->GetSize();
+            destination += componentTypes[i]->GetSize();
+        }
     }
-    Archetype::Archetype(const std::string_view name, const std::vector<ComponentInfo>& componentInfos)
-        : name(name),
-          componentInfos(componentInfos)
+    void Archetype::Move(std::byte* source, std::byte* destination) const
     {
-        componentCount = static_cast<int>(componentInfos.size());
+        for (int i = 0; i < componentCount; ++i)
+        {
+            componentTypes[i]->Move(source, destination);
+            source += componentTypes[i]->GetSize();
+            destination += componentTypes[i]->GetSize();
+        }
+    }
 
-        componentOffsets.resize(componentCount);
-        for (int i = 1; i < componentCount; ++i)
-            componentOffsets[i] = componentOffsets[i - 1] + this->componentInfos[i - 1].size;
+    Archetype::Archetype(const std::string_view name, std::vector<const Type*> componentTypes)
+    {
+        //原型与组件排序无关
+        std::ranges::sort(
+            componentTypes,
+            [](auto a, auto b) { return a->GetID() < b->GetID(); }
+        );
+        std::string componentIDs = {};
+        for (const auto& componentType : componentTypes)
+            componentIDs += to_string(componentType->GetID());
 
-        archetypeSize = componentOffsets[componentCount - 1] + this->componentInfos[componentCount - 1].size;
+        this->name = name;
+        this->id = uuids::uuid::from_string(MD5(componentIDs).toStr()).value();
 
-        for (int i = 0; i < componentCount; i++)
-            componentOffsetsMap.insert({this->componentInfos[i].type, componentOffsets[i]});
+
+        this->componentCount = static_cast<int>(componentTypes.size());
+        this->componentMapping.reserve(componentCount);
+        this->componentTypes.reserve(componentCount);
+        this->componentOffsets.reserve(componentCount);
+        this->size = 0;
+        for (int i = 0; i < componentCount; ++i)
+        {
+            const Type& componentType = *componentTypes[i];
+
+            this->componentMapping[componentType.GetIndex()] = i;
+            this->componentTypes.push_back(&componentType);
+            this->componentOffsets.push_back(this->size);
+            this->size += componentType.GetSize();
+        }
     }
 
     std::string to_string(const Archetype& archetype)
@@ -76,9 +117,9 @@ namespace Gleam
         {
             result += std::format(
                 "\n{:20} {:5} {:5}",
-                archetype.GetComponentInfo(i).type.name(),
+                archetype.GetComponentType(i).GetName(),
                 archetype.GetComponentOffset(i),
-                archetype.GetComponentInfo(i).size
+                archetype.GetComponentType(i).GetSize()
             );
         }
         return result;

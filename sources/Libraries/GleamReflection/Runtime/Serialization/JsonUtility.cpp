@@ -14,14 +14,14 @@ namespace Gleam
         rapidjson::Document document;
         document.Parse("{}");
         JsonWriter jsonWriter = {document};
-        type.GetSerialize()(jsonWriter, object);
+        type.Serialize(jsonWriter, object);
         return document;
     }
     void JsonUtility::FromDocument(rapidjson::Document& doc, Type& type, void* address)
     {
-        type.GetConstruct()(address);
+        type.Construct(address);
         JsonReader jsonReader = {doc};
-        type.GetSerialize()(jsonReader, address);
+        type.Serialize(jsonReader, address);
     }
     std::string JsonUtility::ToJson(void* object, Type& type, const bool pretty)
     {

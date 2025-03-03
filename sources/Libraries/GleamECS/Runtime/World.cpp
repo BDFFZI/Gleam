@@ -27,7 +27,7 @@ namespace Gleam
         if (iterator != entities.end())
             return iterator->second;
 
-        entities.insert({&archetype, Heap(archetype.GetArchetypeSize())});
+        entities.insert({&archetype, Heap(archetype.GetSize())});
         return entities.at(&archetype);
     }
 
@@ -40,7 +40,7 @@ namespace Gleam
         int heapOrigin = heap.GetCount();
         std::byte* heapAddress = heap.AddElement();
         //内存赋值
-        archetype.RunConstructor(heapAddress);
+        archetype.Construct(heapAddress);
         *reinterpret_cast<Entity*>(heapAddress) = entity;
         //返回实体信息
         SetEntityInfo(entity, std::make_optional<EntityInfo>(archetype, heapOrigin, heapAddress));
@@ -56,7 +56,7 @@ namespace Gleam
             //创建实体
             Entity entity = GetNextEntity();
             //内存赋值
-            archetype.RunConstructor(item);
+            archetype.Construct(item);
             *reinterpret_cast<Entity*>(item) = entity;
             //返回实体信息
             SetEntityInfo(entity, std::make_optional<EntityInfo>(archetype, heapOrigin + itemIndex, item));
@@ -71,7 +71,7 @@ namespace Gleam
         const EntityInfo entityInfo = GetEntityInfo(entity);
         //运行析构函数
         const Archetype* archetype = entityInfo.archetype;
-        archetype->RunDestructor(entityInfo.components);
+        archetype->Destruct(entityInfo.components);
         //从内存中移除
         RemoveHeapItem(*archetype, entityInfo.indexAtHeap);
         //去除实体信息
@@ -88,7 +88,7 @@ namespace Gleam
                 Entity entity = *reinterpret_cast<Entity*>(address);
                 SetEntityInfo(entity, std::nullopt);
                 //运行析构函数
-                archetype->RunDestructor(address);
+                archetype->Destruct(address);
             });
             //从内存中移除
             heap.Clear();
@@ -111,14 +111,14 @@ namespace Gleam
             //遍历每个新原形的组件
 
             //获取组件信息
-            const ComponentInfo& componentInfo = newArchetype.GetComponentInfo(i);
-            const std::type_index type = componentInfo.type;
+            const Type& componentType = newArchetype.GetComponentType(i);
+            const std::type_index typeIndex = componentType.GetIndex();
             std::byte* componentAddress = newAddress + newArchetype.GetComponentOffset(i);
             //赋值组件内存
-            if (oldArchetype->HasComponent(type)) //若旧元组包含该组件则移动数据
-                componentInfo.moveConstructor(oldEntityInfo.components + oldArchetype->GetComponentOffset(type), componentAddress);
+            if (oldArchetype->HasComponent(typeIndex)) //若旧元组包含该组件则移动数据
+                componentType.MoveConstruct(oldEntityInfo.components + oldArchetype->GetComponentOffset(typeIndex), componentAddress);
             else //否则通过构造函数初始化
-                componentInfo.constructor(componentAddress);
+                componentType.Construct(componentAddress);
         }
         //从旧内存中移除
         RemoveHeapItem(*oldArchetype, oldEntityInfo.indexAtHeap);
@@ -134,7 +134,7 @@ namespace Gleam
         Heap& newHeap = GetEntityHeap(newArchetype);
         std::byte* newAddress = newHeap.AddElement();
         //将旧数据复制到新内存
-        oldEntityInfo.archetype->RunMoveConstructor(oldEntityInfo.components, newAddress);
+        oldEntityInfo.archetype->MoveConstruct(oldEntityInfo.components, newAddress);
         //将旧数据从内存中移除
         RemoveHeapItem(*oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
         //设置新实体信息

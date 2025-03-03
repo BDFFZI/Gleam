@@ -22,7 +22,7 @@ namespace Gleam
     {
         if (ownership)
         {
-            Type::GetType(typeID).value().get().GetDestruct()(dataRef);
+            Type::GetType(typeID).value().get().Destruct(dataRef);
             std::free(dataRef);
         }
 
@@ -37,7 +37,7 @@ namespace Gleam
     {
         if (ownership)
         {
-            Type::GetType(typeID).value().get().GetDestruct()(dataRef);
+            Type::GetType(typeID).value().get().Destruct(dataRef);
             std::free(dataRef);
         }
     }

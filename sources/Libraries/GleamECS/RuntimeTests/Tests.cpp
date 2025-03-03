@@ -149,14 +149,14 @@ TEST(ECS, HeapBenchmark)
 
 TEST(ECS, Archetype)
 {
-    for (auto& archetype : Archetype::GetAllArchetypes())
+    for (const Archetype* archetype : Archetype::GetAllArchetypes() | std::views::values)
     {
-        std::cout << to_string(archetype.get()) << "\n";
-        std::cout << archetype.get().GetArchetypeSize() << "\n";
+        std::cout << to_string(*archetype) << "\n";
+        std::cout << archetype->GetSize() << "\n";
     }
 
-    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype.GetArchetypeSize()));
-    physicsWithSpringArchetype.RunConstructor(data);
+    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype.GetSize()));
+    physicsWithSpringArchetype.Construct(data);
     Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype.GetComponentOffset(1));
     RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype.GetComponentOffset(2));
     SpringPhysics& spring = *reinterpret_cast<SpringPhysics*>(data + physicsWithSpringArchetype.GetComponentOffset(3));
