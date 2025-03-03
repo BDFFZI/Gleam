@@ -36,6 +36,36 @@ Gleam_MakeType(TestAsset, "A409ACFC-E52F-475F-A34F-B4361C59EF06")
     Gleam_MakeType_AddField(dependency);
 }
 
+struct CustomComponent1
+{
+    int intValue = 3;
+};
+Gleam_MakeType(CustomComponent1, "F3CEFD0B-0FDE-40B3-A8D4-B233419095B0")
+{
+    Gleam_MakeType_AddField(intValue);
+}
+struct CustomComponent2
+{
+    std::string stringValue = "Hello world!";
+};
+Gleam_MakeType(CustomComponent2, "6DEF6625-C2B2-49D7-A045-251C30DEBD1D")
+{
+    Gleam_MakeType_AddField(stringValue);
+}
+Gleam_MakeCombinedType(CustomArchetype, CustomComponent1Type, CustomComponent2Type)
+
+TEST(Reflection, CombinedType)
+{
+    std::cout << CustomArchetype.GetID() << '\n';
+    for (auto& fieldInfo : CustomArchetype.GetFields())
+    {
+        std::cout << fieldInfo.name << '\t';
+        std::cout << fieldInfo.type.name() << '\t';
+        std::cout << fieldInfo.offset << '\t';
+        std::cout << fieldInfo.size << '\n';
+    }
+}
+
 TEST(Reflection, Asset)
 {
     rapidjson::Document document;
@@ -66,7 +96,6 @@ TEST(Reflection, Asset)
     ASSERT_EQ(static_cast<TestAsset*>(assets[1].GetDataRef())->name, static_cast<TestAsset*>(newAssets[1].GetDataRef())->name);
 }
 
-// void main()
 TEST(Reflection, AssetBundle)
 {
     uuids::uuid assetBundleID = uuids::uuid::from_string("c57022f0-53a7-4b6b-99d5-41a1e5c8f51e").value();
@@ -81,11 +110,11 @@ TEST(Reflection, AssetBundle)
         };
 
         AssetBundle& assetBundle = AssetBundle::Create(assetBundleID);
-        assetBundle.AddAsset(&testAsset[0], Type::GetType(typeid(TestAsset)));
-        assetBundle.AddAsset(&testAsset[1], Type::GetType(typeid(TestAsset)));
+        assetBundle.AddAsset(&testAsset[0], TestAssetType);
+        assetBundle.AddAsset(&testAsset[1], TestAssetType);
 
         AssetBundle& assetBundle2 = AssetBundle::Create(assetBundle2ID);
-        assetBundle2.AddAsset(&testAsset[2], Type::GetType(typeid(TestAsset)));
+        assetBundle2.AddAsset(&testAsset[2], TestAssetType);
 
         testAsset[1].dependency = &testAsset[2];
 
@@ -153,7 +182,7 @@ TEST(Reflection, AssetBundle)
 
 TEST(Reflection, BinarySerializer)
 {
-    Type& type = Type::GetType(typeid(CustomData));
+    Type& type = Type::GetType(typeid(CustomData)).value();
 
     std::ofstream outStream("test.bin", std::ios::binary);
     BinaryWriter binaryWriter = {outStream};
@@ -172,7 +201,7 @@ TEST(Reflection, BinarySerializer)
 
 TEST(Reflection, JsonSerializer)
 {
-    Type& type = Type::GetType(typeid(CustomData));
+    Type& type = Type::GetType(typeid(CustomData)).value();
 
     rapidjson::Document document;
     document.Parse("{}");
@@ -195,13 +224,9 @@ TEST(Reflection, JsonSerializer)
 
 TEST(Reflection, Type)
 {
-    std::optional<std::reference_wrapper<Type>> optionalType = Type::GetType("C4BAB34E-B145-4297-8BA3-6DD1BD05110D");
-    if (optionalType.has_value() == false)
-        throw std::runtime_error("无法通过Uuid找到类型！");
-    Type& type = optionalType.value();
-
-    std::cout << type.GetTypeInfo()->name() << '\n';
-    for (auto& fieldInfo : type.GetFieldInfos())
+    Type& type = Type::GetType(CustomDataType.GetID()).value().get();
+    std::cout << type.GetID() << '\n';
+    for (auto& fieldInfo : type.GetFields())
     {
         std::cout << fieldInfo.name << '\t';
         std::cout << fieldInfo.type.name() << '\t';

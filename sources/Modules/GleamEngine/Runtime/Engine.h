@@ -36,7 +36,7 @@ namespace Gleam
             }
             Type type = Type::GetType(typeid(TSystem));
             if (type.IsInitialized() == false)
-                Type::Init<TSystem>("", typeid(System));
+                Type::Create<TSystem>("", typeid(System));
             return std::move(system);
         }
 

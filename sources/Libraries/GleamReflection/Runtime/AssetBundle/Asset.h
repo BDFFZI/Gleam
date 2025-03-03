@@ -25,7 +25,7 @@ namespace Gleam
         bool ownership;
     };
 
-    Gleam_MakeType(Asset, "")
+    Gleam_MakeType(Asset, "1CEF16B4-DF11-41B0-A848-9221ABE9803B")
     {
         Gleam_MakeType_AddField(id);
         Gleam_MakeType_AddField(typeID);

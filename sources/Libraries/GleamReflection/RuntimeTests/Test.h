@@ -15,7 +15,7 @@ struct CustomField
     }
 };
 
-Gleam_MakeType(CustomField, "")
+Gleam_MakeType(CustomField, "21C1B5B4-B03B-4526-B770-1089E8501889")
 {
     Gleam_MakeType_AddField(name);
     Gleam_MakeType_AddField(data);
@@ -32,7 +32,7 @@ struct CustomParent
     float3 customValue;
 };
 
-Gleam_MakeType(CustomParent, "")
+Gleam_MakeType(CustomParent, "95BFC556-6B59-4730-A756-9FC09F26A1A6")
 {
     Gleam_MakeType_AddField(boolValue);
     Gleam_MakeType_AddField(charValue);
@@ -75,9 +75,8 @@ struct CustomData : CustomParent
     }
 };
 
-Gleam_MakeType2(CustomData, "C4BAB34E-B145-4297-8BA3-6DD1BD05110D", CustomParent)
+Gleam_MakeType2(CustomData, "C4BAB34E-B145-4297-8BA3-6DD1BD05110D", CustomParentType)
 {
-    Gleam_MakeType_AddParentField();
     Gleam_MakeType_AddField(vectorValue);
     Gleam_MakeType_AddField(boolVectorValue);
     Gleam_MakeType_AddField(stringVectorValue);

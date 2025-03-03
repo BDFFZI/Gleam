@@ -51,7 +51,7 @@ namespace Gleam
                 {
                     Asset* oldAsset = oldAssets[asset.id];
                     Type& type = Type::GetType(oldAsset->GetTypeID()).value().get();
-                    type.GetMove()(oldAsset->dataRef, asset.dataRef);
+                    type.GetMove()(asset.dataRef, oldAsset->dataRef);
                     oldAssets.erase(asset.id);
                 }
                 else //内存中没有，加入

@@ -72,7 +72,7 @@ namespace Gleam
         ///解决方法是必须显式写出移动函数，隐式生成的有问题。
     };
 
-    Gleam_MakeType(AssetBundle, "")
+    Gleam_MakeType(AssetBundle, "4139AE7B-E48E-4A20-8CB3-FA814D8942EF")
     {
         Gleam_MakeType_AddField(id);
         Gleam_MakeType_AddField(assets);
