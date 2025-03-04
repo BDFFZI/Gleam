@@ -4,7 +4,7 @@
 #include "Handles.h"
 #include "GleamECS/Runtime/World.h"
 #include "GleamEngine/Runtime/System/TransformSystem.h"
-#include "System/SceneWindow.h"
+#include "System/WorldWindow.h"
 
 namespace Gleam
 {
@@ -51,7 +51,7 @@ namespace Gleam
     void SceneUI_Entity(const Entity entity)
     {
         if (World::HasEntity(entity))
-            EditorUI::DrawEntityPure(entity, SceneWindow::GetCustomUI());
+            EditorUI::DrawEntityPure(entity, WorldWindow::GetCustomUI());
     }
     void SceneUI_LocalToWorld(LocalToWorld& localToWorld)
     {
@@ -62,7 +62,7 @@ namespace Gleam
             TransformSystem::ComputeLocalToWorld(*transform.value(), localToWorld);
         //获取手柄类型信息
         static constexpr ImGuizmo::OPERATION options[] = {ImGuizmo::BOUNDS, ImGuizmo::TRANSLATE, ImGuizmo::ROTATE, ImGuizmo::SCALE};
-        ImGuizmo::OPERATION imGuiOption = options[GlobalSceneWindow.GetHandleOption()];
+        ImGuizmo::OPERATION imGuiOption = options[GlobalWorldWindow.GetHandleOption()];
         //绘制
         if (transform.has_value())
             Handles::DrawHandle(imGuiOption, localToWorld.value, *transform.value());

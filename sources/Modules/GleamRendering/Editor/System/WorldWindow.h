@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GleamECS/Runtime/Entity.h"
+#include "GleamECS/Runtime/Archetype.h"
 #include "GleamUI/Runtime/UI.h"
 #include "GleamECS/Runtime/System.h"
 #include "GleamEngine/Editor/System/EditorUISystem.h"
@@ -14,15 +14,15 @@ namespace Gleam
 {
     Gleam_MakeArchetypeChild(SceneCameraArchetype, CameraArchetype, ScreenToClip)
 
-    class SceneWindow : public System
+    class WorldWindow : public System
     {
     public:
-        static SceneWindow& GetSceneWindowDrawing();
+        static WorldWindow& GetWorldWindowDrawing();
         static const CustomUI& GetCustomUI();
         static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneUI);
 
 
-        SceneWindow(): System(GlobalEditorUISystem)
+        WorldWindow(): System(GlobalEditorUISystem)
         {
         }
 
@@ -33,14 +33,14 @@ namespace Gleam
 
     private:
         inline static std::unordered_map<std::type_index, std::function<void(void*)>> sceneGUIs = {};
-        inline static SceneWindow* sceneWindowDrawing = nullptr;
+        inline static WorldWindow* sceneWindowDrawing = nullptr;
 
         float2 windowContentPosition = 0;
         float2 windowContentSize = 0;
         //预建资源
-        SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", GlobalPostUpdateSystem);
-        class InputSystem inputSystem = Engine::CreateSystem<InputSystem>("SceneWindow_Input");
-        class TimeSystem timeSystem = Engine::CreateSystem<TimeSystem>("SceneWindow_Time");
+        SystemEvent preProcessSystem = SystemEvent("WorldWindow_PreProcess", GlobalPostUpdateSystem);
+        InputSystem inputSystem = Engine::CreateSystem<InputSystem>("WorldWindow_Input");
+        TimeSystem timeSystem = Engine::CreateSystem<TimeSystem>("WorldWindow_Time");
         Entity sceneCamera = Entity::Null;
         //场景相机渲染目标相关
         std::unique_ptr<GRenderTexture> sceneCameraCanvas;
@@ -58,9 +58,9 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(SceneWindow)
+    Gleam_MakeGlobalSystem(WorldWindow)
 
 #define Gleam_MakeSceneUI(type,drawSceneUI)\
-    Gleam_MakeInitEvent(){SceneWindow::AddCustomUI(typeid(type),\
+    Gleam_MakeInitEvent(){WorldWindow::AddCustomUI(typeid(type),\
     [](void* target){drawSceneUI(*static_cast<type##*>(target));});}
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "GleamECS/Runtime/Entity.h"
+#include "GleamECS/Runtime/Archetype.h"
 #include "GleamECS/Runtime/System.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamRendering/Runtime/System/CameraSystem.h"

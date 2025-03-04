@@ -1,7 +1,7 @@
 #pragma once
 #include <unordered_set>
 
-#include "GleamECS/Runtime/Entity.h"
+#include "GleamECS/Runtime/Archetype.h"
 #include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam

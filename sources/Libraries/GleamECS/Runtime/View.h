@@ -47,6 +47,10 @@ namespace Gleam
     };
     static_assert(ViewFilter<ViewExclusion<>>);
 
+    /**
+     * 视图是一种检视工具，用于检视世界中的所有实体。
+     * 实体原始的存储方式是基于字节的，而视图可以将其转化为类型对象，并且支持对象筛选等高级功能。
+     */
     template <class...>
     class View
     {
@@ -58,14 +62,6 @@ namespace Gleam
     template <class TFunction, class... TComponents>
     concept ViewIteratorWithEntity = requires(TFunction function, Entity& entity, TComponents&... components) { function(entity, components...); };
 
-    /**
-     * @brief 针对实体堆的检视工具
-     * 
-     * 实体堆 <code> std::vector<Heap> </code> 是一种根据原形顺序生成的实体容器。默认情况下实体及其组件是以字节序列的形式存放在实体堆中，所以并不利于读写。
-     * 利用\c View 则可自动识别所需组件的存储位置，并将其转换成组件引用的形式供使用者遍历，从而方便的对实体的批量处理。
-     * 
-     * @tparam TComponents 
-     */
     template <ViewFilter TFilter,Component... TComponents>
         requires (sizeof...(TComponents) != 0)
     class View<TFilter, TComponents...>

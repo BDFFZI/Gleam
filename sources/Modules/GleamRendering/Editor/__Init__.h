@@ -4,7 +4,7 @@
 #include "System/GameWindow.h"
 #include "System/GizmosSystem.h"
 #include "System/HandlesSystem.h"
-#include "System/SceneWindow.h"
+#include "System/WorldWindow.h"
 
 namespace Gleam
 {
@@ -20,7 +20,7 @@ namespace Gleam
 
     Gleam_AddEditorSystems(
         GlobalGameWindow,
-        GlobalSceneWindow,
+        GlobalWorldWindow,
         HandlesSystem::GetInstance(),
         GizmosSystem::GetInstance()
     )

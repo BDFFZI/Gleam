@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GleamECS/Runtime/Entity.h"
+#include "GleamECS/Runtime/Archetype.h"
 #include "GleamECS/Runtime/System.h"
 #include "GleamMassSpring/Runtime/System/CollisionSystem.h"
 #include "GleamMassSpring/Runtime/System/ForceSystem.h"

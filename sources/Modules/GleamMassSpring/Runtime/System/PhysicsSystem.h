@@ -1,5 +1,5 @@
 #pragma once
-#include "GleamECS/Runtime/Entity.h"
+#include "GleamECS/Runtime/Archetype.h"
 #include "GleamECS/Runtime/System.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamMath/Runtime/LinearAlgebra/Vector.h"

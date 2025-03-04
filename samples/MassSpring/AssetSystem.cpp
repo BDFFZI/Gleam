@@ -1,5 +1,5 @@
 ﻿#include "AssetSystem.h"
-#include "GleamECS/Runtime/Entity.h"
+#include "GleamECS/Runtime/Archetype.h"
 #include "GleamECS/Runtime/World.h"
 #include "GleamMassSpring/Runtime/Entity/Archetype.h"
 #include "GleamMassSpring/Runtime/System/PhysicsSystem.h"

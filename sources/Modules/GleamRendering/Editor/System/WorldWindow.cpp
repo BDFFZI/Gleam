@@ -1,4 +1,4 @@
-#include "SceneWindow.h"
+#include "WorldWindow.h"
 
 #include "GleamECS/Runtime/World.h"
 #include "GleamEngine/Runtime/Component/Transform.h"
@@ -100,37 +100,37 @@ namespace Gleam
         }
     }
 
-    class SceneWindow& SceneWindow::GetSceneWindowDrawing()
+    class WorldWindow& WorldWindow::GetWorldWindowDrawing()
     {
         return *sceneWindowDrawing;
     }
-    const CustomUI& SceneWindow::GetCustomUI()
+    const CustomUI& WorldWindow::GetCustomUI()
     {
         return sceneGUIs;
     }
-    void SceneWindow::AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneUI)
+    void WorldWindow::AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneUI)
     {
         sceneGUIs.insert({typeIndex, drawSceneUI});
     }
-    Entity SceneWindow::GetSceneCamera() const
+    Entity WorldWindow::GetSceneCamera() const
     {
         return sceneCamera;
     }
-    InputSystem& SceneWindow::GetSceneInputSystem()
+    InputSystem& WorldWindow::GetSceneInputSystem()
     {
         return inputSystem;
     }
-    TimeSystem& SceneWindow::GetSceneTimeSystem()
+    TimeSystem& WorldWindow::GetSceneTimeSystem()
     {
         return timeSystem;
     }
-    int SceneWindow::GetHandleOption() const
+    int WorldWindow::GetHandleOption() const
     {
         return handleOption;
     }
 
 
-    void SceneWindow::Start()
+    void WorldWindow::Start()
     {
         windowContentSize = 0; //以便重启时能触发纹理重建
         preProcessSystem.OnUpdate() = [this]
@@ -171,7 +171,7 @@ namespace Gleam
         World::SetComponents(sceneCamera, cameraTransformSaving);
         World::SetComponents(sceneCamera, cameraSaving);
     }
-    void SceneWindow::Stop()
+    void WorldWindow::Stop()
     {
         World::RemoveSystem(preProcessSystem);
         World::RemoveSystem(inputSystem);
@@ -180,11 +180,11 @@ namespace Gleam
 
         UI::DeleteTexture(sceneCameraCanvasImID);
     }
-    void SceneWindow::Update()
+    void WorldWindow::Update()
     {
         sceneWindowDrawing = this;
 
-        ImGui::Begin("SceneWindow", nullptr, ImGuiWindowFlags_MenuBar);
+        ImGui::Begin("WorldWindow", nullptr, ImGuiWindowFlags_MenuBar);
         //渲染纹理重建检查（别在获取窗口信息后执行！）
         if (any(windowContentSize != UI::GetWindowContentRegionSize()))
             isDirty = true;

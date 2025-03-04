@@ -7,13 +7,30 @@
 #include <vector>
 #include <unordered_map>
 #include <ranges>
-
-#include "Entity.h"
-#include "Component.h"
 #include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam
 {
+    /**
+     * 实体是一个数字ID，用于区分元素个体。
+     * 利用实体可以在World中反向查找到实体的地址和原型信息。
+     */
+    enum struct Entity:uint32_t // NOLINT(performance-enum-size)
+    {
+        Null = 0
+    };
+
+    /**
+     * 组件是用户自定义的元素内容。
+     * 用户可以通过组件，利用类似鸭子类型的原理，组装和搜索元素。
+     */
+    template <class TComponent>
+    concept Component = !std::is_pointer_v<TComponent> && !std::is_reference_v<TComponent>;
+
+    /**
+     * 原型用于存储ECS中元素的内存布局信息。
+     * ECS中任何元素的内存布局，都是如下格式：|实体|组件1|组件2|...|。
+     */
     class Archetype
     {
     public:

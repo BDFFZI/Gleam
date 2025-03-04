@@ -11,47 +11,6 @@
 
 using namespace Gleam;
 
-struct Transform
-{
-    float position;
-
-    friend bool operator==(const Transform& lhs, const Transform& rhs)
-    {
-        return abs(lhs.position - rhs.position) < std::numeric_limits<float>::epsilon();
-    }
-};
-
-struct RigidBody
-{
-    float force;
-    float mass = 1;
-    float velocity;
-
-    friend bool operator==(const RigidBody& lhs, const RigidBody& rhs)
-    {
-        return abs(lhs.force - rhs.force) < std::numeric_limits<float>::epsilon()
-            && abs(lhs.mass - rhs.mass) < std::numeric_limits<float>::epsilon()
-            && abs(lhs.velocity - rhs.velocity) < std::numeric_limits<float>::epsilon();
-    }
-};
-
-struct SpringPhysics
-{
-    float pinPosition = 0;
-    float length = 5;
-    float elasticity = 200;
-
-    friend bool operator==(const SpringPhysics& lhs, const SpringPhysics& rhs)
-    {
-        return abs(lhs.pinPosition - rhs.pinPosition) < std::numeric_limits<float>::epsilon()
-            && abs(lhs.length - rhs.length) < std::numeric_limits<float>::epsilon()
-            && abs(lhs.elasticity - rhs.elasticity) < std::numeric_limits<float>::epsilon();
-    }
-};
-
-Gleam_MakeArchetype(physicsArchetype, Transform, RigidBody)
-Gleam_MakeArchetypeChild(physicsWithSpringArchetype, physicsArchetype, SpringPhysics)
-
 TEST(ECS, Heap)
 {
     Heap heap(sizeof(int));
@@ -146,6 +105,47 @@ TEST(ECS, HeapBenchmark)
     benchmark::Initialize(nullptr, nullptr);
     benchmark::RunSpecifiedBenchmarks();
 }
+
+struct Transform
+{
+    float position;
+
+    friend bool operator==(const Transform& lhs, const Transform& rhs)
+    {
+        return abs(lhs.position - rhs.position) < std::numeric_limits<float>::epsilon();
+    }
+};
+
+struct RigidBody
+{
+    float force;
+    float mass = 1;
+    float velocity;
+
+    friend bool operator==(const RigidBody& lhs, const RigidBody& rhs)
+    {
+        return abs(lhs.force - rhs.force) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.mass - rhs.mass) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.velocity - rhs.velocity) < std::numeric_limits<float>::epsilon();
+    }
+};
+
+struct SpringPhysics
+{
+    float pinPosition = 0;
+    float length = 5;
+    float elasticity = 200;
+
+    friend bool operator==(const SpringPhysics& lhs, const SpringPhysics& rhs)
+    {
+        return abs(lhs.pinPosition - rhs.pinPosition) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.length - rhs.length) < std::numeric_limits<float>::epsilon()
+            && abs(lhs.elasticity - rhs.elasticity) < std::numeric_limits<float>::epsilon();
+    }
+};
+
+Gleam_MakeArchetype(physicsArchetype, Transform, RigidBody)
+Gleam_MakeArchetypeChild(physicsWithSpringArchetype, physicsArchetype, SpringPhysics)
 
 TEST(ECS, Archetype)
 {

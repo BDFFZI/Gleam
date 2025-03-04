@@ -8,6 +8,10 @@
 
 namespace Gleam
 {
+    /**
+     * 对每个实体存储的额外信息，如地址原型信息。
+     * 用于实现反向查找，从而像面对对象一样访问实体。
+     */
     struct EntityInfo
     {
         const Archetype* archetype;
@@ -18,10 +22,13 @@ namespace Gleam
         EntityInfo() = default;
     };
 
+    /**
+     * 世界是所有实体和系统的载体，引擎运转的核心。
+     */
     class World
     {
     public:
-        //场景属性
+        //世界内容
         static std::unordered_map<const Archetype*, Heap>& GetEntities();
         static SystemGroup& GetSystems();
 
@@ -31,6 +38,11 @@ namespace Gleam
         //添加实体
         static Entity AddEntity(const Archetype& archetype);
         static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
+        // template <Component... TComponents>
+        // static Entity AddEntity(const Archetype& archetype)
+        // {
+        //     
+        // }
         //移除实体
         static void RemoveEntity(Entity& entity);
         static void RemoveAllEntities();
@@ -83,7 +95,7 @@ namespace Gleam
         {
             assert(entity != Entity::Null && "目标实体为空！");
             assert(entityInfos.contains(entity) && "目标实体不存在！");
-            
+
             if (HasComponent<TComponent>(entity) == false)
                 return false;
             component = &GetComponent<TComponent>(entity);

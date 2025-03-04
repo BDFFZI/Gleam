@@ -22,6 +22,11 @@ namespace Gleam
     };
 
     class SystemGroup;
+
+    /**
+     * 系统是一种高级的封装版事件。
+     * 通过相对位置、嵌套等结构，实现在引擎中自由轻松的嵌入各种代码。
+     */
     class System
     {
     public:

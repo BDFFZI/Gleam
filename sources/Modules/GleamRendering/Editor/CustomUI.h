@@ -1,5 +1,5 @@
 #pragma once
-#include "GleamECS/Runtime/Entity.h"
+#include "GleamECS/Runtime/Archetype.h"
 #include "GleamEngine/Runtime/Component/Transform.h"
 #include "GleamMath/Runtime/Geometry/2D/Rectangle.h"
 #include "GleamMath/Runtime/Geometry/3D/Point.h"
