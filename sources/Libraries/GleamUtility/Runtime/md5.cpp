@@ -78,6 +78,13 @@ const byte* MD5::getDigest() {
   }
   return digest;
 }
+std::array<byte, 16> MD5::toArray()
+{
+  const byte* address = getDigest();
+  std::array<byte, 16> result;
+  memcpy(result.data(), address, 16);
+  return result;
+}
 
 /**
  * @Initialization the md5 object, processing another message block,

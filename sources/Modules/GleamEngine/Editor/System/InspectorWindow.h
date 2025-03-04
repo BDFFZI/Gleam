@@ -31,7 +31,7 @@ namespace Gleam
         static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorUI);
         static void Show(InspectorTarget inspectorTarget);
 
-        InspectorWindow(): System(EditorUISystem, DefaultOrder, MaxOrder)
+        InspectorWindow(): System(GlobalEditorUISystem, DefaultOrder, MaxOrder)
         {
         }
 

@@ -5,7 +5,7 @@
 class GameUISystem : public Gleam::System
 {
 public:
-    GameUISystem(): System(Gleam::UISystem)
+    GameUISystem(): System(Gleam::GlobalUISystem)
     {
     }
 

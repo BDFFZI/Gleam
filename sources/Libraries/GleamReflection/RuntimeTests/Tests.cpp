@@ -174,13 +174,13 @@ TEST(Reflection, BinarySerializer)
     std::ofstream outStream("test.bin", std::ios::binary);
     BinaryWriter binaryWriter = {outStream};
 
-    type.GetSerialize()(binaryWriter, &data);
+    type.Serialize(binaryWriter, &data);
     outStream.close();
 
     std::ifstream inStream("test.bin", std::ios::binary);
     BinaryReader binaryReader = {inStream};
     CustomData newData = {};
-    type.GetSerialize()(binaryReader, &newData);
+    type.Serialize(binaryReader, &newData);
     inStream.close();
 
     ASSERT_EQ(newData, data);
@@ -194,7 +194,7 @@ TEST(Reflection, JsonSerializer)
     document.Parse("{}");
 
     JsonWriter jsonWriter = {document};
-    type.GetSerialize()(jsonWriter, &data);
+    type.Serialize(jsonWriter, &data);
 
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter writer(buffer);
@@ -203,7 +203,7 @@ TEST(Reflection, JsonSerializer)
 
     JsonReader jsonReader = {document};
     CustomData newData = {};
-    type.GetSerialize()(jsonReader, &newData);
+    type.Serialize(jsonReader, &newData);
 
     ASSERT_EQ(newData, data);
 }

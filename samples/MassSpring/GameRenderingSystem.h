@@ -9,7 +9,7 @@
 class GameRenderingSystem : public Gleam::System
 {
 public:
-    GameRenderingSystem(): System(Gleam::RenderingSystem, Gleam::OrderRelation::Before)
+    GameRenderingSystem(): System(Gleam::GlobalRenderingSystem, Gleam::OrderRelation::Before)
     {
     }
 

@@ -8,7 +8,7 @@ namespace Gleam
     class EditorUISystem : public SystemGroup
     {
     public:
-        EditorUISystem(): SystemGroup(UISystem, MaxOrder, MaxOrder)
+        EditorUISystem(): SystemGroup(GlobalUISystem, MaxOrder, MaxOrder)
         {
         }
 

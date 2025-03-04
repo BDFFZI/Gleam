@@ -9,7 +9,7 @@ void Gleam::ForceSystem::Update()
     //重力
     View<Particle>::Each([this](Particle& particle)
     {
-        float3 move = GetGravity() * TimeSystem.GetFixedDeltaTime() * TimeSystem.GetFixedDeltaTime()
+        float3 move = GetGravity() * GlobalTimeSystem.GetFixedDeltaTime() * GlobalTimeSystem.GetFixedDeltaTime()
             * (1 - particle.drag);
         particle.position += move;
     });

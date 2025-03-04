@@ -32,14 +32,14 @@ namespace Gleam
 
         if (inputSystem.GetMouseButtonDown(MouseButton::Right))
         {
-            CursorSystem.SetLockState(true);
-            CursorSystem.SetVisible(false);
+            GlobalCursorSystem.SetLockState(true);
+            GlobalCursorSystem.SetVisible(false);
             eulerAngles = localTransform.rotation.ToEulerAngles();
         }
         else if (inputSystem.GetMouseButtonUp(MouseButton::Right))
         {
-            CursorSystem.SetLockState(false);
-            CursorSystem.SetVisible(true);
+            GlobalCursorSystem.SetLockState(false);
+            GlobalCursorSystem.SetVisible(true);
         }
         else if (inputSystem.GetMouseButton(MouseButton::Right))
         {
@@ -116,11 +116,11 @@ namespace Gleam
     {
         return sceneCamera;
     }
-    InputSystem_T& SceneWindow::GetSceneInputSystem()
+    InputSystem& SceneWindow::GetSceneInputSystem()
     {
         return inputSystem;
     }
-    TimeSystem_T& SceneWindow::GetSceneTimeSystem()
+    TimeSystem& SceneWindow::GetSceneTimeSystem()
     {
         return timeSystem;
     }
@@ -263,12 +263,12 @@ namespace Gleam
             }
 
             //绘制自定义UI或Gizmos
-            if (InspectorWindow.GetTarget().has_value())
+            if (GlobalInspectorWindow.GetTarget().has_value())
             {
                 ImGui::SetCursorPos({});
                 Handles::WorldToView() = cameraWorldToLocal.value;
                 Handles::ViewToClip() = cameraViewToClip.value;
-                auto [data,type] = InspectorWindow.GetTarget().value();
+                auto [data,type] = GlobalInspectorWindow.GetTarget().value();
                 if (sceneGUIs.contains(type))
                     sceneGUIs[type](data);
             }

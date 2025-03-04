@@ -7,7 +7,7 @@ namespace Gleam
     class CollisionSystem : public System
     {
     public:
-        CollisionSystem(): System(ForceSystem, OrderRelation::After)
+        CollisionSystem(): System(GlobalForceSystem, OrderRelation::After)
         {
         }
 
@@ -18,10 +18,10 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(CollisionSystem)
-
-    Gleam_MakeType(CollisionSystem_T, "")
+    Gleam_MakeType(CollisionSystem, "")
     {
         Gleam_MakeType_AddField(ccdMaxCount);
     }
+
+    Gleam_MakeGlobalSystem(CollisionSystem)
 }

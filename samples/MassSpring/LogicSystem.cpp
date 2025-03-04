@@ -17,7 +17,7 @@ using namespace Gleam;
 void LogicSystem::OnMoveParticle()
 {
     static float lastDrag = 0;
-    if (InputSystem.GetMouseButtonDown(MouseButton::Left))
+    if (GlobalInputSystem.GetMouseButtonDown(MouseButton::Left))
     {
         fixedParticle = coveringParticle;
         if (World::HasEntity(fixedParticle))
@@ -27,10 +27,10 @@ void LogicSystem::OnMoveParticle()
             particle.drag = 1;
         }
 #ifdef GleamEngineEditor
-        InspectorWindow.SetTarget(fixedParticle);
+        GlobalInspectorWindow.SetTarget(fixedParticle);
 #endif
     }
-    else if (InputSystem.GetMouseButtonUp(MouseButton::Left))
+    else if (GlobalInputSystem.GetMouseButtonUp(MouseButton::Left))
     {
         if (World::HasEntity(fixedParticle))
         {
@@ -41,12 +41,12 @@ void LogicSystem::OnMoveParticle()
 }
 void LogicSystem::OnCreateParticle() const
 {
-    if (InputSystem.GetMouseButtonDown(MouseButton::Left))
+    if (GlobalInputSystem.GetMouseButtonDown(MouseButton::Left))
     {
         // ReSharper disable once CppDeclaratorNeverUsed
         Entity entity = PhysicsSystem::AddParticle(mousePositionWS, drag, mass);
 #ifdef GleamEngineEditor
-        InspectorWindow.SetTarget(entity);
+        GlobalInspectorWindow.SetTarget(entity);
 #endif
     }
 }
@@ -54,7 +54,7 @@ void LogicSystem::OnCreateParticle() const
 std::vector<Entity> lines;
 void LogicSystem::OnDeleteParticle()
 {
-    if (InputSystem.GetMouseButtonDown(MouseButton::Left) && coveringParticle != Entity::Null)
+    if (GlobalInputSystem.GetMouseButtonDown(MouseButton::Left) && coveringParticle != Entity::Null)
     {
         lines.clear();
         View<Spring>::Each([this](const Entity entity, Spring& springPhysics)
@@ -71,7 +71,7 @@ void LogicSystem::OnCreateSpring()
 {
     if (springParticleA == Entity::Null)
     {
-        if (InputSystem.GetMouseButtonDown(MouseButton::Left))
+        if (GlobalInputSystem.GetMouseButtonDown(MouseButton::Left))
         {
             if (coveringParticle != Entity::Null)
             {
@@ -82,7 +82,7 @@ void LogicSystem::OnCreateSpring()
     }
     else
     {
-        if (InputSystem.GetMouseButtonDown(MouseButton::Left))
+        if (GlobalInputSystem.GetMouseButtonDown(MouseButton::Left))
         {
             if (coveringParticle != Entity::Null && coveringParticle != springParticleA)
                 PhysicsSystem::AddSpring(springParticleA, coveringParticle, elasticity);
@@ -112,8 +112,8 @@ void LogicSystem::Stop()
 void LogicSystem::Update()
 {
     //获取鼠标位置
-    ScreenToWorld screenToWorld = World::GetComponent<ScreenToWorld>(AssetSystem.GetCameraEntity());
-    mousePositionWS = float3(mul(screenToWorld.value, float4(InputSystem.GetMousePosition(), 0, 1)).xy, 1);
+    ScreenToWorld screenToWorld = World::GetComponent<ScreenToWorld>(GlobalAssetSystem.GetCameraEntity());
+    mousePositionWS = float3(mul(screenToWorld.value, float4(GlobalInputSystem.GetMousePosition(), 0, 1)).xy, 1);
     //获取当前鼠标覆盖的顶点
     coveringParticle = Entity::Null;
     View<Particle>::Each([this](const Entity entity, const Particle& particle)
@@ -134,9 +134,9 @@ void LogicSystem::Update()
         break;
     }
 
-    TimeSystem.SetTimeScale(simulatedSpeed);
+    GlobalTimeSystem.SetTimeScale(simulatedSpeed);
 
-    for (Entity collider : AssetSystem.colliders)
+    for (Entity collider : GlobalAssetSystem.colliders)
         World::SetComponents(collider, Collider{colliderFriction, colliderElasticity});
 }
 void LogicSystem::FixedUpdate() const
@@ -149,9 +149,9 @@ void LogicSystem::FixedUpdate() const
 
     if (test)
     {
-        Particle& particle = World::GetComponent<Particle>(AssetSystem.centerParticle);
+        Particle& particle = World::GetComponent<Particle>(GlobalAssetSystem.centerParticle);
         particle.drag = 1;
-        float time = TimeSystem.GetTime() * 20;
+        float time = GlobalTimeSystem.GetTime() * 20;
         particle.position = float3{std::cos(time) * 50, std::sin(time) * 60, 1};
     }
 

@@ -3,6 +3,7 @@
 #include "GleamECS/Runtime/World.h"
 #include "GleamMassSpring/Runtime/Entity/Archetype.h"
 #include "GleamMassSpring/Runtime/System/PhysicsSystem.h"
+#include "GleamMath/Runtime/Geometry/2D/Rectangle.h"
 
 Gleam::Entity AssetSystem::GetCameraEntity() const
 {
@@ -18,11 +19,11 @@ void AssetSystem::Start()
     camera.halfHeight = 50;
     //添加碰撞
     Entity collider1 = World::AddEntity(RectangleCollider);
-    World::SetComponents(collider1, Rectangle{float2{-90, -100}, float2{90, -50}});
+    World::SetComponents(collider1, Gleam::Rectangle{float2{-90, -100}, float2{90, -50}});
     Entity collider2 = World::AddEntity(RectangleCollider);
-    World::SetComponents(collider2, Rectangle{float2{-100, -90}, float2{-50, 90}});
+    World::SetComponents(collider2, Gleam::Rectangle{float2{-100, -90}, float2{-50, 90}});
     Entity collider3 = World::AddEntity(RectangleCollider);
-    World::SetComponents(collider3, Rectangle{float2{50, -90}, float2{100, 90}});
+    World::SetComponents(collider3, Gleam::Rectangle{float2{50, -90}, float2{100, 90}});
     Entity collider4 = World::AddEntity(RectangleCollider);
     World::SetComponents(collider4, Rectangle::CreateFromCenter(float2{0, 0}, float2(100, 100)), LocalTransform{{0, -50 - 70.71f + 17.67f, 0}, Quaternion::Euler({0, 0, 45})});
     colliders.emplace_back(collider1);

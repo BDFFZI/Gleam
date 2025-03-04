@@ -8,7 +8,7 @@ namespace Gleam
     class ProfilerWindow : public System
     {
     public:
-        ProfilerWindow(): System(EditorUISystem)
+        ProfilerWindow(): System(GlobalEditorUISystem)
         {
         }
 

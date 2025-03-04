@@ -51,7 +51,7 @@ namespace Gleam
         //申请堆内存
         Heap& heap = GetEntityHeap(archetype);
         int heapOrigin = heap.GetCount();
-        heap.AddElements(count, [archetype,outEntities,heapOrigin](const int itemIndex, std::byte* item)
+        heap.AddElements(count, [&archetype,outEntities,heapOrigin](const int itemIndex, std::byte* item)
         {
             //创建实体
             Entity entity = GetNextEntity();

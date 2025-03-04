@@ -10,7 +10,7 @@ namespace Gleam
     public:
         static void ComputeLocalToWorld(LocalTransform localTransform, LocalToWorld& localToWorld);
 
-        TransformSystem(): System(PostUpdateSystem)
+        TransformSystem(): System(GlobalPostUpdateSystem)
         {
         }
 

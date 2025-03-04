@@ -7,6 +7,30 @@
 
 namespace Gleam
 {
+    Archetype& Archetype::Create(const std::initializer_list<std::reference_wrapper<Type>> componentTypes, const std::string_view name)
+    {
+        std::vector<const Type*> types = std::vector<const Type*>{componentTypes.size()};
+        for (size_t i = 0; i < componentTypes.size(); ++i)
+            types[i] = &componentTypes.begin()[i].get();
+
+        Archetype archetype = {name, types};
+        return allArchetypes.emplace(archetype.id, std::move(archetype)).first->second;
+    }
+    Archetype& Archetype::CreateOrGet(const std::initializer_list<std::reference_wrapper<Type>> componentTypes)
+    {
+        uuids::uuid id = GetID(componentTypes);
+        if (allArchetypes.contains(id))
+            return allArchetypes.at(id);
+        return Create(componentTypes);
+    }
+    uuids::uuid Archetype::GetID(const std::initializer_list<std::reference_wrapper<Type>> componentTypes)
+    {
+        std::string componentIDs = {};
+        for (const auto& componentType : componentTypes)
+            componentIDs += to_string(componentType.get().GetID());
+        return MD5(componentIDs).toArray();
+    }
+
     const std::string& Archetype::GetName() const
     {
         return name;
@@ -89,11 +113,12 @@ namespace Gleam
         std::string componentIDs = {};
         for (const auto& componentType : componentTypes)
             componentIDs += to_string(componentType->GetID());
+        MD5 md5 = MD5(componentIDs);
 
-        this->name = name;
-        this->id = uuids::uuid::from_string(MD5(componentIDs).toStr()).value();
+        this->id = uuids::uuid(md5.toArray());
+        this->name = name.empty() ? md5.toStr() : name;
 
-
+        componentTypes.insert(componentTypes.begin(), &Type::CreateOrGetType<Entity>());
         this->componentCount = static_cast<int>(componentTypes.size());
         this->componentMapping.reserve(componentCount);
         this->componentTypes.reserve(componentCount);

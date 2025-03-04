@@ -75,7 +75,7 @@ struct CustomData : CustomParent
     }
 };
 
-Gleam_MakeType2(CustomData, "C4BAB34E-B145-4297-8BA3-6DD1BD05110D", CustomParentType)
+Gleam_MakeType2(CustomData, "", CustomParentType)
 {
     Gleam_MakeType_AddField(vectorValue);
     Gleam_MakeType_AddField(boolVectorValue);

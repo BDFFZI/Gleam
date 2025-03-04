@@ -19,8 +19,8 @@ namespace Gleam
     }
 
     Gleam_AddEditorSystems(
-        GameWindow,
-        SceneWindow,
+        GlobalGameWindow,
+        GlobalSceneWindow,
         HandlesSystem::GetInstance(),
         GizmosSystem::GetInstance()
     )

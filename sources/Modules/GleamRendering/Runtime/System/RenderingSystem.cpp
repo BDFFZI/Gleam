@@ -70,7 +70,7 @@ namespace Gleam
         commandBuffer.BeginRecording();
         for (const auto& cameraInfo : cameraInfos)
         {
-            commandBuffer.SetWorldInfo(WorldInfo{TimeSystem.GetTime()});
+            commandBuffer.SetWorldInfo(WorldInfo{GlobalTimeSystem.GetTime()});
             //设置相机参数
             GRenderTarget& renderTarget = cameraInfo.camera->renderTarget.value_or(*defaultRenderTarget);
             commandBuffer.SetRenderTarget(renderTarget);
@@ -84,7 +84,7 @@ namespace Gleam
         }
         commandBuffer.EndRecording();
         //执行渲染命令
-        PresentationSystem.GetPresentGLCommandBuffer().ExecuteSubCommands(commandBuffer);
+        GlobalPresentationSystem.GetPresentGLCommandBuffer().ExecuteSubCommands(commandBuffer);
         //清除渲染资源
         CommandBufferPool::Release(commandBuffer);
         cameraInfos.clear();

@@ -7,7 +7,7 @@ namespace Gleam
     class PositionSystem : public System
     {
     public:
-        PositionSystem(): System(PhysicsSystem, MinOrder, DefaultOrder)
+        PositionSystem(): System(GlobalPhysicsSystem, MinOrder, DefaultOrder)
         {
         }
 

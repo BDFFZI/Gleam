@@ -12,7 +12,7 @@ namespace Gleam
     private:
         Gleam_Engine_Friend
 
-        HandlesSystem(): System(UISystem, MinOrder, DefaultOrder)
+        HandlesSystem(): System(GlobalUISystem, MinOrder, DefaultOrder)
         {
         }
 

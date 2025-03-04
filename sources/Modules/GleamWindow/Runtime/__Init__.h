@@ -20,15 +20,15 @@ namespace Gleam
     }
 
     Gleam_AddSystems(
-        CursorSystem,
-        WindowSystem,
-        InputSystem
+        GlobalCursorSystem,
+        GlobalWindowSystem,
+        GlobalInputSystem
     )
 
 #ifdef GleamEngineEditor
     Gleam_AddEditorSystems(
-        CursorSystem,
-        WindowSystem,
+        GlobalCursorSystem,
+        GlobalWindowSystem,
     );
 #endif
 }

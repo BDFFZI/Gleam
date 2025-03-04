@@ -1,6 +1,5 @@
 ﻿#include "Gizmos.h"
 
-#include "GleamECS/Runtime/World.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamRendering/Runtime/Rendering.h"
 
@@ -150,7 +149,7 @@ namespace Gleam
         if (!instanceQueue.instances.empty())
         {
             instanceQueue.Flush();
-            RenderingSystem.AddRendererInfo(RendererInfo{
+            GlobalRenderingSystem.AddRendererInfo(RendererInfo{
                 float4x4::Identity(), RenderQueue_Opaque, *instanceQueue.material, mesh,
                 static_cast<uint32_t>(instanceQueue.instances.size())
             });

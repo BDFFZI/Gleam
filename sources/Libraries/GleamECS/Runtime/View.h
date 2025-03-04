@@ -1,17 +1,18 @@
 ﻿#pragma once
 #include "World.h"
+#include "GleamUtility/Runtime/Ranges.h"
 
 namespace Gleam
 {
     template <class TViewFilter>
-    concept ViewFilter = requires(Archetype& archetype, bool isMatched)
+    concept ViewFilter = requires(const Archetype& archetype, bool isMatched)
     {
         isMatched = TViewFilter::IsMatched(archetype);
     };
     class ViewAlways
     {
     public:
-        static bool IsMatched(Archetype&)
+        static bool IsMatched(const Archetype&)
         {
             return true;
         }
@@ -21,7 +22,7 @@ namespace Gleam
     class ViewNecessary
     {
     public:
-        static bool IsMatched(Archetype& archetype)
+        static bool IsMatched(const Archetype& archetype)
         {
             std::type_index components[] = {typeid(TComponents)...};
             for (size_t i = 0; i < sizeof...(TComponents); ++i)
@@ -35,7 +36,7 @@ namespace Gleam
     class ViewExclusion
     {
     public:
-        static bool IsMatched(Archetype& archetype)
+        static bool IsMatched(const Archetype& archetype)
         {
             std::type_index components[] = {typeid(TComponents)...};
             for (size_t i = 0; i < sizeof...(TComponents); ++i)
@@ -108,7 +109,7 @@ namespace Gleam
         {
             if (isQueried == false)
             {
-                for ( auto archetype : Archetype::GetAllArchetypes())
+                for (auto& archetype : Archetype::GetAllArchetypes() | UnwrapRef)
                 {
                     if (ViewNecessary<TComponents...>::IsMatched(archetype)
                         && TFilter::IsMatched(archetype))

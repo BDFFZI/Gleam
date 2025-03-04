@@ -10,7 +10,7 @@ namespace Gleam
     class TimeSystem : public System
     {
     public:
-        TimeSystem(): System(PreUpdateSystem)
+        TimeSystem(): System(GlobalPreUpdateSystem)
         {
         }
 
@@ -51,9 +51,8 @@ namespace Gleam
         void Start() override;
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(TimeSystem)
 
-    Gleam_MakeType(TimeSystem_T, "")
+    Gleam_MakeType(TimeSystem, "")
     {
         Gleam_MakeType_AddField(maxDeltaTime);
         Gleam_MakeType_AddField(fixedDeltaTime);
@@ -68,4 +67,6 @@ namespace Gleam
         Gleam_MakeType_AddField(fixedTime);
         Gleam_MakeType_AddField(fixedDeltaCount);
     }
+
+    Gleam_MakeGlobalSystem(TimeSystem)
 }

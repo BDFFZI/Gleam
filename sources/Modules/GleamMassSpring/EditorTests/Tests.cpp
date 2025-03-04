@@ -21,8 +21,8 @@ class TestSystem : public System
 
     void Start() override
     {
-        MassSpringRenderingSystem.SetIsEnabled(true);
-        ForceSystem.SetGravity(float3{0.0f, -9.81f, 0.0f} * 2);
+        GlobalMassSpringRenderingSystem.SetIsEnabled(true);
+        GlobalForceSystem.SetGravity(float3{0.0f, -9.81f, 0.0f} * 2);
 
         //碰撞弹性系数
         {
@@ -112,10 +112,10 @@ class TestSystem : public System
     }
 };
 Gleam_MakeGlobalSystem(TestSystem)
-Gleam_AddSystems(TestSystem)
+Gleam_AddSystems(GlobalTestSystem)
 
 #ifdef GleamEngineEditor
-Gleam_AddEditorSystems(TestSystem)
+Gleam_AddEditorSystems(GlobalTestSystem)
 #endif
 
 Gleam_Main

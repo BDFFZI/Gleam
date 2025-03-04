@@ -62,7 +62,7 @@ namespace Gleam
             TransformSystem::ComputeLocalToWorld(*transform.value(), localToWorld);
         //获取手柄类型信息
         static constexpr ImGuizmo::OPERATION options[] = {ImGuizmo::BOUNDS, ImGuizmo::TRANSLATE, ImGuizmo::ROTATE, ImGuizmo::SCALE};
-        ImGuizmo::OPERATION imGuiOption = options[SceneWindow.GetHandleOption()];
+        ImGuizmo::OPERATION imGuiOption = options[GlobalSceneWindow.GetHandleOption()];
         //绘制
         if (transform.has_value())
             Handles::DrawHandle(imGuiOption, localToWorld.value, *transform.value());

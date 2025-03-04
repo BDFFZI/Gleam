@@ -28,18 +28,18 @@ namespace Gleam
     }
 
     Gleam_AddSystems(
-        RenderingSystem,
-        PointsRendererSystem,
-        LinesRendererSystem,
-        CameraSystem
+        GlobalRenderingSystem,
+        GlobalPointsRendererSystem,
+        GlobalLinesRendererSystem,
+        GlobalCameraSystem
     )
 
 #ifdef GleamEngineEditor
     Gleam_AddEditorSystems(
-        RenderingSystem,
-        PointsRendererSystem,
-        LinesRendererSystem,
-        CameraSystem
+        GlobalRenderingSystem,
+        GlobalPointsRendererSystem,
+        GlobalLinesRendererSystem,
+        GlobalCameraSystem
     );
 #endif
 }

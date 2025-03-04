@@ -10,7 +10,7 @@ using namespace Gleam;
 class MySystem : public System
 {
 public:
-    MySystem(): System(UISystem)
+    MySystem(): System(GlobalUISystem)
     {
     }
 
@@ -51,31 +51,24 @@ private:
             {"Test1", 1},
             {"Test2", 3},
         };
-        for (auto& [path,value] : map)
-        {
-            // if(ImGui::TreeNode())
-            // {
-            //     ImGui::TreePop();
-            // }
-        }
 
         //逻辑处理
-        if (InputSystem.GetKeyDown(KeyCode::Esc))
+        if (GlobalInputSystem.GetKeyDown(KeyCode::Esc))
             Engine::Stop();
 
-        if (InputSystem.GetMouseButtonDown(MouseButton::Right))
+        if (GlobalInputSystem.GetMouseButtonDown(MouseButton::Right))
         {
-            CursorSystem.SetLockState(true);
-            CursorSystem.SetVisible(false);
+            GlobalCursorSystem.SetLockState(true);
+            GlobalCursorSystem.SetVisible(false);
         }
-        else if (InputSystem.GetMouseButtonUp(MouseButton::Right))
+        else if (GlobalInputSystem.GetMouseButtonUp(MouseButton::Right))
         {
-            CursorSystem.SetLockState(false);
-            CursorSystem.SetVisible(true);
+            GlobalCursorSystem.SetLockState(false);
+            GlobalCursorSystem.SetVisible(true);
         }
     }
 };
 Gleam_MakeGlobalSystem(MySystem)
-Gleam_AddSystems(MySystem)
+Gleam_AddSystems(GlobalMySystem)
 
 Gleam_Main

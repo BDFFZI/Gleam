@@ -13,10 +13,10 @@ namespace Gleam
 {
     void ParticleSelectionSystem::Update()
     {
-        InputSystem_T& inputSystem = SceneWindow.GetSceneInputSystem();
+        InputSystem& inputSystem = GlobalSceneWindow.GetSceneInputSystem();
 
-        float4x4 worldToClip = World::GetComponent<WorldToClip>(SceneWindow.GetSceneCamera()).value;
-        float4x4 screenToClip = World::GetComponent<ScreenToClip>(SceneWindow.GetSceneCamera()).value;
+        float4x4 worldToClip = World::GetComponent<WorldToClip>(GlobalSceneWindow.GetSceneCamera()).value;
+        float4x4 screenToClip = World::GetComponent<ScreenToClip>(GlobalSceneWindow.GetSceneCamera()).value;
         float2 mousePositionNDC = mul(screenToClip, float4(inputSystem.GetMousePosition(), 0, 1)).xy;
 
         optionalEntity = Entity::Null;
@@ -41,13 +41,13 @@ namespace Gleam
         {
             if (optionalEntity != Entity::Null)
                 inspectingEntity = optionalEntity;
-            if (!InspectorWindow.GetTarget().has_value())
-                InspectorWindow.SetTarget(InspectorTarget{inspectingEntity});
-            else if (InspectorWindow.GetTarget().value().type == typeid(Entity))
+            if (!GlobalInspectorWindow.GetTarget().has_value())
+                GlobalInspectorWindow.SetTarget(InspectorTarget{inspectingEntity});
+            else if (GlobalInspectorWindow.GetTarget().value().type == typeid(Entity))
             {
-                Entity entity = *static_cast<Entity*>(InspectorWindow.GetTarget().value().data);
+                Entity entity = *static_cast<Entity*>(GlobalInspectorWindow.GetTarget().value().data);
                 if (!World::HasEntity(entity) || World::HasComponent<Particle>(entity))
-                    InspectorWindow.SetTarget(InspectorTarget{inspectingEntity});
+                    GlobalInspectorWindow.SetTarget(InspectorTarget{inspectingEntity});
             }
         }
     }

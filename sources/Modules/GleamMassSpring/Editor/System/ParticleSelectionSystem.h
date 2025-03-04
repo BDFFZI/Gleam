@@ -9,7 +9,7 @@ namespace Gleam
     class ParticleSelectionSystem : public System
     {
     public:
-        ParticleSelectionSystem(): System(EditorUISystem, MaxOrder, MaxOrder)
+        ParticleSelectionSystem(): System(GlobalEditorUISystem, MaxOrder, MaxOrder)
         {
         }
 
@@ -22,10 +22,10 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(ParticleSelectionSystem)
-
-    Gleam_MakeType(ParticleSelectionSystem_T, "")
+    Gleam_MakeType(ParticleSelectionSystem, "")
     {
         Gleam_MakeType_AddField(optionalEntity);
     }
+
+    Gleam_MakeGlobalSystem(ParticleSelectionSystem)
 }

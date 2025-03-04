@@ -27,10 +27,10 @@ namespace Gleam
                     UI::DeleteTexture(renderTextureID);
                 renderTexture = std::make_unique<GRenderTexture>(static_cast<int2>(windowSize));
                 renderTextureID = UI::CreateTexture(*renderTexture);
-                RenderingSystem.SetDefaultRenderTarget(*renderTexture);
+                GlobalRenderingSystem.SetDefaultRenderTarget(*renderTexture);
             }
             //更新输入系统的焦点范围为GameWindow
-            InputSystem.SetFocusArea(Rectangle::CreateFromOrigin(windowPosition, windowSize));
+            GlobalInputSystem.SetFocusArea(Rectangle::CreateFromOrigin(windowPosition, windowSize));
         };
         World::AddSystem(preProcessSystem);
     }
@@ -70,7 +70,7 @@ namespace Gleam
         }
         //帧率信息
         static float deltaTime = 0;
-        deltaTime = std::lerp(deltaTime, SceneWindow.GetSceneTimeSystem().GetDeltaTimeReal(), 0.3f);
+        deltaTime = std::lerp(deltaTime, GlobalSceneWindow.GetSceneTimeSystem().GetDeltaTimeReal(), 0.3f);
         ImGui::SetCursorPos(cursor);
         ImGui::TextColored(
             float4::Magenta(),

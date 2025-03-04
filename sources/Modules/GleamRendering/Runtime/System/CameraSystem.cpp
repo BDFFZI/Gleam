@@ -11,7 +11,7 @@ namespace Gleam
         View<Camera, ViewToClip>::Each(
             [](Camera& camera, ViewToClip& worldToClip)
             {
-                float aspect = camera.renderTarget.value_or(RenderingSystem.GetDefaultRenderTarget()).get().GetAspect();
+                float aspect = camera.renderTarget.value_or(GlobalRenderingSystem.GetDefaultRenderTarget()).get().GetAspect();
                 worldToClip.value =
                     camera.orthographic
                         ? float4x4::Ortho(
@@ -36,7 +36,7 @@ namespace Gleam
 
         View<Camera, ScreenToClip>::Each([](Camera& camera, ScreenToClip& screenToClip)
         {
-            GRenderTarget& renderTarget = camera.renderTarget.value_or(RenderingSystem.GetDefaultRenderTarget());
+            GRenderTarget& renderTarget = camera.renderTarget.value_or(GlobalRenderingSystem.GetDefaultRenderTarget());
             screenToClip.value = float4x4{
                 2 / static_cast<float>(renderTarget.width), 0, 0, -1.0f,
                 0, -2 / static_cast<float>(renderTarget.height), 0, 1.0f,

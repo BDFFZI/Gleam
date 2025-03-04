@@ -14,40 +14,38 @@
 
 namespace Gleam
 {
-    template <class TComponent, class... TComponents>
-    concept ArchetypeComponentList = std::is_same_v<TComponent, Entity>;
-
     class Archetype
     {
     public:
         static auto GetAllArchetypes()
         {
-            auto allArchetypes = idToArchetype | std::views::values | std::views::transform([](const Archetype* archetype)
+            auto result = allArchetypes | std::views::values | std::views::transform([](const Archetype& archetype)
             {
-                return *archetype;
+                return std::reference_wrapper(archetype);
             });
-            return allArchetypes;
+            return result;
         }
 
-        template <Component... TComponents> requires ArchetypeComponentList<TComponents...>
-        static Archetype Create(const char* name)
+        template <Component... TComponents>
+        static Archetype& Create(const std::string_view name)
         {
-            Archetype archetype = {name, {&Type::GetType(typeid(TComponents)).value().get()...}};
-            idToArchetype.emplace(archetype.id, &archetype);
-            return archetype;
+            Archetype archetype = {name, {&Type::CreateOrGetType<TComponents>()...}};
+            return allArchetypes.emplace(archetype.id, std::move(archetype)).first->second;
         }
         template <Component... TComponents>
-        static Archetype Create(const char* name, const Archetype& parent)
+        static Archetype& Create(const std::string_view name, const Archetype& parent)
         {
-            std::vector<const Type*> types = parent.componentTypes;
-            types.insert(types.end(), {&Type::GetType(typeid(TComponents)).value().get()...});
+            std::vector<const Type*> types = {parent.componentTypes.begin() + 1, parent.componentTypes.end()};
+            types.insert(types.end(), {&Type::CreateOrGetType<TComponents>()...});
 
             Archetype archetype = {name, types};
-            idToArchetype.emplace(archetype.id, &archetype);
-            return archetype;
+            return allArchetypes.emplace(archetype.id, std::move(archetype)).first->second;
         }
+        static Archetype& Create(std::initializer_list<std::reference_wrapper<Type>> componentTypes, std::string_view name = "");
+        static Archetype& CreateOrGet(std::initializer_list<std::reference_wrapper<Type>> componentTypes);
+        static uuids::uuid GetID(std::initializer_list<std::reference_wrapper<Type>> componentTypes);
 
-        const std::string& GetName() const;
+        const string& GetName() const;
         uuids::uuid GetID() const;
         int GetSize() const;
 
@@ -68,7 +66,7 @@ namespace Gleam
         void Move(std::byte* source, std::byte* destination) const;
 
     private:
-        inline static std::unordered_map<uuids::uuid, const Archetype*> idToArchetype = {};
+        inline static std::unordered_map<uuids::uuid, Archetype> allArchetypes = {};
 
         std::string name;
         uuids::uuid id;
@@ -79,13 +77,12 @@ namespace Gleam
         std::vector<int> componentOffsets;
 
         Archetype(std::string_view name, std::vector<const Type*> componentTypes);
-        Archetype(Archetype&) = delete;
     };
 
     std::string to_string(const Archetype& archetype);
 
 #define Gleam_MakeArchetype(name,...)\
-inline const Gleam::Archetype name = Gleam::Archetype::Create<Gleam::Entity,__VA_ARGS__>(#name);
+inline const Gleam::Archetype& name = Gleam::Archetype::Create<__VA_ARGS__>(#name);
 #define Gleam_MakeArchetypeChild(name,parent,...)\
-inline const Gleam::Archetype name = Gleam::Archetype::Create<__VA_ARGS__>(#name,parent);
+inline const Gleam::Archetype& name = Gleam::Archetype::Create<__VA_ARGS__>(#name,parent);
 }

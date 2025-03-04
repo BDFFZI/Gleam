@@ -7,7 +7,7 @@ namespace Gleam
     class HierarchyWindow : public System
     {
     public:
-        HierarchyWindow(): System(EditorUISystem)
+        HierarchyWindow(): System(GlobalEditorUISystem)
         {
         }
 

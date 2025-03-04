@@ -12,9 +12,9 @@ namespace Gleam
     private:
         Gleam_Engine_Friend
 
-        SystemEvent postProcessSystem = SystemEvent("GizmosSystem_PostProcess", PresentationSystem, OrderRelation::After);
+        SystemEvent postProcessSystem = SystemEvent("GizmosSystem_PostProcess", GlobalPresentationSystem, OrderRelation::After);
 
-        GizmosSystem(): System(RenderingSystem, OrderRelation::Before)
+        GizmosSystem(): System(GlobalRenderingSystem, OrderRelation::Before)
         {
         }
         void Start() override;

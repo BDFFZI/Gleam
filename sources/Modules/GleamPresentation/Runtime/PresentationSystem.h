@@ -13,7 +13,7 @@ namespace Gleam
     class PresentationSystem : public SystemGroup
     {
     public:
-        PresentationSystem(): SystemGroup(PostUpdateSystem, DefaultOrder, MaxOrder)
+        PresentationSystem(): SystemGroup(GlobalPostUpdateSystem, DefaultOrder, MaxOrder)
         {
         }
 

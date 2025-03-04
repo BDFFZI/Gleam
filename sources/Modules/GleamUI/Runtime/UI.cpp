@@ -82,7 +82,7 @@ namespace Gleam
         //生成绘制数据
         ImGui::Render();
         //提交绘制命令
-        GCommandBuffer& commandBuffer = PresentationSystem.GetPresentGCommandBuffer();
+        GCommandBuffer& commandBuffer = GlobalPresentationSystem.GetPresentGCommandBuffer();
         commandBuffer.SetRenderTarget(SwapChain::GetPresentRenderTarget());
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer.GetGLCommandBuffer().commandBuffer);
     }

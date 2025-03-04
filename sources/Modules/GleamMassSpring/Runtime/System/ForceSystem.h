@@ -7,7 +7,7 @@ namespace Gleam
     class ForceSystem : public System
     {
     public:
-        ForceSystem(): System(PositionSystem, OrderRelation::After)
+        ForceSystem(): System(GlobalPositionSystem, OrderRelation::After)
         {
         }
 
@@ -18,13 +18,13 @@ namespace Gleam
         Gleam_MakeType_Friend
 
         float3 gravity = {0.0f, -9.81f, 0.0f};
-        
+
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(ForceSystem);
-
-    Gleam_MakeType(ForceSystem_T, "")
+    Gleam_MakeType(ForceSystem, "")
     {
         Gleam_MakeType_AddField(gravity);
     }
+
+    Gleam_MakeGlobalSystem(ForceSystem);
 }

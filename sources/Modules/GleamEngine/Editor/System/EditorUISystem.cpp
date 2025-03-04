@@ -25,13 +25,13 @@ namespace Gleam
             bool isPlaying = Editor::IsPlaying();
             if (ImGui::Checkbox("IsPlaying", &isPlaying))
                 Editor::IsPlaying() = isPlaying;
-            bool isPausing = !TimeSystem.GetAutoStepTime();
+            bool isPausing = !GlobalTimeSystem.GetAutoStepTime();
             if (ImGui::Checkbox("IsPausing", &isPausing))
-                TimeSystem.SetAutoStepTime(!isPausing);
+                GlobalTimeSystem.SetAutoStepTime(!isPausing);
             if (ImGui::Button("NextFrame"))
             {
-                TimeSystem.SetAutoStepTime(false);
-                TimeSystem.SetStepTime(TimeSystem.GetFixedDeltaTime());
+                GlobalTimeSystem.SetAutoStepTime(false);
+                GlobalTimeSystem.SetStepTime(GlobalTimeSystem.GetFixedDeltaTime());
             }
 
             //自定义菜单项

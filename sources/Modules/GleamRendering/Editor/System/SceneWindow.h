@@ -22,13 +22,13 @@ namespace Gleam
         static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneUI);
 
 
-        SceneWindow(): System(EditorUISystem)
+        SceneWindow(): System(GlobalEditorUISystem)
         {
         }
 
         Entity GetSceneCamera() const;
-        InputSystem_T& GetSceneInputSystem();
-        TimeSystem_T& GetSceneTimeSystem();
+        InputSystem& GetSceneInputSystem();
+        TimeSystem& GetSceneTimeSystem();
         int GetHandleOption() const;
 
     private:
@@ -38,9 +38,9 @@ namespace Gleam
         float2 windowContentPosition = 0;
         float2 windowContentSize = 0;
         //预建资源
-        SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", PostUpdateSystem);
-        class InputSystem inputSystem = Engine::CreateSystem<InputSystem_T>("SceneWindow_Input");
-        class TimeSystem timeSystem = Engine::CreateSystem<TimeSystem_T>("SceneWindow_Time");
+        SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", GlobalPostUpdateSystem);
+        class InputSystem inputSystem = Engine::CreateSystem<InputSystem>("SceneWindow_Input");
+        class TimeSystem timeSystem = Engine::CreateSystem<TimeSystem>("SceneWindow_Time");
         Entity sceneCamera = Entity::Null;
         //场景相机渲染目标相关
         std::unique_ptr<GRenderTexture> sceneCameraCanvas;

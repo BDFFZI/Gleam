@@ -8,7 +8,7 @@ namespace Gleam
     class GameWindow : public System
     {
     public:
-        GameWindow(): System(EditorUISystem)
+        GameWindow(): System(GlobalEditorUISystem)
         {
         }
 
@@ -18,7 +18,7 @@ namespace Gleam
         std::unique_ptr<GRenderTexture> renderTexture;
         ImTextureID renderTextureID = {};
         bool isDirty = false;
-        SystemEvent preProcessSystem = SystemEvent("GameWindow_PreProcess", PostUpdateSystem);
+        SystemEvent preProcessSystem = SystemEvent("GameWindow_PreProcess", GlobalPostUpdateSystem);
 
         void Start() override;
         void Stop() override;

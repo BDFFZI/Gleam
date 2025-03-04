@@ -5,9 +5,9 @@
 
 #ifdef GleamRenderingRuntime
 #include "GleamRendering/Runtime/System/RenderingSystem.h"
-#define Order RenderingSystem,OrderRelation::After
+#define Order GlobalRenderingSystem,OrderRelation::After
 #else
-#define Order PresentationSystem
+#define Order GlobalPresentationSystem
 #endif
 
 namespace Gleam

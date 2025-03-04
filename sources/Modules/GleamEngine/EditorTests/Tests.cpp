@@ -37,6 +37,6 @@ class MySystem : public System
     }
 };
 Gleam_MakeGlobalSystem(MySystem)
-Gleam_AddEditorSystems(MySystem)
+Gleam_AddEditorSystems(GlobalMySystem)
 
 Gleam_Main

@@ -26,7 +26,7 @@ class LogicSystem : public Gleam::System
     Gleam::Entity fixedParticle = Gleam::Entity::Null; //移动点模式下的移动点
     Gleam::Entity springParticleA = Gleam::Entity::Null; //创建弹簧时的弹簧A点
     Gleam::Entity tempLine = Gleam::Entity::Null; //创建弹簧时临时的可视化线
-    Gleam::SystemEvent physicsSystemEvent = {"PhysicsSystemEvent", Gleam::ForceSystem, Gleam::OrderRelation::Before};
+    Gleam::SystemEvent physicsSystemEvent = {"PhysicsSystemEvent", Gleam::GlobalForceSystem, Gleam::OrderRelation::Before};
 
     float drag = 0.01f;
     float mass = 1;

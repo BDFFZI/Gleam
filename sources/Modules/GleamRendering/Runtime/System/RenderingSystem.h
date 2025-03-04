@@ -35,7 +35,7 @@ namespace Gleam
     class RenderingSystem : public System
     {
     public:
-        RenderingSystem(): System(PresentationSystem)
+        RenderingSystem(): System(GlobalPresentationSystem)
         {
         }
 

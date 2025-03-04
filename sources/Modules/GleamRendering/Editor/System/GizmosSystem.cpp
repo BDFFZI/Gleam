@@ -40,14 +40,14 @@ namespace Gleam
         if (!Gizmos::pointsMesh->GetIndices().empty())
         {
             Gizmos::pointsMesh->SetDirty();
-            RenderingSystem.AddRendererInfo(RendererInfo{
+            GlobalRenderingSystem.AddRendererInfo(RendererInfo{
                 float4x4::Identity(), RenderQueue_Opaque, *Gizmos::pointsMaterial, *Gizmos::pointsMesh
             });
         }
         if (!Gizmos::linesMesh->GetIndices().empty())
         {
             Gizmos::linesMesh->SetDirty();
-            RenderingSystem.AddRendererInfo(RendererInfo{
+            GlobalRenderingSystem.AddRendererInfo(RendererInfo{
                 float4x4::Identity(), RenderQueue_Opaque, *Gizmos::linesMaterial, *Gizmos::linesMesh
             });
         }

@@ -26,6 +26,7 @@ namespace Gleam
         static TSystem CreateSystem(const std::string_view name = "")
         {
             TSystem system = {};
+            //自动设置名称
             if (!name.empty())
                 system.GetName() = name;
             else if (system.GetName().empty())
@@ -34,9 +35,10 @@ namespace Gleam
                 defaultName = defaultName.substr(defaultName.find_last_of(' ') + 1);
                 system.GetName() = defaultName;
             }
-            Type type = Type::GetType(typeid(TSystem));
-            if (type.IsInitialized() == false)
-                Type::Create<TSystem>("", typeid(System));
+            //自动设置Type的父类信息
+            Type& type = Type::CreateOrGetType<TSystem>();
+            if (!type.GetParent().has_value())
+                type.SetParent(SystemType);
             return std::move(system);
         }
 
@@ -108,8 +110,7 @@ inline void eventName()
 
     ///创建全局作用域的系统单例，变量名与系统类名相同。同时创建一个类别名<systemType>_T，以解决命名冲突。
 #define Gleam_MakeGlobalSystem(systemClass,...) \
-using systemClass##_T = systemClass;\
-inline systemClass systemClass = Gleam::Engine::CreateSystem<systemClass##_T>(__VA_ARGS__);
+inline systemClass Global##systemClass = Gleam::Engine::CreateSystem<systemClass>(__VA_ARGS__);
 
     ///将系统添加到世界，并注册到运行时系统组
 #include "GleamUtility/Runtime/Macro.h"

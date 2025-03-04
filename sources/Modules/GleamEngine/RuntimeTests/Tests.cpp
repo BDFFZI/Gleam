@@ -11,7 +11,7 @@ using namespace Gleam;
 class MySystem : public System
 {
 public:
-    MySystem(): System(PostUpdateSystem)
+    MySystem(): System(GlobalPostUpdateSystem)
     {
     }
 
@@ -27,7 +27,7 @@ public:
             Engine::Stop();
 
         std::cout
-            << std::format("Time:{:f}\tDeltaTime:{:f}", TimeSystem.GetTime(), TimeSystem.GetDeltaTime())
+            << std::format("Time:{:f}\tDeltaTime:{:f}", GlobalTimeSystem.GetTime(), GlobalTimeSystem.GetDeltaTime())
             << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -40,6 +40,6 @@ public:
     int countDown = 3;
 };
 Gleam_MakeGlobalSystem(MySystem)
-Gleam_AddSystems(MySystem)
+Gleam_AddSystems(GlobalMySystem)
 
 Gleam_Main

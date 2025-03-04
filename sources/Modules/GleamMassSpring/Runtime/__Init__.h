@@ -7,9 +7,9 @@
 namespace Gleam
 {
     Gleam_AddSystems(
-        PhysicsSystem,
-        PositionSystem,
-        ForceSystem,
-        CollisionSystem
+        GlobalPhysicsSystem,
+        GlobalPositionSystem,
+        GlobalForceSystem,
+        GlobalCollisionSystem
     )
 }

@@ -6,7 +6,7 @@ namespace Gleam
     class MassSpringRenderingSystem : public System
     {
     public:
-        MassSpringRenderingSystem(): System(PhysicsSystem, OrderRelation::After)
+        MassSpringRenderingSystem(): System(GlobalPhysicsSystem, OrderRelation::After)
         {
         }
 
@@ -19,10 +19,10 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(MassSpringRenderingSystem)
-
-    Gleam_MakeType(MassSpringRenderingSystem_T, "")
+    Gleam_MakeType(MassSpringRenderingSystem, "")
     {
         Gleam_MakeType_AddField(isEnabled);
     }
+
+    Gleam_MakeGlobalSystem(MassSpringRenderingSystem)
 }

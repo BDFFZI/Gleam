@@ -46,14 +46,14 @@ namespace Gleam
 
     Gleam_AddUpdateEvent(FetchProfile, 1)
     {
-        ProfilerWindow.SetProfile(Profiler::FlushProfile());
+        GlobalProfilerWindow.SetProfile(Profiler::FlushProfile());
     }
 
     Gleam_AddEditorSystems(
-        EditorUISystem,
-        HierarchyWindow,
-        InspectorWindow,
-        ProfilerWindow,
+        GlobalEditorUISystem,
+        GlobalHierarchyWindow,
+        GlobalInspectorWindow,
+        GlobalProfilerWindow,
     )
 
     inline void InspectorUI_LocalTransform(LocalTransform& localTransform)

@@ -5,9 +5,9 @@ namespace Gleam
 {
     std::optional<std::reference_wrapper<const Type>> Type::GetType(const std::type_index typeIndex)
     {
-        if (indexToType.contains(typeIndex) == false)
+        if (allTypes.contains(typeIndex) == false)
             return std::nullopt;
-        return *indexToType.at(typeIndex);
+        return allTypes.at(typeIndex);
     }
     std::optional<std::reference_wrapper<const Type>> Type::GetType(const uuids::uuid typeID)
     {
@@ -39,6 +39,11 @@ namespace Gleam
     const std::vector<FieldInfo>& Type::GetFields() const
     {
         return fields;
+    }
+    
+    void Type::SetParent(const std::optional<std::reference_wrapper<const Type>> parent)
+    {
+        this->parent = parent;
     }
 
     void Type::Construct(void* address) const

@@ -19,12 +19,12 @@ namespace Gleam
     }
 
     Gleam_AddSystems(
-        UISystem
+        GlobalUISystem
     )
 
 #ifdef GleamEngineEditor
     Gleam_AddEditorSystems(
-        UISystem
+        GlobalUISystem
     );
 #endif
 }

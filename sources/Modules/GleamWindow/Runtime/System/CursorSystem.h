@@ -7,7 +7,7 @@ namespace Gleam
     class CursorSystem : public System
     {
     public:
-        CursorSystem(): System(InputSystem, OrderRelation::After)
+        CursorSystem(): System(GlobalInputSystem, OrderRelation::After)
         {
         }
 

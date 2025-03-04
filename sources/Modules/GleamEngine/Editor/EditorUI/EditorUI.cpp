@@ -16,7 +16,7 @@ namespace Gleam
         if (ImGui::Button(std::format("Entity:{}", static_cast<uint32_t>(entity)).c_str()))
         {
             inspecting = entity;
-            InspectorWindow.SetTarget(InspectorTarget{inspecting});
+            GlobalInspectorWindow.SetTarget(InspectorTarget{inspecting});
         }
         if (ImGui::BeginDragDropSource())
         {
@@ -37,26 +37,26 @@ namespace Gleam
         for (int i = 1; i < archetype.GetComponentCount(); ++i)
         {
             //统计实体信息
-            const ComponentInfo& componentInfo = archetype.GetComponentType(i);
-            std::type_index componentType = componentInfo.type;
-            const char* componentName = componentInfo.type.name();
+            const Type& componentType = archetype.GetComponentType(i);
+            std::type_index componentTypeIndex = componentType.GetIndex();
+            std::string_view componentName = componentType.GetName();
             int componentOffset = archetype.GetComponentOffset(i);
             void* component = entityInfo.components + componentOffset;
             //绘制
-            ImGui::PushID(componentName);
+            ImGui::PushID(componentName.data());
             {
                 //绘制组件标题
-                ImGui::SeparatorText(componentName);
+                ImGui::SeparatorText(componentName.data());
                 //绘制组件内容
-                if (componentGUI.contains(componentType))
-                    componentGUI.at(componentType)(component);
+                if (componentGUI.contains(componentTypeIndex))
+                    componentGUI.at(componentTypeIndex)(component);
                 else
                 {
-                    Type& type = Type::GetType(componentType);
-                    if (type.GetSerialize())
+                    auto type = Type::GetType(componentTypeIndex);
+                    if (type.has_value())
                     {
                         EditorUISerializer editorUiSerializer = {componentName};
-                        type.GetSerialize()(editorUiSerializer, component);
+                        type.value().get().Serialize(editorUiSerializer, component);
                     }
                 }
             }
@@ -73,16 +73,16 @@ namespace Gleam
         for (int i = 1; i < archetype.GetComponentCount(); ++i)
         {
             //统计实体信息
-            const ComponentInfo& componentInfo = archetype.GetComponentType(i);
-            std::type_index componentType = componentInfo.type;
-            const char* componentName = componentInfo.type.name();
+            const Type& componentType = archetype.GetComponentType(i);
+            std::type_index componentTypeIndex = componentType.GetIndex();
+            std::string_view componentName = componentType.GetName();
             int componentOffset = archetype.GetComponentOffset(i);
             void* component = entityInfo.components + componentOffset;
             //绘制
-            ImGui::PushID(componentName);
+            ImGui::PushID(componentName.data());
             {
-                if (componentGUI.contains(componentType))
-                    componentGUI.at(componentType)(component);
+                if (componentGUI.contains(componentTypeIndex))
+                    componentGUI.at(componentTypeIndex)(component);
             }
             ImGui::PopID();
         }
@@ -114,7 +114,7 @@ namespace Gleam
             system.GetName().c_str(),
             {ImGui::GetContentRegionAvail().x - ImGui::GetTextLineHeightWithSpacing() * 1.5f, 0} //按钮铺满当前行余下的所有空间
         ))
-            InspectorWindow.SetTarget(InspectorTarget{system});
+            GlobalInspectorWindow.SetTarget(InspectorTarget{system});
         //系统引用计数
         ImGui::SameLine();
         ImGui::Text("%i", World::systemUsageCount[&system]);
@@ -197,11 +197,11 @@ namespace Gleam
     }
     void EditorUI::DrawDefaultInspectorUI(void* target, const std::type_index targetType)
     {
-        EditorUISerializer serializer = {"InspectionTarget"};
-        Type& type = Type::GetType(targetType);
-        if (type.GetSerialize()) //序列化每个元素
-            type.GetSerialize()(serializer, target);
-        else //未知类型，当成字段整体传输给序列化器判断
-            serializer.Transfer(target, targetType);
+        std::optional<std::reference_wrapper<const Type>> type = Type::GetType(targetType);
+        if (type.has_value())
+        {
+            EditorUISerializer serializer = {"InspectionTarget"};
+            type.value().get().Serialize(serializer, target);
+        }
     }
 }

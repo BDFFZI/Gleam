@@ -6,6 +6,7 @@
 #include <utility>
 #include <stduuid/uuid.h>
 
+#include "GleamUtility/Runtime/md5.h"
 #include "Transferrer/MemberTransferrer.h"
 #include "Transferrer/Transferrer.h"
 
@@ -56,14 +57,15 @@ namespace Gleam
          * @return 
          */
         template <typename T>
-        static Type Create(const uuids::uuid id, const std::optional<std::reference_wrapper<const Type>> parent = std::nullopt)
+        static Type& Create(const std::optional<uuids::uuid> id = std::nullopt, const std::optional<std::reference_wrapper<const Type>> parent = std::nullopt)
         {
-            assert(!indexToType.contains(typeid(T)) && "类型已创建！");
-            assert(!indexToType.contains(typeid(T)) && "编号已占用！");
+            assert(!allTypes.contains(typeid(T)) && "类型已创建！");
+            assert(!id.has_value() || !allTypes.contains(typeid(T)) && "编号已占用！");
 
-            Type type = Type{};
+            Type& type = allTypes.emplace(typeid(T), Type{}).first->second;
+
             type.index = typeid(T);
-            type.id = id;
+            type.id = id.value_or(uuids::uuid(MD5(type.index.name()).toArray()));
             type.size = sizeof(T);
             type.parent = parent;
             type.construct = Type_Raii<T>::Construct;
@@ -101,11 +103,20 @@ namespace Gleam
                 };
             }
 
-            //依赖RVO
-            indexToType.emplace(type.index, &type);
             idToType.emplace(type.id, &type);
-
             return type;
+        }
+        /**
+         * 当Type不存在时，会自动创建一个默认Type。
+         * 相比显式创建的Type，默认Type通常会缺少固定ID、序列化、父信息等功能；但构造函数，内存大小是可用的。
+         * @return 
+         */
+        template <class T>
+        static Type& CreateOrGetType()
+        {
+            if (allTypes.contains(typeid(T)))
+                return allTypes.at(typeid(T));
+            return Create<T>();
         }
 
         static std::optional<std::reference_wrapper<const Type>> GetType(std::type_index typeIndex);
@@ -118,6 +129,8 @@ namespace Gleam
         std::optional<std::reference_wrapper<const Type>> GetParent() const;
         const std::vector<FieldInfo>& GetFields() const;
 
+        void SetParent(std::optional<std::reference_wrapper<const Type>> parent);
+
         void Construct(void* address) const;
         void Destruct(void* address) const;
         void MoveConstruct(void* source, void* destination) const;
@@ -125,7 +138,7 @@ namespace Gleam
         void Serialize(DataTransferrer& transferrer, void* address) const;
 
     private:
-        inline static std::unordered_map<std::type_index, const Type*> indexToType = {}; //unordered_map扩容不会修改元素地址
+        inline static std::unordered_map<std::type_index, Type> allTypes = {}; //unordered_map扩容不会修改元素地址
         inline static std::unordered_map<uuids::uuid, const Type*> idToType = {};
 
         std::type_index index = typeid(void);
@@ -153,8 +166,8 @@ template <typename T>\
 friend struct ::Gleam::Type_Raii;
 
 #define Gleam_MakeType_Inner(type,uuidStr,parent,...)\
-inline const ::Gleam::Type type##Type = ::Gleam::Type::Create<type>(\
-uuids::uuid::from_string(uuidStr).value(),\
+inline const ::Gleam::Type& type##Type = ::Gleam::Type::Create<type>(\
+uuids::uuid::from_string(uuidStr),\
 parent,\
 __VA_ARGS__);\
 template <Gleam::Transferrer TTransferrer>\

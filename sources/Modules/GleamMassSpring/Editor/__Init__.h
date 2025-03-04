@@ -7,8 +7,8 @@
 namespace Gleam
 {
     Gleam_AddEditorSystems(
-        ParticleSelectionSystem,
-        MassSpringRenderingSystem
+        GlobalParticleSelectionSystem,
+        GlobalMassSpringRenderingSystem
     )
     
     Gleam_MakeSceneUI(Particle, SceneUI_Particle)

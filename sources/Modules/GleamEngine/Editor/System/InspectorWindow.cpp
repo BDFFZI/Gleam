@@ -1,6 +1,5 @@
 #include "InspectorWindow.h"
 
-#include "GleamEngine/Editor/EditorUI/EditorUISerializer.h"
 #include "GleamECS/Runtime/World.h"
 #include "GleamUI/Runtime/UI.h"
 
@@ -37,12 +36,12 @@ namespace Gleam
 
     void InspectorWindow::Stop()
     {
-        if (this != &Gleam::InspectorWindow)
+        if (this != &GlobalInspectorWindow)
             delete this;
     }
     void InspectorWindow::Update()
     {
-        if (this == &Gleam::InspectorWindow)
+        if (this == &GlobalInspectorWindow)
             ImGui::Begin("InspectorWindow", nullptr, ImGuiWindowFlags_MenuBar);
         else
         {
@@ -50,7 +49,7 @@ namespace Gleam
             bool isOpen = true;
             ImGui::Begin(
                 std::format("InspectorWindow##{}", reinterpret_cast<uintptr_t>(this)).c_str(),
-                this == &Gleam::InspectorWindow ? nullptr : &isOpen
+                this == &GlobalInspectorWindow ? nullptr : &isOpen
             );
             if (isOpen == false)
                 World::RemoveSystem(*this);
@@ -78,14 +77,7 @@ namespace Gleam
             if (inspectorGUIs.contains(typeIndex))
                 inspectorGUIs[typeIndex](data);
             else
-            {
-                EditorUISerializer serializer = {"InspectionTarget"};
-                Type& type = Type::GetType(typeIndex);
-                if (type.GetSerialize()) //序列化每个元素
-                    type.GetSerialize()(serializer, data);
-                else //未知类型，当成字段整体传输给序列化器判断
-                    serializer.Transfer(data, typeIndex);
-            }
+                EditorUI::DrawDefaultInspectorUI(data, typeIndex);
         }
 
         ImGui::End();

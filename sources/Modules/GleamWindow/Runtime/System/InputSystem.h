@@ -14,7 +14,7 @@ namespace Gleam
     class InputSystem : public System
     {
     public:
-        InputSystem(): System(WindowSystem)
+        InputSystem(): System(GlobalWindowSystem)
         {
         }
 
@@ -42,13 +42,13 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(InputSystem)
-
-    Gleam_MakeType(InputSystem_T, "")
+    Gleam_MakeType(InputSystem, "")
     {
         Gleam_MakeType_AddField(focusArea);
         Gleam_MakeType_AddField(isFocus);
         transferrer.TransferField("mousePosition", value.mousePosition[1]);
         Gleam_MakeType_AddField(mouseScrollDelta);
     }
+
+    Gleam_MakeGlobalSystem(InputSystem)
 }
