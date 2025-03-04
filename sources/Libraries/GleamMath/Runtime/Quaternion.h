@@ -2,6 +2,10 @@
 #include "LinearAlgebra/Matrix.h"
 #include "LinearAlgebra/Vector.h"
 
+#ifdef GleamReflectionRuntime
+#include "GleamReflection/Runtime/Type.h"
+#endif
+
 namespace Gleam
 {
     struct Quaternion
@@ -50,7 +54,6 @@ namespace Gleam
         float3x3 ToRotationMatrix() const;
         float3 ToEulerAngles() const;
     };
-
 
 #ifdef GleamReflectionRuntime
     Gleam_MakeType(Quaternion, "DBBF47A3-169D-464C-9664-D403454B2480")

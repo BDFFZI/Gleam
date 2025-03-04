@@ -5,6 +5,7 @@
 #include "GleamECS/Runtime/System.h"
 #include "GleamECS/Runtime/World.h"
 #include "GleamReflection/Runtime/Type.h"
+#include "GleamUtility/Runtime/Macro.h"
 
 #ifdef GleamEngineEditor
 #include "GleamEngine/Editor/Profiler.h"
@@ -36,7 +37,7 @@ namespace Gleam
                 system.GetName() = defaultName;
             }
             //自动设置Type的父类信息
-            Type& type = Type::CreateOrGetType<TSystem>();
+            Type& type = Type::CreateOrGet<TSystem>();
             if (!type.GetParent().has_value())
                 type.SetParent(SystemType);
             return std::move(system);
@@ -110,9 +111,8 @@ inline void eventName()
 
     ///创建全局作用域的系统单例，变量名与系统类名相同。同时创建一个类别名<systemType>_T，以解决命名冲突。
 #define Gleam_MakeGlobalSystem(systemClass,...) \
-inline systemClass Global##systemClass = Gleam::Engine::CreateSystem<systemClass>(__VA_ARGS__);
+inline systemClass Global##systemClass = ::Gleam::Engine::CreateSystem<systemClass>(__VA_ARGS__);
 
     ///将系统添加到世界，并注册到运行时系统组
-#include "GleamUtility/Runtime/Macro.h"
 #define Gleam_AddSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::RuntimeSystems().insert(::Gleam::Engine::RuntimeSystems().end(),{__VA_ARGS__});}
 }

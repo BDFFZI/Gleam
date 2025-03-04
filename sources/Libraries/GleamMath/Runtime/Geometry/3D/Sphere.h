@@ -1,6 +1,10 @@
 #pragma once
 #include "GleamMath/Runtime/LinearAlgebra/Vector.h"
 
+#ifdef GleamReflectionRuntime
+#include "GleamReflection/Runtime/Type.h"
+#endif
+
 namespace Gleam
 {
     struct Sphere

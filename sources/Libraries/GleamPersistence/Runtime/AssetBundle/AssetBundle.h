@@ -1,11 +1,10 @@
 ﻿#pragma once
 #include <unordered_set>
-#include <uuid.h>
 
 #include "Asset.h"
 #include "AssetRef.h"
 #include "GleamReflection/Runtime/Type.h"
-#include "GleamReflection/Runtime/Serialization/JsonWriter.h"
+#include "GleamPersistence/Runtime/Serializer/JsonWriter.h"
 
 namespace Gleam
 {
@@ -50,7 +49,7 @@ namespace Gleam
 
     private:
         template <typename T>
-        friend struct DataTransferrer_Transfer;
+        friend struct FieldDataTransferrer_Transfer;
 
         Gleam_MakeType_Friend
 

@@ -19,7 +19,7 @@ namespace Gleam
         InspectorTarget(T& target)
         {
             data = &target;
-            type = typeid(T);
+            type = typeid(target);
         }
     };
 

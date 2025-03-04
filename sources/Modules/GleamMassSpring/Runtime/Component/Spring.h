@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "Particle.h"
-#include "GleamECS/Runtime/EntityRef.h"
 #include "GleamMath/Runtime/Geometry/3D/Point.h"
 
 namespace Gleam

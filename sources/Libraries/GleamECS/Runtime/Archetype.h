@@ -46,14 +46,14 @@ namespace Gleam
         template <Component... TComponents>
         static Archetype& Create(const std::string_view name)
         {
-            Archetype archetype = {name, {&Type::CreateOrGetType<TComponents>()...}};
+            Archetype archetype = {name, {&Type::CreateOrGet<TComponents>()...}};
             return allArchetypes.emplace(archetype.id, std::move(archetype)).first->second;
         }
         template <Component... TComponents>
         static Archetype& Create(const std::string_view name, const Archetype& parent)
         {
             std::vector<const Type*> types = {parent.componentTypes.begin() + 1, parent.componentTypes.end()};
-            types.insert(types.end(), {&Type::CreateOrGetType<TComponents>()...});
+            types.insert(types.end(), {&Type::CreateOrGet<TComponents>()...});
 
             Archetype archetype = {name, types};
             return allArchetypes.emplace(archetype.id, std::move(archetype)).first->second;

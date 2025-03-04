@@ -8,7 +8,7 @@
 
 using namespace Gleam;
 
-Gleam_MakeArchetype(DataArchetype, CustomData)
+Gleam_MakeArchetype(DataArchetype, CustomObject)
 
 
 class MySystem : public System

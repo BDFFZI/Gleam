@@ -118,7 +118,7 @@ namespace Gleam
         this->id = uuids::uuid(md5.toArray());
         this->name = name.empty() ? md5.toStr() : name;
 
-        componentTypes.insert(componentTypes.begin(), &Type::CreateOrGetType<Entity>());
+        componentTypes.insert(componentTypes.begin(), &Type::CreateOrGet<Entity>());
         this->componentCount = static_cast<int>(componentTypes.size());
         this->componentMapping.reserve(componentCount);
         this->componentTypes.reserve(componentCount);

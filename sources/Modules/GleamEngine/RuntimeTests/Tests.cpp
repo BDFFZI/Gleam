@@ -42,4 +42,4 @@ public:
 Gleam_MakeGlobalSystem(MySystem)
 Gleam_AddSystems(GlobalMySystem)
 
-Gleam_Main
+inline int main() { Gleam::Engine::Start(); return 0; }

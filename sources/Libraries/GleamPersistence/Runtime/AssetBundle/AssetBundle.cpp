@@ -4,10 +4,10 @@
 #include <fstream>
 #include <regex>
 
-#include "GleamReflection/Runtime/Serialization/BinaryReader.h"
-#include "GleamReflection/Runtime/Serialization/BinaryWriter.h"
-#include "GleamReflection/Runtime/Serialization/JsonReader.h"
-#include "GleamReflection/Runtime/Serialization/JsonUtility.h"
+#include "GleamPersistence/Runtime/Serializer/BinaryReader.h"
+#include "GleamPersistence/Runtime/Serializer/BinaryWriter.h"
+#include "GleamPersistence/Runtime/Serializer/JsonReader.h"
+#include "GleamPersistence/Runtime/JsonUtility.h"
 #include "GleamUtility/Runtime/File.h"
 
 namespace Gleam

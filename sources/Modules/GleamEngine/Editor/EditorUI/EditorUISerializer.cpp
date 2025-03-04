@@ -10,9 +10,9 @@ namespace Gleam
     {
         nodePaths.emplace_back(rootName);
     }
-    void EditorUISerializer::PushNode(const char* name, const DataType dataType)
+    void EditorUISerializer::PushNode(std::optional<std::string_view> name, const DataType dataType)
     {
-        nodePaths.push_back(name == nullptr ? nodePaths.back() : name);
+        nodePaths.push_back(name.has_value() ? name->data() : nodePaths.back());
         nodeTypes.push_back(dataType);
         nodeFolds.push_back(nodeFolds.back());
         nodeIndices.push_back(0);
@@ -132,11 +132,11 @@ namespace Gleam
 
         try
         {
-            DataTransferrer::Transfer(value, type);
+            FieldDataTransferrer::Transfer(value, type);
         }
         catch (...)
         {
-            ImGui::Text("unknown type <%s>",type.name());
+            ImGui::Text("unknown type <%s>", type.name());
         }
     }
 

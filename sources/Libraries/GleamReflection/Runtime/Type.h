@@ -7,8 +7,8 @@
 #include <stduuid/uuid.h>
 
 #include "GleamUtility/Runtime/md5.h"
-#include "Transferrer/MemberTransferrer.h"
-#include "Transferrer/Transferrer.h"
+#include "FieldInfoTransferrer.h"
+#include "FieldDataTransferrer.h"
 
 namespace Gleam
 {
@@ -32,14 +32,6 @@ namespace Gleam
             *static_cast<T*>(destination) = std::move(*static_cast<T*>(source));
         }
     };
-    template <typename T,Transferrer TTransferrer>
-    struct Type_Transfer
-    {
-        static void Invoke(TTransferrer& transferrer, T& value)
-        {
-        }
-    };
-    class DataTransferrer;
 
     /**
      * 运行时类型信息。
@@ -73,35 +65,20 @@ namespace Gleam
             type.moveConstruct = Type_Raii<T>::MoveConstruct;
             type.move = Type_Raii<T>::Move;
 
-            //利用传输器获取成员字段信息
+            //利用字段类型传输器获取成员字段信息
             {
                 std::byte instance[sizeof(T)];
                 type.construct(instance); //构造一个实例
-                MemberTransferrer memberTransferrer = {instance};
-                Type_Transfer<T, MemberTransferrer>::Invoke(memberTransferrer, *reinterpret_cast<T*>(instance));
+                FieldInfoTransferrer memberTransferrer = {instance};
+                TransferObjectField<FieldInfoTransferrer, T>::Invoke(memberTransferrer, *reinterpret_cast<T*>(instance));
                 type.fields.swap(memberTransferrer.GetResult()); //获取成员信息
             }
 
-            if (parent.has_value())
+            //序列化
+            type.serialize = [](FieldDataTransferrer& serializer, void* ptr)
             {
-                static const Type& parentType = parent.value();
-                //父类字段
-                type.fields.insert(type.fields.begin(), parentType.fields.begin(), parentType.fields.end());
-                //含父类的序列化
-                type.serialize = [](DataTransferrer& serializer, void* ptr)
-                {
-                    parentType.serialize(serializer, ptr);
-                    Type_Transfer<T, DataTransferrer>::Invoke(serializer, *static_cast<T*>(ptr));
-                };
-            }
-            else
-            {
-                //序列化
-                type.serialize = [](DataTransferrer& serializer, void* ptr)
-                {
-                    Type_Transfer<T, DataTransferrer>::Invoke(serializer, *static_cast<T*>(ptr));
-                };
-            }
+                TransferObjectField<FieldDataTransferrer, T>::Invoke(serializer, *static_cast<T*>(ptr));
+            };
 
             idToType.emplace(type.id, &type);
             return type;
@@ -112,7 +89,7 @@ namespace Gleam
          * @return 
          */
         template <class T>
-        static Type& CreateOrGetType()
+        static Type& CreateOrGet()
         {
             if (allTypes.contains(typeid(T)))
                 return allTypes.at(typeid(T));
@@ -135,7 +112,7 @@ namespace Gleam
         void Destruct(void* address) const;
         void MoveConstruct(void* source, void* destination) const;
         void Move(void* source, void* destination) const;
-        void Serialize(DataTransferrer& transferrer, void* address) const;
+        void Serialize(FieldDataTransferrer& transferrer, void* address, bool serializeParent = true) const;
 
     private:
         inline static std::unordered_map<std::type_index, Type> allTypes = {}; //unordered_map扩容不会修改元素地址
@@ -150,18 +127,13 @@ namespace Gleam
         std::function<void(void*)> destruct = nullptr;
         std::function<void(void*, void*)> moveConstruct = nullptr;
         std::function<void(void*, void*)> move = nullptr;
-        std::function<void(DataTransferrer&, void*)> serialize = nullptr;
+        std::function<void(FieldDataTransferrer&, void*)> serialize = nullptr;
     };
 }
 
-#include "Transferrer/DataTransferrer.h"
-
-// ReSharper disable once CppUnusedIncludeDirective
-#include "GleamUtility/Runtime/Macro.h"
-
 #define Gleam_MakeType_Friend \
-template <typename T,Transferrer TTransferrer>\
-friend struct ::Gleam::Type_Transfer;\
+template <::Gleam::FieldTransferrer TFieldTransferrer,typename T>\
+friend struct ::Gleam::TransferObjectField;\
 template <typename T>\
 friend struct ::Gleam::Type_Raii;
 
@@ -170,13 +142,13 @@ inline const ::Gleam::Type& type##Type = ::Gleam::Type::Create<type>(\
 uuids::uuid::from_string(uuidStr),\
 parent,\
 __VA_ARGS__);\
-template <Gleam::Transferrer TTransferrer>\
-struct ::Gleam::Type_Transfer<type, TTransferrer>\
+template <::Gleam::FieldTransferrer TFieldTransferrer>\
+struct ::Gleam::TransferObjectField<TFieldTransferrer,type>\
 {\
-static void Invoke(TTransferrer& transferrer, type& value);\
+static void Invoke(TFieldTransferrer& transferrer, type& value);\
 };\
-template <Gleam::Transferrer TTransferrer>\
-void ::Gleam::Type_Transfer<type,TTransferrer>::Invoke(TTransferrer& transferrer, type& value)
+template <::Gleam::FieldTransferrer TFieldTransferrer>\
+void ::Gleam::TransferObjectField<TFieldTransferrer,type>::Invoke(TFieldTransferrer& transferrer, type& value)
 
 #define Gleam_MakeType_AddField(field)\
 transferrer.TransferField(#field, value.field)

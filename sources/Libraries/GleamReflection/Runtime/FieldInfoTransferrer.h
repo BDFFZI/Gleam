@@ -3,7 +3,7 @@
 #include <typeindex>
 #include <vector>
 
-#include "Transferrer.h"
+#include "FieldTransferrer.h"
 
 namespace Gleam
 {
@@ -15,19 +15,15 @@ namespace Gleam
         std::size_t size;
     };
 
-    class MemberTransferrer
+    /**
+     * 字段信息传输器，用于统计对象的成员字段信息。
+     */
+    class FieldInfoTransferrer
     {
     public:
-        MemberTransferrer(void* target)
-            : targetAddress(static_cast<std::byte*>(target))
-        {
-        }
+        FieldInfoTransferrer(void* target);
 
-        std::vector<FieldInfo>& GetResult()
-        {
-            fieldInfos.shrink_to_fit();
-            return fieldInfos;
-        }
+        std::vector<FieldInfo>& GetResult();
 
         template <class TMember>
         void TransferField(const char* name, TMember& value)
@@ -44,5 +40,5 @@ namespace Gleam
         std::byte* targetAddress;
         std::vector<FieldInfo> fieldInfos;
     };
-    static_assert(Transferrer<MemberTransferrer>);
+    static_assert(FieldTransferrer<FieldInfoTransferrer>);
 }

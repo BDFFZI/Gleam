@@ -1,15 +1,15 @@
 ﻿#pragma once
 
-#include "GleamReflection/Runtime/Transferrer/DataTransferrer.h"
+#include "GleamReflection/Runtime/FieldDataTransferrer.h"
 
 namespace Gleam
 {
-    class EditorUISerializer : public DataTransferrer
+    class EditorUISerializer : public FieldDataTransferrer
     {
     public:
         EditorUISerializer(std::string_view rootName);
 
-        void PushNode(const char* name, DataType dataType) override;
+        void PushNode(std::optional<std::string_view> name, DataType dataType) override;
         void PopNode() override;
 
         void Transfer(float& value) override;

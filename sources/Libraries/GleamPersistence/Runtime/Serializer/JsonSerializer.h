@@ -1,9 +1,11 @@
 #pragma once
 #include <stack>
 
+#include "GleamReflection/Runtime/FieldDataTransferrer.h"
+
 namespace Gleam
 {
-    class JsonSerializer : public DataTransferrer
+    class JsonSerializer : public FieldDataTransferrer
     {
     public:
         JsonSerializer(rapidjson::Document& document)

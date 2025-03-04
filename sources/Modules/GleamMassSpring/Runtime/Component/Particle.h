@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "GleamMath/Runtime/LinearAlgebra/Vector.h"
+#include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam
 {

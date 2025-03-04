@@ -4,8 +4,8 @@
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 
-#include "JsonReader.h"
-#include "JsonWriter.h"
+#include "Serializer/JsonReader.h"
+#include "Serializer/JsonWriter.h"
 
 namespace Gleam
 {
@@ -29,7 +29,6 @@ namespace Gleam
     }
     void JsonUtility::FromJson(std::string& json, Type& type, void* address)
     {
-        
     }
     std::string JsonUtility::DocumentToJson(const rapidjson::Document& document, const bool pretty)
     {

@@ -3,11 +3,11 @@
 namespace Gleam
 {
     Asset::Asset()
-        : id(0), typeID({}), dataRef(nullptr), ownership(false)
+        : id(-1), typeID({}), dataRef(nullptr), ownership(false)
     {
     }
-    Asset::Asset(const int id, const uuids::uuid type, void* data)
-        : id(id), typeID(type), dataRef(data), ownership(false)
+    Asset::Asset(const int id, const uuids::uuid typeID, void* dataRef)
+        : id(id), typeID(typeID), dataRef(dataRef), ownership(false)
     {
     }
     Asset::Asset(Asset&& asset) noexcept

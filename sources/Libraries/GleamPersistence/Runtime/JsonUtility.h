@@ -2,7 +2,7 @@
 #include <string>
 #include <rapidjson/document.h>
 
-#include "../Type.h"
+#include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam
 {

@@ -3,6 +3,10 @@
 #include "GleamMath/Runtime/LinearAlgebra/Vector.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 
+#ifdef GleamReflectionRuntime
+#include "GleamReflection/Runtime/Type.h"
+#endif
+
 namespace Gleam
 {
     struct Cuboid

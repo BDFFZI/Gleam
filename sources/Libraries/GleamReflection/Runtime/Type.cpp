@@ -40,7 +40,7 @@ namespace Gleam
     {
         return fields;
     }
-    
+
     void Type::SetParent(const std::optional<std::reference_wrapper<const Type>> parent)
     {
         this->parent = parent;
@@ -62,8 +62,10 @@ namespace Gleam
     {
         move(source, destination);
     }
-    void Type::Serialize(DataTransferrer& transferrer, void* address) const
+    void Type::Serialize(FieldDataTransferrer& transferrer, void* address, const bool serializeParent) const
     {
+        if (serializeParent && parent.has_value())
+            parent.value().get().serialize(transferrer, address);
         serialize(transferrer, address);
     }
 }

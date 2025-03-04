@@ -231,13 +231,13 @@ struct std::hash<Gleam::vector<Type, Number>> // NOLINT(cert-dcl58-cpp)
 };
 
 #ifdef GleamReflectionRuntime
-#include "GleamReflection/Runtime/Transferrer/DataTransferrer.h"
+#include "GleamReflection/Runtime/FieldDataTransferrer.h"
 template <class Type, int Number>
-struct Gleam::DataTransferrer_Transfer<Gleam::vector<Type, Number>>
+struct Gleam::FieldDataTransferrer_Transfer<Gleam::vector<Type, Number>>
 {
-    static void Invoke(DataTransferrer& serializer, vector<Type, Number>& value)
+    static void Invoke(FieldDataTransferrer& serializer, vector<Type, Number>& value)
     {
-        serializer.PushNode(nullptr, DataType::Array);
+        serializer.PushNode(std::nullopt, DataType::Array);
         for (int i = 0; i < Number; i++)
             serializer.Transfer(value.data[i]);
         serializer.PopNode();

@@ -1,15 +1,18 @@
 #pragma once
-#include "AssetBundle.h"
+#include "GleamReflection/Runtime/FieldDataTransferrer.h"
 #include "AssetRef.h"
-#include "GleamReflection/Runtime/Transferrer/DataTransferrer.h"
+#include "AssetBundle.h"
 
 namespace Gleam
 {
-    //将指针类型同步到资源引用
+    /**
+     * 将指针类型同步为资源引用
+     * @tparam TValue 
+     */
     template <typename TValue>
-    struct DataTransferrer_Transfer<TValue*>
+    struct FieldDataTransferrer_Transfer<TValue*>
     {
-        static void Invoke(DataTransferrer& serializer, TValue*& value)
+        static void Invoke(FieldDataTransferrer& serializer, TValue*& value)
         {
             AssetRef assetRef = AssetBundle::pointerMapping[&value];
             {
@@ -21,14 +24,16 @@ namespace Gleam
         }
     };
 
-    /// 纯指针同步器
-    /// 用于解决自引用资源包，因为加载顺序原因，导致指针未空的问题。
-    /// 解决方法是每次资源包加载完毕后，用该同步器再过一遍。
-    /// TODO 该功能和序列化器耦合了，好在序列化器默认不会序列化指针，但这显然是个隐患。
-    class PointerTransferrer : public DataTransferrer
+    /**
+     * 一个不会实际进行数据传递的字段数据传输器，用于仅触发指针传输。
+     *
+     * 对于自引用的资源包，因为加载顺序原因，会导致指针为空。
+     * 解决方法是每次资源包的数据加载完毕后，再单独传递一遍指针。
+     */
+    class PointerTransferrer : public FieldDataTransferrer
     {
     public:
-        void PushNode(const char* name, DataType dataType) override
+        void PushNode(std::optional<std::string_view> name, DataType dataType) override
         {
         }
         void PopNode() override

@@ -5,7 +5,6 @@
 #include "System/InspectorWindow.h"
 #include "System/HierarchyWindow.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
-#include "GleamUI/Runtime/UI.h"
 #include "System/ProfilerWindow.h"
 
 namespace Gleam
@@ -78,10 +77,4 @@ namespace Gleam
         }
     }
     Gleam_MakeInspectorUI(Entity, InspectorUI_Entity)
-
-    inline void InspectorUI_System(System& system)
-    {
-        ImGui::Text("System");
-    }
-    Gleam_MakeInspectorUI(System, InspectorUI_System)
 }

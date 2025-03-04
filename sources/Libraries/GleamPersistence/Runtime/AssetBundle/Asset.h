@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "GleamReflection/Runtime/Transferrer/DataTransferrer.h"
+#include "GleamReflection/Runtime/FieldDataTransferrer.h"
+#include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam
 {
@@ -7,7 +8,7 @@ namespace Gleam
     {
     public:
         Asset();
-        Asset(int id, uuids::uuid type, void* data);
+        Asset(int id, uuids::uuid typeID, void* dataRef);
         Asset(Asset&& asset) noexcept;
         Asset& operator=(Asset&& asset) noexcept;
         ~Asset();
@@ -31,7 +32,7 @@ namespace Gleam
         Gleam_MakeType_AddField(id);
         Gleam_MakeType_AddField(typeID);
 
-        if constexpr (std::derived_from<TTransferrer, DataTransferrer>)
+        if constexpr (std::derived_from<TFieldTransferrer, FieldDataTransferrer>)
         {
             auto optionalType = Type::GetType(value.typeID);
             if (optionalType.has_value())

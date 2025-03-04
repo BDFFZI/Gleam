@@ -14,14 +14,14 @@ namespace Gleam
         {
         }
 
-        void PushNode(const char* name, const DataType dataType) override
+        void PushNode(const std::optional<std::string_view> name, const DataType dataType) override
         {
             DataType wrapDataType = dataTypes.top();
             int& wrapItemIndex = itemIndices.top();
             rapidjson::Value& wrap = *nodes.top();
 
             rapidjson::Value* currentNode;
-            if (name == nullptr && wrapDataType == DataType::Field) //重设旧节点类型
+            if (!name.has_value() && wrapDataType == DataType::Field) //重设旧节点类型
             {
                 currentNode = nodes.top();
             }
@@ -30,9 +30,9 @@ namespace Gleam
                 wrapItemIndex++; //新节点在容器中的索引
                 if (wrapDataType == DataType::Class) //在类中基于名称创建成员
                 {
-                    rapidjson::GenericValue key = CreateString(name);
+                    rapidjson::GenericValue key = CreateString(name.value());
                     wrap.AddMember(key, 0, *allocator);
-                    currentNode = &wrap[name];
+                    currentNode = &wrap.operator[](name->data());
                 }
                 else if (wrapDataType == DataType::Array) //在数组中基于索引创建成员
                 {
