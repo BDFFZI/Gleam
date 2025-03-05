@@ -11,7 +11,8 @@ namespace Gleam
     {
         return drawing;
     }
-    void EditorUI::DrawEntityButton(Entity entity)
+
+    void EditorUI::DrawEntity(Entity entity)
     {
         if (ImGui::Button(std::format("Entity:{}", static_cast<uint32_t>(entity)).c_str()))
         {
@@ -25,79 +26,7 @@ namespace Gleam
             ImGui::EndDragDropSource();
         }
     }
-    void EditorUI::DrawEntity(const Entity entity, const CustomUI& componentGUI)
-    {
-        drawing = entity;
-
-        EntityInfo entityInfo = World::GetEntityInfo(entity);
-        const Archetype& archetype = *entityInfo.archetype;
-        //绘制实体信息
-        ImGui::Text("Entity:%i", static_cast<int>(entity));
-        //绘制组件
-        for (int i = 1; i < archetype.GetComponentCount(); ++i)
-        {
-            //统计实体信息
-            const Type& componentType = archetype.GetComponentType(i);
-            std::type_index componentTypeIndex = componentType.GetIndex();
-            std::string_view componentName = componentType.GetName();
-            int componentOffset = archetype.GetComponentOffset(i);
-            void* component = entityInfo.components + componentOffset;
-            //绘制
-            ImGui::PushID(componentName.data());
-            {
-                //绘制组件标题
-                ImGui::SeparatorText(componentName.data());
-                //绘制组件内容
-                if (componentGUI.contains(componentTypeIndex))
-                    componentGUI.at(componentTypeIndex)(component);
-                else
-                {
-                    auto type = Type::GetType(componentTypeIndex);
-                    if (type.has_value())
-                    {
-                        EditorUISerializer editorUiSerializer = {componentName};
-                        type.value().get().Serialize(editorUiSerializer, component);
-                    }
-                }
-            }
-            ImGui::PopID();
-        }
-    }
-    void EditorUI::DrawEntityPure(const Entity entity, const CustomUI& componentGUI)
-    {
-        drawing = entity;
-
-        EntityInfo entityInfo = World::GetEntityInfo(entity);
-        const Archetype& archetype = *entityInfo.archetype;
-        //绘制组件
-        for (int i = 1; i < archetype.GetComponentCount(); ++i)
-        {
-            //统计实体信息
-            const Type& componentType = archetype.GetComponentType(i);
-            std::type_index componentTypeIndex = componentType.GetIndex();
-            std::string_view componentName = componentType.GetName();
-            int componentOffset = archetype.GetComponentOffset(i);
-            void* component = entityInfo.components + componentOffset;
-            //绘制
-            ImGui::PushID(componentName.data());
-            {
-                if (componentGUI.contains(componentTypeIndex))
-                    componentGUI.at(componentTypeIndex)(component);
-            }
-            ImGui::PopID();
-        }
-    }
-    void EditorUI::DrawSystemGroup(SystemGroup& systemGroup)
-    {
-        //绘制内部子系统
-        if (DrawSystem(systemGroup))
-        {
-            ImGui::TreePush(systemGroup.GetName().c_str());
-            DrawSystemGroupContent(systemGroup);
-            ImGui::TreePop();
-        }
-    }
-    bool EditorUI::DrawSystem(System& system)
+    void EditorUI::DrawSystem(System& system)
     {
         SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(&system);
 
@@ -119,38 +48,29 @@ namespace Gleam
         ImGui::SameLine();
         ImGui::Text("%i", World::systemUsageCount[&system]);
 
-        return collapsing;
+        if (systemGroup && collapsing)
+        {
+            ImGui::TreePush(systemGroup->GetName().c_str());
+            DrawSubSystems(*systemGroup);
+            ImGui::TreePop();
+        }
     }
-    void EditorUI::DrawSystemGroupContent(SystemGroup& systemGroup)
+    void EditorUI::DrawSubSystems(SystemGroup& systemGroup)
     {
         ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::GleamGreen());
         for (const auto subSystem : systemGroup.subSystemStartQueue)
-        {
-            if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
-                DrawSystemGroup(*subSystemGroup);
-            else
-                DrawSystem(*subSystem);
-        }
+            DrawSystem(*subSystem);
         ImGui::PopStyleColor();
 
         ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::GleamRed());
         for (const auto subSystem : systemGroup.subSystemStopQueue)
-        {
-            if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
-                DrawSystemGroup(*subSystemGroup);
-            else
-                DrawSystem(*subSystem);
-        }
+            DrawSystem(*subSystem);
         ImGui::PopStyleColor();
 
         for (const auto subSystem : systemGroup.subSystemUpdateQueue)
-        {
-            if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
-                DrawSystemGroup(*subSystemGroup);
-            else
-                DrawSystem(*subSystem);
-        }
+            DrawSystem(*subSystem);
     }
+
     void EditorUI::DrawWorld()
     {
         if (ImGui::CollapsingHeader("World", ImGuiTreeNodeFlags_DefaultOpen))
@@ -173,7 +93,7 @@ namespace Gleam
     {
         if (ImGui::CollapsingHeader("Systems"))
         {
-            DrawSystemGroupContent(World::GetSystems());
+            DrawSubSystems(World::GetSystems());
         }
         if (ImGui::CollapsingHeader("Entities"))
         {
@@ -187,7 +107,7 @@ namespace Gleam
                     heap.ForeachElements([](std::byte* item)
                     {
                         Entity& entity = *reinterpret_cast<Entity*>(item);
-                        DrawEntityButton(entity);
+                        DrawEntity(entity);
                     });
 
                     ImGui::TreePop();
@@ -195,13 +115,52 @@ namespace Gleam
             }
         }
     }
-    void EditorUI::DrawDefaultInspectorUI(void* target, const std::type_index targetType)
+
+    void EditorUI::DrawDefaultContent(void* target, const std::type_index targetType)
     {
         std::optional<std::reference_wrapper<const Type>> type = Type::GetType(targetType);
         if (type.has_value())
         {
-            EditorUISerializer serializer = {"InspectionTarget"};
+            EditorUISerializer serializer = {"TargetContent"};
             type.value().get().Serialize(serializer, target);
+        }
+    }
+    void EditorUI::DrawEntityContent(const Entity entity, const CustomUI& componentGUI, const bool pure)
+    {
+        drawing = entity;
+
+        EntityInfo entityInfo = World::GetEntityInfo(entity);
+        const Archetype& archetype = *entityInfo.archetype;
+        if (!pure)
+        {
+            //绘制实体编号
+            ImGui::Text("Entity:%i", static_cast<int>(entity));
+        }
+        //绘制组件
+        for (int i = 1; i < archetype.GetComponentCount(); ++i)
+        {
+            //统计实体信息
+            const Type& componentType = archetype.GetComponentType(i);
+            std::type_index componentTypeIndex = componentType.GetIndex();
+            std::string_view componentName = componentType.GetName();
+            int componentOffset = archetype.GetComponentOffset(i);
+            void* component = entityInfo.components + componentOffset;
+            //绘制
+            ImGui::PushID(componentName.data());
+            {
+                if (!pure)
+                {
+                    //绘制组件标题
+                    ImGui::SeparatorText(componentName.data());
+                }
+
+                //绘制组件内容
+                if (componentGUI.contains(componentTypeIndex))
+                    componentGUI.at(componentTypeIndex)(component);
+                else if (!pure) //绘制默认组件内容
+                    DrawDefaultContent(component, componentTypeIndex);
+            }
+            ImGui::PopID();
         }
     }
 }

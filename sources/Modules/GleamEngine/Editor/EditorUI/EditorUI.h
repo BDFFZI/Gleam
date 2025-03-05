@@ -11,15 +11,16 @@ namespace Gleam
     {
     public:
         static Entity GetEntityDrawing();
-        static void DrawEntityButton(Entity entity);
-        static void DrawEntity(Entity entity, const CustomUI& componentGUI = {});
-        static void DrawEntityPure(Entity entity, const CustomUI& componentGUI);
-        static bool DrawSystem(System& system);
-        static void DrawSystemGroup(SystemGroup& systemGroup);
-        static void DrawSystemGroupContent(SystemGroup& systemGroup);
+
+        static void DrawEntity(Entity entity);
+        static void DrawSystem(System& system);
+        static void DrawSubSystems(SystemGroup& systemGroup);
+
         static void DrawWorld();
         static void DrawWorldUnfolding();
-        static void DrawDefaultInspectorUI(void* target,std::type_index targetType);
+
+        static void DrawDefaultContent(void* target, std::type_index targetType);
+        static void DrawEntityContent(Entity entity, const CustomUI& componentGUI = {}, bool pure = false);
 
     private:
         inline static Entity drawing = Entity::Null;

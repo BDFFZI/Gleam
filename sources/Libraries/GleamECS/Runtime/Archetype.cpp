@@ -137,7 +137,7 @@ namespace Gleam
 
     std::string to_string(const Archetype& archetype)
     {
-        std::string result = {archetype.GetName()};
+        std::string result = std::format("{}\t{}", archetype.GetName(), archetype.GetSize());
         for (int i = 0; i < archetype.GetComponentCount(); ++i)
         {
             result += std::format(

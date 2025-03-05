@@ -4,15 +4,15 @@
 
 namespace Gleam
 {
-    class HierarchyWindow : public System
+    class WorldWindow : public System
     {
     public:
-        HierarchyWindow(): System(GlobalEditorUISystem)
+        WorldWindow(): System(GlobalEditorUISystem)
         {
         }
 
     private:
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(HierarchyWindow)
+    Gleam_MakeGlobalSystem(WorldWindow)
 }

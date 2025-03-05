@@ -38,11 +38,14 @@ namespace Gleam
         //添加实体
         static Entity AddEntity(const Archetype& archetype);
         static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
-        // template <Component... TComponents>
-        // static Entity AddEntity(const Archetype& archetype)
-        // {
-        //     
-        // }
+        template <Component... TComponents>
+        static Entity AddEntity(const TComponents&... components)
+        {
+            Archetype& archetype = Archetype::CreateOrGet({Type::CreateOrGet<TComponents>()...});
+            Entity entity = AddEntity(archetype);
+            SetComponents(entity, components...);
+            return entity;
+        }
         //移除实体
         static void RemoveEntity(Entity& entity);
         static void RemoveAllEntities();
@@ -146,7 +149,7 @@ namespace Gleam
         static void Clear();
 
     private:
-        friend class HierarchyWindow;
+        friend class WorldWindow;
         friend class EditorUI;
 
         //实体信息

@@ -3,7 +3,7 @@
 #include "Editor.h"
 #include "EditorUI/EditorUISerializer.h"
 #include "System/InspectorWindow.h"
-#include "System/HierarchyWindow.h"
+#include "System/WorldWindow.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "System/ProfilerWindow.h"
 
@@ -50,7 +50,7 @@ namespace Gleam
 
     Gleam_AddEditorSystems(
         GlobalEditorUISystem,
-        GlobalHierarchyWindow,
+        GlobalWorldWindow,
         GlobalInspectorWindow,
         GlobalProfilerWindow,
     )
@@ -70,7 +70,7 @@ namespace Gleam
     {
         if (World::HasEntity(entity))
         {
-            EditorUI::DrawEntity(
+            EditorUI::DrawEntityContent(
                 entity,
                 InspectorWindow::UseDebugGUI() ? CustomUI{} : InspectorWindow::GetCustomUI()
             );

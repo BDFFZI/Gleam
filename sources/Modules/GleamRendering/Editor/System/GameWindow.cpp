@@ -2,7 +2,7 @@
 
 #include <imgui_impl_vulkan.h>
 
-#include "WorldWindow.h"
+#include "WatchWindow.h"
 #include "GleamECS/Runtime/View.h"
 #include "GleamECS/Runtime/World.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
@@ -70,7 +70,7 @@ namespace Gleam
         }
         //帧率信息
         static float deltaTime = 0;
-        deltaTime = std::lerp(deltaTime, GlobalWorldWindow.GetSceneTimeSystem().GetDeltaTimeReal(), 0.3f);
+        deltaTime = std::lerp(deltaTime, GlobalWatchWindow.GetSceneTimeSystem().GetDeltaTimeReal(), 0.3f);
         ImGui::SetCursorPos(cursor);
         ImGui::TextColored(
             float4::Magenta(),

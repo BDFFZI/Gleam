@@ -77,7 +77,7 @@ namespace Gleam
             if (inspectorGUIs.contains(typeIndex))
                 inspectorGUIs[typeIndex](data);
             else
-                EditorUI::DrawDefaultInspectorUI(data, typeIndex);
+                EditorUI::DrawDefaultContent(data, typeIndex);
         }
 
         ImGui::End();

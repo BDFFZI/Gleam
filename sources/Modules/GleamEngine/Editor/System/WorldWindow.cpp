@@ -1,4 +1,4 @@
-#include "HierarchyWindow.h"
+#include "WorldWindow.h"
 
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamECS/Runtime/World.h"
@@ -7,9 +7,9 @@
 
 namespace Gleam
 {
-    void HierarchyWindow::Update()
+    void WorldWindow::Update()
     {
-        ImGui::Begin("HierarchyWindow");
+        ImGui::Begin("WorldWindow");
 
         ImGui::SeparatorText("Statistics");
         ImGui::BulletText(std::format("IsPlaying:{}", Editor::IsPlaying()).c_str());

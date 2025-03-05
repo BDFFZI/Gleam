@@ -149,17 +149,40 @@ Gleam_MakeArchetypeChild(physicsWithSpringArchetype, physicsArchetype, SpringPhy
 
 TEST(ECS, Archetype)
 {
-    for (auto& archetype : Archetype::GetAllArchetypes() | UnwrapRef)
-    {
-        std::cout << to_string(archetype) << "\n";
-        std::cout << archetype.GetSize() << "\n";
-    }
+    //运行时创建原型
+    Archetype::CreateOrGet({Type::CreateOrGet<RigidBody>(), Type::CreateOrGet<SpringPhysics>()});
+    Archetype& archetype = Archetype::CreateOrGet({Type::CreateOrGet<RigidBody>(), Type::CreateOrGet<SpringPhysics>(), Type::CreateOrGet<Transform>()});
+    ASSERT_EQ(Archetype::GetAllArchetypes().size(), 3); //一个运行时原型已被硬编码创建，故应该是3个
 
-    std::byte* data = static_cast<std::byte*>(malloc(physicsWithSpringArchetype.GetSize()));
-    physicsWithSpringArchetype.Construct(data);
-    Transform& transform = *reinterpret_cast<Transform*>(data + physicsWithSpringArchetype.GetComponentOffset(typeid(Transform)));
-    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + physicsWithSpringArchetype.GetComponentOffset(typeid(RigidBody)));
-    SpringPhysics& spring = *reinterpret_cast<SpringPhysics*>(data + physicsWithSpringArchetype.GetComponentOffset(typeid(SpringPhysics)));
+    //验证原型信息
+    std::string archetypeInfos[3];
+    int i = 0;
+    for (auto& item : Archetype::GetAllArchetypes() | UnwrapRef)
+    {
+        // std::cout << to_string(item) << "\n";
+        archetypeInfos[i] = to_string(item);
+        i++;
+    }
+    ASSERT_EQ(archetypeInfos[0], R"(physicsArchetype	20
+enum Gleam::Entity       0     4
+struct Transform         4     4
+struct RigidBody         8    12)");
+    ASSERT_EQ(archetypeInfos[1], R"(physicsWithSpringArchetype	32
+enum Gleam::Entity       0     4
+struct Transform         4     4
+struct SpringPhysics     8    12
+struct RigidBody        20    12)");
+    ASSERT_EQ(archetypeInfos[2], R"(9703e63357584ed2a3aec2059f480457	28
+enum Gleam::Entity       0     4
+struct SpringPhysics     4    12
+struct RigidBody        16    12)");
+
+    //验证原型读写内存能力
+    std::byte* data = static_cast<std::byte*>(malloc(archetype.GetSize()));
+    archetype.Construct(data);
+    Transform& transform = *reinterpret_cast<Transform*>(data + archetype.GetComponentOffset(typeid(Transform)));
+    RigidBody& rigidBody = *reinterpret_cast<RigidBody*>(data + archetype.GetComponentOffset(typeid(RigidBody)));
+    SpringPhysics& spring = *reinterpret_cast<SpringPhysics*>(data + archetype.GetComponentOffset(typeid(SpringPhysics)));
     ASSERT_EQ(transform, Transform());
     ASSERT_EQ(rigidBody, RigidBody());
     ASSERT_EQ(spring, SpringPhysics());

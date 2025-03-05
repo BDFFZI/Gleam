@@ -5,7 +5,7 @@
 #include "GleamMassSpring/Runtime/Component/Particle.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamRendering/Editor/Handles.h"
-#include "GleamRendering/Editor/System/WorldWindow.h"
+#include "GleamRendering/Editor/System/WatchWindow.h"
 #include "GleamRendering/Runtime/Component/Camera.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 
@@ -13,10 +13,10 @@ namespace Gleam
 {
     void ParticleSelectionSystem::Update()
     {
-        InputSystem& inputSystem = GlobalWorldWindow.GetSceneInputSystem();
+        InputSystem& inputSystem = GlobalWatchWindow.GetSceneInputSystem();
 
-        float4x4 worldToClip = World::GetComponent<WorldToClip>(GlobalWorldWindow.GetSceneCamera()).value;
-        float4x4 screenToClip = World::GetComponent<ScreenToClip>(GlobalWorldWindow.GetSceneCamera()).value;
+        float4x4 worldToClip = World::GetComponent<WorldToClip>(GlobalWatchWindow.GetSceneCamera()).value;
+        float4x4 screenToClip = World::GetComponent<ScreenToClip>(GlobalWatchWindow.GetSceneCamera()).value;
         float2 mousePositionNDC = mul(screenToClip, float4(inputSystem.GetMousePosition(), 0, 1)).xy;
 
         optionalEntity = Entity::Null;
