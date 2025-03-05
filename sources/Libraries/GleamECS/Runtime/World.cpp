@@ -116,7 +116,7 @@ namespace Gleam
             std::byte* componentAddress = newAddress + newArchetype.GetComponentOffset(i);
             //赋值组件内存
             if (oldArchetype->HasComponent(typeIndex)) //若旧元组包含该组件则移动数据
-                componentType.MoveConstruct(oldEntityInfo.components + oldArchetype->GetComponentOffset(typeIndex), componentAddress);
+                componentType.MoveConstruct(componentAddress, oldEntityInfo.components + oldArchetype->GetComponentOffset(typeIndex));
             else //否则通过构造函数初始化
                 componentType.Construct(componentAddress);
         }

@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <rapidjson/stringbuffer.h>
 
+#include "GleamPersistence/Runtime/JsonUtility.h"
 #include "GleamPersistence/Runtime/AssetBundle/Asset.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 #include "GleamPersistence/Runtime/Serializer/BinaryReader.h"
@@ -93,7 +94,26 @@ TEST(Reflection, AssetBundle)
             {"Asset3"}
         };
 
-        AssetBundle& assetBundle = AssetBundle::Load(assetBundleID);
+        //测试未加载依赖资源包时，引用丢失的现象
+        {
+            AssetBundle& assetBundle = AssetBundle::Load(assetBundleID);
+            TestAsset* data3 = static_cast<TestAsset*>(assetBundle.GetAssets()[1].GetDataRef())->dependency;
+            ASSERT_EQ(data3, nullptr);
+            AssetBundle::UnLoad(assetBundle);
+        }
+
+        //测试正确加载资源包后，获取到引用资源数据
+        {
+            AssetBundle::Load(assetBundle2ID); //资源包1依赖资源包2，必须加载，否则丢失引用
+            AssetBundle& assetBundle = AssetBundle::Load(assetBundleID);
+            TestAsset* data3 = static_cast<TestAsset*>(assetBundle.GetAssets()[1].GetDataRef())->dependency;
+            ASSERT_EQ(data3->name, testAsset[2].name);
+
+            data3->name += "Append"; //修改资源包2内容，用于后续测试重载
+        }
+
+        //重载资源包1并测试内容正确性
+        AssetBundle& assetBundle = AssetBundle::Load(assetBundleID, true);
         for (int i = 0; const Asset& asset : assetBundle.GetAssets())
         {
             const Type& type = Type::GetType(asset.GetTypeID()).value().get();
@@ -103,16 +123,13 @@ TEST(Reflection, AssetBundle)
             i++;
         }
 
-        //获取第二个自动加载的资源包
-        ASSERT_TRUE(AssetBundle::HasInMemory(assetBundle2ID)); //第二个资源包被依赖，自动加载
+        //资源包2不会连带重载，故内容不变
         TestAsset& data3 = *static_cast<TestAsset*>(assetBundle.GetAssets()[1].GetDataRef())->dependency;
-        AssetRef assetRef = AssetBundle::GetAssetRef(&data3).value();
-        AssetBundle& assetBundle2 = AssetBundle::GetAssetBundle(assetRef.assetBundleID);
+        ASSERT_EQ(data3.name, testAsset[2].name + "Append");
 
-        //测试内容重载
-        ASSERT_EQ(data3.name, testAsset[2].name);
-        data3.name += "Error";
-        AssetBundle::Load(assetRef.assetBundleID, true);
+        //根据数据获取资源包2并重载，内容复原
+        AssetRef assetRef = AssetBundle::GetAssetRef(&data3).value();
+        AssetBundle& assetBundle2 = AssetBundle::Load(assetRef.assetBundleID, true);
         ASSERT_EQ(data3.name, testAsset[2].name);
 
         //移动资源后保存
@@ -167,6 +184,8 @@ TEST(Reflection, JsonSerializer)
     //写入文档
     JsonWriter jsonWriter = {document};
     type.Serialize(jsonWriter, &data);
+
+    std::cout << JsonUtility::DocumentToJson(document, true) << std::endl;
 
     //读取文档
     JsonReader jsonReader = {document};

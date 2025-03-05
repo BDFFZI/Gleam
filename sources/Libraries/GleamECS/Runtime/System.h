@@ -5,9 +5,7 @@
 #include <set>
 #include <string>
 
-#ifdef GleamReflectionRuntime
 #include "GleamReflection/Runtime/Type.h"
-#endif
 
 #ifdef GleamEngineEditor
 #include "GleamEngine/Editor/Profiler.h"
@@ -34,6 +32,60 @@ namespace Gleam
         static constexpr int32_t MaxOrder = std::numeric_limits<int32_t>::max();
         static constexpr int32_t DefaultOrder = 0;
 
+        /**
+         * 全局System创建函数。
+         *
+         * 全局系统将添加到全局统计容器中，这些被统计的系统将可以被Scene实现序列化。
+         * 注意！全局系统用TypeID做索引，故每种类型的System只能有一个全局系统
+         * 
+         * @tparam TSystem 
+         * @return 
+         */
+        template <typename TSystem> requires std::derived_from<TSystem, System>
+        static TSystem& CreateGlobal(std::string name = "")
+        {
+            Type& systemType = Type::CreateOrGet<TSystem>();
+            TSystem& system = allSystems.emplace(systemType.GetID(), TSystem()).first->second;
+
+            if (system.name.empty())
+            {
+                if (name.empty())
+                {
+                    //生成默认名称
+                    std::string defaultName = std::string(typeid(TSystem).name());
+                    defaultName = defaultName.substr(defaultName.find_last_of(' ') + 1);
+                    name = defaultName;
+                }
+                system.name = std::move(name);
+            }
+
+            if (!systemType.GetParent().has_value()) //生成默认父类
+                systemType.SetParent(Type::GetType(typeid(System)).value());
+
+            return system;
+        }
+        /**
+         * 一个更完善的System创建函数。
+         *
+         * 相比自行构造System，该函数能显式设置系统名称以及注册类型信息。
+         * @tparam TSystem 
+         * @param name 
+         * @return 
+         */
+        template <typename TSystem> requires std::derived_from<TSystem, System>
+        static TSystem Create(const std::string_view name)
+        {
+            TSystem system = {};
+            //设置名称
+            system.name = name;
+            //设置Type的父类信息
+            Type& systemType = Type::CreateOrGet<TSystem>();
+            if (!systemType.GetParent().has_value())
+                systemType.SetParent(Type::GetType(typeid(System)).value());
+
+            return system;
+        }
+
         System();
         explicit System(std::optional<std::reference_wrapper<SystemGroup>> group, int minOrder = MinOrder, int maxOrder = MaxOrder, std::string_view name = "");
         System(System& system, OrderRelation orderRelation, std::string_view name = "");
@@ -54,10 +106,9 @@ namespace Gleam
 
     private:
         friend class SystemEvent;
-
-#ifdef GleamReflectionRuntime
         Gleam_MakeType_Friend
-#endif
+
+        inline static std::unordered_map<uuids::uuid, System> allSystems = {};
 
         std::string name;
         std::optional<std::reference_wrapper<SystemGroup>> group;
@@ -66,7 +117,6 @@ namespace Gleam
         int order;
     };
 
-#ifdef GleamReflectionRuntime
     Gleam_MakeType(System, "")
     {
         Gleam_MakeType_AddField(minOrder);
@@ -75,7 +125,6 @@ namespace Gleam
         Gleam_MakeType_AddField(group);
         Gleam_MakeType_AddField(name);
     }
-#endif
 
     class SystemEvent : public System
     {
@@ -164,4 +213,7 @@ namespace Gleam
         std::set<System*, SystemPtrComparer> subSystemStopQueue = {};
         std::set<System*, SystemPtrComparer> subSystemUpdateQueue = {};
     };
+
+#define Gleam_MakeGlobalSystem(systemClass,...) \
+inline systemClass Global##systemClass = ::Gleam::Engine::CreateSystem<systemClass>(__VA_ARGS__);
 }

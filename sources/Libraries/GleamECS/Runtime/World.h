@@ -149,8 +149,10 @@ namespace Gleam
         static void Clear();
 
     private:
+        Gleam_MakeType_Friend
         friend class WorldWindow;
         friend class EditorUI;
+        friend class Scene;
 
         //实体信息
         inline static uint32_t nextEntity = 1;

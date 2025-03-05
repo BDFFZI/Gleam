@@ -9,6 +9,16 @@ namespace Gleam
     public:
         Asset();
         Asset(int id, uuids::uuid typeID, void* dataRef);
+        template <class T> requires !std::is_reference_v<T>
+        Asset(const int id, T&& data)
+            : id(id)
+        {
+            const Type& type = Type::GetType(typeid(T)).value();
+            typeID = type.GetID();
+            dataRef = type.Create();
+            ownership = true;
+            type.Move(dataRef, &data);
+        }
         Asset(Asset&& asset) noexcept;
         Asset& operator=(Asset&& asset) noexcept;
         ~Asset();
@@ -38,10 +48,9 @@ namespace Gleam
             if (optionalType.has_value())
             {
                 const Type& type = optionalType.value().get();
-                if (value.dataRef == nullptr)
+                if (value.dataRef == nullptr) //反持久化
                 {
-                    value.dataRef = std::malloc(type.GetSize());
-                    type.Construct(value.dataRef);
+                    value.dataRef = type.Create();
                     value.ownership = true;
                 }
 

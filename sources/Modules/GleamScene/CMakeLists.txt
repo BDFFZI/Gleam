@@ -1,3 +1,3 @@
-addPackage()
+# addPackage()
 
-linkLibrary(GleamECSRuntime ${PackageName}Runtime)
+# linkLibrary(GleamECSRuntime ${PackageName}Runtime)

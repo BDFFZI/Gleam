@@ -16,9 +16,10 @@ namespace Gleam
         {
             AssetRef assetRef = AssetBundle::pointerMapping[&value];
             {
-                assetRef = AssetBundle::GetAssetRef(value).value_or(assetRef); //根据数据获取资源引用
+                assetRef = AssetBundle::GetAssetRef(value).value_or(assetRef); //获取引用数据对应的资源依赖
+                assert(value == nullptr || !assetRef.assetBundleID.is_nil() && "指针引用的物体未被资源化！");
                 serializer.Transfer(assetRef);
-                value = static_cast<TValue*>(AssetBundle::GetDataRef(assetRef).value_or(nullptr)); //根据资源引用获取数据
+                value = static_cast<TValue*>(AssetBundle::GetDataRef(assetRef).value_or(nullptr)); //根据资源依赖获取数据
             }
             AssetBundle::pointerMapping[&value] = assetRef;
         }

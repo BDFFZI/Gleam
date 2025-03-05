@@ -15,6 +15,14 @@ namespace Gleam
     template <typename T>
     struct Type_Raii
     {
+        static void* Create()
+        {
+            return new T();
+        }
+        static void Destroy(void* obj)
+        {
+            delete static_cast<T*>(obj);
+        }
         static void Construct(void* address)
         {
             new(address) T();
@@ -23,11 +31,11 @@ namespace Gleam
         {
             static_cast<T*>(address)->T::~T();
         }
-        static void MoveConstruct(void* source, void* destination)
+        static void MoveConstruct(void* destination, void* source)
         {
             new(destination) T(std::move(*static_cast<T*>(source)));
         }
-        static void Move(void* source, void* destination)
+        static void Move(void* destination, void* source)
         {
             *static_cast<T*>(destination) = std::move(*static_cast<T*>(source));
         }
@@ -60,6 +68,8 @@ namespace Gleam
             type.id = id.value_or(uuids::uuid(MD5(type.index.name()).toArray()));
             type.size = sizeof(T);
             type.parent = parent;
+            type.create = Type_Raii<T>::Create;
+            type.destroy = Type_Raii<T>::Destroy;
             type.construct = Type_Raii<T>::Construct;
             type.destruct = Type_Raii<T>::Destruct;
             type.moveConstruct = Type_Raii<T>::MoveConstruct;
@@ -108,10 +118,12 @@ namespace Gleam
 
         void SetParent(std::optional<std::reference_wrapper<const Type>> parent);
 
+        void* Create() const;
+        void Destroy(void* address) const;
         void Construct(void* address) const;
         void Destruct(void* address) const;
-        void MoveConstruct(void* source, void* destination) const;
-        void Move(void* source, void* destination) const;
+        void MoveConstruct(void* destination, void* source) const;
+        void Move(void* destination, void* source) const;
         void Serialize(FieldDataTransferrer& transferrer, void* address, bool serializeParent = true) const;
 
     private:
@@ -123,6 +135,8 @@ namespace Gleam
         int size = 0;
         std::optional<std::reference_wrapper<const Type>> parent = std::nullopt;
         std::vector<FieldInfo> fields = {};
+        std::function<void*()> create = nullptr;
+        std::function<void(void*)> destroy = nullptr;
         std::function<void(void*)> construct = nullptr;
         std::function<void(void*)> destruct = nullptr;
         std::function<void(void*, void*)> moveConstruct = nullptr;

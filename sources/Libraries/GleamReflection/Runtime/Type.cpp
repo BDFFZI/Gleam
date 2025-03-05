@@ -45,7 +45,14 @@ namespace Gleam
     {
         this->parent = parent;
     }
-
+    void* Type::Create() const
+    {
+        return create();
+    }
+    void Type::Destroy(void* address) const
+    {
+        destroy(address);
+    }
     void Type::Construct(void* address) const
     {
         construct(address);
@@ -54,13 +61,13 @@ namespace Gleam
     {
         destruct(address);
     }
-    void Type::MoveConstruct(void* source, void* destination) const
+    void Type::MoveConstruct(void* destination, void* source) const
     {
-        moveConstruct(source, destination);
+        moveConstruct(destination, source);
     }
-    void Type::Move(void* source, void* destination) const
+    void Type::Move(void* destination, void* source) const
     {
-        move(source, destination);
+        move(destination, source);
     }
     void Type::Serialize(FieldDataTransferrer& transferrer, void* address, const bool serializeParent) const
     {

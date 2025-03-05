@@ -38,10 +38,16 @@ namespace Gleam
         }
 
         void AddAsset(void* data, const Type& dataType);
+        template <class T> requires !std::is_reference_v<T>
+        void AddAsset(T&& data)
+        {
+            EmplaceAsset(Asset{GenerateAssetID(), std::move(data)});
+        }
         void RemoveAsset(void* data);
         void ClearAssets();
         void EmplaceAsset(Asset&& asset);
         Asset ExtractAsset(int assetID);
+
 
         AssetBundle() = default;
         AssetBundle(AssetBundle&&) = default;
@@ -64,6 +70,7 @@ namespace Gleam
         std::unordered_set<int> assetIDSet;
 
         void BuildAssetIndex();
+        int GenerateAssetID() const;
 
         ///发现一个离谱c++bug
         ///若一个类中同时有std::vector和std::unordered_set，且std::vector的元素是仅可移动的类型，

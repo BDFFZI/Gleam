@@ -86,10 +86,6 @@ namespace Gleam
         inline static bool isStopping = false;
     };
 
-#define Gleam_Engine_Friend\
-    Gleam_MakeType_Friend\
-    friend class Engine;
-
     ///利用如下宏实现关系到程序整个运行周期的事件，如库初始化。
     ///这些事件与System中的Start和Stop不同，System在程序运行中可能多次Start和Stop，
     ///且System::Stop在实体回收前执行，如果在Stop逆初始化库，这可能导致实体中需要该库的数据可能无法正常回收。
@@ -103,15 +99,15 @@ inline void eventName()
 #define Gleam_AddUpdateEvent(eventName, order) Gleam_AddEngineEvent(Update, eventName, order)
 
 #define Gleam_Main \
-    inline int main()\
-    {\
-        Gleam::Engine::Start();\
-        return 0;\
-    }
+inline int main()\
+{\
+Gleam::Engine::Start();\
+return 0;\
+}
 
-    ///创建全局作用域的系统单例，变量名与系统类名相同。同时创建一个类别名<systemType>_T，以解决命名冲突。
-#define Gleam_MakeGlobalSystem(systemClass,...) \
-inline systemClass Global##systemClass = ::Gleam::Engine::CreateSystem<systemClass>(__VA_ARGS__);
+#define Gleam_Engine_Friend\
+Gleam_MakeType_Friend\
+friend class Engine;
 
     ///将系统添加到世界，并注册到运行时系统组
 #define Gleam_AddSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::RuntimeSystems().insert(::Gleam::Engine::RuntimeSystems().end(),{__VA_ARGS__});}

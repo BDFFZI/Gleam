@@ -7,7 +7,7 @@
 
 namespace Gleam
 {
-    Archetype& Archetype::Create(const std::initializer_list<std::reference_wrapper<Type>> componentTypes, const std::string_view name)
+    Archetype& Archetype::Create(const std::vector<std::reference_wrapper<const Type>>& componentTypes, const std::string_view name)
     {
         std::vector<const Type*> types = std::vector<const Type*>{componentTypes.size()};
         for (size_t i = 0; i < componentTypes.size(); ++i)
@@ -16,14 +16,14 @@ namespace Gleam
         Archetype archetype = {name, types};
         return allArchetypes.emplace(archetype.id, std::move(archetype)).first->second;
     }
-    Archetype& Archetype::CreateOrGet(const std::initializer_list<std::reference_wrapper<Type>> componentTypes)
+    Archetype& Archetype::CreateOrGet(const std::vector<std::reference_wrapper<const Type>>& componentTypes)
     {
         uuids::uuid id = GetID(componentTypes);
         if (allArchetypes.contains(id))
             return allArchetypes.at(id);
         return Create(componentTypes);
     }
-    uuids::uuid Archetype::GetID(const std::initializer_list<std::reference_wrapper<Type>> componentTypes)
+    uuids::uuid Archetype::GetID(const std::vector<std::reference_wrapper<const Type>>& componentTypes)
     {
         std::string componentIDs = {};
         for (const auto& componentType : componentTypes)
@@ -88,7 +88,7 @@ namespace Gleam
     {
         for (int i = 0; i < componentCount; ++i)
         {
-            componentTypes[i]->MoveConstruct(source, destination);
+            componentTypes[i]->MoveConstruct(destination, source);
             source += componentTypes[i]->GetSize();
             destination += componentTypes[i]->GetSize();
         }
@@ -97,7 +97,7 @@ namespace Gleam
     {
         for (int i = 0; i < componentCount; ++i)
         {
-            componentTypes[i]->Move(source, destination);
+            componentTypes[i]->Move(destination, source);
             source += componentTypes[i]->GetSize();
             destination += componentTypes[i]->GetSize();
         }

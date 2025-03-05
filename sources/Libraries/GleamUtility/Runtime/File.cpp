@@ -9,7 +9,8 @@ namespace Gleam
     void File::WriteAllText(const std::string_view filename, const std::string_view content)
     {
         auto rootDirectory = std::filesystem::path(filename).parent_path();
-        if (!exists(rootDirectory))create_directory(rootDirectory);
+        if (!rootDirectory.empty() && !exists(rootDirectory))
+            create_directory(rootDirectory);
 
         std::ofstream file(filename.data(), std::ios::binary);
         file.write(content.data(), static_cast<std::streamsize>(content.size()));

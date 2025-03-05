@@ -6,6 +6,7 @@
 #include "GleamECS/Runtime/Archetype.h"
 #include "GleamECS/Runtime/World.h"
 #include "GleamECS/Runtime/Heap.h"
+#include "GleamECS/Runtime/Scene.h"
 #include "GleamECS/Runtime/View.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 
@@ -116,6 +117,11 @@ struct Transform
     }
 };
 
+Gleam_MakeType(Transform, "00000000-0001-435E-AE61-D12757C441AE")
+{
+    Gleam_MakeType_AddField(position);
+}
+
 struct RigidBody
 {
     float force;
@@ -130,6 +136,13 @@ struct RigidBody
     }
 };
 
+Gleam_MakeType(RigidBody, "00000000-0002-435E-AE61-D12757C441AE")
+{
+    Gleam_MakeType_AddField(force);
+    Gleam_MakeType_AddField(mass);
+    Gleam_MakeType_AddField(velocity);
+}
+
 struct SpringPhysics
 {
     float pinPosition = 0;
@@ -143,6 +156,13 @@ struct SpringPhysics
             && abs(lhs.elasticity - rhs.elasticity) < std::numeric_limits<float>::epsilon();
     }
 };
+
+Gleam_MakeType(SpringPhysics, "00000000-0003-435E-AE61-D12757C441AE")
+{
+    Gleam_MakeType_AddField(pinPosition);
+    Gleam_MakeType_AddField(length);
+    Gleam_MakeType_AddField(elasticity);
+}
 
 Gleam_MakeArchetype(physicsArchetype, Transform, RigidBody)
 Gleam_MakeArchetypeChild(physicsWithSpringArchetype, physicsArchetype, SpringPhysics)
@@ -412,4 +432,48 @@ TEST(ECS, View)
 
     World::RemoveEntity(physicsEntity);
     World::RemoveEntity(physicsWithSpring);
+}
+
+class MySystem : public System
+{
+};
+
+struct MyComponent
+{
+    int value;
+    Entity dependency = Entity::Null;
+};
+
+Gleam_MakeType(MyComponent, "")
+{
+    Gleam_MakeType_AddField(value);
+    Gleam_MakeType_AddField(dependency);
+}
+
+void main()
+{
+    //测试仅实体的场景的创建和保存
+    {
+        Entity entity = World::AddEntity(Transform{1}, RigidBody{}, SpringPhysics{});
+        Scene& scene = Scene::Create("TestScene");
+        scene.AddEntity(entity);
+        scene.AddEntity(World::AddEntity(Transform{2}, RigidBody{}));
+        scene.AddEntity(World::AddEntity(MyComponent{3, entity}));
+        AssetBundle& assetBundle = Scene::ToAssetBundle(scene);
+        AssetBundle::SaveJson("TestScene.json", assetBundle);
+        //卸载资源包并清空世界
+        AssetBundle::UnLoad(assetBundle);
+        World::Clear();
+    }
+
+    //测试加载实体场景
+    {
+        AssetBundle& assetBundle = AssetBundle::LoadJson("TestScene.json");
+        Scene& scene = Scene::FromAssetBundle(assetBundle);
+        ASSERT_EQ(scene.GetEntities().size(), 3);
+        std::vector<Entity> entities;
+        View<MyComponent>::Fetch(entities);
+        ASSERT_TRUE(scene.HasEntity(entities[0]));
+        ASSERT_EQ(World::GetComponent<MyComponent>(entities[0]).value, 3);
+    }
 }

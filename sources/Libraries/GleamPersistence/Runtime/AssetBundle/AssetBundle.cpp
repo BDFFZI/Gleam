@@ -51,7 +51,7 @@ namespace Gleam
                 {
                     Asset* oldAsset = oldAssets[asset.id];
                     const Type& type = Type::GetType(oldAsset->GetTypeID()).value().get();
-                    type.Move(asset.dataRef, oldAsset->dataRef);
+                    type.Move(oldAsset->dataRef, asset.dataRef);
                     oldAssets.erase(asset.id);
                 }
                 else //内存中没有，加入
@@ -116,9 +116,7 @@ namespace Gleam
     {
         AssetBundle* assetBundle;
         if (HasInMemory(assetRef.assetBundleID))
-            assetBundle = &assetBundles[assetRef.assetBundleID]; //尝试从内存中获取资源包
-        else if (HasInDisk(assetRef.assetBundleID))
-            assetBundle = &Load(assetRef.assetBundleID); //尝试从磁盘中获取资源包
+            assetBundle = &assetBundles[assetRef.assetBundleID];
         else
             return std::nullopt;
 
@@ -214,14 +212,8 @@ namespace Gleam
 
     void AssetBundle::AddAsset(void* data, const Type& dataType)
     {
-        //创建资源ID
-        std::default_random_engine engine = std::default_random_engine(static_cast<uint32_t>(time(nullptr)));
-        std::uniform_int_distribution random = std::uniform_int_distribution(0, std::numeric_limits<int>::max());
-        int assetID = random(engine);
-        while (assetIDSet.contains(assetID))
-            assetID = random(engine);
         //添加资源
-        Asset asset = {assetID, dataType.GetID(), data};
+        Asset asset = {GenerateAssetID(), dataType.GetID(), data};
         EmplaceAsset(std::move(asset));
     }
     void AssetBundle::RemoveAsset(void* data)
@@ -279,5 +271,14 @@ namespace Gleam
             dataToAsset.insert({assetBundle.dataRef, AssetRef{id, assetBundle.id}});
             assetToData.insert({AssetRef{id, assetBundle.id}, assetBundle.dataRef});
         }
+    }
+    int AssetBundle::GenerateAssetID() const
+    {
+        std::default_random_engine engine = std::default_random_engine(static_cast<uint32_t>(time(nullptr)));
+        std::uniform_int_distribution random = std::uniform_int_distribution(0, std::numeric_limits<int>::max());
+        int assetID = random(engine);
+        while (assetIDSet.contains(assetID))
+            assetID = random(engine);
+        return assetID;
     }
 }

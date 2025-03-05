@@ -58,9 +58,9 @@ namespace Gleam
             Archetype archetype = {name, types};
             return allArchetypes.emplace(archetype.id, std::move(archetype)).first->second;
         }
-        static Archetype& Create(std::initializer_list<std::reference_wrapper<Type>> componentTypes, std::string_view name = "");
-        static Archetype& CreateOrGet(std::initializer_list<std::reference_wrapper<Type>> componentTypes);
-        static uuids::uuid GetID(std::initializer_list<std::reference_wrapper<Type>> componentTypes);
+        static Archetype& Create(const std::vector<std::reference_wrapper<const Type>>& componentTypes, std::string_view name = "");
+        static Archetype& CreateOrGet(const std::vector<std::reference_wrapper<const Type>>& componentTypes);
+        static uuids::uuid GetID(const std::vector<std::reference_wrapper<const Type>>& componentTypes);
 
         const string& GetName() const;
         uuids::uuid GetID() const;
@@ -83,6 +83,8 @@ namespace Gleam
         void Move(std::byte* source, std::byte* destination) const;
 
     private:
+        Gleam_MakeType_Friend
+
         inline static std::unordered_map<uuids::uuid, Archetype> allArchetypes = {};
 
         std::string name;
