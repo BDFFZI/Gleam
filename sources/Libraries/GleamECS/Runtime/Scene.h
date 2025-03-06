@@ -20,10 +20,51 @@ namespace Gleam
         Gleam_MakeType_AddField(systems);
     }
 
-    //Entity包装器，使Entity可以被资源化
+    //Entity包装器，是Entity在资源包中的替身，使Entity以及Entity引用可以被资源化
     struct EntityAsset
     {
         Entity entity;
+
+        EntityAsset(): entity(Entity::Null)
+        {
+        }
+        EntityAsset(const Entity entity) : entity(entity)
+        {
+            if (entity != Entity::Null)
+                entityToAsset[entity] = this;
+        }
+        EntityAsset(EntityAsset&& other) noexcept : entity(other.entity)
+        {
+            if (entity != Entity::Null)
+                entityToAsset[entity] = this;
+        }
+        EntityAsset& operator=(EntityAsset&& other) noexcept
+        {
+            if (entity != Entity::Null)
+                entityToAsset.erase(entity);
+
+            entity = other.entity;
+            other.entity = Entity::Null;
+
+            if (entity != Entity::Null)
+                entityToAsset[entity] = this;
+
+            return *this;
+        }
+        ~EntityAsset()
+        {
+            if (entity != Entity::Null)
+            {
+                entityToAsset.erase(entity);
+            }
+        }
+
+    private:
+        Gleam_MakeType_Friend
+        template <class T>
+        friend struct FieldDataTransferrer_Transfer;
+
+        inline static std::unordered_map<Entity, EntityAsset*> entityToAsset = {};
     };
     //Entity资源化函数
     Gleam_MakeType(EntityAsset, "00000000-0000-0000-0000-000000000002")
@@ -78,6 +119,22 @@ namespace Gleam
             }
         }
     }
+    //Entity引用资源化函数
+    template <>
+    struct FieldDataTransferrer_Transfer<Entity>
+    {
+        static void Invoke(FieldDataTransferrer& serializer, Entity& value)
+        {
+            EntityAsset* entityAsset = EntityAsset::entityToAsset.contains(value) ? EntityAsset::entityToAsset.at(value) : nullptr;
+
+            AssetRef assetRef = AssetBundle::GetAssetRef(entityAsset).value_or(AssetRef{}); //获取引用数据对应的资源依赖
+            assert(value == Entity::Null || !assetRef.assetBundleID.is_nil() && "引用的实体未被资源化！");
+            serializer.Transfer(assetRef);
+            entityAsset = static_cast<EntityAsset*>(AssetBundle::GetDataRef(assetRef).value_or(nullptr)); //根据资源依赖获取数据
+
+            value = entityAsset != nullptr ? entityAsset->entity : value;
+        }
+    };
 
 
     /**
@@ -93,6 +150,18 @@ namespace Gleam
             scene->name = name;
             return *scene;
         }
+        static void Destroy(Scene& scene)
+        {
+            if (scene.isRunning) //从世界中移除系统
+                scene.Stop();
+            for (Entity entity : scene.entities) //从世界中移除实体
+                World::RemoveEntity(entity);
+            //销毁场景
+            std::erase_if(allScenes, [&scene](std::unique_ptr<Scene>& scenePtr)
+            {
+                return scenePtr->name == scene.name;
+            });
+        }
         static AssetBundle& ToAssetBundle(const Scene& scene)
         {
             AssetBundle& assetBundle = AssetBundle::Create();
@@ -101,9 +170,8 @@ namespace Gleam
             SceneAsset sceneAsset;
             sceneAsset.name = scene.name;
             for (System* system : scene.systems)
-            {
                 sceneAsset.systems.push_back(system->GetID());
-            }
+            assetBundle.AddAsset(std::move(sceneAsset));
 
             //保存实体信息
             for (Entity entity : scene.entities)
@@ -120,18 +188,27 @@ namespace Gleam
             size_t assetCount = assets.size();
 
             //读取场景和系统信息
-            std::string_view name;
+            SceneAsset& sceneAsset = *static_cast<SceneAsset*>(assets[0].GetDataRef());
+            std::string_view name = sceneAsset.name;
             std::vector<System*> systems;
+            for (auto id : sceneAsset.systems)
+            {
+                auto optionalSystem = System::GetSystem(id);
+                if (optionalSystem.has_value())
+                    systems.emplace_back(&optionalSystem.value().get());
+            }
+
 
             //读取实体信息
             std::vector<Entity> entities;
             for (std::size_t i = 1; i < assetCount; ++i)
             {
-                EntityAsset entityAsset = *static_cast<EntityAsset*>(assets[i].GetDataRef());
+                EntityAsset& entityAsset = *static_cast<EntityAsset*>(assets[i].GetDataRef());
                 entities.emplace_back(entityAsset.entity);
             }
 
             Scene& scene = Create(name);
+            scene.name = std::move(name);
             scene.systems.insert(systems.begin(), systems.end());
             scene.entities.insert(entities.begin(), entities.end());
             return scene;
@@ -150,21 +227,51 @@ namespace Gleam
             return entities;
         }
 
-        bool HasSystem(System* system) const
+        void Start()
         {
-            return systems.contains(system);
+            for (System* system : systems)
+                World::AddSystem(*system);
+            isRunning = true;
+        }
+        void Stop()
+        {
+            for (System* system : systems)
+                World::RemoveSystem(*system);
+            isRunning = false;
+        }
+
+        bool GetIsRunning() const
+        {
+            return isRunning;
+        }
+        bool HasSystem(System& system) const
+        {
+            return systems.contains(&system);
         }
         bool HasEntity(const Entity entity) const
         {
             return entities.contains(entity);
         }
+
         void AddSystem(System& system)
         {
+            assert(!isRunning && "运行中的场景不允许调整系统！");
+            assert(System::GetSystem(system.GetID()).has_value() && "场景中使用的系统必须是全局系统！");
             systems.emplace(&system);
         }
         void AddEntity(Entity entity)
         {
             entities.emplace(entity);
+        }
+        void RemoveSystem(System& system)
+        {
+            assert(!isRunning && "运行中的场景不允许调整系统！");
+            assert(System::GetSystem(system.GetID()).has_value() && "场景中使用的系统必须是全局系统！");
+            systems.erase(&system);
+        }
+        void RemoveEntity(const Entity entity)
+        {
+            entities.erase(entity);
         }
 
     private:
@@ -175,6 +282,7 @@ namespace Gleam
         std::string name;
         std::unordered_set<System*> systems;
         std::unordered_set<Entity> entities;
+        bool isRunning;
         // std::vector<Scene*> subScenes;
     };
 }

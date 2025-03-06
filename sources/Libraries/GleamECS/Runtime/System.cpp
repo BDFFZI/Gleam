@@ -4,6 +4,13 @@
 
 namespace Gleam
 {
+    std::optional<std::reference_wrapper<System>> System::GetSystem(const uuids::uuid id)
+    {
+        if (allSystems.contains(id))
+            return *allSystems.at(id);
+        return std::nullopt;
+    }
+
     System::System()
         : System(std::nullopt)
     {
@@ -25,9 +32,13 @@ namespace Gleam
         : System(std::optional<std::reference_wrapper<SystemGroup>>(group))
     {
     }
-    std::string& System::GetName()
+    const std::string& System::GetName() const
     {
         return name;
+    }
+    uuids::uuid System::GetID() const
+    {
+        return id;
     }
     std::optional<std::reference_wrapper<SystemGroup>> System::GetGroup() const
     {

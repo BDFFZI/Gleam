@@ -153,6 +153,8 @@ namespace Gleam
         friend class WorldWindow;
         friend class EditorUI;
         friend class Scene;
+        template <class T>
+        friend struct FieldDataTransferrer_Transfer;
 
         //实体信息
         inline static uint32_t nextEntity = 1;
@@ -167,7 +169,7 @@ namespace Gleam
         inline static std::vector<System*> addingSystems = {};
 
         static Entity GetNextEntity();
-        static const EntityInfo& GetEntityInfo(Entity entity);
+        static EntityInfo& GetEntityInfo(Entity entity);
         static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
 
     public:

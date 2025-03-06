@@ -189,7 +189,7 @@ namespace Gleam
     {
         return static_cast<Entity>(nextEntity++);
     }
-    const EntityInfo& World::GetEntityInfo(const Entity entity)
+    EntityInfo& World::GetEntityInfo(const Entity entity)
     {
         return entityInfos.at(entity);
     }

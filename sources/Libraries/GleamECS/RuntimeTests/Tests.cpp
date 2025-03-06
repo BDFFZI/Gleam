@@ -434,10 +434,6 @@ TEST(ECS, View)
     World::RemoveEntity(physicsWithSpring);
 }
 
-class MySystem : public System
-{
-};
-
 struct MyComponent
 {
     int value;
@@ -450,30 +446,55 @@ Gleam_MakeType(MyComponent, "")
     Gleam_MakeType_AddField(dependency);
 }
 
+class MySystem : public System
+{
+    void Update() override
+    {
+        View<MyComponent>::Each([](MyComponent& myComponent)
+        {
+            myComponent.value++;
+        });
+    }
+};
+Gleam_MakeGlobalSystem(MySystem)
+
 void main()
 {
-    //测试仅实体的场景的创建和保存
+    //测试场景的创建和保存
     {
-        Entity entity = World::AddEntity(Transform{1}, RigidBody{}, SpringPhysics{});
         Scene& scene = Scene::Create("TestScene");
+        //添加实体
+        Entity entity = World::AddEntity(Transform{1}, RigidBody{}, SpringPhysics{});
         scene.AddEntity(entity);
         scene.AddEntity(World::AddEntity(Transform{2}, RigidBody{}));
         scene.AddEntity(World::AddEntity(MyComponent{3, entity}));
+        //添加系统
+        scene.AddSystem(GlobalMySystem);
+        //持久化
         AssetBundle& assetBundle = Scene::ToAssetBundle(scene);
         AssetBundle::SaveJson("TestScene.json", assetBundle);
-        //卸载资源包并清空世界
         AssetBundle::UnLoad(assetBundle);
-        World::Clear();
+        //卸载资源包不影响，场景内实体
+        ASSERT_EQ(View<Transform>::Count(), 2);
+        //销毁场景会移除实体
+        Scene::Destroy(scene);
+        ASSERT_EQ(View<Transform>::Count(), 0);
     }
 
     //测试加载实体场景
     {
+        //加载资源包就会加载实体
         AssetBundle& assetBundle = AssetBundle::LoadJson("TestScene.json");
+        ASSERT_EQ(View<Transform>::Count(), 2);
+        //场景通过读取资源包恢复数据
         Scene& scene = Scene::FromAssetBundle(assetBundle);
         ASSERT_EQ(scene.GetEntities().size(), 3);
+        ASSERT_TRUE(scene.HasSystem(GlobalMySystem));
+        //验证场景内实体信息正确性
         std::vector<Entity> entities;
         View<MyComponent>::Fetch(entities);
         ASSERT_TRUE(scene.HasEntity(entities[0]));
         ASSERT_EQ(World::GetComponent<MyComponent>(entities[0]).value, 3);
+        ASSERT_EQ(World::GetComponent<MyComponent>(entities[0]).dependency, entities[0]);
     }
 }

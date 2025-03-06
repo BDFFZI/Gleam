@@ -1,4 +1,4 @@
 addPackage()
 
 linkLibrary(GleamReflectionRuntime ${PackageName}Runtime)
-linkLibrary(GleamPersistenceRuntime ${PackageName}RuntimeTests)
+linkLibrary(GleamPersistenceRuntime ${PackageName}Runtime)

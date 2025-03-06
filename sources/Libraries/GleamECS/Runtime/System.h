@@ -36,31 +36,40 @@ namespace Gleam
          * 全局System创建函数。
          *
          * 全局系统将添加到全局统计容器中，这些被统计的系统将可以被Scene实现序列化。
-         * 注意！全局系统用TypeID做索引，故每种类型的System只能有一个全局系统
+         * 注意！全局系统默认用TypeID做索引，故每种类型的System默认只能有一个全局系统
          * 
          * @tparam TSystem 
          * @return 
          */
         template <typename TSystem> requires std::derived_from<TSystem, System>
-        static TSystem& CreateGlobal(std::string name = "")
+        static TSystem CreateGlobal(std::string_view name = "", uuids::uuid id = {})
         {
             Type& systemType = Type::CreateOrGet<TSystem>();
-            TSystem& system = allSystems.emplace(systemType.GetID(), TSystem()).first->second;
-
-            if (system.name.empty())
+            TSystem system;
+            //设置名称
+            if (!name.empty())
+                system.name = name;
+            else if (system.name.empty())
             {
-                if (name.empty())
-                {
-                    //生成默认名称
-                    std::string defaultName = std::string(typeid(TSystem).name());
-                    defaultName = defaultName.substr(defaultName.find_last_of(' ') + 1);
-                    name = defaultName;
-                }
-                system.name = std::move(name);
+                //生成默认名称
+                std::string defaultName = std::string(typeid(TSystem).name());
+                defaultName = defaultName.substr(defaultName.find_last_of(' ') + 1);
+                system.name = defaultName;
             }
-
+            //设置编号
+            if (!id.is_nil())
+                system.id = id;
+            else if (system.id.is_nil())
+            {
+                //生成默认ID
+                system.id = systemType.GetID();
+            }
+            //设置父类
             if (!systemType.GetParent().has_value()) //生成默认父类
                 systemType.SetParent(Type::GetType(typeid(System)).value());
+            //注册索引
+            assert(!allSystems.contains(system.id) && "已有相同ID的系统已被注册！");
+            allSystems.emplace(system.id, &system);
 
             return system;
         }
@@ -75,16 +84,19 @@ namespace Gleam
         template <typename TSystem> requires std::derived_from<TSystem, System>
         static TSystem Create(const std::string_view name)
         {
-            TSystem system = {};
+            Type& systemType = Type::CreateOrGet<TSystem>();
+            TSystem system;
             //设置名称
             system.name = name;
+            //设置ID（非全局系统，ID无效）
+            system.id = "";
             //设置Type的父类信息
-            Type& systemType = Type::CreateOrGet<TSystem>();
             if (!systemType.GetParent().has_value())
                 systemType.SetParent(Type::GetType(typeid(System)).value());
 
             return system;
         }
+        static std::optional<std::reference_wrapper<System>> GetSystem(uuids::uuid id);
 
         System();
         explicit System(std::optional<std::reference_wrapper<SystemGroup>> group, int minOrder = MinOrder, int maxOrder = MaxOrder, std::string_view name = "");
@@ -96,7 +108,8 @@ namespace Gleam
         System& operator=(System&&) = default;
         virtual ~System() = default;
 
-        std::string& GetName();
+        const std::string& GetName() const;
+        uuids::uuid GetID() const;
         std::optional<std::reference_wrapper<SystemGroup>> GetGroup() const;
         int GetOrder() const;
 
@@ -108,9 +121,10 @@ namespace Gleam
         friend class SystemEvent;
         Gleam_MakeType_Friend
 
-        inline static std::unordered_map<uuids::uuid, System> allSystems = {};
+        inline static std::unordered_map<uuids::uuid, System*> allSystems = {};
 
         std::string name;
+        uuids::uuid id;
         std::optional<std::reference_wrapper<SystemGroup>> group;
         int minOrder;
         int maxOrder;
@@ -215,5 +229,5 @@ namespace Gleam
     };
 
 #define Gleam_MakeGlobalSystem(systemClass,...) \
-inline systemClass Global##systemClass = ::Gleam::Engine::CreateSystem<systemClass>(__VA_ARGS__);
+inline systemClass Global##systemClass = ::Gleam::System::CreateGlobal<systemClass>(__VA_ARGS__);
 }

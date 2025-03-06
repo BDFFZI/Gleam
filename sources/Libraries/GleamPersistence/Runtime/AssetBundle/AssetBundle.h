@@ -39,13 +39,14 @@ namespace Gleam
 
         void AddAsset(void* data, const Type& dataType);
         template <class T> requires !std::is_reference_v<T>
-        void AddAsset(T&& data)
+        Asset& AddAsset(T&& data)
         {
-            EmplaceAsset(Asset{GenerateAssetID(), std::move(data)});
+            Asset asset = {GenerateAssetID(), std::move(data)};
+            return EmplaceAsset(std::move(asset));
         }
         void RemoveAsset(void* data);
         void ClearAssets();
-        void EmplaceAsset(Asset&& asset);
+        Asset& EmplaceAsset(Asset&& asset);
         Asset ExtractAsset(int assetID);
 
 

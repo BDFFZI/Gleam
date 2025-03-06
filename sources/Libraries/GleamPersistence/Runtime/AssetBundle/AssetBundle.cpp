@@ -70,7 +70,7 @@ namespace Gleam
             assetBundleSlot = std::move(newAssetBundle);
         }
 
-        //资源包所有资源加载完毕后需二次同步指针，以解决同资源包的资源依赖，因加载顺序原因导致丢失引用的问题
+        //依赖同资源包资源的指针，可能在依赖对象反资源化前被处理，结果就是无法获取依赖项的数据，因此要在普通数据资源化后重新资源化一次指针
         PointerTransferrer pointerTransferrer = {};
         AssetBundleType.Serialize(pointerTransferrer, &assetBundleSlot);
 
@@ -241,14 +241,14 @@ namespace Gleam
         assetIDSet.clear();
         assets.clear();
     }
-    void AssetBundle::EmplaceAsset(Asset&& asset)
+    Asset& AssetBundle::EmplaceAsset(Asset&& asset)
     {
         assert(!dataToAsset.contains(asset.dataRef) && "资源已被添加到资源包！");
 
         dataToAsset.insert({asset.dataRef, AssetRef{id, asset.id}});
         assetToData.insert({AssetRef{id, asset.id}, asset.dataRef});
         assetIDSet.insert(asset.id);
-        assets.emplace_back(std::move(asset));
+        return assets.emplace_back(std::move(asset));
     }
     Asset AssetBundle::ExtractAsset(int assetID)
     {
