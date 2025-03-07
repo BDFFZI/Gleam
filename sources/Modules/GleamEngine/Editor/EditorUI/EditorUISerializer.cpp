@@ -126,7 +126,7 @@ namespace Gleam
         PreTransferNode();
         if (type == typeid(Entity))
         {
-            EditorUI::DrawEntity(*static_cast<Entity*>(value));
+            EditorUI::EntityField(*static_cast<Entity*>(value));
             return;
         }
 

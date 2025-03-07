@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "GleamECS/Runtime/System.h"
+#include "GleamUtility/Runtime/Macro.h"
 
 namespace Gleam
 {
@@ -16,7 +17,6 @@ namespace Gleam
         static inline bool isPlaying = false;
     };
 
-#include "GleamUtility/Runtime/Macro.h"
 #define Gleam_AddEditorSystems(...) Gleam_MakeInitEvent(){\
         ::Gleam::Editor::EditorSystems().insert(::Gleam::Editor::EditorSystems().end(),{__VA_ARGS__});\
     }

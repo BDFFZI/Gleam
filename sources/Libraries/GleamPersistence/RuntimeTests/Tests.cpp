@@ -54,8 +54,7 @@ TEST(Reflection, Asset)
 }
 
 
-// TEST(Reflection, AssetBundle)
-void main()
+TEST(Reflection, AssetBundle)
 {
     uuids::uuid assetBundleID = uuids::uuid::from_string("c57022f0-53a7-4b6b-99d5-41a1e5c8f51e").value();
     uuids::uuid assetBundle2ID = uuids::uuid::from_string("c492a4ff-b846-4596-8a8d-09e25cba9b08").value();
@@ -109,7 +108,6 @@ void main()
         //保存资源包
         AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
         AssetBundle::SaveJson("Assets/assetBundle2.asset", assetBundle2, false);
-        std::cout << assetBundle2.GetAsset()
         AssetBundle::UnLoad(assetBundle);
         AssetBundle::UnLoad(assetBundle2);
         AssetBundle::DumpJson("Assets/assetBundle2.asset"); //测试通过json间接还原二进制资源包

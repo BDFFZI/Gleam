@@ -2,8 +2,9 @@
 
 #include "Editor.h"
 #include "EditorUI/EditorUISerializer.h"
+#include "GleamECS/Runtime/Scene.h"
 #include "System/InspectorWindow.h"
-#include "System/WorldWindow.h"
+#include "System/HierarchyWindow.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "System/ProfilerWindow.h"
 
@@ -26,17 +27,15 @@ namespace Gleam
             if (Editor::IsPlaying())
             {
                 for (auto system : Engine::RuntimeSystems())
-                {
                     World::AddSystem(system);
-                }
+                for (Scene& scene : Scene::GetAllScenes())
+                    scene.Start();
             }
             else
             {
                 World::Clear();
                 for (auto system : Editor::EditorSystems())
-                {
                     World::AddSystem(system);
-                }
             }
         }
 
@@ -50,7 +49,7 @@ namespace Gleam
 
     Gleam_AddEditorSystems(
         GlobalEditorUISystem,
-        GlobalWorldWindow,
+        GlobalHierarchyWindow,
         GlobalInspectorWindow,
         GlobalProfilerWindow,
     )
@@ -70,7 +69,7 @@ namespace Gleam
     {
         if (World::HasEntity(entity))
         {
-            EditorUI::DrawEntityContent(
+            InspectorWindow::DrawEntityContent(
                 entity,
                 InspectorWindow::UseDebugGUI() ? CustomUI{} : InspectorWindow::GetCustomUI()
             );

@@ -1,10 +1,8 @@
 #pragma once
-#include <any>
 #include <variant>
 
 #include "EditorUISystem.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
-#include "GleamECS/Runtime/World.h"
 #include "GleamECS/Runtime/System.h"
 
 namespace Gleam
@@ -26,6 +24,10 @@ namespace Gleam
     class InspectorWindow : public System
     {
     public:
+        static Entity GetEntityDrawing();
+        static void DrawDefaultContent(void* target, std::type_index targetType);
+        static void DrawEntityContent(Entity entity, const CustomUI& componentGUI = {}, bool pure = false);
+
         static bool& UseDebugGUI();
         static const CustomUI& GetCustomUI();
         static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorUI);
@@ -41,6 +43,7 @@ namespace Gleam
     private:
         inline static CustomUI inspectorGUIs = {};
         inline static bool useDebugGUI = false;
+        inline static Entity drawing = Entity::Null;
 
         std::optional<InspectorTarget> target;
 

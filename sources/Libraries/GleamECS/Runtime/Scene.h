@@ -170,30 +170,55 @@ namespace Gleam
 
 
     /**
-     * 场景是一种能将世界中的实体和系统分组并持久化的容器。
-     * 其能将包含的实体和系统以及实体引用存储到磁盘中，并在需要时再加载回内存，且支持跨场景加载。
+     * 场景是一种能将世界中的实体和系统分组托管并持久化的容器。其使用场景如下
+     * 1. 托管世界中的实体，使其在场景销毁时连带销毁。
+     * 2. 托管系统，使其在场景启动、停止时自动添加或移除到世界。
+     * 3. 分组实体和系统，使它们拥有不同的生命周期。
+     * 4. 场景能够与资源包相互转换，从而使被托管的实体、系统、实体引用能被序列化。
      */
     class Scene
     {
     public:
+        static auto GetAllScenes()
+        {
+            return allScenes | std::views::transform([](auto& scene) { return std::reference_wrapper(*scene); });
+        }
+        static std::optional<std::reference_wrapper<Scene>> GetScene(System& system)
+        {
+            if (auto it = systemWorld.find(&system); it != systemWorld.end())
+                return *it->second;
+            return std::nullopt;
+        }
+        static std::optional<std::reference_wrapper<Scene>> GetScene(const Entity entity)
+        {
+            if (auto it = entityWorld.find(entity); it != entityWorld.end())
+                return *it->second;
+            return std::nullopt;
+        }
+
         static Scene& Create(const std::string_view name)
         {
+            assert(std::ranges::count_if(allScenes,[name](auto& scene){return scene->name == name;}) ==0 && "同名场景已存在！");
+            
             std::unique_ptr<Scene>& scene = allScenes.emplace_back(std::make_unique<Scene>());
             scene->name = name;
             return *scene;
         }
         static void Destroy(Scene& scene)
         {
-            if (scene.isRunning) //从世界中移除系统
-                scene.Stop();
-            for (Entity entity : scene.entities) //从世界中移除实体
-                World::RemoveEntity(entity);
             //销毁场景
             std::erase_if(allScenes, [&scene](std::unique_ptr<Scene>& scenePtr)
             {
                 return scenePtr->name == scene.name;
             });
         }
+        static void Clear()
+        {
+            allScenes.clear();
+            assert(systemWorld.empty() && "场景回收异常！");
+            assert(entityWorld.empty() && "场景回收异常！");
+        }
+
         static void ToAssetBundle(const Scene& scene, AssetBundle& assetBundle)
         {
             int assetCount = static_cast<int>(assetBundle.GetAssets().size());
@@ -255,9 +280,25 @@ namespace Gleam
 
             Scene& scene = Create(name);
             scene.name = std::move(name);
-            scene.systems.insert(systems.begin(), systems.end());
-            scene.entities.insert(entities.begin(), entities.end());
+            for (System* system : systems)
+                scene.AddSystem(*system);
+            for (Entity entity : entities)
+                scene.AddEntity(entity);
             return scene;
+        }
+
+        ~Scene()
+        {
+            if (isRunning) //从世界中移除系统
+                Stop();
+            for (Entity entity : entities) //从世界中移除实体
+                World::RemoveEntity(entity);
+
+            //移除索引信息
+            for (Entity entity : entities)
+                entityWorld.erase(entity);
+            for (System* system : systems)
+                systemWorld.erase(system);
         }
 
         const std::string& GetName() const
@@ -301,34 +342,48 @@ namespace Gleam
 
         void AddSystem(System& system)
         {
-            assert(!isRunning && "运行中的场景不允许调整系统！");
             assert(System::GetSystem(system.GetID()).has_value() && "场景中使用的系统必须是全局系统！");
+            assert(!systems.contains(&system) && "场景中已存在该系统！");
+
             systems.emplace(&system);
-        }
-        void AddEntity(Entity entity)
-        {
-            entities.emplace(entity);
+            systemWorld.emplace(&system, this);
+            if (isRunning)
+                World::AddSystem(system);
         }
         void RemoveSystem(System& system)
         {
-            assert(!isRunning && "运行中的场景不允许调整系统！");
             assert(System::GetSystem(system.GetID()).has_value() && "场景中使用的系统必须是全局系统！");
+            assert(systems.contains(&system) && "场景中不存在该系统！");
+
             systems.erase(&system);
+            systemWorld.erase(&system);
+            if (isRunning)
+                World::RemoveSystem(system);
+        }
+        void AddEntity(Entity entity)
+        {
+            assert(!entities.contains(entity) && "场景中已存在该实体！");
+
+            entities.emplace(entity);
+            entityWorld.emplace(entity, this);
         }
         void RemoveEntity(const Entity entity)
         {
+            assert(entities.contains(entity) && "场景中不存在该实体！");
+
             entities.erase(entity);
+            entityWorld.erase(entity);
         }
 
     private:
-        friend class SceneWindow;
-
         inline static std::vector<std::unique_ptr<Scene>> allScenes = {};
+        inline static std::unordered_map<System*, Scene*> systemWorld = {};
+        inline static std::unordered_map<Entity, Scene*> entityWorld = {};
 
         std::string name;
         std::unordered_set<System*> systems;
         std::unordered_set<Entity> entities;
-        bool isRunning;
+        bool isRunning = false;
         // std::vector<Scene*> subScenes;
     };
 }

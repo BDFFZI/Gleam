@@ -43,6 +43,13 @@ namespace Gleam
     {
         return size;
     }
+    void Archetype::GetComponentTypes(std::vector<std::reference_wrapper<const Type>>& componentTypes, const bool clearOutput) const
+    {
+        if (clearOutput)
+            componentTypes.clear();
+        for (int i = 1; i < componentCount; ++i)
+            componentTypes.emplace_back(GetComponentType(i));
+    }
 
     bool Archetype::HasComponent(const std::type_index component) const
     {

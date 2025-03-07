@@ -1,4 +1,6 @@
 #include "World.h"
+
+#include "Scene.h"
 #include "GleamUtility/Runtime/Ranges.h"
 
 namespace Gleam
@@ -169,6 +171,13 @@ namespace Gleam
             RemoveSystem(system);
     }
 
+    void World::AddComponents(const Entity entity, std::vector<std::reference_wrapper<const Type>> componentTypes)
+    {
+        GetEntityInfo(entity).archetype->GetComponentTypes(componentTypes, false);
+        Archetype& archetype = Archetype::CreateOrGet(componentTypes);
+        MoveEntity(entity, archetype);
+    }
+
     void World::Update()
     {
         FlushSystemQueue(); //将更新过程中标记增删的实体或系统移入到对应的事件队列
@@ -176,6 +185,7 @@ namespace Gleam
     }
     void World::Clear()
     {
+        Scene::Clear();
         FlushSystemQueue(); //也可以不刷新SystemQueue，效果是一样的
         systems.Stop();
         RemoveAllEntities(); //移除所有实体

@@ -266,6 +266,7 @@ namespace Gleam
     {
         assert(!dataToAsset.contains(asset.dataRef) && "资源已被添加到资源包！");
 
+        asset.id = GenerateAssetID(); //不同资源包内的资源ID可能重复，故需要重新生成
         dataToAsset.insert({asset.dataRef, AssetRef{id, asset.id}});
         assetToData.insert({AssetRef{id, asset.id}, asset.dataRef});
         assetIDSet.insert(asset.id);
@@ -295,7 +296,7 @@ namespace Gleam
     }
     int AssetBundle::GenerateAssetID() const
     {
-        std::default_random_engine engine = std::default_random_engine(static_cast<uint32_t>(time(nullptr)));
+        std::default_random_engine engine = std::default_random_engine(static_cast<uint32_t>(time(nullptr) + assetIDSet.size()));
         std::uniform_int_distribution random = std::uniform_int_distribution(0, std::numeric_limits<int>::max());
         int assetID = random(engine);
         while (assetIDSet.contains(assetID))

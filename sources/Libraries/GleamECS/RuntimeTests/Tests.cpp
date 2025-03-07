@@ -458,7 +458,13 @@ class MySystem : public System
 };
 Gleam_MakeGlobalSystem(MySystem)
 
-void main()
+class MySystem2 : public System
+{
+};
+Gleam_MakeGlobalSystem(MySystem2)
+
+
+TEST(ECS, Scene)
 {
     //测试场景的创建和保存
     {
@@ -499,5 +505,42 @@ void main()
         MyComponent& myComponent = World::GetComponent<MyComponent>(entities[0]);
         ASSERT_EQ(myComponent.value, 3);
         ASSERT_EQ(World::GetComponent<Transform>(myComponent.dependency).position, 999);
+
+        Scene::Destroy(scene);
+    }
+
+    //测试运行场景
+    {
+        //中途添加系统
+        AssetBundle& assetBundle = AssetBundle::LoadJson("TestScene.json");
+        Scene& scene = Scene::FromAssetBundle(assetBundle);
+        scene.AddSystem(GlobalMySystem2);
+        ASSERT_EQ(scene.GetSystems().size(), 2);
+        //启动场景
+        ASSERT_EQ(World::GetSystems().GetSubSystems().size(), 0);
+        scene.Start();
+        World::Update();
+        ASSERT_EQ(World::GetSystems().GetSubSystems().size(), 2);
+        //停止场景
+        scene.Stop();
+        World::Update();
+        ASSERT_EQ(World::GetSystems().GetSubSystems().size(), 0);
+        //实体被更新
+        ASSERT_EQ(World::GetComponent<MyComponent>(assetBundle.GetData<EntityAsset>(3).GetEntity()).value, 4);
+        //写回资源包并卸载场景
+        Scene::ToAssetBundle(scene, assetBundle);
+        AssetBundle::SaveJson("TestScene.json", assetBundle);
+        AssetBundle::UnLoad(assetBundle);
+        Scene::Destroy(scene);
+    }
+
+    {
+        //重新加载
+        AssetBundle& assetBundle = AssetBundle::LoadJson("TestScene.json");
+        Scene& scene = Scene::FromAssetBundle(assetBundle);
+        AssetBundle::UnLoad(assetBundle);
+
+        ASSERT_EQ(scene.GetEntities().size(), 3);
+        ASSERT_EQ(scene.GetSystems().size(), 2);
     }
 }

@@ -4,6 +4,7 @@
 #include <typeindex>
 #include <unordered_map>
 #include <utility>
+#include <ranges>
 #include <stduuid/uuid.h>
 
 #include "GleamUtility/Runtime/md5.h"
@@ -49,6 +50,11 @@ namespace Gleam
     class Type
     {
     public:
+        static auto GetAllTypes()
+        {
+            return allTypes | std::views::values;
+        }
+
         /**
          * 基于模板、type_info创建Type，并建立type_index到Type的索引
          * @tparam T 
@@ -108,6 +114,15 @@ namespace Gleam
 
         static std::optional<std::reference_wrapper<const Type>> GetType(std::type_index typeIndex);
         static std::optional<std::reference_wrapper<const Type>> GetType(uuids::uuid typeID);
+
+        bool operator==(const Type& other) const
+        {
+            return id == other.id;
+        }
+        bool operator!=(const Type& other) const
+        {
+            return !(*this == other);
+        }
 
         std::string_view GetName() const;
         std::type_index GetIndex() const;

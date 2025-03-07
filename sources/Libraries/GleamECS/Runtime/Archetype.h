@@ -65,6 +65,7 @@ namespace Gleam
         const string& GetName() const;
         uuids::uuid GetID() const;
         int GetSize() const;
+        void GetComponentTypes(std::vector<std::reference_wrapper<const Type>>& componentTypes, bool clearOutput = true) const;
 
         bool HasComponent(std::type_index component) const;
         int GetComponentCount() const;

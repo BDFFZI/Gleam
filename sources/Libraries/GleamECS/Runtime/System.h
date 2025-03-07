@@ -32,6 +32,13 @@ namespace Gleam
         static constexpr int32_t MaxOrder = std::numeric_limits<int32_t>::max();
         static constexpr int32_t DefaultOrder = 0;
 
+        static auto GetAllSystems()
+        {
+            return allSystems | std::views::values | std::views::transform(
+                [](auto system) { return std::reference_wrapper<System>(*system); }
+            );
+        }
+
         /**
          * 全局System创建函数。
          *
@@ -213,7 +220,7 @@ namespace Gleam
             for (System* system : subSystemUpdateQueue)
             {
 #ifdef GleamEngineEditor
-                std::string& name = system->GetName();
+                auto& name = system->GetName();
                 Gleam_ProfilerSample(name);
 #endif
                 system->Update();
@@ -221,7 +228,7 @@ namespace Gleam
         }
 
     private:
-        friend class EditorUI;
+        friend class HierarchyWindow;
 
         std::set<System*, SystemPtrComparer> subSystemStartQueue = {};
         std::set<System*, SystemPtrComparer> subSystemStopQueue = {};

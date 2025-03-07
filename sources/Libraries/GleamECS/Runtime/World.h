@@ -80,6 +80,8 @@ namespace Gleam
         static void RemoveSystem(System& system);
         static void RemoveSystems(std::initializer_list<std::reference_wrapper<System>> systems);
 
+        static void AddComponents(Entity entity, std::vector<std::reference_wrapper<const Type>> componentTypes);
+
         template <Component TComponent>
         static bool HasComponent(const Entity entity)
         {
@@ -145,13 +147,14 @@ namespace Gleam
             ((*reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetComponentOffset(typeid(TComponents))) = components), ...);
         }
 
+
         static void Update();
         static void Clear();
 
     private:
         Gleam_MakeType_Friend
-        friend class WorldWindow;
-        friend class EditorUI;
+        friend class HierarchyWindow;
+        friend class InspectorWindow;
         friend class Scene;
         template <class T>
         friend struct FieldDataTransferrer_Transfer;

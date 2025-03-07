@@ -43,7 +43,14 @@ private:
     void Update() override
     {
         ImGui::ShowDemoWindow();
+
         ImGui::Image(textureID, float2(50));
+        if (ImGui::BeginPopupContextItem("texture"))
+        {
+            ImGui::Text("This a texture!");
+            ImGui::EndPopup();
+        }
+
         UI::DragFloat4x4("matrix", &matrix);
 
         std::unordered_map<std::string, float> map = {
