@@ -7,6 +7,8 @@ namespace Gleam
 {
     /**
      * 将指针类型同步为资源引用
+     *
+     * TODO 该功能采用覆写传输函数的方法实现，这会影响到其他数据传输器
      * @tparam TValue 
      */
     template <typename TValue>
@@ -26,10 +28,10 @@ namespace Gleam
     };
 
     /**
-     * 一个不会实际进行数据传递的字段数据传输器，用于仅触发指针传输。
+     * 一个不会实际进行数据传递的字段数据传输器，用于仅触发传输事件。
      *
      * 对于自引用的资源包，因为加载顺序原因，会导致指针为空。
-     * 解决方法是每次资源包的数据加载完毕后，再单独传递一遍指针。
+     * 解决方法是每次资源包的数据加载完毕后，再单独处理一遍指针。
      */
     class PointerTransferrer : public FieldDataTransferrer
     {

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <regex>
 
+#include "AssetRefTransferrer.h"
 #include "GleamPersistence/Runtime/Serializer/BinaryReader.h"
 #include "GleamPersistence/Runtime/Serializer/BinaryWriter.h"
 #include "GleamPersistence/Runtime/Serializer/JsonReader.h"
@@ -30,9 +31,25 @@ namespace Gleam
     {
         std::stringstream outStream;
         BinaryWriter binaryWriter = BinaryWriter(outStream);
-
         AssetBundleType.Serialize(binaryWriter, &assetBundle);
         File::WriteAllText(assetBundleDirectory + to_string(assetBundle.id), outStream.str());
+
+        SaveMeta(assetBundle);
+    }
+    void AssetBundle::SaveMeta(AssetBundle& assetBundle)
+    {
+        AssetBundleMeta assetBundleMeta;
+        //收集依赖信息
+        AssetRefStatistician assetRefStatistician = {};
+        AssetBundleType.Serialize(assetRefStatistician, &assetBundle);
+        for (auto& assetRef : assetRefStatistician.result)
+        {
+            if (assetRef.assetBundleID != assetBundle.id)
+                assetBundleMeta.dependencies.push_back(assetRef.assetBundleID);
+        }
+        //保存元信息
+        std::string meta = JsonUtility::ToJson(&assetBundleMeta, AssetBundleMetaType, true);
+        File::WriteAllText(assetBundleDirectory + to_string(assetBundle.id) + ".meta", meta);
     }
     AssetBundle& AssetBundle::Load(AssetBundle& newAssetBundle, const bool reload)
     {
@@ -121,7 +138,7 @@ namespace Gleam
             return std::nullopt;
 
         //获取资源包中的资源
-        auto result = assetBundle->GetAsset(assetRef.assetID);
+        auto result = assetBundle->GetAssetFromID(assetRef.assetID);
         if (result.has_value())
             return result.value().get().dataRef;
 
@@ -200,11 +217,15 @@ namespace Gleam
     {
         return id;
     }
+    const Asset& AssetBundle::GetAsset(const int index) const
+    {
+        return assets[index];
+    }
     const std::vector<Asset>& AssetBundle::GetAssets() const
     {
         return assets;
     }
-    std::optional<std::reference_wrapper<const Asset>> AssetBundle::GetAsset(int assetID) const
+    std::optional<std::reference_wrapper<const Asset>> AssetBundle::GetAssetFromID(int assetID) const
     {
         const auto it = std::ranges::find_if(assets, [assetID](const Asset& asset) { return asset.id == assetID; });
         return it == assets.end() ? std::nullopt : std::optional<std::reference_wrapper<const Asset>>{*it};

@@ -8,11 +8,21 @@
 
 namespace Gleam
 {
+    struct AssetBundleMeta
+    {
+        std::vector<uuids::uuid> dependencies;
+    };
+    Gleam_MakeType(AssetBundleMeta, "")
+    {
+        Gleam_MakeType_AddField(dependencies);
+    }
+
     class AssetBundle
     {
     public:
         static AssetBundle& Create(uuids::uuid assetBundleID = {});
         static void Save(AssetBundle& assetBundle);
+        static void SaveMeta(AssetBundle& assetBundle);
         static AssetBundle& Load(AssetBundle& newAssetBundle, bool reload = false);
         static AssetBundle& Load(uuids::uuid assetBundleID, bool reload = false);
         static void UnLoad(AssetBundle& assetBundle, bool retainAssets = false);
@@ -28,9 +38,10 @@ namespace Gleam
         static AssetBundle& LoadJson(std::string_view fileName, bool reload = false);
         static void DumpJson(std::string_view fileName);
 
-        uuids::uuid GetID() const;
         const std::vector<Asset>& GetAssets() const;
-        std::optional<std::reference_wrapper<const Asset>> GetAsset(int assetID) const;
+        uuids::uuid GetID() const;
+        const Asset& GetAsset(int index) const;
+        std::optional<std::reference_wrapper<const Asset>> GetAssetFromID(int assetID) const;
         template <typename T>
         T& GetData(const int index)
         {
@@ -45,10 +56,10 @@ namespace Gleam
             return EmplaceAsset(std::move(asset));
         }
         void RemoveAsset(void* data);
+
         void ClearAssets();
         Asset& EmplaceAsset(Asset&& asset);
         Asset ExtractAsset(int assetID);
-
 
         AssetBundle() = default;
         AssetBundle(AssetBundle&&) = default;
@@ -64,7 +75,14 @@ namespace Gleam
         inline static std::unordered_map<uuids::uuid, AssetBundle> assetBundles = {};
         inline static std::unordered_map<void*, AssetRef> dataToAsset = {}; //数据对应的资源
         inline static std::unordered_map<AssetRef, void*> assetToData = {}; //资源对应的数据
-        inline static std::unordered_map<void*, AssetRef> pointerMapping = {}; //所有指针绑定的资源引用信息
+        /**
+         * 缓存指针绑定的资源引用。
+         * 
+         * 由于首次序列化指针时，所有资源都未加载完成，因此无法通过资源引用获取资源。
+         * 而待资源加载完毕后重新链接指针时，由于不再从文件中读取信息，因此无法获取指针的引用资源。
+         * 故需要在第一次序列化时缓存指针的资源引用，然后第二次序列化时提取出来。
+         */
+        inline static std::unordered_map<void*, AssetRef> pointerMapping = {};
 
         uuids::uuid id;
         std::vector<Asset> assets;
