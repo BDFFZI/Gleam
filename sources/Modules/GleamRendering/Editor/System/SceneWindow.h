@@ -14,15 +14,15 @@ namespace Gleam
 {
     Gleam_MakeArchetypeChild(SceneCameraArchetype, CameraArchetype, ScreenToClip)
 
-    class WatchWindow : public System
+    class SceneWindow : public System
     {
     public:
-        static WatchWindow& GetWatchWindowDrawing();
+        static SceneWindow& GetSceneWindowDrawing();
         static const CustomUI& GetCustomUI();
         static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneUI);
 
 
-        WatchWindow(): System(GlobalEditorUISystem)
+        SceneWindow(): System(GlobalEditorUISystem)
         {
         }
 
@@ -33,14 +33,14 @@ namespace Gleam
 
     private:
         inline static std::unordered_map<std::type_index, std::function<void(void*)>> sceneGUIs = {};
-        inline static WatchWindow* sceneWindowDrawing = nullptr;
+        inline static SceneWindow* sceneWindowDrawing = nullptr;
 
         float2 windowContentPosition = 0;
         float2 windowContentSize = 0;
         //预建资源
-        SystemEvent preProcessSystem = SystemEvent("WatchWindow_PreProcess", GlobalPostUpdateSystem);
-        InputSystem inputSystem = Engine::CreateSystem<InputSystem>("WatchWindow_Input");
-        TimeSystem timeSystem = Engine::CreateSystem<TimeSystem>("WatchWindow_Time");
+        SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", GlobalPostUpdateSystem);
+        InputSystem inputSystem = Create<InputSystem>("SceneWindow_Input");
+        TimeSystem timeSystem = Create<TimeSystem>("SceneWindow_Time");
         Entity sceneCamera = Entity::Null;
         //场景相机渲染目标相关
         std::unique_ptr<GRenderTexture> sceneCameraCanvas;
@@ -58,9 +58,9 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(WatchWindow)
+    Gleam_MakeGlobalSystem(SceneWindow)
 
 #define Gleam_MakeSceneUI(type,drawSceneUI)\
-    Gleam_MakeInitEvent(){WatchWindow::AddCustomUI(typeid(type),\
+    Gleam_MakeInitEvent(){SceneWindow::AddCustomUI(typeid(type),\
     [](void* target){drawSceneUI(*static_cast<type##*>(target));});}
 }

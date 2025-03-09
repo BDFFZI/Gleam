@@ -1,11 +1,11 @@
 #include "CustomUI.h"
+#include "GleamEngine/Editor/CustomUI.h"
 
 #include "Gizmos.h"
 #include "Handles.h"
 #include "GleamECS/Runtime/World.h"
-#include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamEngine/Runtime/System/TransformSystem.h"
-#include "System/WatchWindow.h"
+#include "System/SceneWindow.h"
 
 namespace Gleam
 {
@@ -51,19 +51,36 @@ namespace Gleam
 
     void SceneUI_Entity(const Entity entity)
     {
-        if (World::HasEntity(entity))
-            EditorUI::DrawEntityContent(entity, WatchWindow::GetCustomUI(), true);
+        if (!World::HasEntity(entity))
+            return;
+
+        SceneUI_Entity_Target = entity;
+        EntityInfo entityInfo = World::GetEntityInfo(entity);
+        const Archetype& archetype = *entityInfo.archetype;
+
+        for (int i = 0; i < archetype.GetComponentCount(); ++i)
+        {
+            const Type& componentType = archetype.GetComponentType(i);
+            void* component = entityInfo.components + archetype.GetComponentOffset(i);
+            std::type_index componentTypeIndex = componentType.GetIndex();
+
+            //绘制组件内容
+            ImGui::PushID(component);
+            if (SceneWindow::GetCustomUI().contains(componentTypeIndex))
+                SceneWindow::GetCustomUI().at(componentTypeIndex)(component);
+            ImGui::PopID();
+        }
     }
     void SceneUI_LocalToWorld(LocalToWorld& localToWorld)
     {
         //获取实体和组件
-        Entity entity = InspectorWindow::GetEntityDrawing();
+        Entity entity = SceneUI_Entity_Target;
         std::optional<LocalTransform*> transform = World::TryGetComponent<LocalTransform>(entity);
         if (transform.has_value()) //LocalToWorld可能过时，显式更新一次
             TransformSystem::ComputeLocalToWorld(*transform.value(), localToWorld);
         //获取手柄类型信息
         static constexpr ImGuizmo::OPERATION options[] = {ImGuizmo::BOUNDS, ImGuizmo::TRANSLATE, ImGuizmo::ROTATE, ImGuizmo::SCALE};
-        ImGuizmo::OPERATION imGuiOption = options[GlobalWatchWindow.GetHandleOption()];
+        ImGuizmo::OPERATION imGuiOption = options[GlobalSceneWindow.GetHandleOption()];
         //绘制
         if (transform.has_value())
             Handles::DrawHandle(imGuiOption, localToWorld.value, *transform.value());
@@ -73,8 +90,8 @@ namespace Gleam
 
     void InspectorUI_Point(Point& point)
     {
-        InspectorWindow::DrawDefaultContent(&point, typeid(point));
-        if (LocalToWorld* localToWorld; World::TryGetComponent(InspectorWindow::GetEntityDrawing(), localToWorld))
+        EditorUI::DrawSerializedContent(&point, typeid(point));
+        if (LocalToWorld* localToWorld; World::TryGetComponent(InspectorUI_Entity_Target, localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
             Gizmos::Draw(point.position);
@@ -87,8 +104,8 @@ namespace Gleam
     }
     void InspectorUI_Segment(Segment& segment)
     {
-        InspectorWindow::DrawDefaultContent(&segment, typeid(segment));
-        if (LocalToWorld* localToWorld; World::TryGetComponent(InspectorWindow::GetEntityDrawing(), localToWorld))
+        EditorUI::DrawSerializedContent(&segment, typeid(segment));
+        if (LocalToWorld* localToWorld; World::TryGetComponent(InspectorUI_Entity_Target, localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
             Gizmos::Draw(segment);
@@ -101,17 +118,17 @@ namespace Gleam
     }
     void InspectorUI_Cuboid(Cuboid& cuboid)
     {
-        InspectorWindow::DrawDefaultContent(&cuboid, typeid(cuboid));
-        DrawCuboid(InspectorWindow::GetEntityDrawing(), cuboid);
+        EditorUI::DrawSerializedContent(&cuboid, typeid(cuboid));
+        DrawCuboid(InspectorUI_Entity_Target, cuboid);
     }
     void InspectorUI_Rectangle(Rectangle& rectangle)
     {
-        InspectorWindow::DrawDefaultContent(&rectangle, typeid(rectangle));
-        DrawRectangle(InspectorWindow::GetEntityDrawing(), rectangle);
+        EditorUI::DrawSerializedContent(&rectangle, typeid(rectangle));
+        DrawRectangle(InspectorUI_Entity_Target, rectangle);
     }
     void InspectorUI_Sphere(Sphere& sphere)
     {
-        InspectorWindow::DrawDefaultContent(&sphere, typeid(sphere));
-        DrawSphere(InspectorWindow::GetEntityDrawing(), sphere);
+        EditorUI::DrawSerializedContent(&sphere, typeid(sphere));
+        DrawSphere(InspectorUI_Entity_Target, sphere);
     }
 }

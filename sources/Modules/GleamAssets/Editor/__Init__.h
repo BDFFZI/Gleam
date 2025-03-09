@@ -1,9 +1,9 @@
 #pragma once
-#include "System/SceneWindow.h"
+#include "System/ProjectWindow.h"
 
 namespace Gleam
 {
     Gleam_AddEditorSystems(
-        GlobalSceneWindow
+        GlobalProjectWindow
     )
 }

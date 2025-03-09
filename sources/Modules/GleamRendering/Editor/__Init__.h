@@ -1,10 +1,11 @@
 ﻿#pragma once
 #include "CustomUI.h"
 #include "Gizmos.h"
+#include "GleamPresentation/Runtime/__Init__.h"
 #include "System/GameWindow.h"
 #include "System/GizmosSystem.h"
 #include "System/HandlesSystem.h"
-#include "System/WatchWindow.h"
+#include "System/SceneWindow.h"
 
 namespace Gleam
 {
@@ -20,9 +21,9 @@ namespace Gleam
 
     Gleam_AddEditorSystems(
         GlobalGameWindow,
-        GlobalWatchWindow,
-        HandlesSystem::GetInstance(),
-        GizmosSystem::GetInstance()
+        GlobalSceneWindow,
+        GlobalHandlesSystem,
+        GlobalGizmosSystem
     )
 
     Gleam_MakeSceneUI(Entity, SceneUI_Entity)

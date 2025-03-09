@@ -7,6 +7,8 @@
 #include <vector>
 #include <unordered_map>
 #include <ranges>
+#include <unordered_set>
+
 #include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam
@@ -52,7 +54,7 @@ namespace Gleam
         template <Component... TComponents>
         static Archetype& Create(const std::string_view name, const Archetype& parent)
         {
-            std::vector<const Type*> types = {parent.componentTypes.begin() + 1, parent.componentTypes.end()};
+            std::vector<const Type*> types = parent.componentTypes;
             types.insert(types.end(), {&Type::CreateOrGet<TComponents>()...});
 
             Archetype archetype = {name, types};
@@ -65,7 +67,7 @@ namespace Gleam
         const string& GetName() const;
         uuids::uuid GetID() const;
         int GetSize() const;
-        void GetComponentTypes(std::vector<std::reference_wrapper<const Type>>& componentTypes, bool clearOutput = true) const;
+        void GetComponentTypes(std::vector<std::reference_wrapper<const Type>>& result) const;
 
         bool HasComponent(std::type_index component) const;
         int GetComponentCount() const;
@@ -80,7 +82,7 @@ namespace Gleam
 
         void Construct(std::byte* address) const;
         void Destruct(std::byte* address) const;
-        void MoveConstruct(std::byte* source, std::byte* destination) const;
+        void MoveConstruct(std::byte* destination, std::byte* source) const;
         void Move(std::byte* source, std::byte* destination) const;
 
     private:

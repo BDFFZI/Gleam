@@ -9,9 +9,10 @@ namespace Gleam
 {
     Archetype& Archetype::Create(const std::vector<std::reference_wrapper<const Type>>& componentTypes, const std::string_view name)
     {
-        std::vector<const Type*> types = std::vector<const Type*>{componentTypes.size()};
-        for (size_t i = 0; i < componentTypes.size(); ++i)
-            types[i] = &componentTypes.begin()[i].get();
+        std::vector<const Type*> types;
+        types.reserve(componentTypes.size());
+        for (const auto& type : componentTypes)
+            types.push_back(&type.get());
 
         Archetype archetype = {name, types};
         return allArchetypes.emplace(archetype.id, std::move(archetype)).first->second;
@@ -43,12 +44,11 @@ namespace Gleam
     {
         return size;
     }
-    void Archetype::GetComponentTypes(std::vector<std::reference_wrapper<const Type>>& componentTypes, const bool clearOutput) const
+    void Archetype::GetComponentTypes(std::vector<std::reference_wrapper<const Type>>& result) const
     {
-        if (clearOutput)
-            componentTypes.clear();
-        for (int i = 1; i < componentCount; ++i)
-            componentTypes.emplace_back(GetComponentType(i));
+        result.clear();
+        for (int i = 0; i < componentCount; ++i)
+            result.emplace_back(GetComponentType(i));
     }
 
     bool Archetype::HasComponent(const std::type_index component) const
@@ -77,6 +77,8 @@ namespace Gleam
 
     void Archetype::Construct(std::byte* address) const
     {
+        address += sizeof(Entity);
+
         for (int i = 0; i < componentCount; ++i)
         {
             componentTypes[i]->Construct(address);
@@ -85,28 +87,38 @@ namespace Gleam
     }
     void Archetype::Destruct(std::byte* address) const
     {
+        address += sizeof(Entity);
+
         for (int i = 0; i < componentCount; ++i)
         {
             componentTypes[i]->Destruct(address);
             address += componentTypes[i]->GetSize();
         }
     }
-    void Archetype::MoveConstruct(std::byte* source, std::byte* destination) const
+    void Archetype::MoveConstruct(std::byte* destination, std::byte* source) const
     {
+        std::memcpy(destination, source, sizeof(Entity));
+        destination += sizeof(Entity);
+        source += sizeof(Entity);
+
         for (int i = 0; i < componentCount; ++i)
         {
             componentTypes[i]->MoveConstruct(destination, source);
-            source += componentTypes[i]->GetSize();
             destination += componentTypes[i]->GetSize();
+            source += componentTypes[i]->GetSize();
         }
     }
-    void Archetype::Move(std::byte* source, std::byte* destination) const
+    void Archetype::Move(std::byte* destination, std::byte* source) const
     {
+        std::memcpy(destination, source, sizeof(Entity));
+        destination += sizeof(Entity);
+        source += sizeof(Entity);
+
         for (int i = 0; i < componentCount; ++i)
         {
             componentTypes[i]->Move(destination, source);
-            source += componentTypes[i]->GetSize();
             destination += componentTypes[i]->GetSize();
+            source += componentTypes[i]->GetSize();
         }
     }
 
@@ -117,6 +129,9 @@ namespace Gleam
             componentTypes,
             [](auto a, auto b) { return a->GetID() < b->GetID(); }
         );
+        assert(std::ranges::unique(componentTypes).begin() == componentTypes.end() && "一个原型内不允许有重复组件！");
+
+        //计算原型ID
         std::string componentIDs = {};
         for (const auto& componentType : componentTypes)
             componentIDs += to_string(componentType->GetID());
@@ -125,16 +140,14 @@ namespace Gleam
         this->id = uuids::uuid(md5.toArray());
         this->name = name.empty() ? md5.toStr() : name;
 
-        componentTypes.insert(componentTypes.begin(), &Type::CreateOrGet<Entity>());
         this->componentCount = static_cast<int>(componentTypes.size());
         this->componentMapping.reserve(componentCount);
         this->componentTypes.reserve(componentCount);
         this->componentOffsets.reserve(componentCount);
-        this->size = 0;
+        this->size = sizeof(Entity); //首地址必须留着存储Entity
         for (int i = 0; i < componentCount; ++i)
         {
             const Type& componentType = *componentTypes[i];
-
             this->componentMapping[componentType.GetIndex()] = i;
             this->componentTypes.push_back(&componentType);
             this->componentOffsets.push_back(this->size);
@@ -144,16 +157,22 @@ namespace Gleam
 
     std::string to_string(const Archetype& archetype)
     {
-        std::string result = std::format("{}\t{}", archetype.GetName(), archetype.GetSize());
+        static std::stringstream result = {};
+
+        result.str("");
+        result << "Name:" << archetype.GetName() << "\n";
+        result << "ID:" << to_string(archetype.GetID()) << "\n";
+        result << "Size:" << std::to_string(archetype.GetSize()) << "\n";
+        result << "Components:";
         for (int i = 0; i < archetype.GetComponentCount(); ++i)
         {
-            result += std::format(
-                "\n{:20} {:5} {:5}",
-                archetype.GetComponentType(i).GetName(),
+            result << "\n" << archetype.GetComponentType(i).GetName() << "\n";
+            result << std::format(
+                "{}\t{}",
                 archetype.GetComponentOffset(i),
                 archetype.GetComponentType(i).GetSize()
             );
         }
-        return result;
+        return result.str();
     }
 }

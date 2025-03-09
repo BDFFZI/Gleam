@@ -31,6 +31,12 @@ namespace Gleam
 
     std::byte* Heap::RemoveElement(const int index)
     {
+        if (elementCount == 1)
+        {
+            elementCount = 0;
+            return nullptr;
+        }
+
         std::byte* item = At(index);
         memcpy(item, At(elementCount - 1), elementSize);
         elementCount--;

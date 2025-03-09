@@ -2,7 +2,6 @@
 #include "GleamUI/Runtime/UI.h"
 #include <ImGuizmo.h>
 
-#include "GleamECS/Runtime/System.h"
 #include "GleamEngine/Runtime/Component/Transform.h"
 #include "GleamMath/Runtime/LinearAlgebra/Matrix.h"
 

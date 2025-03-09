@@ -7,18 +7,16 @@ namespace Gleam
     class GizmosSystem : public System
     {
     public:
-        static GizmosSystem& GetInstance();
-
-    private:
-        Gleam_Engine_Friend
-
-        SystemEvent postProcessSystem = SystemEvent("GizmosSystem_PostProcess", GlobalPresentationSystem, OrderRelation::After);
-
         GizmosSystem(): System(GlobalRenderingSystem, OrderRelation::Before)
         {
         }
+
+    private:
+        SystemEvent postProcessSystem = SystemEvent("GizmosSystem_PostProcess", GlobalPresentationSystem, OrderRelation::After);
+
         void Start() override;
         void Stop() override;
         void Update() override;
     };
+    Gleam_MakeGlobalSystem(GizmosSystem)
 }

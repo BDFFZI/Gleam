@@ -5,12 +5,6 @@
 
 namespace Gleam
 {
-    HandlesSystem& HandlesSystem::GetInstance()
-    {
-        static HandlesSystem instance = Engine::CreateSystem<HandlesSystem>();
-        return instance;
-    }
-
     void HandlesSystem::Start()
     {
         ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());

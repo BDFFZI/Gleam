@@ -113,8 +113,10 @@ macro(addPackage)
         setLibrary()
 
         # 引用对应的运行时库
-        string(REPLACE "Editor" "Runtime" TargetLibrary ${ProjectName})
-        linkLibrary(${TargetLibrary} ${ProjectName})
+        if(EXISTS "${PackageSource}/Runtime")
+            string(REPLACE "Editor" "Runtime" TargetLibrary ${ProjectName})
+            linkLibrary(${TargetLibrary} ${ProjectName})
+        endif()
 
         # 引用编辑器核心库
         if(NOT ${PackageName} STREQUAL "GleamEngine")

@@ -31,6 +31,7 @@ namespace Gleam
         //世界内容
         static std::unordered_map<const Archetype*, Heap>& GetEntities();
         static SystemGroup& GetSystems();
+        static EntityInfo& GetEntityInfo(Entity entity);
 
         //查询实体
         static bool HasEntity(Entity entity);
@@ -80,7 +81,8 @@ namespace Gleam
         static void RemoveSystem(System& system);
         static void RemoveSystems(std::initializer_list<std::reference_wrapper<System>> systems);
 
-        static void AddComponents(Entity entity, std::vector<std::reference_wrapper<const Type>> componentTypes);
+        static void AddComponents(Entity entity, std::initializer_list<std::reference_wrapper<const Type>> componentTypes);
+        static void RemoveComponents(Entity entity, std::initializer_list<std::reference_wrapper<const Type>> componentTypes);
 
         template <Component TComponent>
         static bool HasComponent(const Entity entity)
@@ -172,7 +174,6 @@ namespace Gleam
         inline static std::vector<System*> addingSystems = {};
 
         static Entity GetNextEntity();
-        static EntityInfo& GetEntityInfo(Entity entity);
         static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
 
     public:

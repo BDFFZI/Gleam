@@ -107,11 +107,10 @@ namespace Gleam
         //分配新内存
         Heap& newHeap = GetEntityHeap(newArchetype);
         std::byte* newAddress = newHeap.AddElement();
+        *reinterpret_cast<Entity*>(newAddress) = entity; //Entity不被归类于组件，需单独赋值
         //迁移内存数据
-        for (int i = 0; i < newArchetype.GetComponentCount(); ++i)
+        for (int i = 0; i < newArchetype.GetComponentCount(); ++i) //遍历每个新原形的组件
         {
-            //遍历每个新原形的组件
-
             //获取组件信息
             const Type& componentType = newArchetype.GetComponentType(i);
             const std::type_index typeIndex = componentType.GetIndex();
@@ -136,7 +135,7 @@ namespace Gleam
         Heap& newHeap = GetEntityHeap(newArchetype);
         std::byte* newAddress = newHeap.AddElement();
         //将旧数据复制到新内存
-        oldEntityInfo.archetype->MoveConstruct(oldEntityInfo.components, newAddress);
+        oldEntityInfo.archetype->MoveConstruct(newAddress, oldEntityInfo.components);
         //将旧数据从内存中移除
         RemoveHeapItem(*oldEntityInfo.archetype, oldEntityInfo.indexAtHeap);
         //设置新实体信息
@@ -171,10 +170,25 @@ namespace Gleam
             RemoveSystem(system);
     }
 
-    void World::AddComponents(const Entity entity, std::vector<std::reference_wrapper<const Type>> componentTypes)
+    void World::AddComponents(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
     {
-        GetEntityInfo(entity).archetype->GetComponentTypes(componentTypes, false);
-        Archetype& archetype = Archetype::CreateOrGet(componentTypes);
+        static std::vector<std::reference_wrapper<const Type>> currentComponents = {};
+
+        GetEntityInfo(entity).archetype->GetComponentTypes(currentComponents);
+        currentComponents.insert(currentComponents.end(), componentTypes.begin(), componentTypes.end());
+
+        Archetype& archetype = Archetype::CreateOrGet(currentComponents);
+        MoveEntity(entity, archetype);
+    }
+    void World::RemoveComponents(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
+    {
+        static std::vector<std::reference_wrapper<const Type>> currentComponents = {};
+
+        GetEntityInfo(entity).archetype->GetComponentTypes(currentComponents);
+        for (std::reference_wrapper<const Type> component : componentTypes)
+            std::erase_if(currentComponents, [component](auto a) { return a.get() == component.get(); });
+
+        Archetype& archetype = Archetype::CreateOrGet(currentComponents);
         MoveEntity(entity, archetype);
     }
 
@@ -249,12 +263,16 @@ namespace Gleam
         //移除旧实体
         Heap& heap = GetEntityHeap(heapIndex);
         std::byte* element = heap.RemoveElement(elementIndex);
-        //获取因此被移动的实体
-        const Entity movedEntity = *reinterpret_cast<Entity*>(element);
-        //重设实体信息
-        EntityInfo movedEntityInfo = GetEntityInfo(movedEntity);
-        movedEntityInfo.components = element;
-        movedEntityInfo.indexAtHeap = elementIndex;
-        SetEntityInfo(movedEntity, movedEntityInfo);
+        //调整因此被移动的实体
+        if (element != nullptr)
+        {
+            //获取因此被移动的实体
+            const Entity movedEntity = *reinterpret_cast<Entity*>(element);
+            //重设实体信息
+            EntityInfo movedEntityInfo = GetEntityInfo(movedEntity);
+            movedEntityInfo.components = element;
+            movedEntityInfo.indexAtHeap = elementIndex;
+            SetEntityInfo(movedEntity, movedEntityInfo);
+        }
     }
 }

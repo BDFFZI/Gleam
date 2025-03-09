@@ -10,8 +10,9 @@ namespace Gleam
     class EditorUI
     {
     public:
-        static void EntityField(Entity entity);
-        static void ObjectField(void* object, std::type_index type)
+        static void DrawSerializedContent(void* target, std::type_index targetType);
+        static void DrawEntityField(Entity entity);
+        static void DrawObjectField(void* object, std::type_index type)
         {
         }
 

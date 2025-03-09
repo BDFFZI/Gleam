@@ -1,12 +1,11 @@
 #pragma once
 
 #include "Editor.h"
-#include "EditorUI/EditorUISerializer.h"
 #include "GleamECS/Runtime/Scene.h"
 #include "System/InspectorWindow.h"
 #include "System/HierarchyWindow.h"
-#include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "System/ProfilerWindow.h"
+#include "CustomUI.h"
 
 namespace Gleam
 {
@@ -54,26 +53,6 @@ namespace Gleam
         GlobalProfilerWindow,
     )
 
-    inline void InspectorUI_LocalTransform(LocalTransform& localTransform)
-    {
-        EditorUISerializer serializer = {"LocalTransform"};
-        serializer.TransferField("position", localTransform.position);
-        float3 eulerAngles = localTransform.rotation.ToEulerAngles();
-        serializer.TransferField("rotation", eulerAngles);
-        localTransform.rotation = Quaternion::Euler(eulerAngles);
-        serializer.TransferField("scale", localTransform.scale);
-    }
-    Gleam_MakeInspectorUI(LocalTransform, InspectorUI_LocalTransform)
-
-    inline void InspectorUI_Entity(const Entity entity)
-    {
-        if (World::HasEntity(entity))
-        {
-            InspectorWindow::DrawEntityContent(
-                entity,
-                InspectorWindow::UseDebugGUI() ? CustomUI{} : InspectorWindow::GetCustomUI()
-            );
-        }
-    }
     Gleam_MakeInspectorUI(Entity, InspectorUI_Entity)
+    Gleam_MakeInspectorUI(LocalTransform, InspectorUI_LocalTransform)
 }

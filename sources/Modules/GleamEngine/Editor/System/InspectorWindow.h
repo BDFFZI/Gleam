@@ -13,7 +13,9 @@ namespace Gleam
         std::type_index type = typeid(void);
 
         InspectorTarget() = default;
-        template <class T> requires !std::is_same_v<T, InspectorTarget>
+        InspectorTarget(void* data, std::type_index type);
+        template <class T>
+            requires !std::is_same_v<T, InspectorTarget> && !std::is_reference_v<T>
         InspectorTarget(T& target)
         {
             data = &target;
@@ -24,10 +26,6 @@ namespace Gleam
     class InspectorWindow : public System
     {
     public:
-        static Entity GetEntityDrawing();
-        static void DrawDefaultContent(void* target, std::type_index targetType);
-        static void DrawEntityContent(Entity entity, const CustomUI& componentGUI = {}, bool pure = false);
-
         static bool& UseDebugGUI();
         static const CustomUI& GetCustomUI();
         static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorUI);

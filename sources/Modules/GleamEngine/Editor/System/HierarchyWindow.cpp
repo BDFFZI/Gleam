@@ -12,7 +12,7 @@ namespace Gleam
 {
     void HierarchyWindow::DrawEntity(const Entity entity)
     {
-        EditorUI::EntityField(entity);
+        EditorUI::DrawEntityField(entity);
         DrawEntityPopup(entity);
     }
     void HierarchyWindow::DrawSystem(System& system)
@@ -176,13 +176,16 @@ namespace Gleam
         DrawSystemsPopup(std::nullopt);
         if (systemsCollapsing)
         {
+            ImGui::PushID("Systems");
             DrawSubSystems(World::GetSystems());
+            ImGui::PopID();
         }
 
         const bool entityCollapsing = ImGui::CollapsingHeader("Entities");
         DrawEntitiesPopup(std::nullopt);
         if (entityCollapsing)
         {
+            ImGui::PushID("Entities");
             for (auto& [archetype,heap] : World::GetEntities())
             {
                 if (heap.GetCount() == 0)
@@ -199,6 +202,18 @@ namespace Gleam
                     ImGui::TreePop();
                 }
             }
+            ImGui::PopID();
+        }
+
+        if (ImGui::CollapsingHeader("Archetype"))
+        {
+            ImGui::PushID("Archetype");
+            for (const Archetype& archetype : Archetype::GetAllArchetypes())
+            {
+                if (ImGui::Button(archetype.GetName().data()))
+                    GlobalInspectorWindow.SetTarget(const_cast<Archetype&>(archetype));
+            }
+            ImGui::PopID();
         }
     }
     void HierarchyWindow::DrawScene(Scene& scene)

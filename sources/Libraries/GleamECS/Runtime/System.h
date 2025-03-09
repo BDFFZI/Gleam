@@ -96,7 +96,7 @@ namespace Gleam
             //设置名称
             system.name = name;
             //设置ID（非全局系统，ID无效）
-            system.id = "";
+            system.id = {};
             //设置Type的父类信息
             if (!systemType.GetParent().has_value())
                 systemType.SetParent(Type::GetType(typeid(System)).value());

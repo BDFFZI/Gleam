@@ -4,15 +4,15 @@
 
 namespace Gleam
 {
-    class SceneWindow : public System
+    class ProjectWindow : public System
     {
     public:
-        SceneWindow(): System(GlobalEditorUISystem)
+        ProjectWindow(): System(GlobalEditorUISystem)
         {
         }
 
     private:
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(SceneWindow)
+    Gleam_MakeGlobalSystem(ProjectWindow)
 }

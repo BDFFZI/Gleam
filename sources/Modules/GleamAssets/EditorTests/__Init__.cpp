@@ -4,4 +4,4 @@
 #include "GleamPresentation/Runtime/__Init__.h"
 #include "GleamUI/Runtime/__Init__.h"
 #include "GleamEngine/Editor/__Init__.h"
-#include "GleamScene/Editor/__Init__.h"
+#include "GleamAssets/Editor/__Init__.h"

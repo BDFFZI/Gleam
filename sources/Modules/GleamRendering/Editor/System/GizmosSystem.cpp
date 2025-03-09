@@ -5,12 +5,6 @@
 
 namespace Gleam
 {
-    GizmosSystem& GizmosSystem::GetInstance()
-    {
-        static GizmosSystem instance = Engine::CreateSystem<GizmosSystem>();
-        return instance;
-    }
-
     void GizmosSystem::Start()
     {
         postProcessSystem.OnUpdate() = []

@@ -16,33 +16,6 @@ namespace Gleam
     class Engine
     {
     public:
-        /**
-         * 一个更完善的System创建函数。
-         * 相比正常使用构造函数创建，该函数能自动按需设置系统名称以及注册类型信息。
-         * @tparam TSystem 
-         * @param name 
-         * @return 
-         */
-        template <typename TSystem> requires std::derived_from<TSystem, System>
-        static TSystem CreateSystem(const std::string_view name = "")
-        {
-            TSystem system = {};
-            //自动设置名称
-            if (!name.empty())
-                system.GetName() = name;
-            else if (system.GetName().empty())
-            {
-                std::string defaultName = std::string(typeid(TSystem).name());
-                defaultName = defaultName.substr(defaultName.find_last_of(' ') + 1);
-                system.GetName() = defaultName;
-            }
-            //自动设置Type的父类信息
-            Type& type = Type::CreateOrGet<TSystem>();
-            if (!type.GetParent().has_value())
-                type.SetParent(SystemType);
-            return std::move(system);
-        }
-
         static void AddStartEvent(const std::function<void()>& event, int order = 0);
         static void AddStopEvent(const std::function<void()>& event, int order = 0);
         static void AddUpdateEvent(const std::function<void()>& event, int order = 0);
@@ -104,10 +77,6 @@ inline int main()\
 Gleam::Engine::Start();\
 return 0;\
 }
-
-#define Gleam_Engine_Friend\
-Gleam_MakeType_Friend\
-friend class Engine;
 
     ///将系统添加到世界，并注册到运行时系统组
 #define Gleam_AddSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::RuntimeSystems().insert(::Gleam::Engine::RuntimeSystems().end(),{__VA_ARGS__});}

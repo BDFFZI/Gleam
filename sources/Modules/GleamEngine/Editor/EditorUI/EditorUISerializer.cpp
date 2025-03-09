@@ -126,7 +126,14 @@ namespace Gleam
         PreTransferNode();
         if (type == typeid(Entity))
         {
-            EditorUI::EntityField(*static_cast<Entity*>(value));
+            EditorUI::DrawEntityField(*static_cast<Entity*>(value));
+            return;
+        }
+        if (type == typeid(Archetype))
+        {
+            ImGui::SeparatorText("Archetype");
+            std::string str = to_string(*static_cast<Archetype*>(value));
+            ImGui::Text(str.data());
             return;
         }
 

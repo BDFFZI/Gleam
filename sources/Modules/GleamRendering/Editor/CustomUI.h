@@ -13,6 +13,7 @@ namespace Gleam
     void DrawCuboid(Entity entity, const Cuboid& cuboid, const float4& color = float4::White());
     void DrawSphere(Entity entity, const Sphere& sphere, const float4& color = float4::White());
 
+    inline static Entity SceneUI_Entity_Target = Entity::Null;
     void SceneUI_Entity(Entity entity);
     void SceneUI_LocalToWorld(LocalToWorld& localToWorld);
 
