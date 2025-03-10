@@ -14,11 +14,11 @@ namespace Gleam
             return *it->second;
         return std::nullopt;
     }
-    
+
     Scene& Scene::Create(const std::string_view name)
     {
         assert(std::ranges::count_if(allScenes,[name](auto& scene){return scene->name == name;}) ==0 && "同名场景已存在！");
-            
+
         std::unique_ptr<Scene>& scene = allScenes.emplace_back(std::make_unique<Scene>());
         scene->name = name;
         return *scene;
@@ -31,13 +31,20 @@ namespace Gleam
             return scenePtr->name == scene.name;
         });
     }
+    void Scene::Destroy(std::string_view name)
+    {
+        std::erase_if(allScenes, [&name](std::unique_ptr<Scene>& scenePtr)
+        {
+            return scenePtr->name == name;
+        });
+    }
     void Scene::Clear()
     {
         allScenes.clear();
         assert(systemWorld.empty() && "场景回收异常！");
         assert(entityWorld.empty() && "场景回收异常！");
     }
-    
+
     void Scene::ToAssetBundle(const Scene& scene, AssetBundle& assetBundle)
     {
         int assetCount = static_cast<int>(assetBundle.GetAssets().size());
@@ -50,14 +57,14 @@ namespace Gleam
         if (assetCount == 0)
             assetBundle.AddAsset(std::move(sceneAsset));
         else
-            assetBundle.GetData<SceneAsset>(0) = sceneAsset;
+            assetBundle.GetObject<SceneAsset>(0) = sceneAsset;
 
         //保存实体信息
         std::vector<void*> needless;
         std::unordered_set<Entity> missing = scene.entities;
         for (int i = 1; i < assetCount; i++)
         {
-            EntityAsset& entityAsset = assetBundle.GetData<EntityAsset>(i);
+            EntityAsset& entityAsset = assetBundle.GetObject<EntityAsset>(i);
             Entity entity = entityAsset.GetEntity();
             if (scene.entities.contains(entity))
                 missing.erase(entity);
@@ -78,7 +85,7 @@ namespace Gleam
         size_t assetCount = assets.size();
 
         //读取场景和系统信息
-        SceneAsset& sceneAsset = *static_cast<SceneAsset*>(assets[0].GetDataRef());
+        SceneAsset& sceneAsset = *static_cast<SceneAsset*>(assets[0].GetObject());
         std::string_view name = sceneAsset.name;
         std::vector<System*> systems;
         for (auto id : sceneAsset.systems)
@@ -93,19 +100,19 @@ namespace Gleam
         std::vector<Entity> entities;
         for (std::size_t i = 1; i < assetCount; ++i)
         {
-            EntityAsset& entityAsset = *static_cast<EntityAsset*>(assets[i].GetDataRef());
+            EntityAsset& entityAsset = *static_cast<EntityAsset*>(assets[i].GetObject());
             entities.emplace_back(entityAsset.GetEntity());
         }
 
         Scene& scene = Create(name);
-        scene.name = std::move(name);
+        scene.name = name;
         for (System* system : systems)
             scene.AddSystem(*system);
         for (Entity entity : entities)
             scene.AddEntity(entity);
         return scene;
     }
-    
+
     Scene::~Scene()
     {
         if (isRunning) //从世界中移除系统
@@ -131,7 +138,7 @@ namespace Gleam
             World::RemoveSystem(*system);
         isRunning = false;
     }
-    
+
     void Scene::AddSystem(System& system)
     {
         assert(System::GetSystem(system.GetID()).has_value() && "场景中使用的系统必须是全局系统！");

@@ -540,7 +540,7 @@ void main()
         World::Update();
         ASSERT_EQ(World::GetSystems().GetSubSystems().size(), 0);
         //实体被更新
-        ASSERT_EQ(World::GetComponent<MyComponent>(assetBundle.GetData<EntityAsset>(3).GetEntity()).value, 4);
+        ASSERT_EQ(World::GetComponent<MyComponent>(assetBundle.GetObject<EntityAsset>(3).GetEntity()).value, 4);
         //写回资源包并卸载场景
         Scene::ToAssetBundle(scene, assetBundle);
         AssetBundle::SaveJson("TestScene.json", assetBundle);

@@ -1,5 +1,7 @@
 #pragma once
+#include "CustomImporter.h"
 #include "CustomUI.h"
+#include "Asset/AssetImporter.h"
 #include "System/ProjectWindow.h"
 
 namespace Gleam
@@ -9,4 +11,5 @@ namespace Gleam
     )
 
     Gleam_MakeProjectWindowMenu("Create/Scene", ProjectWindow_CreateScene)
+    Gleam_MakeImporter(".scene", Type::CreateOrGet<SceneImporter>());
 }

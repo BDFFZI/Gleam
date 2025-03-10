@@ -51,7 +51,6 @@ namespace Gleam
         windowSize = UI::GetWindowContentRegionSize();
         windowPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
         //显示游戏画面
-        float2 cursor = ImGui::GetCursorPos();
         int cameraCount = 0;
         View<Camera>::Each([&cameraCount](Camera& camera)
         {
@@ -68,16 +67,6 @@ namespace Gleam
             ImGui::SetCursorPosY(windowSize.y / 2);
             ImGui::Text("No camera direct render to screen.");
         }
-        //帧率信息
-        static float deltaTime = 0;
-        deltaTime = std::lerp(deltaTime, GlobalSceneWindow.GetSceneTimeSystem().GetDeltaTimeReal(), 0.3f);
-        ImGui::SetCursorPos(cursor);
-        ImGui::TextColored(
-            float4::Magenta(),
-            "Frame Rate %5.1f ms/frame (%5.1f FPS)",
-            deltaTime * 1000.0,
-            1.0 / deltaTime
-        );
         ImGui::End();
     }
 }

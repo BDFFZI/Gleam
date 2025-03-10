@@ -4,6 +4,7 @@
 #include <imgui.h>
 
 #include "GleamAssets/Editor/Asset/AssetDatabase.h"
+#include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamUI/Runtime/UI.h"
 
 namespace Gleam
@@ -29,44 +30,49 @@ namespace Gleam
         const std::string pathStr = path.string();
         const std::string fileName = path.filename().string();
         if (AssetDatabase::CanLoad(pathStr) == false)
-            ImGui::Text(fileName.c_str());
+            ImGui::Text(fileName.c_str()); //未知类型文件，仅显示名称
         else
         {
             ImGui::PushID(pathStr.c_str());
-            if (ImGui::CollapsingHeader(fileName.c_str()))
-            {
-                // //查看资源列表
-                // AssetBundle& assetBundle = AssetDatabase::Load(path);
-                // for (const Asset& asset : assetBundle.GetAssets())
-                // {
-                //     if (ImGui::Button(std::to_string(asset.GetID()).c_str()))
-                //     {
-                //         GlobalInspectorWindow.SetTarget(InspectorTarget{
-                //             asset.GetDataRef(),
-                //             Type::GetType(asset.GetTypeID()).value().get().GetIndex()
-                //         });
-                //     }
-                // }
-            }
+            const bool isUnfolding = ImGui::CollapsingHeader(fileName.c_str());
+            
             if (ImGui::BeginPopupContextItem("FilePopup"))
             {
                 //右键菜单
-                if (ImGui::Button("ReLoad"))
+                if (ImGui::MenuItem("ReLoad"))
                 {
-                    // AssetDatabase::ReLoad(path);
+                    AssetDatabase::Load(path, true);
                 }
-                if (ImGui::Button("Save & ReLoad"))
+                if (ImGui::MenuItem("UnLoad"))
                 {
-                    // AssetBundle& assetBundle = AssetDatabase::Load(path);
-                    // AssetDatabase::Save(path, assetBundle);
-                    // AssetDatabase::ReLoad(path);
+                    AssetBundle& assetBundle = AssetDatabase::Load(path);
+                    AssetBundle::UnLoad(assetBundle);
                 }
-
-                fileDrawing = path;
-                UI::Menu(menuItems);
+                if (ImGui::MenuItem("Save"))
+                {
+                    AssetBundle& assetBundle = AssetDatabase::Load(path);
+                    AssetDatabase::Save(path, assetBundle);
+                }
 
                 ImGui::EndPopup();
             }
+
+            if (isUnfolding)
+            {
+                AssetBundle& assetBundle = AssetDatabase::Load(path);
+                for (const Asset& asset : assetBundle.GetAssets())
+                {
+                    if (ImGui::Button(std::to_string(asset.GetID()).c_str()))
+                    {
+                        GlobalInspectorWindow.SetTarget(InspectorTarget{
+                            asset.GetObject(),
+                            Type::GetType(asset.GetTypeID()).value().get().GetIndex()
+                        });
+                    }
+                }
+            }
+
+            ImGui::PopID();
         }
     }
     void ProjectWindow::ShowDirectory(const std::filesystem::path& path)

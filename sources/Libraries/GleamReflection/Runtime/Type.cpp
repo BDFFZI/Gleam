@@ -69,6 +69,15 @@ namespace Gleam
     {
         move(destination, source);
     }
+    void Type::CopyConstruct(void* destination, void* source) const
+    {
+        copyConstruct(destination, source);
+    }
+    void Type::Copy(void* destination, void* source) const
+    {
+        copy(destination, source);
+    }
+
     void Type::Serialize(FieldDataTransferrer& transferrer, void* address, const bool serializeParent) const
     {
         if (serializeParent && parent.has_value())

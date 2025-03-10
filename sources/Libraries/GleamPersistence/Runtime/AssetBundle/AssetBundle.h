@@ -6,6 +6,8 @@
 #include "GleamReflection/Runtime/Type.h"
 #include "GleamPersistence/Runtime/Serializer/JsonWriter.h"
 
+#undef GetObject
+
 namespace Gleam
 {
     struct AssetBundleMeta
@@ -34,7 +36,7 @@ namespace Gleam
         static void UnLoad(AssetBundle& assetBundle, bool retainAssets = false);
 
         static std::optional<AssetRef> GetAssetRef(void* data);
-        static std::optional<void*> GetDataRef(const AssetRef& assetRef);
+        static std::optional<void*> GetObject(const AssetRef& assetRef);
         static AssetBundle& GetAssetBundle(uuids::uuid assetBundleID);
         static bool HasInMemory(uuids::uuid assetBundleID);
 
@@ -49,13 +51,12 @@ namespace Gleam
         const Asset& GetAsset(int index) const;
         std::optional<std::reference_wrapper<const Asset>> GetAssetFromID(int assetID) const;
         template <typename T>
-        T& GetData(const int index)
+        T& GetObject(const int index)
         {
-            return *static_cast<T*>(assets[index].GetDataRef());
+            return *static_cast<T*>(assets[index].GetObject());
         }
 
-        void AddAssetDependency();
-        void AddAsset(void* data, const Type& dataType);
+        void AddAsset(void* data, const Type& dataType, bool ownership);
         template <class T> requires !std::is_reference_v<T>
         Asset& AddAsset(T&& data)
         {
@@ -94,6 +95,7 @@ namespace Gleam
 
         void BuildAssetIndex();
         int GenerateAssetID() const;
+        void AddAssetDependency();
 
         ///发现一个离谱c++bug
         ///若一个类中同时有std::vector和std::unordered_set，且std::vector的元素是仅可移动的类型，

@@ -29,6 +29,8 @@ namespace Gleam
     }
     void AssetBundle::SaveBinary(const std::string_view fileName, AssetBundle& assetBundle)
     {
+        assetBundle.AddAssetDependency();
+
         std::stringstream outStream;
         BinaryWriter binaryWriter = BinaryWriter(outStream);
         FieldDataTransferrer_TransferPtrEvent = SerializePtr;
@@ -38,6 +40,8 @@ namespace Gleam
     }
     void AssetBundle::SaveJson(const std::string_view fileName, AssetBundle& assetBundle)
     {
+        assetBundle.AddAssetDependency();
+
         FieldDataTransferrer_TransferPtrEvent = SerializePtr;
         std::string json = JsonUtility::ToJson(&assetBundle, AssetBundleType, true);
         FieldDataTransferrer_TransferPtrEvent = nullptr;
@@ -79,11 +83,11 @@ namespace Gleam
     {
         assert(reload || (!HasInMemory(newAssetBundle.id) && "内存中已有目标资源包！"));
 
-        AssetBundle& assetBundleSlot = assetBundles[newAssetBundle.id];
-        if (reload) //重载
+        AssetBundle* result;
+        if (reload && HasInMemory(newAssetBundle.id)) //重载
         {
+            AssetBundle& oldAssetBundle = assetBundles.at(newAssetBundle.id);
             //统计目前内存中的资源
-            AssetBundle& oldAssetBundle = assetBundleSlot;
             std::unordered_map<int, Asset*> oldAssets;
             for (auto& asset : oldAssetBundle.assets)
                 oldAssets.emplace(asset.id, &asset);
@@ -94,7 +98,7 @@ namespace Gleam
                 {
                     Asset* oldAsset = oldAssets[asset.id];
                     const Type& type = Type::GetType(oldAsset->GetTypeID()).value().get();
-                    type.Move(oldAsset->dataRef, asset.dataRef);
+                    type.Move(oldAsset->object, asset.object);
                     oldAssets.erase(asset.id);
                 }
                 else //内存中没有，加入
@@ -104,23 +108,25 @@ namespace Gleam
             }
             //去除内存中多余资源
             for (auto& [id,asset] : oldAssets)
-                oldAssetBundle.RemoveAsset(asset->dataRef);
+                oldAssetBundle.RemoveAsset(asset->object);
+
+            result = &oldAssetBundle;
         }
         else
         {
             //非重载状态，直接注册到内存中的资源包存储器即可
             newAssetBundle.BuildAssetIndex();
-            assetBundleSlot = std::move(newAssetBundle);
+            result = &assetBundles.emplace(newAssetBundle.id, std::move(newAssetBundle)).first->second;
         }
 
         //依赖同资源包资源的指针，可能在依赖对象反资源化前被处理，导致无法获取依赖项的数据。
         //因此要在所有资源对象反序列化后重新资源化一次指针，利用上一次保存的指针与资源依赖的关系，重新连接资源。
         FieldDataTransferrer_TransferPtrEvent = SerializePtr;
         NullTransferrer pointerTransferrer = {};
-        AssetBundleType.Serialize(pointerTransferrer, &assetBundleSlot);
+        AssetBundleType.Serialize(pointerTransferrer, result);
         FieldDataTransferrer_TransferPtrEvent = nullptr;
 
-        return assetBundleSlot;
+        return *result;
     }
     AssetBundle& AssetBundle::LoadBinary(const std::string_view fileName, const bool reload)
     {
@@ -177,7 +183,7 @@ namespace Gleam
             return dataToAsset.at(data);
         return std::nullopt;
     }
-    std::optional<void*> AssetBundle::GetDataRef(const AssetRef& assetRef)
+    std::optional<void*> AssetBundle::GetObject(const AssetRef& assetRef)
     {
         AssetBundle* assetBundle;
         if (HasInMemory(assetRef.assetBundleID))
@@ -188,7 +194,7 @@ namespace Gleam
         //获取资源包中的资源
         auto result = assetBundle->GetAssetFromID(assetRef.assetID);
         if (result.has_value())
-            return result.value().get().dataRef;
+            return result.value().get().object;
 
         return std::nullopt;
     }
@@ -235,33 +241,16 @@ namespace Gleam
         return it == assets.end() ? std::nullopt : std::optional<std::reference_wrapper<const Asset>>{*it};
     }
 
-    void AssetBundle::AddAssetDependency()
-    {
-        //获取依赖且未被资源包托管的对象
-        std::vector<std::tuple<void*, const Type*>> dependencies;
-        NullTransferrer nullTransferrer = {};
-        FieldDataTransferrer_TransferPtrEvent = [&dependencies](FieldDataTransferrer&, void*& value, const std::type_index typeIndex)
-        {
-            std::optional<std::reference_wrapper<const Type>> optionalType = Type::GetType(typeIndex);
-            if (optionalType.has_value() && !dataToAsset.contains(value))
-                dependencies.emplace_back(value, &optionalType.value().get());
-        };
-        AssetBundleType.Serialize(nullTransferrer, this);
-        FieldDataTransferrer_TransferPtrEvent = nullptr;
-        //将这些对象添加为本资源包的资源
-        for (const auto& [data,dataType] : dependencies)
-            AddAsset(data, *dataType);
-    }
-    void AssetBundle::AddAsset(void* data, const Type& dataType)
+    void AssetBundle::AddAsset(void* data, const Type& dataType, const bool ownership)
     {
         //添加资源
-        Asset asset = {GenerateAssetID(), dataType.GetID(), data};
+        Asset asset = {GenerateAssetID(), dataType.GetID(), data, ownership};
         EmplaceAsset(std::move(asset));
     }
     void AssetBundle::RemoveAsset(void* data)
     {
         //获取资源
-        auto it = std::ranges::find_if(assets, [data](Asset& asset) { return asset.dataRef == data; });
+        auto it = std::ranges::find_if(assets, [data](Asset& asset) { return asset.object == data; });
         auto index = it - assets.begin();
         auto& asset = assets[index];
         //移除索引信息
@@ -276,7 +265,7 @@ namespace Gleam
         for (auto& asset : assets)
         {
             //移除索引信息
-            dataToAsset.erase(asset.dataRef);
+            dataToAsset.erase(asset.object);
             assetToData.erase(AssetRef{id, asset.id});
         }
 
@@ -285,11 +274,11 @@ namespace Gleam
     }
     Asset& AssetBundle::EmplaceAsset(Asset&& asset)
     {
-        assert(!dataToAsset.contains(asset.dataRef) && "资源已被添加到资源包！");
+        assert(!dataToAsset.contains(asset.object) && "资源已被添加到资源包！");
 
         asset.id = GenerateAssetID(); //不同资源包内的资源ID可能重复，故需要重新生成
-        dataToAsset.insert({asset.dataRef, AssetRef{id, asset.id}});
-        assetToData.insert({AssetRef{id, asset.id}, asset.dataRef});
+        dataToAsset.insert({asset.object, AssetRef{id, asset.id}});
+        assetToData.insert({AssetRef{id, asset.id}, asset.object});
         assetIDSet.insert(asset.id);
         return assets.emplace_back(std::move(asset));
     }
@@ -298,7 +287,7 @@ namespace Gleam
         auto it = std::ranges::find_if(assets, [assetID](Asset& asset) { return asset.id == assetID; });
         Asset asset = std::move(*it);
 
-        dataToAsset.erase(asset.dataRef);
+        dataToAsset.erase(asset.object);
         assetToData.erase(AssetRef{id, asset.id});
         assetIDSet.erase(asset.id);
         assets.erase(it);
@@ -313,7 +302,7 @@ namespace Gleam
             assetRef = GetAssetRef(value).value_or(assetRef); //获取引用数据对应的资源依赖
             assert(value == nullptr || !assetRef.assetBundleID.is_nil() && "指针引用的物体未被资源化！");
             serializer.Transfer(assetRef);
-            value = GetDataRef(assetRef).value_or(nullptr); //根据资源依赖获取数据
+            value = GetObject(assetRef).value_or(nullptr); //根据资源依赖获取数据
         }
         pointerMapping[reinterpret_cast<uintptr_t>(&value)] = assetRef;
     }
@@ -323,8 +312,8 @@ namespace Gleam
         for (auto& assetBundle : assets)
         {
             assetIDSet.insert(assetBundle.id);
-            dataToAsset.insert({assetBundle.dataRef, AssetRef{id, assetBundle.id}});
-            assetToData.insert({AssetRef{id, assetBundle.id}, assetBundle.dataRef});
+            dataToAsset.insert({assetBundle.object, AssetRef{id, assetBundle.id}});
+            assetToData.insert({AssetRef{id, assetBundle.id}, assetBundle.object});
         }
     }
     int AssetBundle::GenerateAssetID() const
@@ -335,5 +324,36 @@ namespace Gleam
         while (assetIDSet.contains(assetID))
             assetID = random(engine);
         return assetID;
+    }
+    void AssetBundle::AddAssetDependency()
+    {
+        //获取依赖且未被资源包托管的对象
+        std::vector<std::tuple<void*, const Type*>> dependencies; //未托管对象
+        std::unordered_map<void*, std::vector<void**>> users; //使用对象的指针
+        NullTransferrer nullTransferrer = {};
+        FieldDataTransferrer_TransferPtrEvent = [&dependencies,&users](FieldDataTransferrer&, void*& value, const std::type_index typeIndex)
+        {
+            if (value == nullptr)
+                return;
+
+            std::optional<std::reference_wrapper<const Type>> optionalType = Type::GetType(typeIndex);
+            if (optionalType.has_value() && !dataToAsset.contains(value))
+            {
+                dependencies.emplace_back(value, &optionalType.value().get());
+                users[value].push_back(&value);
+            }
+        };
+        AssetBundleType.Serialize(nullTransferrer, this);
+        FieldDataTransferrer_TransferPtrEvent = nullptr;
+        //将这些对象添加为本资源包的资源
+        for (const auto& [object,objectType] : dependencies)
+        {
+            void* duplicate = objectType->Create();
+            objectType->Copy(duplicate, object);
+            AddAsset(duplicate, *objectType, true);
+            //修改使用者的指针引用
+            for (auto& user : users[object])
+                *user = duplicate;
+        }
     }
 }

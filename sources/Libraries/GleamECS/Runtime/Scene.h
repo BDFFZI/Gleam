@@ -163,7 +163,7 @@ namespace Gleam
             serializer.Transfer(assetRef);
             pointerMapping[&value] = assetRef; //存储指针对应的引用信息，以供第二次指针遍历时依然能拿到指针引用
             //重新定位资源地址
-            assetPtr = static_cast<EntityAsset*>(AssetBundle::GetDataRef(assetRef).value_or(nullptr));
+            assetPtr = static_cast<EntityAsset*>(AssetBundle::GetObject(assetRef).value_or(nullptr));
             value = assetPtr != nullptr ? assetPtr->GetEntity() : value;
         }
     };
@@ -187,6 +187,7 @@ namespace Gleam
 
         static Scene& Create(std::string_view name);
         static void Destroy(Scene& scene);
+        static void Destroy(std::string_view name);
         static void Clear();
 
         static void ToAssetBundle(const Scene& scene, AssetBundle& assetBundle);

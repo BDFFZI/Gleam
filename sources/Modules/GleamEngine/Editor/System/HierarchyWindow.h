@@ -1,6 +1,7 @@
 #pragma once
 #include "EditorUISystem.h"
 #include "GleamECS/Runtime/System.h"
+#include "GleamEngine/Runtime/System/TimeSystem.h"
 
 namespace Gleam
 {
@@ -27,7 +28,7 @@ namespace Gleam
         static void DrawWorld();
         static void DrawWorldUnfolding();
         static void DrawScene(Scene& scene);
-
+        
         void Update() override;
     };
     Gleam_MakeGlobalSystem(HierarchyWindow)

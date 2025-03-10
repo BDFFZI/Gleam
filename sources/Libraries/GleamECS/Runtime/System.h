@@ -140,11 +140,12 @@ namespace Gleam
 
     Gleam_MakeType(System, "")
     {
+        Gleam_MakeType_AddField(name);
+        Gleam_MakeType_AddField(id);
+        Gleam_MakeType_AddField(group);
         Gleam_MakeType_AddField(minOrder);
         Gleam_MakeType_AddField(maxOrder);
         Gleam_MakeType_AddField(order);
-        Gleam_MakeType_AddField(group);
-        Gleam_MakeType_AddField(name);
     }
 
     class SystemEvent : public System

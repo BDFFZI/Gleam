@@ -40,6 +40,20 @@ namespace Gleam
         {
             *static_cast<T*>(destination) = std::move(*static_cast<T*>(source));
         }
+        static void CopyConstruct(void* destination, void* source)
+        {
+            if constexpr (requires() { new(destination) T(*static_cast<T*>(source)); })
+                new(destination) T(*static_cast<T*>(source));
+            else
+                throw std::runtime_error("类型不支持复制构造！");
+        }
+        static void Copy(void* destination, void* source)
+        {
+            if constexpr (requires() { *static_cast<T*>(destination) = *static_cast<T*>(source); })
+                *static_cast<T*>(destination) = *static_cast<T*>(source);
+            else
+                throw std::runtime_error("类型不支持复制！");
+        }
     };
 
     /**
@@ -80,6 +94,10 @@ namespace Gleam
             type.destruct = Type_Raii<T>::Destruct;
             type.moveConstruct = Type_Raii<T>::MoveConstruct;
             type.move = Type_Raii<T>::Move;
+            if constexpr (requires() { Type_Raii<T>::CopyConstruct; })
+                type.copyConstruct = Type_Raii<T>::CopyConstruct;
+            if constexpr (requires() { Type_Raii<T>::Copy; })
+                type.copy = Type_Raii<T>::Copy;
 
             //利用字段类型传输器获取成员字段信息
             {
@@ -139,6 +157,9 @@ namespace Gleam
         void Destruct(void* address) const;
         void MoveConstruct(void* destination, void* source) const;
         void Move(void* destination, void* source) const;
+        void CopyConstruct(void* destination, void* source) const;
+        void Copy(void* destination, void* source) const;
+
         void Serialize(FieldDataTransferrer& transferrer, void* address, bool serializeParent = true) const;
 
     private:
@@ -156,6 +177,9 @@ namespace Gleam
         std::function<void(void*)> destruct = nullptr;
         std::function<void(void*, void*)> moveConstruct = nullptr;
         std::function<void(void*, void*)> move = nullptr;
+        std::function<void(void*, void*)> copyConstruct = nullptr;
+        std::function<void(void*, void*)> copy = nullptr;
+
         std::function<void(FieldDataTransferrer&, void*)> serialize = nullptr;
     };
 }

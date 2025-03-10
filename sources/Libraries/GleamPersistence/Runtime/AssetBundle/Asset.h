@@ -2,22 +2,24 @@
 #include "GleamReflection/Runtime/FieldDataTransferrer.h"
 #include "GleamReflection/Runtime/Type.h"
 
+#undef GetObject
+
 namespace Gleam
 {
     class Asset
     {
     public:
         Asset();
-        Asset(int id, uuids::uuid typeID, void* dataRef);
+        Asset(int id, uuids::uuid typeID, void* object, bool ownership = false);
         template <class T> requires !std::is_reference_v<T>
         Asset(const int id, T&& data)
             : id(id)
         {
             const Type& type = Type::GetType(typeid(T)).value();
             typeID = type.GetID();
-            dataRef = type.Create();
+            object = type.Create();
             ownership = true;
-            type.Move(dataRef, &data);
+            type.Move(object, &data);
         }
         Asset(Asset&& asset) noexcept;
         Asset& operator=(Asset&& asset) noexcept;
@@ -25,7 +27,7 @@ namespace Gleam
 
         int GetID() const;
         uuids::uuid GetTypeID() const;
-        void* GetDataRef() const;
+        void* GetObject() const;
 
     private:
         Gleam_MakeType_Friend
@@ -33,7 +35,7 @@ namespace Gleam
 
         int id;
         uuids::uuid typeID;
-        void* dataRef;
+        void* object;
         bool ownership;
     };
 
@@ -48,20 +50,20 @@ namespace Gleam
             if (optionalType.has_value())
             {
                 const Type& type = optionalType.value().get();
-                if (value.dataRef == nullptr) //反持久化
+                if (value.object == nullptr) //反持久化
                 {
-                    value.dataRef = type.Create();
+                    value.object = type.Create();
                     value.ownership = true;
                 }
 
                 transferrer.PushNode("data", DataType::Class);
-                type.Serialize(transferrer, value.dataRef);
+                type.Serialize(transferrer, value.object);
                 transferrer.PopNode();
             }
         }
         else
         {
-            Gleam_MakeType_AddField(dataRef);
+            Gleam_MakeType_AddField(object);
         }
     }
 }

@@ -6,6 +6,7 @@
 #include "System/HierarchyWindow.h"
 #include "System/ProfilerWindow.h"
 #include "CustomUI.h"
+#include "System/EditorTimeSystem.h"
 
 namespace Gleam
 {
@@ -45,12 +46,13 @@ namespace Gleam
     {
         GlobalProfilerWindow.SetProfile(Profiler::FlushProfile());
     }
-
+    
     Gleam_AddEditorSystems(
         GlobalEditorUISystem,
         GlobalHierarchyWindow,
         GlobalInspectorWindow,
         GlobalProfilerWindow,
+        EditorTimeSystem
     )
 
     Gleam_MakeInspectorUI(Entity, InspectorUI_Entity)
