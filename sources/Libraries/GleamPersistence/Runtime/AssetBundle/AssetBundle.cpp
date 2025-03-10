@@ -27,21 +27,31 @@ namespace Gleam
         assetBundle.id = assetBundleID;
         return assetBundles.insert({assetBundleID, std::move(assetBundle)}).first->second;
     }
-    void AssetBundle::Save(AssetBundle& assetBundle)
+    void AssetBundle::SaveBinary(const std::string_view fileName, AssetBundle& assetBundle)
     {
         std::stringstream outStream;
         BinaryWriter binaryWriter = BinaryWriter(outStream);
+        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
         AssetBundleType.Serialize(binaryWriter, &assetBundle);
-        File::WriteAllText(assetBundleDirectory + to_string(assetBundle.id), outStream.str());
-
-        SaveMeta(assetBundle);
+        FieldDataTransferrer_TransferPtrEvent = nullptr;
+        File::WriteAllText(fileName, outStream.str());
     }
-    void AssetBundle::SaveMeta(AssetBundle& assetBundle)
+    void AssetBundle::SaveJson(const std::string_view fileName, AssetBundle& assetBundle)
     {
-        AssetBundleMeta assetBundleMeta;
+        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
+        std::string json = JsonUtility::ToJson(&assetBundle, AssetBundleType, true);
+        FieldDataTransferrer_TransferPtrEvent = nullptr;
+        File::WriteAllText(fileName, json);
+    }
+    void AssetBundle::SaveMeta(const std::string_view fileName, AssetBundle& assetBundle)
+    {
         //收集依赖信息
+        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
         AssetRefStatistician assetRefStatistician = {};
         AssetBundleType.Serialize(assetRefStatistician, &assetBundle);
+        FieldDataTransferrer_TransferPtrEvent = nullptr;
+        //填充资源包元信息
+        AssetBundleMeta assetBundleMeta;
         for (auto& assetRef : assetRefStatistician.result)
         {
             if (assetRef.assetBundleID != assetBundle.id)
@@ -49,10 +59,26 @@ namespace Gleam
         }
         //保存元信息
         std::string meta = JsonUtility::ToJson(&assetBundleMeta, AssetBundleMetaType, true);
-        File::WriteAllText(assetBundleDirectory + to_string(assetBundle.id) + ".meta", meta);
+        File::WriteAllText(std::string(fileName) + ".meta", meta);
     }
+    void AssetBundle::DumpJsonToBinary(const std::string_view jsonFile, const std::string_view binaryFile, const bool saveMeta)
+    {
+        //反序列化得到json中的资源包数据
+        AssetBundle newAssetBundle = {};
+        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
+        JsonUtility::FromJson(File::ReadAllText(jsonFile), AssetBundleType, &newAssetBundle);
+        FieldDataTransferrer_TransferPtrEvent = nullptr;
+        //转存为二进制文件
+        SaveBinary(binaryFile, newAssetBundle);
+        //保存meta信息
+        if (saveMeta)
+            SaveMeta(binaryFile, newAssetBundle);
+    }
+
     AssetBundle& AssetBundle::Load(AssetBundle& newAssetBundle, const bool reload)
     {
+        assert(reload || (!HasInMemory(newAssetBundle.id) && "内存中已有目标资源包！"));
+
         AssetBundle& assetBundleSlot = assetBundles[newAssetBundle.id];
         if (reload) //重载
         {
@@ -87,28 +113,50 @@ namespace Gleam
             assetBundleSlot = std::move(newAssetBundle);
         }
 
-        //依赖同资源包资源的指针，可能在依赖对象反资源化前被处理，结果就是无法获取依赖项的数据，因此要在普通数据资源化后重新资源化一次指针
-        PointerTransferrer pointerTransferrer = {};
+        //依赖同资源包资源的指针，可能在依赖对象反资源化前被处理，导致无法获取依赖项的数据。
+        //因此要在所有资源对象反序列化后重新资源化一次指针，利用上一次保存的指针与资源依赖的关系，重新连接资源。
+        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
+        NullTransferrer pointerTransferrer = {};
         AssetBundleType.Serialize(pointerTransferrer, &assetBundleSlot);
+        FieldDataTransferrer_TransferPtrEvent = nullptr;
 
         return assetBundleSlot;
     }
-    AssetBundle& AssetBundle::Load(const uuids::uuid assetBundleID, const bool reload)
+    AssetBundle& AssetBundle::LoadBinary(const std::string_view fileName, const bool reload)
     {
-        assert(HasInDisk(assetBundleID) && "磁盘中没有目标资源包！");
-        assert(reload || (!HasInMemory(assetBundleID) && "内存中已有目标资源包！"));
-
-        //提前占用空间，这样可以通过断言检测循环加载
-        assetBundles.try_emplace(assetBundleID);
+        assert(std::filesystem::exists(fileName) && "文件不存在！");
 
         //反序列化得到磁盘的中的资源包数据
-        std::ifstream inStream(assetBundleDirectory + to_string(assetBundleID), std::ios::in | std::ios::binary);
+        std::ifstream inStream(fileName.data(), std::ios::in | std::ios::binary);
         BinaryReader binaryReader = BinaryReader(inStream);
         AssetBundle newAssetBundle = {};
+        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
         AssetBundleType.Serialize(binaryReader, &newAssetBundle);
+        FieldDataTransferrer_TransferPtrEvent = nullptr;
 
         return Load(newAssetBundle, reload);
     }
+    AssetBundle& AssetBundle::LoadJson(const std::string_view fileName, const bool reload)
+    {
+        assert(std::filesystem::exists(fileName) && "文件不存在！");
+
+        //反序列化得到磁盘的中的资源包数据
+        AssetBundle newAssetBundle = {};
+        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
+        JsonUtility::FromJson(File::ReadAllText(fileName), AssetBundleType, &newAssetBundle);
+        FieldDataTransferrer_TransferPtrEvent = nullptr;
+
+        return Load(newAssetBundle, reload);
+    }
+    AssetBundleMeta AssetBundle::LoadMeta(const std::string_view fileName)
+    {
+        std::string json = File::ReadAllText(std::string(fileName) + ".meta");
+
+        AssetBundleMeta assetBundleMeta;
+        JsonUtility::FromJson(json, AssetBundleMetaType, &assetBundleMeta);
+        return assetBundleMeta;
+    }
+
     void AssetBundle::UnLoad(AssetBundle& assetBundle, const bool retainAssets)
     {
         assert(HasInMemory(assetBundle.GetID()) && "内存中没有目标资源包！");
@@ -148,10 +196,6 @@ namespace Gleam
     {
         return assetBundles.at(assetBundleID);
     }
-    bool AssetBundle::HasInDisk(const uuids::uuid assetBundleID)
-    {
-        return std::filesystem::exists(assetBundleDirectory + to_string(assetBundleID));
-    }
     bool AssetBundle::HasInMemory(const uuids::uuid assetBundleID)
     {
         return assetBundles.contains(assetBundleID);
@@ -172,46 +216,6 @@ namespace Gleam
             throw std::runtime_error("资源包文件内容异常！");
         return optionalUuid.value();
     }
-    void AssetBundle::SaveJson(const std::string_view fileName, AssetBundle& assetBundle, const bool saveBinary)
-    {
-        rapidjson::Document document;
-        document.Parse("{}");
-        JsonWriter jsonWriter = JsonWriter(document);
-        AssetBundleType.Serialize(jsonWriter, &assetBundle);
-        std::string json = JsonUtility::DocumentToJson(document, true);
-        File::WriteAllText(fileName, json);
-
-        if (saveBinary)
-            Save(assetBundle);
-    }
-    AssetBundle& AssetBundle::LoadJson(std::string_view fileName, bool reload)
-    {
-        uuids::uuid assetBundleID = GetIDFromJson(fileName);
-        assert(!HasInMemory(assetBundleID) && "内存中已有目标资源包！");
-
-        //提前占用空间，这样可以通过断言检测循环加载
-        assetBundles.try_emplace(assetBundleID);
-
-        //反序列化得到磁盘的中的资源包数据
-        rapidjson::Document document;
-        document.Parse(File::ReadAllText(fileName).c_str());
-        JsonReader jsonReader = JsonReader(document);
-        AssetBundle newAssetBundle = {};
-        AssetBundleType.Serialize(jsonReader, &newAssetBundle);
-
-        return Load(newAssetBundle, reload);
-    }
-    void AssetBundle::DumpJson(const std::string_view fileName)
-    {
-        //反序列化得到json中的资源包数据
-        rapidjson::Document document;
-        document.Parse(File::ReadAllText(fileName).c_str());
-        JsonReader jsonReader = JsonReader(document);
-        AssetBundle newAssetBundle = {};
-        AssetBundleType.Serialize(jsonReader, &newAssetBundle);
-        //转存为二进制文件
-        Save(newAssetBundle);
-    }
 
     uuids::uuid AssetBundle::GetID() const
     {
@@ -231,6 +235,23 @@ namespace Gleam
         return it == assets.end() ? std::nullopt : std::optional<std::reference_wrapper<const Asset>>{*it};
     }
 
+    void AssetBundle::AddAssetDependency()
+    {
+        //获取依赖且未被资源包托管的对象
+        std::vector<std::tuple<void*, const Type*>> dependencies;
+        NullTransferrer nullTransferrer = {};
+        FieldDataTransferrer_TransferPtrEvent = [&dependencies](FieldDataTransferrer&, void*& value, const std::type_index typeIndex)
+        {
+            std::optional<std::reference_wrapper<const Type>> optionalType = Type::GetType(typeIndex);
+            if (optionalType.has_value() && !dataToAsset.contains(value))
+                dependencies.emplace_back(value, &optionalType.value().get());
+        };
+        AssetBundleType.Serialize(nullTransferrer, this);
+        FieldDataTransferrer_TransferPtrEvent = nullptr;
+        //将这些对象添加为本资源包的资源
+        for (const auto& [data,dataType] : dependencies)
+            AddAsset(data, *dataType);
+    }
     void AssetBundle::AddAsset(void* data, const Type& dataType)
     {
         //添加资源
@@ -283,6 +304,18 @@ namespace Gleam
         assets.erase(it);
 
         return asset;
+    }
+
+    void AssetBundle::SerializePtr(FieldDataTransferrer& serializer, void*& value, std::type_index)
+    {
+        AssetRef assetRef = pointerMapping[reinterpret_cast<uintptr_t>(&value)];
+        {
+            assetRef = GetAssetRef(value).value_or(assetRef); //获取引用数据对应的资源依赖
+            assert(value == nullptr || !assetRef.assetBundleID.is_nil() && "指针引用的物体未被资源化！");
+            serializer.Transfer(assetRef);
+            value = GetDataRef(assetRef).value_or(nullptr); //根据资源依赖获取数据
+        }
+        pointerMapping[reinterpret_cast<uintptr_t>(&value)] = assetRef;
     }
 
     void AssetBundle::BuildAssetIndex()

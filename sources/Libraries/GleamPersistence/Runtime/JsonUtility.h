@@ -13,7 +13,7 @@ namespace Gleam
         static void FromDocument(rapidjson::Document& doc,const Type& type, void* address);
 
         static std::string ToJson(void* object,const Type& type, bool pretty = false);
-        static void FromJson(std::string& json,const Type& type, void* address);
+        static void FromJson(std::string_view json,const Type& type, void* address);
 
         static std::string DocumentToJson(const rapidjson::Document& document, bool pretty = false);
     };

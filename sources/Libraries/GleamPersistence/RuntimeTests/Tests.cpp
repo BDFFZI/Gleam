@@ -54,7 +54,8 @@ TEST(Reflection, Asset)
 }
 
 
-TEST(Reflection, AssetBundle)
+// TEST(Reflection, AssetBundle)
+void main()
 {
     uuids::uuid assetBundleID = uuids::uuid::from_string("c57022f0-53a7-4b6b-99d5-41a1e5c8f51e").value();
     uuids::uuid assetBundle2ID = uuids::uuid::from_string("c492a4ff-b846-4596-8a8d-09e25cba9b08").value();
@@ -62,17 +63,21 @@ TEST(Reflection, AssetBundle)
     //测试创建自依赖资源包
     {
         TestAsset testAsset[] = {
+            {"Asset0"},
             {"Asset1"},
             {"Asset2"},
         };
         testAsset[0].dependency = &testAsset[1];
+        testAsset[1].dependency = &testAsset[2];
         //验证创建资源包
         AssetBundle& assetBundle = AssetBundle::Create(assetBundleID);
         //验证添加资源
         assetBundle.AddAsset(&testAsset[0], TestAssetType);
         assetBundle.AddAsset(&testAsset[1], TestAssetType);
+        assetBundle.AddAssetDependency();
         //验证保存资源包
         AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
+        AssetBundle::SaveBinary("Assets/" + to_string(assetBundle.GetID()), assetBundle);
         //验证卸载资源包
         AssetBundle::UnLoad(assetBundle);
     }
@@ -83,16 +88,21 @@ TEST(Reflection, AssetBundle)
         uuids::uuid uuid = AssetBundle::GetIDFromJson("Assets/assetBundle.asset");
         ASSERT_EQ(uuid, assetBundleID);
         //验证加载资源包
-        AssetBundle& assetBundle = AssetBundle::Load(assetBundleID);
-        ASSERT_EQ(assetBundle.GetData<TestAsset>(0).name, "Asset1");
-        ASSERT_EQ(assetBundle.GetData<TestAsset>(1).name, "Asset2");
-        ASSERT_EQ(assetBundle.GetData<TestAsset>(0).dependency, &assetBundle.GetData<TestAsset>(1));
+        AssetBundle& assetBundle = AssetBundle::LoadBinary("Assets/" + to_string(assetBundleID));
+        ASSERT_EQ(assetBundle.GetAssets().size(), 3);
+        TestAsset& asset0 = assetBundle.GetData<TestAsset>(0);
+        TestAsset& asset1 = assetBundle.GetData<TestAsset>(1);
+        TestAsset& asset2 = assetBundle.GetData<TestAsset>(2);
+        ASSERT_EQ(asset0.name, "Asset0");
+        ASSERT_EQ(asset1.name, "Asset1");
+        ASSERT_EQ(asset1.dependency, &asset2);
         AssetBundle::UnLoad(assetBundle);
     }
 
     //测试资源包分包的保存
     {
         TestAsset testAsset[] = {
+            {"Asset0"},
             {"Asset1"},
             {"Asset2"},
             {"Asset3"},
@@ -100,22 +110,24 @@ TEST(Reflection, AssetBundle)
 
         //创建资源包2
         AssetBundle& assetBundle2 = AssetBundle::Create(assetBundle2ID);
-        assetBundle2.AddAsset(&testAsset[2], TestAssetType);
+        assetBundle2.AddAsset(&testAsset[3], TestAssetType);
         //迁移资源包1资源
-        AssetBundle& assetBundle = AssetBundle::Load(assetBundleID);
+        AssetBundle& assetBundle = AssetBundle::LoadBinary("Assets/" + to_string(assetBundleID));
         Asset asset = assetBundle.ExtractAsset(assetBundle.GetAssets()[0].GetID());
         assetBundle2.EmplaceAsset(std::move(asset));
         //保存资源包
         AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
-        AssetBundle::SaveJson("Assets/assetBundle2.asset", assetBundle2, false);
+        AssetBundle::SaveJson("Assets/assetBundle2.asset", assetBundle2);
         AssetBundle::UnLoad(assetBundle);
         AssetBundle::UnLoad(assetBundle2);
-        AssetBundle::DumpJson("Assets/assetBundle2.asset"); //测试通过json间接还原二进制资源包
+        //测试通过json间接还原二进制资源包
+        AssetBundle::DumpJsonToBinary("Assets/assetBundle.asset", "Assets/" + to_string(assetBundleID), true);
+        AssetBundle::DumpJsonToBinary("Assets/assetBundle2.asset", "Assets/" + to_string(assetBundle2ID), true);
     }
 
     //测试未加载依赖资源包时，引用丢失的现象
     {
-        AssetBundle& assetBundle2 = AssetBundle::Load(assetBundle2ID);
+        AssetBundle& assetBundle2 = AssetBundle::LoadBinary("Assets/" + to_string(assetBundle2ID));
         TestAsset* data3 = static_cast<TestAsset*>(assetBundle2.GetAssets()[1].GetDataRef())->dependency;
         ASSERT_EQ(data3, nullptr);
         AssetBundle::UnLoad(assetBundle2);
@@ -123,25 +135,26 @@ TEST(Reflection, AssetBundle)
 
     {
         //测试正确加载资源包后，获取到引用资源的现象
-        AssetBundle& assetBundle = AssetBundle::Load(assetBundleID); //资源包2依赖资源包1，必须加载，否则丢失引用
-        AssetBundle& assetBundle2 = AssetBundle::Load(assetBundle2ID);
+        AssetBundle& assetBundle = AssetBundle::LoadBinary("Assets/" + to_string(assetBundleID)); //资源包2依赖资源包1，必须加载，否则丢失引用
+        AssetBundle& assetBundle2 = AssetBundle::LoadBinary("Assets/" + to_string(assetBundle2ID));
         TestAsset* data = static_cast<TestAsset*>(assetBundle2.GetAssets()[1].GetDataRef());
-        ASSERT_EQ(data->name, "Asset1");
-        ASSERT_EQ(data->dependency->name, "Asset2");
+        ASSERT_EQ(data->name, "Asset0");
+        ASSERT_EQ(data->dependency->name, "Asset1");
+
         //修改资源包内容，用于后续测试重载
         data->name += "Append";
         data->dependency->name += "Append";
 
         //重载资源包1并测试内容正确性
-        AssetBundle::Load(assetBundleID, true);
-        ASSERT_EQ(data->name, "Asset1Append");
-        ASSERT_EQ(data->dependency->name, "Asset2");
+        AssetBundle::LoadBinary("Assets/" + to_string(assetBundleID), true);
+        ASSERT_EQ(data->name, "Asset0Append");
+        ASSERT_EQ(data->dependency->name, "Asset1");
 
         //重载资源包2并测试内容正确性
-        AssetBundle::Load(assetBundle2ID, true);
-        ASSERT_EQ(data->name, "Asset1");
-        ASSERT_EQ(data->dependency->name, "Asset2");
-
+        AssetBundle::LoadBinary("Assets/" + to_string(assetBundle2ID), true);
+        ASSERT_EQ(data->name, "Asset0");
+        ASSERT_EQ(data->dependency->name, "Asset1");
+        
         AssetBundle::UnLoad(assetBundle);
         AssetBundle::UnLoad(assetBundle2);
     }

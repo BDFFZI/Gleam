@@ -21,22 +21,28 @@ namespace Gleam
     {
     public:
         static AssetBundle& Create(uuids::uuid assetBundleID = {});
-        static void Save(AssetBundle& assetBundle);
-        static void SaveMeta(AssetBundle& assetBundle);
+
+        static void SaveBinary(std::string_view fileName, AssetBundle& assetBundle);
+        static void SaveJson(std::string_view fileName, AssetBundle& assetBundle);
+        static void SaveMeta(std::string_view fileName, AssetBundle& assetBundle);
+        static void DumpJsonToBinary(std::string_view jsonFile, std::string_view binaryFile, bool saveMeta);
+
         static AssetBundle& Load(AssetBundle& newAssetBundle, bool reload = false);
-        static AssetBundle& Load(uuids::uuid assetBundleID, bool reload = false);
+        static AssetBundle& LoadBinary(std::string_view fileName, bool reload = false);
+        static AssetBundle& LoadJson(std::string_view fileName, bool reload = false);
+        static AssetBundleMeta LoadMeta(std::string_view fileName);
         static void UnLoad(AssetBundle& assetBundle, bool retainAssets = false);
 
         static std::optional<AssetRef> GetAssetRef(void* data);
         static std::optional<void*> GetDataRef(const AssetRef& assetRef);
         static AssetBundle& GetAssetBundle(uuids::uuid assetBundleID);
-        static bool HasInDisk(uuids::uuid assetBundleID);
         static bool HasInMemory(uuids::uuid assetBundleID);
 
         static uuids::uuid GetIDFromJson(std::string_view fileName);
-        static void SaveJson(std::string_view fileName, AssetBundle& assetBundle, bool saveBinary = true);
-        static AssetBundle& LoadJson(std::string_view fileName, bool reload = false);
-        static void DumpJson(std::string_view fileName);
+
+        AssetBundle() = default;
+        AssetBundle(AssetBundle&&) = default;
+        AssetBundle& operator=(AssetBundle&&) = default;
 
         const std::vector<Asset>& GetAssets() const;
         uuids::uuid GetID() const;
@@ -48,6 +54,7 @@ namespace Gleam
             return *static_cast<T*>(assets[index].GetDataRef());
         }
 
+        void AddAssetDependency();
         void AddAsset(void* data, const Type& dataType);
         template <class T> requires !std::is_reference_v<T>
         Asset& AddAsset(T&& data)
@@ -61,28 +68,25 @@ namespace Gleam
         Asset& EmplaceAsset(Asset&& asset);
         Asset ExtractAsset(int assetID);
 
-        AssetBundle() = default;
-        AssetBundle(AssetBundle&&) = default;
-        AssetBundle& operator=(AssetBundle&&) = default;
-
     private:
         template <typename T>
         friend struct FieldDataTransferrer_Transfer;
 
         Gleam_MakeType_Friend
 
-        inline static std::string assetBundleDirectory = "./Library/";
         inline static std::unordered_map<uuids::uuid, AssetBundle> assetBundles = {};
         inline static std::unordered_map<void*, AssetRef> dataToAsset = {}; //数据对应的资源
         inline static std::unordered_map<AssetRef, void*> assetToData = {}; //资源对应的数据
         /**
-         * 缓存指针绑定的资源引用。
+         * 每个指针字段绑定的资源引用。
          * 
          * 由于首次序列化指针时，所有资源都未加载完成，因此无法通过资源引用获取资源。
          * 而待资源加载完毕后重新链接指针时，由于不再从文件中读取信息，因此无法获取指针的引用资源。
          * 故需要在第一次序列化时缓存指针的资源引用，然后第二次序列化时提取出来。
          */
-        inline static std::unordered_map<void*, AssetRef> pointerMapping = {};
+        inline static std::unordered_map<std::uintptr_t, AssetRef> pointerMapping = {};
+
+        static void SerializePtr(FieldDataTransferrer& serializer, void*& value, std::type_index);
 
         uuids::uuid id;
         std::vector<Asset> assets;

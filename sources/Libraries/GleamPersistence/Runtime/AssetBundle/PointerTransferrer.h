@@ -1,14 +1,11 @@
 #pragma once
 #include "GleamReflection/Runtime/FieldDataTransferrer.h"
-#include "AssetRef.h"
-#include "AssetBundle.h"
 
 namespace Gleam
 {
+    inline std::function<void(FieldDataTransferrer&, void*&, std::type_index)> FieldDataTransferrer_TransferPtrEvent = nullptr;
     /**
-     * 将指针类型同步为资源引用
-     *
-     * TODO 该功能采用覆写传输函数的方法实现，这会影响到其他数据传输器
+     * 将指针传输事件化，以便用户对传输各种指针时进行处理
      * @tparam TValue 
      */
     template <typename TValue>
@@ -16,26 +13,20 @@ namespace Gleam
     {
         static void Invoke(FieldDataTransferrer& serializer, TValue*& value)
         {
-            AssetRef assetRef = AssetBundle::pointerMapping[&value];
+            if (FieldDataTransferrer_TransferPtrEvent != nullptr)
             {
-                assetRef = AssetBundle::GetAssetRef(value).value_or(assetRef); //获取引用数据对应的资源依赖
-                assert(value == nullptr || !assetRef.assetBundleID.is_nil() && "指针引用的物体未被资源化！");
-                serializer.Transfer(assetRef);
-                value = static_cast<TValue*>(AssetBundle::GetDataRef(assetRef).value_or(nullptr)); //根据资源依赖获取数据
+                void** ptr = reinterpret_cast<void**>(&value);
+                FieldDataTransferrer_TransferPtrEvent(serializer, *ptr, typeid(TValue));
+                value = static_cast<TValue*>(*ptr);
             }
-            AssetBundle::pointerMapping[&value] = assetRef;
         }
     };
 
     /**
-     * 一个不会实际进行数据传递的字段数据传输器，用于仅触发传输事件。
-     *
-     * 对于自引用的资源包，因为加载顺序原因，会导致指针为空。
-     * 解决方法是每次资源包的数据加载完毕后，再单独处理一遍指针。
+     * 一个空的字段数据传输器（不会进行数据传递），用于实现仅触发指针传输事件。
      */
-    class PointerTransferrer : public FieldDataTransferrer
+    class NullTransferrer : public FieldDataTransferrer
     {
-    public:
         void PushNode(std::optional<std::string_view> name, DataType dataType) override
         {
         }

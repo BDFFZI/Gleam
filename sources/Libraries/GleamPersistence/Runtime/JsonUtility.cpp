@@ -9,7 +9,7 @@
 
 namespace Gleam
 {
-    rapidjson::Document JsonUtility::ToDocument(void* object,const Type& type)
+    rapidjson::Document JsonUtility::ToDocument(void* object, const Type& type)
     {
         rapidjson::Document document;
         document.Parse("{}");
@@ -17,7 +17,7 @@ namespace Gleam
         type.Serialize(jsonWriter, object);
         return document;
     }
-    void JsonUtility::FromDocument(rapidjson::Document& doc,const Type& type, void* address)
+    void JsonUtility::FromDocument(rapidjson::Document& doc, const Type& type, void* address)
     {
         type.Construct(address);
         JsonReader jsonReader = {doc};
@@ -27,8 +27,12 @@ namespace Gleam
     {
         return DocumentToJson(ToDocument(object, type), pretty);
     }
-    void JsonUtility::FromJson(std::string& json,const Type& type, void* address)
+    void JsonUtility::FromJson(const std::string_view json, const Type& type, void* address)
     {
+        rapidjson::Document document;
+        document.Parse(json.data());
+        JsonReader jsonReader = JsonReader(document);
+        type.Serialize(jsonReader, address);
     }
     std::string JsonUtility::DocumentToJson(const rapidjson::Document& document, const bool pretty)
     {

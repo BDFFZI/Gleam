@@ -41,7 +41,6 @@ namespace Gleam
     private:
         inline static CustomUI inspectorGUIs = {};
         inline static bool useDebugGUI = false;
-        inline static Entity drawing = Entity::Null;
 
         std::optional<InspectorTarget> target;
 

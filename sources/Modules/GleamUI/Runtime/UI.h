@@ -35,7 +35,7 @@ namespace Gleam
          * @param layer 
          */
         static void MenuItem(const std::vector<std::string>& path, const std::function<void()>& func, size_t layer = 0);
-
+        static void Menu(const std::unordered_map<std::string,std::function<void()>>& menuItems);
     private:
         static inline std::unique_ptr<GLDescriptorSetLayout> descriptorSetLayout = {};
         static inline std::unique_ptr<GLDescriptorPool> descriptorPool = {};

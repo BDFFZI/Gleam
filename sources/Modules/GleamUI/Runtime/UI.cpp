@@ -8,6 +8,7 @@
 #include "GleamWindow/Runtime/System/InputSystem.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamPresentation/Runtime/PresentationSystem.h"
+#include "GleamUtility/Runtime/String.h"
 
 namespace Gleam
 {
@@ -154,6 +155,16 @@ namespace Gleam
                 MenuItem(path, func, layer + 1);
                 ImGui::EndMenu();
             }
+        }
+    }
+    void UI::Menu(const std::unordered_map<std::string, std::function<void()>>& menuItems)
+    {
+        static std::vector<std::string> path = {};
+
+        for (auto& [name,func] : menuItems)
+        {
+            String::Split(name, "/", path);
+            MenuItem(path, func);
         }
     }
 }
