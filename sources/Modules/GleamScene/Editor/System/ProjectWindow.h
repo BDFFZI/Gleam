@@ -10,16 +10,19 @@ namespace Gleam
     class ProjectWindow : public System
     {
     public:
-        static void AddPopupMenuItems(const std::string& name, const std::function<void()>& action);
+        static void AddDirectoryMenu(const std::string& name, const std::function<void()>& action);
+        static void AddFileMenu(const std::string& extension, const std::string& name, const std::function<void()>& action);
+
         static const std::filesystem::path& GetFileDrawing();
         static const std::filesystem::path& GetDirectoryDrawing();
-        
+
         ProjectWindow(): System(GlobalEditorUISystem)
         {
         }
 
     private:
-        inline static std::unordered_map<std::string, std::function<void()>> menuItems = {};
+        inline static std::unordered_map<std::string, std::function<void()>> directoryMenus = {};
+        inline static std::unordered_map<std::string, std::unordered_map<std::string, std::function<void()>>> fileMenus = {};
         inline static std::filesystem::path fileDrawing = "";
         inline static std::filesystem::path directoryDrawing = "";
         inline static std::set<uuids::uuid> assetBundlesLoading = {};
@@ -33,6 +36,9 @@ namespace Gleam
     };
     Gleam_MakeGlobalSystem(ProjectWindow)
 
-#define Gleam_MakeProjectWindowMenu(name,action) \
-Gleam_MakeInitEvent(){ProjectWindow::AddPopupMenuItems(name,action);}
+#define Gleam_MakeProjectDirectoryMenu(name,action) \
+Gleam_MakeInitEvent(){::Gleam::ProjectWindow::AddDirectoryMenu(name,action);}
+
+#define Gleam_MakeProjectFileMenu(extension,name,action) \
+Gleam_MakeInitEvent(){::Gleam::ProjectWindow::AddFileMenu(extension,name,action);}
 }

@@ -7,7 +7,7 @@
 
 namespace Gleam
 {
-    void EditorUISystem::RegisterEditorMenu(const std::string& name, const std::function<void()>& action)
+    void EditorUISystem::AddEditorMenu(const std::string& name, const std::function<void()>& action)
     {
         editorMenus.emplace_back(name, action);
     }

@@ -22,23 +22,23 @@ namespace Gleam
     class AssetBundle
     {
     public:
-        static AssetBundle& Create(uuids::uuid assetBundleID = {});
-        static void Clear();
         static auto GetAllAssetBundles()
         {
             return assetBundles | std::views::values;
         }
 
-        static void SaveBinary(std::string_view fileName, AssetBundle& assetBundle);
-        static void SaveJson(std::string_view fileName, AssetBundle& assetBundle);
-        static void SaveMeta(std::string_view fileName, AssetBundle& assetBundle);
-        static void DumpJsonToBinary(std::string_view jsonFile, std::string_view binaryFile, bool saveMeta);
-
+        static AssetBundle& Create(uuids::uuid assetBundleID = {});
+        static void UnLoad(AssetBundle& assetBundle, bool retainAssets = false);
+        
         static AssetBundle& Load(AssetBundle& newAssetBundle, bool reload = false);
         static AssetBundle& LoadBinary(std::string_view fileName, bool reload = false);
         static AssetBundle& LoadJson(std::string_view fileName, bool reload = false);
         static AssetBundleMeta LoadMeta(std::string_view fileName);
-        static void UnLoad(AssetBundle& assetBundle, bool retainAssets = false);
+        
+        static void SaveBinary(std::string_view fileName, AssetBundle& assetBundle);
+        static void SaveJson(std::string_view fileName, AssetBundle& assetBundle);
+        static void SaveMeta(std::string_view fileName, AssetBundle& assetBundle);
+        static void DumpJsonToBinary(std::string_view jsonFile, std::string_view binaryFile, bool saveMeta);
 
         static std::optional<AssetRef> GetAssetRef(void* data);
         static std::optional<void*> GetObject(const AssetRef& assetRef);

@@ -15,13 +15,14 @@ namespace Gleam
         static int2 GetWindowPosition();
         static int2 GetResolution();
         static bool GetFullScreen();
-        
+
         static float2 GetMousePosition();
         static float2 GetMouseScrollDelta();
-        static bool GetIsMouseDown();
         static bool GetMouseButtonState(MouseButton button);
         static bool GetKeyboardState(KeyCode key);
-        
+        static bool GetIsMouseDown();
+        static bool GetIsFocused();
+
         static void SetResolution(int2 resolution);
         static void SetFullScreen(bool fullscreen);
         static void SetMousePosition(float2 position);
@@ -32,7 +33,7 @@ namespace Gleam
 
     private:
         Gleam_MakeType_Friend
-        
+
         inline static GLFWwindow* glfwWindow = nullptr;
         inline static float2 mousePosition = {};
         inline static float2 mouseScrollDelta = {};
@@ -40,6 +41,7 @@ namespace Gleam
         inline static bool keyboardStates[349] = {};
         inline static bool lastMouseState = false;
         inline static bool isMouseDown = false;
+        inline static bool isFocused = false;
 
         static void GlfwWindowFocusCallback(GLFWwindow* window, int focused);
         static void GlfwCursorEnterCallback(GLFWwindow* window, int entered);

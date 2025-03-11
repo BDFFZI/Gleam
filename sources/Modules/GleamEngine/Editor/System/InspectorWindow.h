@@ -26,6 +26,8 @@ namespace Gleam
     class InspectorWindow : public System
     {
     public:
+        using CustomUI = std::unordered_map<std::type_index, std::function<void(void*)>>;
+        
         static bool& UseDebugGUI();
         static const CustomUI& GetCustomUI();
         static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorUI);

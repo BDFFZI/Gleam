@@ -19,17 +19,19 @@ namespace Gleam
             return AssetBundle::GetAssetBundle(assetBundleID);
         return AssetBundle::LoadBinary(assetBundlePath.string());
     }
-    void Resources::Unload(const uuids::uuid assetBundleID)
+    void Resources::Unload(AssetBundle& assetBundle)
     {
+        uuids::uuid assetBundleID = assetBundle.GetID();
+
         auto assetBundlePath = resourceDirectory / to_string(assetBundleID);
         AssetBundleMeta assetBundleMeta = AssetBundle::LoadMeta(assetBundlePath.string());
         for (auto dependencyID : assetBundleMeta.dependencies)
-            Unload(dependencyID);
+            Unload(AssetBundle::GetAssetBundle(dependencyID));
 
         assetBundleRefCount[assetBundleID]--;
 
         if (assetBundleRefCount[assetBundleID] == 0)
-            AssetBundle::UnLoad(AssetBundle::GetAssetBundle(assetBundleID));
+            AssetBundle::UnLoad(assetBundle);
     }
 
     void Resources::Reload(const uuids::uuid assetBundleID)

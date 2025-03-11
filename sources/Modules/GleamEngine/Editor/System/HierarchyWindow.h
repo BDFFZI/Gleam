@@ -12,10 +12,6 @@ namespace Gleam
         {
         }
 
-    private:
-        inline static std::vector<Entity> removingEntities = {};
-        inline static std::vector<System*> removingSystems = {};
-
         static void DrawEntity(Entity entity);
         static void DrawSystem(System& system);
         static void DrawSubSystems(SystemGroup& systemGroup);
@@ -27,8 +23,12 @@ namespace Gleam
 
         static void DrawWorld();
         static void DrawWorldUnfolding();
-        static void DrawScene(Scene& scene);
-        
+    
+    private:
+        inline static std::vector<Entity> removingEntities = {};
+        inline static std::vector<System*> removingSystems = {};
+
+
         void Update() override;
     };
     Gleam_MakeGlobalSystem(HierarchyWindow)

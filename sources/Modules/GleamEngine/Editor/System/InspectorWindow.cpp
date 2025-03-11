@@ -15,7 +15,7 @@ namespace Gleam
     {
         return useDebugGUI;
     }
-    const CustomUI& InspectorWindow::GetCustomUI()
+    const InspectorWindow::CustomUI& InspectorWindow::GetCustomUI()
     {
         return inspectorGUIs;
     }

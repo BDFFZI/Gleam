@@ -24,6 +24,7 @@ namespace Gleam
     {
         return glfwGetWindowMonitor(glfwWindow) != nullptr;
     }
+    
     float2 Window::GetMousePosition()
     {
         return mousePosition;
@@ -31,10 +32,6 @@ namespace Gleam
     float2 Window::GetMouseScrollDelta()
     {
         return mouseScrollDelta;
-    }
-    bool Window::GetIsMouseDown()
-    {
-        return isMouseDown;
     }
     bool Window::GetMouseButtonState(const MouseButton button)
     {
@@ -44,6 +41,15 @@ namespace Gleam
     {
         return keyboardStates[static_cast<uint16_t>(key)];
     }
+    bool Window::GetIsMouseDown()
+    {
+        return isMouseDown;
+    }
+    bool Window::GetIsFocused()
+    {
+        return isFocused;
+    }
+    
     void Window::SetResolution(const int2 resolution)
     {
         if (GetFullScreen())
@@ -105,8 +111,9 @@ namespace Gleam
         lastMouseState = currentMouseState;
     }
 
-    void Window::GlfwWindowFocusCallback(GLFWwindow* window, int focused)
+    void Window::GlfwWindowFocusCallback(GLFWwindow* window, const int focused)
     {
+        isFocused = focused;
     }
     void Window::GlfwCursorEnterCallback(GLFWwindow* window, int entered)
     {

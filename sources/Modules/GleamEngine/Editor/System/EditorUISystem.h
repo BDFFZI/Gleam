@@ -12,7 +12,7 @@ namespace Gleam
         {
         }
 
-        void RegisterEditorMenu(const std::string& name, const std::function<void()>& action);
+        void AddEditorMenu(const std::string& name, const std::function<void()>& action);
 
     private:
         std::vector<std::tuple<std::string, std::function<void()>>> editorMenus = {};
@@ -22,5 +22,5 @@ namespace Gleam
     Gleam_MakeGlobalSystem(EditorUISystem)
 
 #define Gleam_MakeEditorMenu(name,action) \
-    Gleam_MakeInitEvent(){EditorUISystem.RegisterEditorMenu(name,action);}
+    Gleam_MakeInitEvent(){EditorUISystem.AddEditorMenu(name,action);}
 }

@@ -10,7 +10,7 @@ namespace Gleam
     public:
         static bool Has(uuids::uuid assetBundleID);
         static AssetBundle& Load(uuids::uuid assetBundleID);
-        static void Unload(uuids::uuid assetBundleID);
+        static void Unload(AssetBundle& assetBundle);
         
         static void Save(AssetBundle& assetBundle);
         static void Reload(uuids::uuid assetBundleID);

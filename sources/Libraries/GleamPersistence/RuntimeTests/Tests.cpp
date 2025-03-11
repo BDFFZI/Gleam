@@ -189,25 +189,51 @@ TEST(Persistence, AssetBundle)
 
 TEST(Persistence, Resources)
 {
-    TestAsset testAsset[3];
-    testAsset[0] = {"Asset0", &testAsset[1]};
-    testAsset[1] = {"Asset1", &testAsset[2]};
-    testAsset[3] = {"Asset2"};
-    AssetBundle& assetBundle0 = AssetBundle::Create();
-    AssetBundle& assetBundle1 = AssetBundle::Create();
-    AssetBundle& assetBundle2 = AssetBundle::Create();
-    assetBundle0.AddAsset(&testAsset[0], TestAssetType, false);
-    assetBundle1.AddAsset(&testAsset[1], TestAssetType, false);
-    assetBundle2.AddAsset(&testAsset[2], TestAssetType, false);
-    AssetBundle::SaveJson("Assets/assetBundle0.json", assetBundle0);
-    AssetBundle::SaveJson("Assets/assetBundle1.json", assetBundle1);
-    AssetBundle::SaveJson("Assets/assetBundle2.json", assetBundle2);
-    Resources::Save(assetBundle0);
-    Resources::Save(assetBundle1);
-    Resources::Save(assetBundle2);
-    AssetBundle::UnLoad(assetBundle0);
-    AssetBundle::UnLoad(assetBundle1);
-    AssetBundle::UnLoad(assetBundle2);
+    uuids::uuid assetBundle0ID = uuids::uuid_system_generator()();
+    uuids::uuid assetBundle1ID = uuids::uuid_system_generator()();
+    //构建Resources资源包
+    {
+        TestAsset testAsset[3];
+        testAsset[0] = {"Asset0", &testAsset[2]};
+        testAsset[1] = {"Asset1", &testAsset[2]};
+        testAsset[2] = {"Asset2",nullptr};
+        AssetBundle& assetBundle0 = AssetBundle::Create(assetBundle0ID);
+        AssetBundle& assetBundle1 = AssetBundle::Create(assetBundle1ID);
+        AssetBundle& assetBundle2 = AssetBundle::Create();
+        assetBundle0.AddAsset(&testAsset[0], TestAssetType, false);
+        assetBundle1.AddAsset(&testAsset[1], TestAssetType, false);
+        assetBundle2.AddAsset(&testAsset[2], TestAssetType, false);
+        AssetBundle::SaveJson("Assets/assetBundle0.json", assetBundle0);
+        AssetBundle::SaveJson("Assets/assetBundle1.json", assetBundle1);
+        AssetBundle::SaveJson("Assets/assetBundle2.json", assetBundle2);
+        Resources::Save(assetBundle0);
+        Resources::Save(assetBundle1);
+        Resources::Save(assetBundle2);
+        AssetBundle::UnLoad(assetBundle0);
+        AssetBundle::UnLoad(assetBundle1);
+        AssetBundle::UnLoad(assetBundle2);
+    }
+
+    //加载
+    {
+        ASSERT_EQ(std::ranges::size(AssetBundle::GetAllAssetBundles()), 0);
+
+        AssetBundle& assetBundle0 = Resources::Load(assetBundle0ID);
+        ASSERT_EQ(assetBundle0.GetObject<TestAsset>(0).name, "Asset0");
+        ASSERT_EQ(assetBundle0.GetObject<TestAsset>(0).dependency->name, "Asset2");
+        ASSERT_EQ(std::ranges::size(AssetBundle::GetAllAssetBundles()), 2);
+
+        AssetBundle& assetBundle1 = Resources::Load(assetBundle1ID);
+        ASSERT_EQ(assetBundle1.GetObject<TestAsset>(0).name, "Asset1");
+        ASSERT_EQ(assetBundle1.GetObject<TestAsset>(0).dependency->name, "Asset2");
+        ASSERT_EQ(assetBundle1.GetObject<TestAsset>(0).dependency, assetBundle0.GetObject<TestAsset>(0).dependency);
+        ASSERT_EQ(std::ranges::size(AssetBundle::GetAllAssetBundles()), 3);
+
+        Resources::Unload(assetBundle0);
+        ASSERT_EQ(std::ranges::size(AssetBundle::GetAllAssetBundles()), 2);
+        Resources::Unload(assetBundle1);
+        ASSERT_EQ(std::ranges::size(AssetBundle::GetAllAssetBundles()), 0);
+    }
 }
 
 TEST(Persistence, BinarySerializer)

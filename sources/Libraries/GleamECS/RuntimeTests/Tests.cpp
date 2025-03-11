@@ -183,7 +183,15 @@ TEST(ECS, Archetype)
         archetypeInfos[i] = to_string(item);
         i++;
     }
-    ASSERT_EQ(archetypeInfos[0], R"(Name:7e87fdd171de833302ae13c3525dd9c3
+    ASSERT_EQ(archetypeInfos[0], R"(Name:d1c9b3f452d6c5636f23b1a112880c3b
+ID:d1c9b3f4-52d6-c563-6f23-b1a112880c3b
+Size:28
+Components:
+struct RigidBody
+4	12
+struct SpringPhysics
+16	12)");
+    ASSERT_EQ(archetypeInfos[1], R"(Name:physicsWithSpringArchetype
 ID:7e87fdd1-71de-8333-02ae-13c3525dd9c3
 Size:32
 Components:
@@ -193,14 +201,6 @@ struct RigidBody
 8	12
 struct SpringPhysics
 20	12)");
-    ASSERT_EQ(archetypeInfos[1], R"(Name:physicsWithSpringArchetype
-ID:d1c9b3f4-52d6-c563-6f23-b1a112880c3b
-Size:28
-Components:
-struct RigidBody
-4	12
-struct SpringPhysics
-16	12)");
     ASSERT_EQ(archetypeInfos[2], R"(Name:physicsArchetype
 ID:87433cc8-8278-a9f6-f2eb-1d0d3628bfc6
 Size:20
@@ -477,12 +477,11 @@ class MySystem2 : public System
 Gleam_MakeGlobalSystem(MySystem2)
 
 
-// TEST(ECS, Scene)
-void main()
+TEST(ECS, Scene)
 {
     //测试场景的创建和保存
     {
-        Scene& scene = Scene::CreateOrGet("TestScene");
+        Scene& scene = Scene::Create("TestScene");
         //添加实体
         Entity entity = World::AddEntity(Transform{999}, RigidBody{}, SpringPhysics{});
         scene.AddEntity(entity);

@@ -3,17 +3,23 @@
 #include <filesystem>
 #include <imgui.h>
 
-#include "GleamAssets/Editor/Asset/AssetDatabase.h"
-#include "GleamAssets/Editor/Asset/AssetMeta.h"
+#include "GleamScene/Editor/Asset/AssetDatabase.h"
+#include "GleamScene/Editor/Asset/AssetImporter.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamUI/Runtime/UI.h"
+#include "GleamWindow/Runtime/Window.h"
 
 namespace Gleam
 {
-    void ProjectWindow::AddPopupMenuItems(const std::string& name, const std::function<void()>& action)
+    void ProjectWindow::AddDirectoryMenu(const std::string& name, const std::function<void()>& action)
     {
-        menuItems.emplace(name, action);
+        directoryMenus.emplace(name, action);
     }
+    void ProjectWindow::AddFileMenu(const std::string& extension, const std::string& name, const std::function<void()>& action)
+    {
+        fileMenus[extension].emplace(name, action);
+    }
+
     const std::filesystem::path& ProjectWindow::GetFileDrawing()
     {
         return fileDrawing;
@@ -23,79 +29,95 @@ namespace Gleam
         return directoryDrawing;
     }
 
+    void RemoveAssetInspector(const std::filesystem::path& path)
+    {
+        AssetBundle& assetBundle = AssetDatabase::GetAssetBundle(path);
+        auto optionalTarget = GlobalInspectorWindow.GetTarget();
+        if (optionalTarget.has_value() && assetBundle.GetAsset(optionalTarget->data).has_value())
+            GlobalInspectorWindow.SetTarget(std::nullopt);
+    }
     void ProjectWindow::ShowFile(const std::filesystem::path& path)
     {
+        //获取路径信息
+        const std::string fileName = path.filename().string();
+        const std::string extension = path.extension().string();
+
+        //导入器文件不显示
         if (path.extension() == ".meta")
             return;
 
-        const std::string pathStr = path.string();
-        const std::string fileName = path.filename().string();
-        if (AssetDatabase::CanLoad(pathStr) == false)
-            ImGui::Text(fileName.c_str()); //未知类型文件，仅显示名称
-        else
+        //不支持的文件类型，仅显示名称
+        if (AssetDatabase::CanLoad(path) == false)
         {
-            ImGui::PushID(pathStr.c_str());
+            ImGui::Text(fileName.c_str());
+            return;
+        }
 
-            const bool isUnfolding = ImGui::CollapsingHeader(std::format("##{}", fileName).data(), ImGuiTreeNodeFlags_AllowOverlap);
-            ImGui::SameLine();
+        ImGui::PushID(fileName.data());
 
-            //显示资源元信息
-            if (ImGui::Button(fileName.data(), {ImGui::GetContentRegionAvail().x, 0}))
-            {
-                static std::unique_ptr<AssetMeta> assetMetaInspecting;
-                assetMetaInspecting = AssetMeta::GetMeta(path);
-                GlobalInspectorWindow.SetTarget(InspectorTarget{*assetMetaInspecting});
-            }
-            //右键菜单
-            if (ImGui::BeginPopupContextItem("FilePopup"))
+        //资源标题UI，显示打开按钮、资源名称、导入器选择按钮
+        const bool isUnfolding = ImGui::CollapsingHeader(std::format("##{}", fileName).data(), ImGuiTreeNodeFlags_AllowOverlap);
+        ImGui::SameLine();
+        if (ImGui::Button(fileName.data(), {ImGui::GetContentRegionAvail().x, 0}))
+        {
+            AssetImporter& assetImporter = AssetImporter::GetImporter(path);
+            GlobalInspectorWindow.SetTarget(InspectorTarget{assetImporter});
+        }
+
+        //资源右键菜单
+        if (ImGui::BeginPopupContextItem("FilePopup"))
+        {
+            if (AssetDatabase::HasLoaded(path))
             {
                 if (ImGui::MenuItem("ReLoad"))
-                    AssetDatabase::Load(path, true);
-                if (ImGui::MenuItem("UnLoad"))
-                {
-                    AssetBundle& assetBundle = AssetDatabase::Load(path);
-                    auto optionalTarget = GlobalInspectorWindow.GetTarget();
-                    if (optionalTarget.has_value() && assetBundle.GetAsset(optionalTarget->data).has_value())
-                        GlobalInspectorWindow.SetTarget(std::nullopt);
-                    AssetDatabase::UnLoad(path);
-                }
+                    AssetDatabase::Reload(path);
                 if (ImGui::MenuItem("Save"))
                     AssetDatabase::Save(path);
-
-                ImGui::EndPopup();
             }
 
-            if (isUnfolding)
+            if (fileMenus.contains(extension))
             {
-                //显示资源包内容
-                AssetBundle& assetBundle = AssetDatabase::Load(path);
-                for (const Asset& asset : assetBundle.GetAssets())
-                {
-                    if (ImGui::Button(std::to_string(asset.GetID()).c_str()))
-                    {
-                        GlobalInspectorWindow.SetTarget(InspectorTarget{
-                            asset.GetObject(),
-                            Type::GetType(asset.GetTypeID()).value().get().GetIndex()
-                        });
-                    }
-                }
-
-                assetBundlesLoading.insert(assetBundle.GetID());
-            }
-            else if (assetBundlesLoading.contains(AssetDatabase::GetAssetBundleID(path)))
-            {
-                //卸载资源包
-                AssetBundle& assetBundle = AssetDatabase::Load(path);
-                auto optionalTarget = GlobalInspectorWindow.GetTarget();
-                if (optionalTarget.has_value() && assetBundle.GetAsset(optionalTarget->data).has_value())
-                    GlobalInspectorWindow.SetTarget(std::nullopt);
-                AssetDatabase::UnLoad(path);
-
-                assetBundlesLoading.erase(assetBundle.GetID());
+                fileDrawing = path;
+                auto& menu = fileMenus[extension];
+                UI::Menu(menu);
             }
 
-            ImGui::PopID();
+            ImGui::EndPopup();
         }
+
+        //显示资源信息
+        if (isUnfolding)
+        {
+            //首次展开，需加载资源包到内存
+            uuids::uuid assetBundleID = AssetDatabase::GetAssetBundleID(path);
+            if (!assetBundlesLoading.contains(assetBundleID))
+            {
+                AssetDatabase::Load(path);
+                assetBundlesLoading.insert(assetBundleID);
+            }
+
+            //显示资源包内容
+            AssetBundle& assetBundle = AssetDatabase::GetAssetBundle(path);
+            for (const Asset& asset : assetBundle.GetAssets())
+            {
+                if (ImGui::Button(std::to_string(asset.GetID()).c_str()))
+                {
+                    GlobalInspectorWindow.SetTarget(InspectorTarget{
+                        asset.GetObject(),
+                        Type::GetType(asset.GetTypeID()).value().get().GetIndex()
+                    });
+                }
+            }
+        }
+        else if (assetBundlesLoading.contains(AssetDatabase::GetAssetBundleID(path)))
+        {
+            //首次关闭，卸载资源包
+            RemoveAssetInspector(path);
+            AssetDatabase::Unload(path);
+            assetBundlesLoading.erase(AssetDatabase::GetAssetBundleID(path));
+        }
+
+        ImGui::PopID();
     }
     void ProjectWindow::ShowDirectory(const std::filesystem::path& path)
     {
@@ -105,7 +127,7 @@ namespace Gleam
         {
             directoryDrawing = path;
             fileDrawing = "";
-            UI::Menu(menuItems);
+            UI::Menu(directoryMenus);
             ImGui::EndPopup();
         }
 
@@ -130,6 +152,7 @@ namespace Gleam
             ImGui::TreePop();
         }
     }
+
     void ProjectWindow::Start()
     {
         if (!std::filesystem::exists("Assets"))
@@ -137,17 +160,35 @@ namespace Gleam
     }
     void ProjectWindow::Stop()
     {
+        //除了结束时还未卸载的资源包
         for (auto assetBundleID : assetBundlesLoading)
             AssetBundle::UnLoad(AssetBundle::GetAssetBundle(assetBundleID));
     }
 
     void ProjectWindow::Update()
     {
-        ImGui::Begin("ProjectWindow");
+        static bool lastIsFocused = false;
+        if (lastIsFocused != Window::GetIsFocused())
+        {
+            if (Window::GetIsFocused())
+                AssetDatabase::Refresh();
+            lastIsFocused = Window::GetIsFocused();
+        }
 
-        ShowDirectory("Assets");
-        if (std::filesystem::exists("StreamingAssets"))
-            ShowDirectory("StreamingAssets");
+        if (ImGui::Begin("ProjectWindow", nullptr, ImGuiWindowFlags_MenuBar))
+        {
+            if (ImGui::BeginMenuBar())
+            {
+                if (ImGui::MenuItem("Refresh"))
+                    AssetDatabase::Refresh();
+
+                ImGui::EndMenuBar();
+            }
+
+            ShowDirectory("Assets");
+            if (std::filesystem::exists("StreamingAssets"))
+                ShowDirectory("StreamingAssets");
+        }
 
         ImGui::End();
     }

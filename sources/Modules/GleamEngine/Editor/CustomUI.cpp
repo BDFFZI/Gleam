@@ -5,7 +5,7 @@
 
 namespace Gleam
 {
-    void DrawComponent(void* component, const Type& componentType, const CustomUI& componentGUI, bool* isUsing)
+    void DrawComponent(void* component, const Type& componentType, const InspectorWindow::CustomUI& componentGUI, bool* isUsing)
     {
         std::type_index componentTypeIndex = componentType.GetIndex();
         std::string_view componentName = componentType.GetName();
@@ -22,7 +22,7 @@ namespace Gleam
         }
         ImGui::PopID();
     }
-    void DrawEntity(const Entity entity, const CustomUI& componentGUI)
+    void DrawEntity(const Entity entity, const InspectorWindow::CustomUI& componentGUI)
     {
         EntityInfo entityInfo = World::GetEntityInfo(entity);
         const Archetype& archetype = *entityInfo.archetype;
@@ -83,7 +83,7 @@ namespace Gleam
             InspectorUI_Entity_Target = entity;
             DrawEntity(
                 entity,
-                InspectorWindow::UseDebugGUI() ? CustomUI{} : InspectorWindow::GetCustomUI()
+                InspectorWindow::UseDebugGUI() ? InspectorWindow::CustomUI{} : InspectorWindow::GetCustomUI()
             );
         }
     }

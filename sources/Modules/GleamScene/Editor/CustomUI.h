@@ -2,5 +2,6 @@
 
 namespace Gleam
 {
-    void ProjectWindow_CreateScene();
+    void ProjectWindowMenu_CreateScene();
+    void ProjectWindowMenu_OpenScene();
 }
