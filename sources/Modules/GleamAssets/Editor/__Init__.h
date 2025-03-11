@@ -1,7 +1,7 @@
 #pragma once
-#include "CustomImporter.h"
+#include "CustomMeta.h"
 #include "CustomUI.h"
-#include "Asset/AssetImporter.h"
+#include "Asset/AssetMeta.h"
 #include "System/ProjectWindow.h"
 
 namespace Gleam

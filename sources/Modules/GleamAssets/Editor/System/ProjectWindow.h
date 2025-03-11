@@ -3,6 +3,7 @@
 
 #include "GleamECS/Runtime/System.h"
 #include "GleamEngine/Editor/System/EditorUISystem.h"
+#include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 
 namespace Gleam
 {
@@ -21,11 +22,13 @@ namespace Gleam
         inline static std::unordered_map<std::string, std::function<void()>> menuItems = {};
         inline static std::filesystem::path fileDrawing = "";
         inline static std::filesystem::path directoryDrawing = "";
+        inline static std::set<uuids::uuid> assetBundlesLoading = {};
 
         static void ShowFile(const std::filesystem::path& path);
         static void ShowDirectory(const std::filesystem::path& path);
 
         void Start() override;
+        void Stop() override;
         void Update() override;
     };
     Gleam_MakeGlobalSystem(ProjectWindow)

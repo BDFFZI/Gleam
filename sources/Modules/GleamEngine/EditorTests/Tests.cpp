@@ -13,7 +13,7 @@ class MySystem : public System
 {
     void Start() override
     {
-        Scene& scene = Scene::Create("Test");
+        Scene& scene = Scene::CreateOrGet("Test");
         Entity entity = World::AddEntity(DataArchetype);
         World::SetComponents(entity, data);
         scene.AddEntity(entity);

@@ -4,6 +4,7 @@
 #include <imgui.h>
 
 #include "GleamAssets/Editor/Asset/AssetDatabase.h"
+#include "GleamAssets/Editor/Asset/AssetMeta.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamUI/Runtime/UI.h"
 
@@ -34,31 +35,39 @@ namespace Gleam
         else
         {
             ImGui::PushID(pathStr.c_str());
-            const bool isUnfolding = ImGui::CollapsingHeader(fileName.c_str());
-            
+
+            const bool isUnfolding = ImGui::CollapsingHeader(std::format("##{}", fileName).data(), ImGuiTreeNodeFlags_AllowOverlap);
+            ImGui::SameLine();
+
+            //显示资源元信息
+            if (ImGui::Button(fileName.data(), {ImGui::GetContentRegionAvail().x, 0}))
+            {
+                static std::unique_ptr<AssetMeta> assetMetaInspecting;
+                assetMetaInspecting = AssetMeta::GetMeta(path);
+                GlobalInspectorWindow.SetTarget(InspectorTarget{*assetMetaInspecting});
+            }
+            //右键菜单
             if (ImGui::BeginPopupContextItem("FilePopup"))
             {
-                //右键菜单
                 if (ImGui::MenuItem("ReLoad"))
-                {
                     AssetDatabase::Load(path, true);
-                }
                 if (ImGui::MenuItem("UnLoad"))
                 {
                     AssetBundle& assetBundle = AssetDatabase::Load(path);
-                    AssetBundle::UnLoad(assetBundle);
+                    auto optionalTarget = GlobalInspectorWindow.GetTarget();
+                    if (optionalTarget.has_value() && assetBundle.GetAsset(optionalTarget->data).has_value())
+                        GlobalInspectorWindow.SetTarget(std::nullopt);
+                    AssetDatabase::UnLoad(path);
                 }
                 if (ImGui::MenuItem("Save"))
-                {
-                    AssetBundle& assetBundle = AssetDatabase::Load(path);
-                    AssetDatabase::Save(path, assetBundle);
-                }
+                    AssetDatabase::Save(path);
 
                 ImGui::EndPopup();
             }
 
             if (isUnfolding)
             {
+                //显示资源包内容
                 AssetBundle& assetBundle = AssetDatabase::Load(path);
                 for (const Asset& asset : assetBundle.GetAssets())
                 {
@@ -70,6 +79,19 @@ namespace Gleam
                         });
                     }
                 }
+
+                assetBundlesLoading.insert(assetBundle.GetID());
+            }
+            else if (assetBundlesLoading.contains(AssetDatabase::GetAssetBundleID(path)))
+            {
+                //卸载资源包
+                AssetBundle& assetBundle = AssetDatabase::Load(path);
+                auto optionalTarget = GlobalInspectorWindow.GetTarget();
+                if (optionalTarget.has_value() && assetBundle.GetAsset(optionalTarget->data).has_value())
+                    GlobalInspectorWindow.SetTarget(std::nullopt);
+                AssetDatabase::UnLoad(path);
+
+                assetBundlesLoading.erase(assetBundle.GetID());
             }
 
             ImGui::PopID();
@@ -112,6 +134,11 @@ namespace Gleam
     {
         if (!std::filesystem::exists("Assets"))
             std::filesystem::create_directory("Assets");
+    }
+    void ProjectWindow::Stop()
+    {
+        for (auto assetBundleID : assetBundlesLoading)
+            AssetBundle::UnLoad(AssetBundle::GetAssetBundle(assetBundleID));
     }
 
     void ProjectWindow::Update()

@@ -1,32 +1,30 @@
 ﻿#include "AssetDatabase.h"
 
-#include "AssetImporter.h"
+#include "AssetMeta.h"
 
 namespace Gleam
 {
     bool AssetDatabase::CanLoad(const std::filesystem::path& path)
     {
-        return AssetImporter::HasImporter(path);
+        return AssetMeta::HasMeta(path);
     }
     bool AssetDatabase::HasLoaded(const std::filesystem::path& path)
     {
-        AssetBundle& assetImporterBundle = AssetImporter::LoadImporter(path);
-        AssetImporter& assetImporter = assetImporterBundle.GetObject<AssetImporter>(0);
-        return AssetBundle::HasInMemory(assetImporter.assetBundleID);
+        auto assetMeta = AssetMeta::GetMeta(path);
+        return AssetBundle::HasInMemory(assetMeta->GetAssetBundleID());
     }
     AssetBundle& AssetDatabase::Load(const std::filesystem::path& path, const bool reload)
     {
-        AssetBundle& assetImporterBundle = AssetImporter::LoadImporter(path);
-        AssetImporter& assetImporter = assetImporterBundle.GetObject<AssetImporter>(0);
+        std::unique_ptr<AssetMeta> assetMeta = AssetMeta::GetMeta(path);
 
         AssetBundle* assetBundle = nullptr;
         if (!reload)
         {
-            if (AssetBundle::HasInMemory(assetImporter.assetBundleID))
-                assetBundle = &AssetBundle::GetAssetBundle(assetImporter.assetBundleID);
+            if (AssetBundle::HasInMemory(assetMeta->GetAssetBundleID()))
+                assetBundle = &AssetBundle::GetAssetBundle(assetMeta->GetAssetBundleID());
             else
             {
-                auto cachePath = cacheDirectory / to_string(assetImporter.assetBundleID);
+                auto cachePath = cacheDirectory / to_string(assetMeta->GetAssetBundleID());
                 if (!reload && exists(cachePath)) //优先加载缓存的二进制数据，以加速大文件的加载
                     assetBundle = &AssetBundle::LoadBinary(cachePath.string(), true);
             }
@@ -34,26 +32,35 @@ namespace Gleam
 
         if (assetBundle == nullptr) //重载或首次导入
         {
-            //导入资源    
-            assetBundle = &assetImporter.Import();
+            //导入资源
+            assetMeta->SaveAndReloadAsset();
+            assetBundle = &AssetBundle::GetAssetBundle(assetMeta->GetAssetBundleID());
             //缓存资源
             auto cachePath = cacheDirectory / to_string(assetBundle->GetID());
             AssetBundle::SaveBinary(cachePath.string(), *assetBundle);
             AssetBundle::SaveMeta(cachePath.string(), *assetBundle);
-            //保存导入器
-            AssetImporter::SaveImporter(assetImporterBundle);
         }
 
-        AssetImporter::UnLoadImporter(assetImporterBundle);
         return *assetBundle;
     }
-    void AssetDatabase::Save(const std::filesystem::path& path, AssetBundle& assetBundle)
+    void AssetDatabase::UnLoad(const std::filesystem::path& path)
+    {
+        std::unique_ptr<AssetMeta> assetMeta = AssetMeta::GetMeta(path);
+        assetMeta->UnLoadAsset();
+    }
+    void AssetDatabase::Save(const std::filesystem::path& path)
     {
         //保存到资源文件夹
-        AssetBundle::SaveJson(path.string(), assetBundle);
+        std::unique_ptr<AssetMeta> assetMeta = AssetMeta::GetMeta(path);
+        assetMeta->SaveAsset();
         //保存到缓存文件夹
+        AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetMeta->GetAssetBundleID());
         auto cachePath = cacheDirectory / to_string(assetBundle.GetID());
         AssetBundle::SaveBinary(cachePath.string(), assetBundle);
         AssetBundle::SaveMeta(cachePath.string(), assetBundle);
+    }
+    uuids::uuid AssetDatabase::GetAssetBundleID(const std::filesystem::path& path)
+    {
+        return AssetMeta::GetMeta(path)->GetAssetBundleID();
     }
 }

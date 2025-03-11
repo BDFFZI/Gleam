@@ -43,7 +43,7 @@ namespace Gleam
                     event();
             }
             World::Clear();
-
+            
             for (auto& event : stopEvents | std::views::values)
                 event();
         }

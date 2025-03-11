@@ -17,8 +17,7 @@ namespace Gleam
 
     Scene& Scene::Create(const std::string_view name)
     {
-        assert(std::ranges::count_if(allScenes,[name](auto& scene){return scene->name == name;}) ==0 && "同名场景已存在！");
-
+        assert(GetScene(name) == std::nullopt && "同名场景已存在！");
         std::unique_ptr<Scene>& scene = allScenes.emplace_back(std::make_unique<Scene>());
         scene->name = name;
         return *scene;
@@ -43,6 +42,13 @@ namespace Gleam
         allScenes.clear();
         assert(systemWorld.empty() && "场景回收异常！");
         assert(entityWorld.empty() && "场景回收异常！");
+    }
+    std::optional<std::reference_wrapper<Scene>> Scene::GetScene(std::string_view name)
+    {
+        auto it = std::ranges::find_if(allScenes, [name](auto& scene) { return scene->name == name; });
+        if (it != allScenes.end())
+            return **it;
+        return std::nullopt;
     }
 
     void Scene::ToAssetBundle(const Scene& scene, AssetBundle& assetBundle)

@@ -482,7 +482,7 @@ void main()
 {
     //测试场景的创建和保存
     {
-        Scene& scene = Scene::Create("TestScene");
+        Scene& scene = Scene::CreateOrGet("TestScene");
         //添加实体
         Entity entity = World::AddEntity(Transform{999}, RigidBody{}, SpringPhysics{});
         scene.AddEntity(entity);

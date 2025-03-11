@@ -231,6 +231,13 @@ namespace Gleam
     {
         return assets[index];
     }
+    std::optional<std::reference_wrapper<const Asset>> AssetBundle::GetAsset(void* data)
+    {
+        auto it = std::ranges::find_if(assets, [data](Asset& asset) { return asset.object == data; });
+        if (it != assets.end())
+            return *it;
+        return std::nullopt;
+    }
     const std::vector<Asset>& AssetBundle::GetAssets() const
     {
         return assets;

@@ -167,7 +167,7 @@ namespace Gleam
             value = assetPtr != nullptr ? assetPtr->GetEntity() : value;
         }
     };
-    
+
     /**
      * 场景是一种能将世界中的实体和系统分组托管并持久化的容器。其使用场景如下
      * 1. 托管世界中的实体，使其在场景销毁时连带销毁。
@@ -190,6 +190,7 @@ namespace Gleam
         static void Destroy(std::string_view name);
         static void Clear();
 
+        static std::optional<std::reference_wrapper<Scene>> GetScene(std::string_view name);
         static void ToAssetBundle(const Scene& scene, AssetBundle& assetBundle);
         static Scene& FromAssetBundle(AssetBundle& assetBundle);
 
@@ -222,11 +223,12 @@ namespace Gleam
 
         void Start();
         void Stop();
-        
+
         void AddSystem(System& system);
         void RemoveSystem(System& system);
         void AddEntity(Entity entity);
         void RemoveEntity(Entity entity);
+
     private:
         inline static std::vector<std::unique_ptr<Scene>> allScenes = {};
         inline static std::unordered_map<System*, Scene*> systemWorld = {};

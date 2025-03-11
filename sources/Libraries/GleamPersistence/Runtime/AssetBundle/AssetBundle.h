@@ -23,6 +23,11 @@ namespace Gleam
     {
     public:
         static AssetBundle& Create(uuids::uuid assetBundleID = {});
+        static void Clear();
+        static auto GetAllAssetBundles()
+        {
+            return assetBundles | std::views::values;
+        }
 
         static void SaveBinary(std::string_view fileName, AssetBundle& assetBundle);
         static void SaveJson(std::string_view fileName, AssetBundle& assetBundle);
@@ -49,6 +54,7 @@ namespace Gleam
         const std::vector<Asset>& GetAssets() const;
         uuids::uuid GetID() const;
         const Asset& GetAsset(int index) const;
+        std::optional<std::reference_wrapper<const Asset>> GetAsset(void* data);
         std::optional<std::reference_wrapper<const Asset>> GetAssetFromID(int assetID) const;
         template <typename T>
         T& GetObject(const int index)

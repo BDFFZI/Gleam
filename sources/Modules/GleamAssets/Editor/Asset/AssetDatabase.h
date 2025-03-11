@@ -11,7 +11,11 @@ namespace Gleam
         static bool CanLoad(const std::filesystem::path& path);
         static bool HasLoaded(const std::filesystem::path& path);
         static AssetBundle& Load(const std::filesystem::path& path, bool reload = false);
-        static void Save(const std::filesystem::path& path, AssetBundle& assetBundle);
+        static void UnLoad(const std::filesystem::path& path);
+        static void Save(const std::filesystem::path& path);
+
+        static uuids::uuid GetAssetBundleID(const std::filesystem::path& path);
+
     private:
         inline static std::filesystem::path assetDirectory = "Assets";
         inline static std::filesystem::path cacheDirectory = "Library";
