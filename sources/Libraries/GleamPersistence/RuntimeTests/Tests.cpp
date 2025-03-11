@@ -2,7 +2,9 @@
 #include <gtest/gtest.h>
 #include <rapidjson/stringbuffer.h>
 
+#include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "GleamPersistence/Runtime/JsonUtility.h"
+#include "GleamPersistence/Runtime/Resources.h"
 #include "GleamPersistence/Runtime/AssetBundle/Asset.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 #include "GleamPersistence/Runtime/Serializer/BinaryReader.h"
@@ -31,7 +33,7 @@ Gleam_MakeType(TestAsset, "A409ACFC-E52F-475F-A34F-B4361C59EF06")
     Gleam_MakeType_AddField(dependency);
 }
 
-TEST(Reflection, Asset)
+TEST(Persistence, Asset)
 {
     Type& type = Type::CreateOrGet<TestAsset>();
 
@@ -59,7 +61,7 @@ TEST(Reflection, Asset)
 }
 
 
-TEST(Reflection, AssetBundle)
+TEST(Persistence, AssetBundle)
 {
     uuids::uuid assetBundleID = uuids::uuid::from_string("c57022f0-53a7-4b6b-99d5-41a1e5c8f51e").value();
     uuids::uuid assetBundle2ID = uuids::uuid::from_string("c492a4ff-b846-4596-8a8d-09e25cba9b08").value();
@@ -76,8 +78,8 @@ TEST(Reflection, AssetBundle)
         //验证创建资源包
         AssetBundle& assetBundle = AssetBundle::Create(assetBundleID);
         //验证添加资源
-        assetBundle.AddAsset(&testAsset[0], TestAssetType);
-        assetBundle.AddAsset(&testAsset[1], TestAssetType);
+        assetBundle.AddAsset(&testAsset[0], TestAssetType, false);
+        assetBundle.AddAsset(&testAsset[1], TestAssetType, false);
         //验证保存资源包
         AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
         AssetBundle::SaveBinary("Assets/" + to_string(assetBundle.GetID()), assetBundle);
@@ -113,7 +115,7 @@ TEST(Reflection, AssetBundle)
 
         //创建资源包2
         AssetBundle& assetBundle2 = AssetBundle::Create(assetBundle2ID);
-        assetBundle2.AddAsset(&testAsset[3], TestAssetType);
+        assetBundle2.AddAsset(&testAsset[3], TestAssetType, false);
         //迁移资源包1资源
         AssetBundle& assetBundle = AssetBundle::LoadBinary("Assets/" + to_string(assetBundleID));
         Asset asset = assetBundle.ExtractAsset(assetBundle.GetAssets()[0].GetID());
@@ -185,7 +187,30 @@ TEST(Reflection, AssetBundle)
     }
 }
 
-TEST(Reflection, BinarySerializer)
+TEST(Persistence, Resources)
+{
+    TestAsset testAsset[3];
+    testAsset[0] = {"Asset0", &testAsset[1]};
+    testAsset[1] = {"Asset1", &testAsset[2]};
+    testAsset[3] = {"Asset2"};
+    AssetBundle& assetBundle0 = AssetBundle::Create();
+    AssetBundle& assetBundle1 = AssetBundle::Create();
+    AssetBundle& assetBundle2 = AssetBundle::Create();
+    assetBundle0.AddAsset(&testAsset[0], TestAssetType, false);
+    assetBundle1.AddAsset(&testAsset[1], TestAssetType, false);
+    assetBundle2.AddAsset(&testAsset[2], TestAssetType, false);
+    AssetBundle::SaveJson("Assets/assetBundle0.json", assetBundle0);
+    AssetBundle::SaveJson("Assets/assetBundle1.json", assetBundle1);
+    AssetBundle::SaveJson("Assets/assetBundle2.json", assetBundle2);
+    Resources::Save(assetBundle0);
+    Resources::Save(assetBundle1);
+    Resources::Save(assetBundle2);
+    AssetBundle::UnLoad(assetBundle0);
+    AssetBundle::UnLoad(assetBundle1);
+    AssetBundle::UnLoad(assetBundle2);
+}
+
+TEST(Persistence, BinarySerializer)
 {
     const Type& type = Type::GetType(typeid(CustomObject)).value();
 
@@ -205,7 +230,7 @@ TEST(Reflection, BinarySerializer)
     ASSERT_EQ(newData, data);
 }
 
-TEST(Reflection, JsonSerializer)
+TEST(Persistence, JsonSerializer)
 {
     const Type& type = Type::GetType(typeid(CustomObject)).value();
 

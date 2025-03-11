@@ -146,8 +146,8 @@ namespace Gleam
         ImGui::Begin("ProjectWindow");
 
         ShowDirectory("Assets");
-        if (std::filesystem::exists("Resources"))
-            ShowDirectory("Resources");
+        if (std::filesystem::exists("StreamingAssets"))
+            ShowDirectory("StreamingAssets");
 
         ImGui::End();
     }

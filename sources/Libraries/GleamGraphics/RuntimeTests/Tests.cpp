@@ -64,7 +64,7 @@ void CreateAssets()
         0, 2, 3
     });
     //盒状网格
-    RawMesh rawMesh = ModelImporter::ImportObj("Resources/GleamGraphicsRuntimeTests/Cube.obj");
+    RawMesh rawMesh = ModelImporter::ImportObj("StreamingAssets/GleamGraphicsRuntimeTests/Cube.obj");
     cubeMesh = std::make_unique<Mesh>();
     for (size_t i = 0; i < rawMesh.positions.size(); ++i)
     {
@@ -76,7 +76,7 @@ void CreateAssets()
     }
     cubeMesh->SetIndices(rawMesh.triangles);
     //标准材质
-    shader = std::make_unique<GShader>(GSCodeLayout{"Resources/GleamGraphicsRuntimeTests/shader.hlsl"});
+    shader = std::make_unique<GShader>(GSCodeLayout{"StreamingAssets/GleamGraphicsRuntimeTests/shader.hlsl"});
     material = std::make_unique<GMaterial>(*shader);
     //自定义线材质
     GSInoutLayout LineGSInoutLayout = GSInoutLayout{
@@ -85,11 +85,11 @@ void CreateAssets()
         Graphics::GetGraphicsConfig().defaultGSInoutLayout.depthStencilFormat
     };
     lineShader = std::make_unique<GShader>(
-        GSCodeLayout{"Resources/GleamGraphicsRuntimeTests/shader.hlsl"},
+        GSCodeLayout{"StreamingAssets/GleamGraphicsRuntimeTests/shader.hlsl"},
         Graphics::GetGraphicsConfig().defaultGSStateLayout, Graphics::GetGraphicsConfig().defaultGSAssetLayout, LineGSInoutLayout);
     lineMaterial = std::make_unique<GMaterial>(*lineShader);
     //图片纹理
-    imageTexture2D = std::make_unique<GTexture2D>("Resources/GleamGraphicsRuntimeTests/texture.jpg");
+    imageTexture2D = std::make_unique<GTexture2D>("StreamingAssets/GleamGraphicsRuntimeTests/texture.jpg");
     //存储矩阵的缓冲区
     buffer = std::make_unique<GBuffer>(sizeof(float4x4) * 4, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
 

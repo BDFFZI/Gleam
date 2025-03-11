@@ -4,7 +4,6 @@
 
 #include "GleamECS/Runtime/System.h"
 #include "GleamECS/Runtime/World.h"
-#include "GleamReflection/Runtime/Type.h"
 #include "GleamUtility/Runtime/Macro.h"
 
 #ifdef GleamEngineEditor
@@ -43,7 +42,7 @@ namespace Gleam
                     event();
             }
             World::Clear();
-            
+
             for (auto& event : stopEvents | std::views::values)
                 event();
         }

@@ -122,7 +122,7 @@ public:
             });
         glPipelineLayout = std::make_unique<GLPipelineLayout>(*descriptorSetLayout, std::vector<VkPushConstantRange>{});
         //着色器布局
-        std::string code = File::ReadAllText("Resources/GleamGLRuntimeTests/shader.hlsl");
+        std::string code = File::ReadAllText("StreamingAssets/GleamGLRuntimeTests/shader.hlsl");
         glShaderLayout = std::make_unique<GLShaderLayout>(std::vector{
             GLShader(VK_SHADER_STAGE_VERTEX_BIT,
                      ShaderImporter::ImportHlsl(code, shaderc_vertex_shader, "VertexShader"),
@@ -147,7 +147,7 @@ public:
         );
 
         //创建顶点索引缓冲区
-        RawMesh mesh = ModelImporter::ImportObj("Resources/GleamGLRuntimeTests/viking_room.obj");
+        RawMesh mesh = ModelImporter::ImportObj("StreamingAssets/GleamGLRuntimeTests/viking_room.obj");
         std::vector<Vertex> vertices(mesh.positions.size());
         for (size_t i = 0; i < vertices.size(); ++i)
         {
@@ -173,7 +173,7 @@ public:
         uniformBuffer = GLBuffer::CreateUniformBuffer(sizeof(ConstantBuffer));
 
         //创建纹理及采样器
-        RawImage rawImage = ImageImporter::Import("Resources/GleamGLRuntimeTests/viking_room.png", STBI_rgb_alpha);
+        RawImage rawImage = ImageImporter::Import("StreamingAssets/GleamGLRuntimeTests/viking_room.png", STBI_rgb_alpha);
         texture = GLImage::CreateTexture2D(
             rawImage.width, rawImage.height, VK_FORMAT_R8G8B8A8_SRGB,
             rawImage.pixels.data(), rawImage.pixels.size(), true);

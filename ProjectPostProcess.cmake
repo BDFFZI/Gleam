@@ -23,19 +23,19 @@ foreach(ProjectName ${AllProjects})
     endif()
 
     # 统计所有依赖资源
-    set(ALLResourcesPaths "")
+    set(ALLStreamingAssetsPaths "")
     list(APPEND RealDependencies ${ProjectName}) # 自身也可能有资源文件
 
     foreach(dependency ${RealDependencies})
-        # 查看依赖的Resources文件
-        file(GLOB_RECURSE ResourcesPaths LIST_DIRECTORIES true "${${dependency}Source}/[!.]")
-        list(FILTER ResourcesPaths INCLUDE REGEX "Resources$")
-        list(APPEND ALLResourcesPaths ${ResourcesPaths})
+        # 查看依赖的StreamingAssets文件
+        file(GLOB_RECURSE StreamingAssetsPaths LIST_DIRECTORIES true "${${dependency}Source}/[!.]")
+        list(FILTER StreamingAssetsPaths INCLUDE REGEX "StreamingAssets$")
+        list(APPEND ALLStreamingAssetsPaths ${StreamingAssetsPaths})
     endforeach()
 
-    if(NOT ALLResourcesPaths STREQUAL "")
-        set(${ProjectName}Resources ${ALLResourcesPaths} CACHE STRING "项目依赖的资源" FORCE)
-        message("发现依赖资源：${ProjectName}->${${ProjectName}Resources}")
+    if(NOT ALLStreamingAssetsPaths STREQUAL "")
+        set(${ProjectName}StreamingAssets ${ALLStreamingAssetsPaths} CACHE STRING "项目依赖的资源" FORCE)
+        message("发现依赖资源：${ProjectName}->${${ProjectName}StreamingAssets}")
     endif()
 
     get_target_property(ProjectType ${ProjectName} TYPE) # 获取项目类型
@@ -57,8 +57,8 @@ foreach(ProjectName ${AllProjects})
         # 处理资源依赖
         get_target_property(OUTPUT_DIRECTORY ${ProjectName} RUNTIME_OUTPUT_DIRECTORY)
 
-        foreach(ResourcesPath ${ALLResourcesPaths})
-            file(COPY ${ResourcesPath} DESTINATION ${OUTPUT_DIRECTORY})
+        foreach(StreamingAssetsPath ${ALLStreamingAssetsPaths})
+            file(COPY ${StreamingAssetsPath} DESTINATION ${OUTPUT_DIRECTORY})
         endforeach()
     endif()
 endforeach()

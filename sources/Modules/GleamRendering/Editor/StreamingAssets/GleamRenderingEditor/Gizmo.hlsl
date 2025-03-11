@@ -1,5 +1,5 @@
-#include "Resources/GleamRenderingRuntime/Core.hlsl"
-#include "../../../../GleamRendering/Runtime/Resources/GleamRenderingRuntime/Core.hlsl"
+#include "StreamingAssets/GleamRenderingRuntime/Core.hlsl"
+#include "../../../../GleamRendering/Runtime/StreamingAssets/GleamRenderingRuntime/Core.hlsl"
 
 struct InstanceInfo
 {

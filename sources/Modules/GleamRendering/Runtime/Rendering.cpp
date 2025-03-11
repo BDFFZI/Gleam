@@ -30,7 +30,7 @@ namespace Gleam
     void Rendering::Init()
     {
         //顶点绘制
-        GSCodeLayout vertexColorGSCodeLayout = GSCodeLayout("Resources/GleamRenderingRuntime/VertexColor.hlsl");
+        GSCodeLayout vertexColorGSCodeLayout = GSCodeLayout("StreamingAssets/GleamRenderingRuntime/VertexColor.hlsl");
         GSInoutLayout pointGSInoutLayout = GSInoutLayout(
             RenderingConfig::PointMeshLayout, RenderingConfig::ColorFormat, RenderingConfig::DepthStencilFormat);
         GSInoutLayout lineGSInoutLayout = GSInoutLayout(
@@ -41,7 +41,7 @@ namespace Gleam
         defaultLineMaterial = std::make_unique<Material>(*defaultLineShader);
         //位块传输
         fullScreenMesh = CreateFullScreenMesh();
-        blitShader = std::make_unique<GShader>(GSCodeLayout("Resources/GleamRenderingRuntime/Blit.hlsl"));
+        blitShader = std::make_unique<GShader>(GSCodeLayout("StreamingAssets/GleamRenderingRuntime/Blit.hlsl"));
         blitMaterial = std::make_unique<Material>(*blitShader);
         //命令缓冲区
         CommandBufferPool::Init();

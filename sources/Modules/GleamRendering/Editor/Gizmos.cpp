@@ -10,7 +10,7 @@ namespace Gleam
     void Gizmos::Init()
     {
         //着色器代码布局
-        GSCodeLayout codeLayout = GSCodeLayout{"Resources/GleamRenderingEditor/Gizmo.hlsl"};
+        GSCodeLayout codeLayout = GSCodeLayout{"StreamingAssets/GleamRenderingEditor/Gizmo.hlsl"};
         //着色器资源布局
         std::vector<GLDescriptorBinding> descriptorBindings = RenderingConfig::DescriptorBindings;
         descriptorBindings.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
@@ -27,8 +27,8 @@ namespace Gleam
         linesMaterial = std::make_unique<Material>(Rendering::GetDefaultLineShader());
 
         //创建原型网格
-        cubeMesh = std::make_unique<Mesh>(ModelImporter::ImportObj("Resources/GleamRenderingEditor/Cube.obj"));
-        sphereMesh = std::make_unique<Mesh>(ModelImporter::ImportObj("Resources/GleamRenderingEditor/Sphere.obj"));
+        cubeMesh = std::make_unique<Mesh>(ModelImporter::ImportObj("StreamingAssets/GleamRenderingEditor/Cube.obj"));
+        sphereMesh = std::make_unique<Mesh>(ModelImporter::ImportObj("StreamingAssets/GleamRenderingEditor/Sphere.obj"));
 
         //创建渲染数据容器
         cuboidQueue = {std::make_unique<Material>(*gizmoShader, *assetLayout)};

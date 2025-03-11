@@ -30,7 +30,7 @@ macro(initProject)
     set(${ProjectName}Source ${ProjectSource} CACHE STRING "项目的SOURCE目录" FORCE)
     set(${ProjectName}Binary ${ProjectBinary} CACHE STRING "项目的Binary目录" FORCE)
     set(${ProjectName}Dependencies "" CACHE STRING "项目依赖的其他项目" FORCE)
-    set(${ProjectName}Resources "" CACHE STRING "项目依赖的资源" FORCE)
+    set(${ProjectName}StreamingAssets "" CACHE STRING "项目依赖的资源" FORCE)
 
     # 统计所有项目
     list(APPEND AllProjects ${ProjectName})
