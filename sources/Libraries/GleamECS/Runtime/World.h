@@ -169,7 +169,9 @@ namespace Gleam
         inline static SystemGroup systems = {std::nullopt}; //场景内所有系统的根系统
         //系统使用计数，实现按需自动加载和卸载系统
         inline static std::unordered_map<System*, int> systemUsageCount = {};
-        //在遍历系统的时候是不能修改容器结构的，但提供的游戏事件都是遍历容器的时候运行的，所以如果用户有增删系统的需求，必须先缓存然后再执行
+        ///添加或删除系统必须先缓存然后再实际执行，原因如下：
+        ///1. 在遍历系统的时候是不能修改容器结构的，但提供的游戏事件都是遍历容器的时候运行的，所以如果用户有增删系统的需求，必须先缓存
+        ///2. 插入系统和删除系统是无序的，但系统本身是有序的，为了满足系统的顺序安排，需先缓存并统计系统顺序后再调整
         inline static std::vector<System*> removingSystems = {};
         inline static std::vector<System*> addingSystems = {};
         //Entity的生命周期范围应大于System，这样才能让System的Start和Stop可以处理相关实体。

@@ -51,7 +51,7 @@ namespace Gleam
     };
     Gleam_MakeGlobalSystem(InspectorWindow)
 
-#define Gleam_MakeInspectorUI(type,drawInspectorUI)\
+#define Gleam_AddInspectorWindowUI(type,drawInspectorUI)\
     Gleam_MakeInitEvent(){InspectorWindow::AddCustomUI(typeid(type),\
     [](void* target){drawInspectorUI(*static_cast<type##*>(target));});}
 }

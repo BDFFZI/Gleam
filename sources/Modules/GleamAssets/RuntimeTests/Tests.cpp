@@ -1,3 +1,5 @@
+#include "GleamECS/RuntimeTests/Tests.h"
+
 #include <gtest/gtest.h>
 #include <stduuid/uuid.h>
 
@@ -40,6 +42,11 @@ class MySystem : public System
     }
 };
 Gleam_MakeGlobalSystem(MySystem)
+
+class MySystem2 : public System
+{
+};
+Gleam_MakeGlobalSystem(MySystem2)
 
 TEST(ECS, Scene)
 {

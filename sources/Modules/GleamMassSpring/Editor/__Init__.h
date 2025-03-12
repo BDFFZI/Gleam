@@ -11,5 +11,5 @@ namespace Gleam
         GlobalMassSpringRenderingSystem
     )
     
-    Gleam_MakeSceneUI(Particle, SceneUI_Particle)
+    Gleam_AddSceneWindowUI(Particle, SceneWindowUI_Particle)
 }

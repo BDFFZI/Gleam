@@ -100,11 +100,11 @@ namespace Gleam
         }
     }
 
-    class SceneWindow& SceneWindow::GetSceneWindowDrawing()
+    SceneWindow& SceneWindow::GetSceneWindowDrawing()
     {
         return *sceneWindowDrawing;
     }
-    const CustomUI& SceneWindow::GetCustomUI()
+    const InspectorWindow::CustomUI& SceneWindow::GetCustomUI()
     {
         return sceneGUIs;
     }

@@ -61,14 +61,21 @@ namespace Gleam
     ///利用如下宏实现关系到程序整个运行周期的事件，如库初始化。
     ///这些事件与System中的Start和Stop不同，System在程序运行中可能多次Start和Stop，
     ///且System::Stop在实体回收前执行，如果在Stop逆初始化库，这可能导致实体中需要该库的数据可能无法正常回收。
-#define Gleam_AddEngineEvent(eventType, eventName, order) \
+#define Gleam_MakeEngineEvent(eventType, eventName, order) \
 inline void eventName();\
 constexpr int eventName##Order = order;\
 Gleam_MakeInitEvent(){Engine::Add##eventType##Event(eventName,eventName##Order);}\
 inline void eventName()
-#define Gleam_AddStartEvent(eventName, order) Gleam_AddEngineEvent(Start, eventName, order)
-#define Gleam_AddStopEvent(eventName, order) Gleam_AddEngineEvent(Stop, eventName, order)
-#define Gleam_AddUpdateEvent(eventName, order) Gleam_AddEngineEvent(Update, eventName, order)
+#define Gleam_MakeEngineStartEvent(eventName, order) Gleam_MakeEngineEvent(Start, eventName, order)
+#define Gleam_MakeEngineStopEvent(eventName, order) Gleam_MakeEngineEvent(Stop, eventName, order)
+#define Gleam_MakeEngineUpdateEvent(eventName, order) Gleam_MakeEngineEvent(Update, eventName, order)
+
+#define Gleam_AddEngineEvent(eventType, eventName, order) \
+constexpr int eventName##Order = order;\
+Gleam_MakeInitEvent(){Engine::Add##eventType##Event(eventName,eventName##Order);}
+#define Gleam_AddEngineStartEvent(eventName, order) Gleam_AddEngineEvent(Start, eventName, order)
+#define Gleam_AddEngineStopEvent(eventName, order) Gleam_AddEngineEvent(Stop, eventName, order)
+#define Gleam_AddEngineUpdateEvent(eventName, order) Gleam_AddEngineEvent(Update, eventName, order)
 
 #define Gleam_Main \
 inline int main()\

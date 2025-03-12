@@ -36,9 +36,9 @@ namespace Gleam
     };
     Gleam_MakeGlobalSystem(ProjectWindow)
 
-#define Gleam_MakeProjectDirectoryMenu(name,action) \
+#define Gleam_AddProjectWindowDirectoryMenu(name,action) \
 Gleam_MakeInitEvent(){::Gleam::ProjectWindow::AddDirectoryMenu(name,action);}
 
-#define Gleam_MakeProjectFileMenu(extension,name,action) \
+#define Gleam_AddProjectWindowFileMenu(extension,name,action) \
 Gleam_MakeInitEvent(){::Gleam::ProjectWindow::AddFileMenu(extension,name,action);}
 }

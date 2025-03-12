@@ -14,8 +14,8 @@ namespace Gleam
         GlobalHierarchyWindow_Scene
     )
 
-    Gleam_MakeProjectDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene)
-    Gleam_MakeProjectFileMenu(".scene", "Open", ProjectWindowMenu_OpenScene)
+    Gleam_AddProjectWindowDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene)
+    Gleam_AddProjectWindowFileMenu(".scene", "Open", ProjectWindowMenu_OpenScene)
 
     Gleam_MakeAssetImporter(".asset", Type::CreateOrGet<JsonObjectImporter>());
     Gleam_MakeAssetImporter(".scene", Type::CreateOrGet<JsonObjectImporter>());

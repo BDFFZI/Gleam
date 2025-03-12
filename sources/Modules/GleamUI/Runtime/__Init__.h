@@ -8,12 +8,12 @@
 
 namespace Gleam
 {
-    Gleam_AddStartEvent(InitUILibrary, InitGraphicsLibraryOrder+1)
+    Gleam_MakeEngineStartEvent(InitUILibrary, InitGraphicsLibraryOrder+1)
     {
         UI::Init();
     }
 
-    Gleam_AddStopEvent(UnInitUILibrary, UnInitGraphicsLibraryOrder-1)
+    Gleam_MakeEngineStopEvent(UnInitUILibrary, UnInitGraphicsLibraryOrder-1)
     {
         UI::UnInit();
     }

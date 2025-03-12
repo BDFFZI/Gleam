@@ -4,7 +4,7 @@
 
 namespace Gleam
 {
-    void SceneUI_Particle(Particle& particle)
+    void SceneWindowUI_Particle(Particle& particle)
     {
         particle.position = Handles::DrawHandle(particle.position);
     }

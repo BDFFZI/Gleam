@@ -19,4 +19,4 @@ void ProjectWindow_CreateTestAsset()
     AssetBundle::UnLoad(assetBundle);
 }
 
-Gleam_MakeProjectDirectoryMenu("Create/TestAsset", ProjectWindow_CreateTestAsset)
+Gleam_AddProjectWindowDirectoryMenu("Create/TestAsset", ProjectWindow_CreateTestAsset)

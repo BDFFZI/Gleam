@@ -117,25 +117,31 @@ namespace Gleam
             throw std::runtime_error("目标场景不存在！");
 
         Scene& scene = **it;
-
-        if (scene.isRunning) //从世界中移除系统
-            scene.Stop();
-        for (Entity entity : scene.entities) //从世界中移除实体
-            World::RemoveEntity(entity);
-        scene.Release();
-
+        scene.Reset(); //销毁场景资源
         allScenes.erase(it);
     }
     void Scene::Destroy(Scene& scene)
     {
         Destroy(scene.name);
     }
-    void Scene::Clear()
+    void Scene::Clear(const bool isReset)
     {
+        if (isReset)
+        {
+            for (auto& scene : allScenes)
+                scene->Reset();
+        }
+        else
+        {
+            for (auto& scene : allScenes)
+                scene->Release();
+        }
+
         allScenes.clear();
         assert(systemWorld.empty() && "场景回收异常！");
         assert(entityWorld.empty() && "场景回收异常！");
     }
+
     std::optional<std::reference_wrapper<Scene>> Scene::GetScene(std::string_view name)
     {
         auto it = std::ranges::find_if(allScenes, [name](auto& scene) { return scene->name == name; });
@@ -235,6 +241,14 @@ namespace Gleam
             systemWorld.erase(system);
         for (Entity entity : entities)
             entityWorld.erase(entity);
+    }
+    void Scene::Reset()
+    {
+        if (isRunning) //从世界中移除系统
+            Stop();
+        for (Entity entity : entities) //从世界中移除实体
+            World::RemoveEntity(entity);
+        Release();
     }
 
     void Scene::AddSystem(System& system)

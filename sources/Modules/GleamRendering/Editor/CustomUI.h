@@ -13,13 +13,13 @@ namespace Gleam
     void DrawCuboid(Entity entity, const Cuboid& cuboid, const float4& color = float4::White());
     void DrawSphere(Entity entity, const Sphere& sphere, const float4& color = float4::White());
 
-    inline static Entity SceneUI_Entity_Target = Entity::Null;
-    void SceneUI_Entity(Entity entity);
-    void SceneUI_LocalToWorld(LocalToWorld& localToWorld);
+    void InspectorWindowUI_Point(Point& point);
+    void InspectorWindowUI_Segment(Segment& segment);
+    void InspectorWindowUI_Cuboid(Cuboid& cuboid);
+    void InspectorWindowUI_Rectangle(Rectangle& rectangle);
+    void InspectorWindowUI_Sphere(Sphere& sphere);
 
-    void InspectorUI_Point(Point& point);
-    void InspectorUI_Segment(Segment& segment);
-    void InspectorUI_Cuboid(Cuboid& cuboid);
-    void InspectorUI_Rectangle(Rectangle& rectangle);
-    void InspectorUI_Sphere(Sphere& sphere);
+    inline static Entity SceneWindowUI_Entity_Target = Entity::Null;
+    void SceneWindowUI_Entity(Entity entity);
+    void SceneWindowUI_LocalToWorld(LocalToWorld& localToWorld);
 }

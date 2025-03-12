@@ -1,9 +1,7 @@
 #pragma once
 
 #include "Editor.h"
-#ifdef GleamAssetsRuntime
-#include "GleamAssets/Runtime/Scene.h"
-#endif
+#include "CustomEvent.h"
 #include "System/InspectorWindow.h"
 #include "System/HierarchyWindow.h"
 #include "System/ProfilerWindow.h"
@@ -12,47 +10,9 @@
 
 namespace Gleam
 {
-    Gleam_AddStartEvent(ReplaceRuntimeSystem, 0)
-    {
-        for (auto system : Engine::RuntimeSystems())
-            World::RemoveSystem(system);
-        World::FlushSystemQueue();
-        for (auto system : Editor::EditorSystems())
-            World::AddSystem(system);
-    }
-
-    Gleam_AddUpdateEvent(PlayOrStop, 0)
-    {
-        static bool lastIsPlaying = false;
-        if (lastIsPlaying != Editor::IsPlaying())
-        {
-            if (Editor::IsPlaying())
-            {
-                for (auto system : Engine::RuntimeSystems())
-                    World::AddSystem(system);
-#ifdef GleamAssetsRuntime
-                for (Scene& scene : Scene::GetAllScenes())
-                    scene.Start();
-#endif
-            }
-            else
-            {
-#ifdef GleamAssetsRuntime
-                Scene::Clear();
-#endif
-                World::Clear();
-                for (auto system : Editor::EditorSystems())
-                    World::AddSystem(system);
-            }
-        }
-
-        lastIsPlaying = Editor::IsPlaying();
-    }
-
-    Gleam_AddUpdateEvent(FetchProfile, 1)
-    {
-        GlobalProfilerWindow.SetProfile(Profiler::FlushProfile());
-    }
+    Gleam_AddEngineEvent(Start, ReplaceRuntimeSystem, 0);
+    Gleam_AddEngineEvent(Update, PlayOrStopEngine, 0);
+    Gleam_AddEngineEvent(Update, FetchProfile, 1);
 
     Gleam_AddEditorSystems(
         GlobalEditorUISystem,
@@ -62,6 +22,6 @@ namespace Gleam
         EditorTimeSystem
     )
 
-    Gleam_MakeInspectorUI(Entity, InspectorUI_Entity)
-    Gleam_MakeInspectorUI(LocalTransform, InspectorUI_LocalTransform)
+    Gleam_AddInspectorWindowUI(Entity, InspectorWindowUI_Entity)
+    Gleam_AddInspectorWindowUI(LocalTransform, InspectorWindowUI_LocalTransform)
 }

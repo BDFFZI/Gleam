@@ -49,12 +49,56 @@ namespace Gleam
         }
     }
 
-    void SceneUI_Entity(const Entity entity)
+    void InspectorWindowUI_Point(Point& point)
+    {
+        EditorUI::DrawSerializedContent(&point, typeid(point));
+        if (LocalToWorld* localToWorld; World::TryGetComponent(InspectorWindowUI_Entity_Target, localToWorld))
+        {
+            Gizmos::PushLocalToWorld(localToWorld->value);
+            Gizmos::Draw(point.position);
+            Gizmos::PopLocalToWorld();
+        }
+        else
+        {
+            Gizmos::Draw(point.position);
+        }
+    }
+    void InspectorWindowUI_Segment(Segment& segment)
+    {
+        EditorUI::DrawSerializedContent(&segment, typeid(segment));
+        if (LocalToWorld* localToWorld; World::TryGetComponent(InspectorWindowUI_Entity_Target, localToWorld))
+        {
+            Gizmos::PushLocalToWorld(localToWorld->value);
+            Gizmos::Draw(segment);
+            Gizmos::PopLocalToWorld();
+        }
+        else
+        {
+            Gizmos::Draw(segment);
+        }
+    }
+    void InspectorWindowUI_Cuboid(Cuboid& cuboid)
+    {
+        EditorUI::DrawSerializedContent(&cuboid, typeid(cuboid));
+        DrawCuboid(InspectorWindowUI_Entity_Target, cuboid);
+    }
+    void InspectorWindowUI_Rectangle(Rectangle& rectangle)
+    {
+        EditorUI::DrawSerializedContent(&rectangle, typeid(rectangle));
+        DrawRectangle(InspectorWindowUI_Entity_Target, rectangle);
+    }
+    void InspectorWindowUI_Sphere(Sphere& sphere)
+    {
+        EditorUI::DrawSerializedContent(&sphere, typeid(sphere));
+        DrawSphere(InspectorWindowUI_Entity_Target, sphere);
+    }
+
+    void SceneWindowUI_Entity(const Entity entity)
     {
         if (!World::HasEntity(entity))
             return;
 
-        SceneUI_Entity_Target = entity;
+        SceneWindowUI_Entity_Target = entity;
         EntityInfo entityInfo = World::GetEntityInfo(entity);
         const Archetype& archetype = *entityInfo.archetype;
 
@@ -71,10 +115,10 @@ namespace Gleam
             ImGui::PopID();
         }
     }
-    void SceneUI_LocalToWorld(LocalToWorld& localToWorld)
+    void SceneWindowUI_LocalToWorld(LocalToWorld& localToWorld)
     {
         //获取实体和组件
-        Entity entity = SceneUI_Entity_Target;
+        Entity entity = SceneWindowUI_Entity_Target;
         std::optional<LocalTransform*> transform = World::TryGetComponent<LocalTransform>(entity);
         if (transform.has_value()) //LocalToWorld可能过时，显式更新一次
             TransformSystem::ComputeLocalToWorld(*transform.value(), localToWorld);
@@ -86,49 +130,5 @@ namespace Gleam
             Handles::DrawHandle(imGuiOption, localToWorld.value, *transform.value());
         else
             Handles::DrawHandle(imGuiOption, localToWorld.value, std::nullopt);
-    }
-
-    void InspectorUI_Point(Point& point)
-    {
-        EditorUI::DrawSerializedContent(&point, typeid(point));
-        if (LocalToWorld* localToWorld; World::TryGetComponent(InspectorUI_Entity_Target, localToWorld))
-        {
-            Gizmos::PushLocalToWorld(localToWorld->value);
-            Gizmos::Draw(point.position);
-            Gizmos::PopLocalToWorld();
-        }
-        else
-        {
-            Gizmos::Draw(point.position);
-        }
-    }
-    void InspectorUI_Segment(Segment& segment)
-    {
-        EditorUI::DrawSerializedContent(&segment, typeid(segment));
-        if (LocalToWorld* localToWorld; World::TryGetComponent(InspectorUI_Entity_Target, localToWorld))
-        {
-            Gizmos::PushLocalToWorld(localToWorld->value);
-            Gizmos::Draw(segment);
-            Gizmos::PopLocalToWorld();
-        }
-        else
-        {
-            Gizmos::Draw(segment);
-        }
-    }
-    void InspectorUI_Cuboid(Cuboid& cuboid)
-    {
-        EditorUI::DrawSerializedContent(&cuboid, typeid(cuboid));
-        DrawCuboid(InspectorUI_Entity_Target, cuboid);
-    }
-    void InspectorUI_Rectangle(Rectangle& rectangle)
-    {
-        EditorUI::DrawSerializedContent(&rectangle, typeid(rectangle));
-        DrawRectangle(InspectorUI_Entity_Target, rectangle);
-    }
-    void InspectorUI_Sphere(Sphere& sphere)
-    {
-        EditorUI::DrawSerializedContent(&sphere, typeid(sphere));
-        DrawSphere(InspectorUI_Entity_Target, sphere);
     }
 }

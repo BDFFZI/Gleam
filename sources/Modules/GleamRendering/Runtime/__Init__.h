@@ -17,12 +17,12 @@ namespace Gleam
         CreateGraphicsConfig = RenderingConfig::CreateGraphicsConfig;
     }
 
-    Gleam_AddStartEvent(InitRenderingLibrary, InitGraphicsLibraryOrder+1)
+    Gleam_MakeEngineStartEvent(InitRenderingLibrary, InitGraphicsLibraryOrder+1)
     {
         Rendering::Init();
     }
 
-    Gleam_AddStopEvent(UnInitRenderingLibrary, UnInitGraphicsLibraryOrder-1)
+    Gleam_MakeEngineStopEvent(UnInitRenderingLibrary, UnInitGraphicsLibraryOrder-1)
     {
         Rendering::UnInit();
     }

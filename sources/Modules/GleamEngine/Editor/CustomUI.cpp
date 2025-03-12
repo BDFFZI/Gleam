@@ -76,18 +76,18 @@ namespace Gleam
             ImGui::OpenPopup(addComponent);
     }
 
-    void InspectorUI_Entity(const Entity entity)
+    void InspectorWindowUI_Entity(const Entity entity)
     {
         if (World::HasEntity(entity))
         {
-            InspectorUI_Entity_Target = entity;
+            InspectorWindowUI_Entity_Target = entity;
             DrawEntity(
                 entity,
                 InspectorWindow::UseDebugGUI() ? InspectorWindow::CustomUI{} : InspectorWindow::GetCustomUI()
             );
         }
     }
-    void InspectorUI_LocalTransform(LocalTransform& localTransform)
+    void InspectorWindowUI_LocalTransform(LocalTransform& localTransform)
     {
         EditorUISerializer serializer = {"LocalTransform"};
         serializer.TransferField("position", localTransform.position);

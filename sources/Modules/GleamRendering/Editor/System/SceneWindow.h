@@ -4,7 +4,7 @@
 #include "GleamUI/Runtime/UI.h"
 #include "GleamECS/Runtime/System.h"
 #include "GleamEngine/Editor/System/EditorUISystem.h"
-#include "GleamEngine/Editor/EditorUI/EditorUI.h"
+#include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamEngine/Runtime/Component/Transform.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamRendering/Runtime/Entity/Archetype.h"
@@ -18,7 +18,7 @@ namespace Gleam
     {
     public:
         static SceneWindow& GetSceneWindowDrawing();
-        static const CustomUI& GetCustomUI();
+        static const InspectorWindow::CustomUI& GetCustomUI();
         static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawSceneUI);
 
 
@@ -60,7 +60,7 @@ namespace Gleam
     };
     Gleam_MakeGlobalSystem(SceneWindow)
 
-#define Gleam_MakeSceneUI(type,drawSceneUI)\
+#define Gleam_AddSceneWindowUI(type,drawSceneUI)\
     Gleam_MakeInitEvent(){SceneWindow::AddCustomUI(typeid(type),\
     [](void* target){drawSceneUI(*static_cast<type##*>(target));});}
 }

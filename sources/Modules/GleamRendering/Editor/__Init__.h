@@ -9,12 +9,11 @@
 
 namespace Gleam
 {
-    Gleam_AddStartEvent(InitGizmosLibrary, InitGraphicsLibraryOrder+1)
+    Gleam_MakeEngineEvent(Start, InitGizmosLibrary, InitGraphicsLibraryOrder+1)
     {
         Gizmos::Init();
     }
-
-    Gleam_AddStopEvent(UnInitGizmosLibrary, UnInitGraphicsLibraryOrder-1)
+    Gleam_MakeEngineEvent(Stop, UnInitGizmosLibrary, UnInitGraphicsLibraryOrder-1)
     {
         Gizmos::UnInit();
     }
@@ -25,11 +24,12 @@ namespace Gleam
         GlobalHandlesSystem,
         GlobalGizmosSystem
     )
+    
+    Gleam_AddInspectorWindowUI(Point, InspectorWindowUI_Point)
+    Gleam_AddInspectorWindowUI(Segment, InspectorWindowUI_Segment)
+    Gleam_AddInspectorWindowUI(Cuboid, InspectorWindowUI_Cuboid)
+    Gleam_AddInspectorWindowUI(Sphere, InspectorWindowUI_Sphere)
 
-    Gleam_MakeSceneUI(Entity, SceneUI_Entity)
-    Gleam_MakeSceneUI(LocalToWorld, SceneUI_LocalToWorld)
-    Gleam_MakeInspectorUI(Point, InspectorUI_Point)
-    Gleam_MakeInspectorUI(Segment, InspectorUI_Segment)
-    Gleam_MakeInspectorUI(Cuboid, InspectorUI_Cuboid)
-    Gleam_MakeInspectorUI(Sphere, InspectorUI_Sphere)
+    Gleam_AddSceneWindowUI(Entity, SceneWindowUI_Entity)
+    Gleam_AddSceneWindowUI(LocalToWorld, SceneWindowUI_LocalToWorld)
 }
