@@ -1,6 +1,5 @@
 #include <thread>
 
-#include "GleamECS/Runtime/Scene.h"
 #include "GleamECS/Runtime/World.h"
 #include "GleamEngine/Editor/Editor.h"
 #include "GleamEngine/Editor/Profiler.h"
@@ -11,13 +10,6 @@ Gleam_MakeArchetype(DataArchetype, CustomObject)
 
 class MySystem : public System
 {
-    void Start() override
-    {
-        Scene& scene = Scene::Create("Test");
-        Entity entity = World::AddEntity(DataArchetype);
-        World::SetComponents(entity, data);
-        scene.AddEntity(entity);
-    }
     void Update() override
     {
         {

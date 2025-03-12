@@ -4,6 +4,7 @@
 #include "System/AssetBundleWindow.h"
 #include "System/HierarchyWindow_Scene.h"
 #include "System/ProjectWindow.h"
+#include "GleamEngine/Editor/Editor.h"
 
 namespace Gleam
 {
@@ -19,3 +20,6 @@ namespace Gleam
     Gleam_MakeAssetImporter(".asset", Type::CreateOrGet<JsonObjectImporter>());
     Gleam_MakeAssetImporter(".scene", Type::CreateOrGet<JsonObjectImporter>());
 }
+
+
+auto a = Gleam::FieldDataTransferrer_Transfer<Gleam::Entity>::Invoke;

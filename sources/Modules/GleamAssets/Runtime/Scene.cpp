@@ -2,6 +2,91 @@
 
 namespace Gleam
 {
+    std::optional<std::reference_wrapper<EntityAsset>> EntityAsset::GetEntityAsset(const Entity entity)
+    {
+        return entityToAsset.contains(entity)
+                   ? std::optional<std::reference_wrapper<EntityAsset>>{*entityToAsset.at(entity)}
+                   : std::nullopt;
+    }
+
+    EntityAsset::EntityAsset(): entity(Entity::Null), ownership(false)
+    {
+    }
+    EntityAsset::EntityAsset(const Entity entity, const bool ownership): entity(entity), ownership(ownership)
+    {
+        if (entity != Entity::Null)
+            entityToAsset[entity] = this;
+    }
+    EntityAsset::EntityAsset(EntityAsset&& other) noexcept
+    {
+        entity = other.entity;
+        ownership = other.ownership;
+
+        other.entity = Entity::Null;
+        other.ownership = false;
+
+        if (entity != Entity::Null)
+            entityToAsset[entity] = this;
+    }
+    EntityAsset& EntityAsset::operator=(EntityAsset&& other) noexcept
+    {
+        assert(entity != other.entity && "不能用自身移动赋值！");
+        assert(other.entity != Entity::Null && "用于赋值的实体是空的！");
+
+        if (entity == Entity::Null)
+        {
+            entity = other.entity;
+            ownership = other.ownership;
+
+            other.entity = Entity::Null;
+            other.ownership = false;
+
+            if (entity != Entity::Null)
+                entityToAsset[entity] = this;
+        }
+        else if (other.entity != Entity::Null)
+        {
+            const EntityInfo& otherEntityInfo = World::GetEntityInfo(other.entity);
+            const EntityInfo& entityInfo = World::GetEntityInfo(entity);
+            World::MoveEntity(entity, *otherEntityInfo.archetype);
+            otherEntityInfo.archetype->Move(entityInfo.components, otherEntityInfo.components);
+        }
+
+        return *this;
+    }
+    EntityAsset::~EntityAsset()
+    {
+        if (entity != Entity::Null)
+        {
+            entityToAsset.erase(entity);
+            if (ownership)
+                World::RemoveEntity(entity);
+        }
+    }
+
+    Entity EntityAsset::GetEntity() const
+    {
+        return entity;
+    }
+    bool EntityAsset::GetOwnership() const
+    {
+        return ownership;
+    }
+    void EntityAsset::SetEntity(const Entity entity)
+    {
+        if (this->entity != Entity::Null)
+            entityToAsset.erase(this->entity);
+
+        this->entity = entity;
+
+        if (this->entity != Entity::Null)
+            entityToAsset[this->entity] = this;
+    }
+    void EntityAsset::SetOwnership(const bool ownership)
+    {
+        this->ownership = ownership;
+    }
+
     std::optional<std::reference_wrapper<Scene>> Scene::GetScene(System& system)
     {
         if (auto it = systemWorld.find(&system); it != systemWorld.end())
@@ -22,20 +107,28 @@ namespace Gleam
         scene->name = name;
         return *scene;
     }
-    void Scene::Destroy(Scene& scene)
-    {
-        //销毁场景
-        std::erase_if(allScenes, [&scene](std::unique_ptr<Scene>& scenePtr)
-        {
-            return scenePtr->name == scene.name;
-        });
-    }
     void Scene::Destroy(std::string_view name)
     {
-        std::erase_if(allScenes, [&name](std::unique_ptr<Scene>& scenePtr)
+        auto it = std::ranges::find_if(allScenes, [&name](std::unique_ptr<Scene>& scenePtr)
         {
             return scenePtr->name == name;
         });
+        if (it == allScenes.end())
+            throw std::runtime_error("目标场景不存在！");
+
+        Scene& scene = **it;
+
+        if (scene.isRunning) //从世界中移除系统
+            scene.Stop();
+        for (Entity entity : scene.entities) //从世界中移除实体
+            World::RemoveEntity(entity);
+        scene.Release();
+
+        allScenes.erase(it);
+    }
+    void Scene::Destroy(Scene& scene)
+    {
+        Destroy(scene.name);
     }
     void Scene::Clear()
     {
@@ -51,7 +144,7 @@ namespace Gleam
         return std::nullopt;
     }
 
-    void Scene::ToAssetBundle(const Scene& scene, AssetBundle& assetBundle)
+    void Scene::ToAssetBundle(Scene& scene, AssetBundle& assetBundle)
     {
         int assetCount = static_cast<int>(assetBundle.GetAssets().size());
 
@@ -81,7 +174,7 @@ namespace Gleam
             assetBundle.RemoveAsset(asset);
         for (Entity entity : missing)
         {
-            EntityAsset entityAsset = {entity};
+            EntityAsset entityAsset = {entity, false};
             assetBundle.AddAsset(std::move(entityAsset));
         }
     }
@@ -108,6 +201,7 @@ namespace Gleam
         {
             EntityAsset& entityAsset = *static_cast<EntityAsset*>(assets[i].GetObject());
             entities.emplace_back(entityAsset.GetEntity());
+            entityAsset.SetOwnership(false);
         }
 
         Scene& scene = Create(name);
@@ -116,22 +210,10 @@ namespace Gleam
             scene.AddSystem(*system);
         for (Entity entity : entities)
             scene.AddEntity(entity);
+
         return scene;
     }
 
-    Scene::~Scene()
-    {
-        if (isRunning) //从世界中移除系统
-            Stop();
-        for (Entity entity : entities) //从世界中移除实体
-            World::RemoveEntity(entity);
-
-        //移除索引信息
-        for (Entity entity : entities)
-            entityWorld.erase(entity);
-        for (System* system : systems)
-            systemWorld.erase(system);
-    }
     void Scene::Start()
     {
         for (System* system : systems)
@@ -143,6 +225,16 @@ namespace Gleam
         for (System* system : systems)
             World::RemoveSystem(*system);
         isRunning = false;
+    }
+    void Scene::Release()
+    {
+        systems.clear();
+        entities.clear();
+        //移除索引信息
+        for (System* system : systems)
+            systemWorld.erase(system);
+        for (Entity entity : entities)
+            entityWorld.erase(entity);
     }
 
     void Scene::AddSystem(System& system)

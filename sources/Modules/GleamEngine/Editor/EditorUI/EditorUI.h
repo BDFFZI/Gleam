@@ -9,13 +9,12 @@ namespace Gleam
     {
     public:
         static void DrawSerializedContent(void* target, std::type_index targetType);
-        static void DrawEntityField(Entity entity);
+        static void DrawEntityField(Entity& entity);
         static void DrawObjectField(void* object, std::type_index type)
         {
         }
 
     private:
-        inline static Entity dragging = Entity::Null;
         inline static Entity inspecting = Entity::Null;
     };
 }

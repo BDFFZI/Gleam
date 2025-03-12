@@ -92,7 +92,7 @@ struct CustomObject : CustomParent
     }
 };
 
-Gleam_MakeType2(CustomObject, "", CustomParentType)
+Gleam_MakeChildType(CustomObject, "", CustomParentType)
 {
     Gleam_MakeType_AddField(vectorValue);
     Gleam_MakeType_AddField(boolVectorValue);

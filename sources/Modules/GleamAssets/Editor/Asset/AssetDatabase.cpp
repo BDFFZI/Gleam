@@ -49,6 +49,8 @@ namespace Gleam
         AssetBundle::SaveJson(path.string(), assetBundle);
         //保存到缓存文件夹
         Resources::Save(assetBundle);
+        //保存导入器
+        AssetImporter::GetImporter(path).SaveAndReloadAsset();
     }
     uuids::uuid AssetDatabase::GetAssetBundleID(const std::filesystem::path& path)
     {

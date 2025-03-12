@@ -83,7 +83,7 @@ namespace Gleam
         void Construct(std::byte* address) const;
         void Destruct(std::byte* address) const;
         void MoveConstruct(std::byte* destination, std::byte* source) const;
-        void Move(std::byte* source, std::byte* destination) const;
+        void Move(std::byte* destination, std::byte* source) const;
 
     private:
         Gleam_MakeType_Friend

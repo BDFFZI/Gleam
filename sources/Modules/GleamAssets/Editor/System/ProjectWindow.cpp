@@ -3,8 +3,8 @@
 #include <filesystem>
 #include <imgui.h>
 
-#include "GleamScene/Editor/Asset/AssetDatabase.h"
-#include "GleamScene/Editor/Asset/AssetImporter.h"
+#include "GleamAssets/Editor/Asset/AssetDatabase.h"
+#include "GleamAssets/Editor/Asset/AssetImporter.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamUI/Runtime/UI.h"
 #include "GleamWindow/Runtime/Window.h"
@@ -67,19 +67,19 @@ namespace Gleam
         //资源右键菜单
         if (ImGui::BeginPopupContextItem("FilePopup"))
         {
+            if (fileMenus.contains(extension))
+            {
+                fileDrawing = path;
+                auto& menu = fileMenus[extension];
+                UI::Menu(menu);
+            }
+            
             if (AssetDatabase::HasLoaded(path))
             {
                 if (ImGui::MenuItem("ReLoad"))
                     AssetDatabase::Reload(path);
                 if (ImGui::MenuItem("Save"))
                     AssetDatabase::Save(path);
-            }
-
-            if (fileMenus.contains(extension))
-            {
-                fileDrawing = path;
-                auto& menu = fileMenus[extension];
-                UI::Menu(menu);
             }
 
             ImGui::EndPopup();

@@ -110,10 +110,8 @@ namespace Gleam
     }
     void Archetype::Move(std::byte* destination, std::byte* source) const
     {
-        std::memcpy(destination, source, sizeof(Entity));
         destination += sizeof(Entity);
         source += sizeof(Entity);
-
         for (int i = 0; i < componentCount; ++i)
         {
             componentTypes[i]->Move(destination, source);

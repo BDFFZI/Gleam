@@ -1,8 +1,7 @@
-#include "GleamEngine/Runtime/Engine.h"
 #include "GleamMath/Runtime/Geometry/3D/Sphere.h"
-#include "GleamScene/Editor/Asset/AssetDatabase.h"
-#include "GleamScene/Editor/Asset/AssetImporter.h"
-#include "GleamScene/Editor/System/ProjectWindow.h"
+#include "GleamAssets/Editor/Asset/AssetDatabase.h"
+#include "GleamAssets/Editor/Asset/AssetImporter.h"
+#include "GleamAssets/Editor/System/ProjectWindow.h"
 
 Gleam_Main
 

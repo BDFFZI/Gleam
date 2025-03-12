@@ -172,6 +172,9 @@ namespace Gleam
         //在遍历系统的时候是不能修改容器结构的，但提供的游戏事件都是遍历容器的时候运行的，所以如果用户有增删系统的需求，必须先缓存然后再执行
         inline static std::vector<System*> removingSystems = {};
         inline static std::vector<System*> addingSystems = {};
+        //Entity的生命周期范围应大于System，这样才能让System的Start和Stop可以处理相关实体。
+        //因为System是延迟生效的，故实时移除Entity时无法满足上述需求，故对Entity也进行延时。
+        inline static std::vector<Entity> removingEntities;
 
         static Entity GetNextEntity();
         static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);

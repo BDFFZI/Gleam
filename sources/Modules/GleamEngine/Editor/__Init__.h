@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Editor.h"
-#include "GleamECS/Runtime/Scene.h"
+#ifdef GleamAssetsRuntime
+#include "GleamAssets/Runtime/Scene.h"
+#endif
 #include "System/InspectorWindow.h"
 #include "System/HierarchyWindow.h"
 #include "System/ProfilerWindow.h"
@@ -28,11 +30,16 @@ namespace Gleam
             {
                 for (auto system : Engine::RuntimeSystems())
                     World::AddSystem(system);
+#ifdef GleamAssetsRuntime
                 for (Scene& scene : Scene::GetAllScenes())
                     scene.Start();
+#endif
             }
             else
             {
+#ifdef GleamAssetsRuntime
+                Scene::Clear();
+#endif
                 World::Clear();
                 for (auto system : Editor::EditorSystems())
                     World::AddSystem(system);
@@ -46,7 +53,7 @@ namespace Gleam
     {
         GlobalProfilerWindow.SetProfile(Profiler::FlushProfile());
     }
-    
+
     Gleam_AddEditorSystems(
         GlobalEditorUISystem,
         GlobalHierarchyWindow,

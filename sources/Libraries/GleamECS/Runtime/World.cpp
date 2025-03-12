@@ -1,6 +1,4 @@
 #include "World.h"
-
-#include "Scene.h"
 #include "GleamUtility/Runtime/Ranges.h"
 
 namespace Gleam
@@ -199,7 +197,6 @@ namespace Gleam
     }
     void World::Clear()
     {
-        Scene::Clear();
         FlushSystemQueue(); //也可以不刷新SystemQueue，效果是一样的
         systems.Stop();
         RemoveAllEntities(); //移除所有实体

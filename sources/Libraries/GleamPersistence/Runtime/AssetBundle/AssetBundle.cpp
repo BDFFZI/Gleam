@@ -27,20 +27,14 @@ namespace Gleam
         assetBundle.id = assetBundleID;
         return assetBundles.insert({assetBundleID, std::move(assetBundle)}).first->second;
     }
-    void AssetBundle::UnLoad(AssetBundle& assetBundle, const bool retainAssets)
+    void AssetBundle::UnLoad(AssetBundle& assetBundle, const bool releaseOwnership)
     {
         assert(HasInMemory(assetBundle.GetID()) && "内存中没有目标资源包！");
 
-        if (retainAssets)
-        {
-            for (auto& asset : assetBundle.assets)
-                asset.ownership = false;
-        }
-
-        assetBundle.ClearAssets(); //清除索引信息
+        assetBundle.ClearAssets(releaseOwnership);
         assetBundles.erase(assetBundle.id);
     }
-    
+
     void AssetBundle::SaveBinary(const std::string_view fileName, AssetBundle& assetBundle)
     {
         assetBundle.AddAssetDependency();
@@ -178,7 +172,6 @@ namespace Gleam
     }
 
 
-
     std::optional<AssetRef> AssetBundle::GetAssetRef(void* data)
     {
         if (dataToAsset.contains(data))
@@ -269,8 +262,14 @@ namespace Gleam
         //从内存中移除资源
         assets.erase(assets.begin() + index);
     }
-    void AssetBundle::ClearAssets()
+    void AssetBundle::ClearAssets(const bool releaseOwnership)
     {
+        if (releaseOwnership)
+        {
+            for (auto& asset : assets)
+                asset.ownership = false;
+        }
+
         for (auto& asset : assets)
         {
             //移除索引信息

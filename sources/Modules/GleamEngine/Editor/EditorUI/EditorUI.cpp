@@ -1,7 +1,6 @@
 #include "EditorUI.h"
 
 #include "EditorUISerializer.h"
-#include "GleamECS/Runtime/Scene.h"
 #include "GleamUI/Runtime/UI.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 
@@ -16,7 +15,7 @@ namespace Gleam
         else
             serializer.Transfer(target, targetType);
     }
-    void EditorUI::DrawEntityField(Entity entity)
+    void EditorUI::DrawEntityField(Entity& entity)
     {
         if (ImGui::Button(std::format("Entity:{}", static_cast<uint32_t>(entity)).c_str()))
         {
@@ -25,9 +24,16 @@ namespace Gleam
         }
         if (ImGui::BeginDragDropSource())
         {
-            dragging = entity;
-            ImGui::SetDragDropPayload(typeid(dragging).name(), &dragging, sizeof(dragging));
+            static Entity draggingCache = Entity::Null;
+            draggingCache = entity;
+            ImGui::SetDragDropPayload(typeid(Entity).name(), &draggingCache, sizeof(draggingCache));
             ImGui::EndDragDropSource();
+        }
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (auto payload = ImGui::AcceptDragDropPayload(typeid(Entity).name()))
+                entity = *static_cast<Entity*>(payload->Data);
+            ImGui::EndDragDropTarget();
         }
     }
 }

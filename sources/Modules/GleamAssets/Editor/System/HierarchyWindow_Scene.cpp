@@ -3,7 +3,7 @@
 #include <imgui.h>
 
 #include "GleamECS/Runtime/Scene.h"
-#include "GleamScene/Editor/EditorSceneManager.h"
+#include "GleamAssets/Editor/EditorSceneManager.h"
 #include "GleamUtility/Runtime/Ranges.h"
 
 namespace Gleam

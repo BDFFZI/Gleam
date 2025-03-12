@@ -2,7 +2,6 @@
 
 #include "EditorTimeSystem.h"
 #include "InspectorWindow.h"
-#include "GleamECS/Runtime/Scene.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamECS/Runtime/World.h"
 #include "GleamEngine/Editor/Editor.h"
@@ -11,7 +10,7 @@
 
 namespace Gleam
 {
-    void HierarchyWindow::DrawEntity(const Entity entity)
+    void HierarchyWindow::DrawEntity(Entity entity)
     {
         EditorUI::DrawEntityField(entity);
         DrawEntityPopup(entity);
@@ -63,7 +62,7 @@ namespace Gleam
             DrawSystem(*subSystem);
     }
 
-    void HierarchyWindow::DrawSystemsPopup(const std::optional<std::reference_wrapper<Scene>> scene)
+    void HierarchyWindow::DrawSystemsPopup()
     {
         ImGuiID addSystemID = ImGui::GetID("AddSystem");
         if (ImGui::BeginPopup("AddSystem"))
@@ -76,11 +75,7 @@ namespace Gleam
                 {
                     if (filter.PassFilter(system.GetName().data()) && ImGui::Button(system.GetName().data()))
                     {
-                        if (scene.has_value())
-                            scene.value().get().AddSystem(system);
-                        else
-                            World::AddSystem(system);
-
+                        World::AddSystem(system);
                         ImGui::CloseCurrentPopup();
                         break;
                     }
@@ -91,8 +86,7 @@ namespace Gleam
             ImGui::EndPopup();
         }
 
-        std::string id = std::format("{}SystemsPopup", scene.has_value() ? scene->get().GetName() : "");
-        if (ImGui::BeginPopupContextItem(id.data()))
+        if (ImGui::BeginPopupContextItem("SystemsPopup"))
         {
             if (ImGui::Button("AddSystem"))
             {
@@ -103,21 +97,13 @@ namespace Gleam
             ImGui::EndPopup();
         }
     }
-    void HierarchyWindow::DrawEntitiesPopup(const std::optional<std::reference_wrapper<Scene>> scene)
+    void HierarchyWindow::DrawEntitiesPopup()
     {
-        std::string id = std::format("{}EntitiesPopup", scene.has_value() ? scene->get().GetName() : "");
-        if (ImGui::BeginPopupContextItem(id.data()))
+        if (ImGui::BeginPopupContextItem("EntitiesPopup"))
         {
             if (ImGui::Button("AddEntity"))
             {
-                if (scene.has_value())
-                {
-                    Entity entity = World::AddEntity();
-                    scene->get().AddEntity(entity);
-                }
-                else
-                    World::AddEntity();
-
+                World::AddEntity();
                 ImGui::CloseCurrentPopup();
             }
 
@@ -161,20 +147,11 @@ namespace Gleam
             DrawWorldUnfolding();
             ImGui::TreePop();
         }
-        // if (ImGui::BeginDragDropTarget())
-        // {
-        //     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(typeid(dragging).name()))
-        //     {
-        //         Entity entity = *static_cast<Entity*>(payload->Data);
-        //         World::MoveEntity(entity, scene);
-        //     }
-        //     ImGui::EndDragDropTarget();
-        // }
     }
     void HierarchyWindow::DrawWorldUnfolding()
     {
         const bool systemsCollapsing = ImGui::CollapsingHeader("Systems");
-        DrawSystemsPopup(std::nullopt);
+        DrawSystemsPopup();
         if (systemsCollapsing)
         {
             ImGui::PushID("Systems");
@@ -183,7 +160,7 @@ namespace Gleam
         }
 
         const bool entityCollapsing = ImGui::CollapsingHeader("Entities");
-        DrawEntitiesPopup(std::nullopt);
+        DrawEntitiesPopup();
         if (entityCollapsing)
         {
             ImGui::PushID("Entities");
@@ -241,18 +218,11 @@ namespace Gleam
 
         for (auto system : removingSystems)
         {
-            auto optionalScene = Scene::GetScene(*system);
-            if (!optionalScene.has_value())
-                World::RemoveSystem(*system);
-            else
-                optionalScene->get().RemoveSystem(*system);
+            World::RemoveSystem(*system);
         }
         removingSystems.clear();
         for (auto entity : removingEntities)
         {
-            auto optionalScene = Scene::GetScene(entity);
-            if (optionalScene.has_value())
-                optionalScene->get().RemoveEntity(entity);
             World::RemoveEntity(entity);
         }
         removingEntities.clear();

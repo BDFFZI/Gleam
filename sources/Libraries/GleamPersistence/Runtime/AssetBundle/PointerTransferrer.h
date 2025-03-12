@@ -19,6 +19,10 @@ namespace Gleam
                 FieldDataTransferrer_TransferPtrEvent(serializer, *ptr, typeid(TValue));
                 value = static_cast<TValue*>(*ptr);
             }
+            else
+            {
+                serializer.Transfer(&value, typeid(TValue));
+            }
         }
     };
 

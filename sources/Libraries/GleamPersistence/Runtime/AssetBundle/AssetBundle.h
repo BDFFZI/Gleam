@@ -28,13 +28,13 @@ namespace Gleam
         }
 
         static AssetBundle& Create(uuids::uuid assetBundleID = {});
-        static void UnLoad(AssetBundle& assetBundle, bool retainAssets = false);
-        
+        static void UnLoad(AssetBundle& assetBundle, bool releaseOwnership = false);
+
         static AssetBundle& Load(AssetBundle& newAssetBundle, bool reload = false);
         static AssetBundle& LoadBinary(std::string_view fileName, bool reload = false);
         static AssetBundle& LoadJson(std::string_view fileName, bool reload = false);
         static AssetBundleMeta LoadMeta(std::string_view fileName);
-        
+
         static void SaveBinary(std::string_view fileName, AssetBundle& assetBundle);
         static void SaveJson(std::string_view fileName, AssetBundle& assetBundle);
         static void SaveMeta(std::string_view fileName, AssetBundle& assetBundle);
@@ -71,7 +71,7 @@ namespace Gleam
         }
         void RemoveAsset(void* data);
 
-        void ClearAssets();
+        void ClearAssets(bool releaseOwnership = false);
         Asset& EmplaceAsset(Asset&& asset);
         Asset ExtractAsset(int assetID);
 

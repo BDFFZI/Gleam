@@ -14,7 +14,7 @@ namespace Gleam
         std::string name;
         std::vector<uuids::uuid> systems;
     };
-    Gleam_MakeType(SceneAsset, "00000000-0000-0000-0000-000000000001")
+    Gleam_MakeType(SceneAsset, "3CA95E07-FCD9-4DCE-ABE3-6115152EA9D7")
     {
         Gleam_MakeType_AddField(name);
         Gleam_MakeType_AddField(systems);
@@ -24,72 +24,27 @@ namespace Gleam
     class EntityAsset
     {
     public:
-        static std::optional<std::reference_wrapper<EntityAsset>> GetEntityAsset(const Entity entity)
-        {
-            return entityToAsset.contains(entity)
-                       ? std::optional<std::reference_wrapper<EntityAsset>>{*entityToAsset.at(entity)}
-                       : std::nullopt;
-        }
+        static std::optional<std::reference_wrapper<EntityAsset>> GetEntityAsset(Entity entity);
 
-        EntityAsset(): entity(Entity::Null)
-        {
-        }
-        EntityAsset(const Entity entity) : entity(entity)
-        {
-            if (entity != Entity::Null)
-                entityToAsset[entity] = this;
-        }
-        EntityAsset(EntityAsset&& other) noexcept
-        {
-            entity = other.entity;
-            other.entity = Entity::Null;
+        EntityAsset();
+        EntityAsset(Entity entity, bool ownership);
+        EntityAsset(EntityAsset&& other) noexcept;
+        EntityAsset& operator=(EntityAsset&& other) noexcept;
+        ~EntityAsset();
 
-            if (entity != Entity::Null)
-                entityToAsset[entity] = this;
-        }
-        EntityAsset& operator=(EntityAsset&& other) noexcept
-        {
-            if (entity != Entity::Null)
-                entityToAsset.erase(entity);
-
-            entity = other.entity;
-            other.entity = Entity::Null;
-
-            if (entity != Entity::Null)
-                entityToAsset[entity] = this;
-
-            return *this;
-        }
-        ~EntityAsset()
-        {
-            if (entity != Entity::Null)
-            {
-                entityToAsset.erase(entity);
-            }
-        }
-
-        Entity GetEntity() const
-        {
-            return entity;
-        }
-        void SetEntity(const Entity entity)
-        {
-            if (this->entity != Entity::Null)
-                entityToAsset.erase(this->entity);
-
-            this->entity = entity;
-
-            if (this->entity != Entity::Null)
-                entityToAsset[this->entity] = this;
-        }
+        Entity GetEntity() const;
+        bool GetOwnership() const;
+        void SetEntity(Entity entity);
+        void SetOwnership(bool ownership);
 
     private:
         inline static std::unordered_map<Entity, EntityAsset*> entityToAsset = {};
 
         Entity entity;
+        bool ownership;
     };
     //Entity资源化函数
-    Gleam_MakeType(EntityAsset, "00000000-0000-0000-0000-000000000002")
+    Gleam_MakeType(EntityAsset, "112887C5-1B8D-42DF-801D-4360DA6F8A15")
     {
         if constexpr (std::derived_from<TFieldTransferrer, FieldDataTransferrer>)
         {
@@ -125,7 +80,7 @@ namespace Gleam
                 }
 
                 archetype = &Archetype::CreateOrGet(componentTypes);
-                value = World::AddEntity(*archetype);
+                value = {World::AddEntity(*archetype), true};
                 components = World::GetEntityInfo(value.GetEntity()).components;
             }
 
@@ -186,15 +141,12 @@ namespace Gleam
         static std::optional<std::reference_wrapper<Scene>> GetScene(Entity entity);
 
         static Scene& Create(std::string_view name);
-        static void Destroy(Scene& scene);
         static void Destroy(std::string_view name);
-        static void Clear();
+        static void Destroy(Scene& scene);
 
         static std::optional<std::reference_wrapper<Scene>> GetScene(std::string_view name);
-        static void ToAssetBundle(const Scene& scene, AssetBundle& assetBundle);
+        static void ToAssetBundle(Scene& scene, AssetBundle& assetBundle);
         static Scene& FromAssetBundle(AssetBundle& assetBundle);
-
-        ~Scene();
 
         const std::string& GetName() const
         {
@@ -223,6 +175,7 @@ namespace Gleam
 
         void Start();
         void Stop();
+        void Release();
 
         void AddSystem(System& system);
         void RemoveSystem(System& system);

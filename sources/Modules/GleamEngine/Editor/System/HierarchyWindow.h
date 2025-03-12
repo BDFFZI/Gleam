@@ -16,8 +16,8 @@ namespace Gleam
         static void DrawSystem(System& system);
         static void DrawSubSystems(SystemGroup& systemGroup);
 
-        static void DrawSystemsPopup(std::optional<std::reference_wrapper<Scene>> scene);
-        static void DrawEntitiesPopup(std::optional<std::reference_wrapper<Scene>> scene);
+        static void DrawSystemsPopup();
+        static void DrawEntitiesPopup();
         static void DrawSystemPopup(System& system);
         static void DrawEntityPopup(Entity entity);
 
