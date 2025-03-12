@@ -117,6 +117,11 @@ macro(addPackage)
             string(REPLACE "Editor" "Runtime" TargetLibrary ${ProjectName})
             linkLibrary(${TargetLibrary} ${ProjectName})
         endif()
+        
+        # 引用编辑器核心库
+        if(NOT ${PackageName} STREQUAL "GleamEngine")
+            linkLibrary("GleamEngineEditor" ${ProjectName})
+        endif()
     endif()
 
     if(EXISTS "${PackageSource}/RuntimeTests")

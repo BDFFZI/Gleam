@@ -27,7 +27,7 @@ namespace Gleam
         assetBundle.id = assetBundleID;
         return assetBundles.insert({assetBundleID, std::move(assetBundle)}).first->second;
     }
-    void AssetBundle::UnLoad(AssetBundle& assetBundle, const bool releaseOwnership)
+    void AssetBundle::Unload(AssetBundle& assetBundle, const bool releaseOwnership)
     {
         assert(HasInMemory(assetBundle.GetID()) && "内存中没有目标资源包！");
 

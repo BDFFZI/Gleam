@@ -13,10 +13,10 @@ namespace Gleam
 
         AssetBundle& assetBundle = AssetBundle::Create();
         {
-            Scene::ToAssetBundle(scene, assetBundle);
+            SceneAsset::ToAssetBundle(scene, assetBundle);
             AssetDatabase::Save(path, assetBundle);
         }
-        AssetBundle::UnLoad(assetBundle);
+        AssetBundle::Unload(assetBundle);
     }
     void ProjectWindowMenu_OpenScene()
     {

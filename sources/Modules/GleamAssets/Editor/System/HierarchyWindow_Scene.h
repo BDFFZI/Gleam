@@ -11,11 +11,14 @@ namespace Gleam
         {
         }
 
-        static void DrawScenePopup(Scene& scene);
         static void DrawScene(Scene& scene);
+        static void DrawScenePopup(Scene& scene);
+        static void DrawSceneSystemsPopup(Scene& scene);
+        static void DrawSceneEntitiesPopup(Scene& scene);
+
     private:
         inline static std::vector<Scene*> removingScenes = {};
-        
+
         void Update() override;
     };
     Gleam_MakeGlobalSystem(HierarchyWindow_Scene)

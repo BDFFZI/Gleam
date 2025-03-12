@@ -1,5 +1,7 @@
 ﻿#include "Heap.h"
 
+#include <assert.h>
+
 namespace Gleam
 {
     Heap::Heap(const size_t elementSize, const int chunkElementCount, const int spareChunkCount)
@@ -31,15 +33,16 @@ namespace Gleam
 
     std::byte* Heap::RemoveElement(const int index)
     {
-        if (elementCount == 1)
-        {
-            elementCount = 0;
+        assert(index < elementCount && "索引越界！");
+        
+        elementCount--;
+
+        //删除末尾的元素不用交换位置，故直接返回即可
+        if (index == elementCount)
             return nullptr;
-        }
 
         std::byte* item = At(index);
-        memcpy(item, At(elementCount - 1), elementSize);
-        elementCount--;
+        memcpy(item, At(elementCount), elementSize); //将末尾元素移动过来
         return item;
     }
     void Heap::RemoveElements(const int index, const int count)

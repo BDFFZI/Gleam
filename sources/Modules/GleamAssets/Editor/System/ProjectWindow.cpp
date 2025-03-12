@@ -157,12 +157,13 @@ namespace Gleam
     {
         if (!std::filesystem::exists("Assets"))
             std::filesystem::create_directory("Assets");
+        AssetDatabase::Refresh();
     }
     void ProjectWindow::Stop()
     {
         //除了结束时还未卸载的资源包
         for (auto assetBundleID : assetBundlesLoading)
-            AssetBundle::UnLoad(AssetBundle::GetAssetBundle(assetBundleID));
+            AssetBundle::Unload(AssetBundle::GetAssetBundle(assetBundleID));
     }
 
     void ProjectWindow::Update()

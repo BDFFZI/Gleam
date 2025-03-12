@@ -1,7 +1,5 @@
 #include "CustomImporter.h"
 
-#include "GleamECS/Runtime/Scene.h"
-
 namespace Gleam
 {
     void JsonObjectImporter::LoadAsset(const std::filesystem::path& path, uuids::uuid& assetBundleID)

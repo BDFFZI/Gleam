@@ -160,6 +160,8 @@ namespace Gleam
         friend class Scene;
         template <class T>
         friend struct FieldDataTransferrer_Transfer;
+        friend void ReplaceRuntimeSystem();
+        friend void ExtendWorldFunction();
 
         //实体信息
         inline static uint32_t nextEntity = 1;
@@ -174,14 +176,9 @@ namespace Gleam
         ///2. 插入系统和删除系统是无序的，但系统本身是有序的，为了满足系统的顺序安排，需先缓存并统计系统顺序后再调整
         inline static std::vector<System*> removingSystems = {};
         inline static std::vector<System*> addingSystems = {};
-        //Entity的生命周期范围应大于System，这样才能让System的Start和Stop可以处理相关实体。
-        //因为System是延迟生效的，故实时移除Entity时无法满足上述需求，故对Entity也进行延时。
-        inline static std::vector<Entity> removingEntities;
-
+        
         static Entity GetNextEntity();
         static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
-
-    public:
         /**
          * 将缓存的添加或卸载中的System通过引用计算后，修改到实际的系统容器中
          */

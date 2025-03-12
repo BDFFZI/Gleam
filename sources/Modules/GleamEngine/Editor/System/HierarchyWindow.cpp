@@ -1,11 +1,8 @@
 #include "HierarchyWindow.h"
-
-#include "EditorTimeSystem.h"
 #include "InspectorWindow.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamECS/Runtime/World.h"
 #include "GleamEngine/Editor/Editor.h"
-#include "GleamUI/Runtime/UI.h"
 #include "GleamUtility/Runtime/Ranges.h"
 
 namespace Gleam
@@ -193,38 +190,5 @@ namespace Gleam
             }
             ImGui::PopID();
         }
-    }
-
-    void HierarchyWindow::Update()
-    {
-        if (ImGui::Begin("HierarchyWindow"))
-        {
-            ImGui::SeparatorText("Statistics");
-            ImGui::BulletText(std::format("IsPlaying:{}", Editor::IsPlaying()).c_str());
-            ImGui::BulletText(std::format("NextEntity:{}", World::nextEntity).c_str());
-            //帧率信息
-            static float deltaTime = 0;
-            deltaTime = std::lerp(deltaTime, EditorTimeSystem.GetDeltaTimeReal(), 0.3f);
-            ImGui::BulletText(
-                "FrameRate:%5.1f ms/f (%5.1f FPS)",
-                deltaTime * 1000.0,
-                1.0 / deltaTime
-            );
-
-            ImGui::SeparatorText("World");
-            DrawWorldUnfolding();
-        }
-        ImGui::End();
-
-        for (auto system : removingSystems)
-        {
-            World::RemoveSystem(*system);
-        }
-        removingSystems.clear();
-        for (auto entity : removingEntities)
-        {
-            World::RemoveEntity(entity);
-        }
-        removingEntities.clear();
     }
 }

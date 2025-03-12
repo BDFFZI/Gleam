@@ -1,0 +1,86 @@
+#pragma once
+#include "GleamECS/Runtime/Archetype.h"
+#include "GleamECS/Runtime/World.h"
+#include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
+
+namespace Gleam
+{
+    /**
+     * Entity包装器，是Entity在资源包中的替身，使Entity以及Entity引用可以被资源化
+     */
+    class EntityAsset
+    {
+    public:
+        static std::optional<std::reference_wrapper<EntityAsset>> GetEntityAsset(Entity entity);
+
+        EntityAsset();
+        EntityAsset(Entity entity, bool ownership);
+        EntityAsset(EntityAsset&& other) noexcept;
+        EntityAsset& operator=(EntityAsset&& other) noexcept;
+        ~EntityAsset();
+
+        Entity GetEntity() const;
+        bool GetOwnership() const;
+        void SetEntity(Entity entity);
+        void SetOwnership(bool ownership);
+
+    private:
+        inline static std::unordered_map<Entity, EntityAsset*> entityToAsset = {};
+
+        Entity entity;
+        bool ownership;
+    };
+    //Entity资源化函数
+    Gleam_MakeType(EntityAsset, "112887C5-1B8D-42DF-801D-4360DA6F8A15")
+    {
+        if constexpr (std::derived_from<TFieldTransferrer, FieldDataTransferrer>)
+        {
+            FieldDataTransferrer& dataTransferrer = transferrer;
+
+            const Archetype* archetype;
+            std::byte* components;
+
+            if (value.GetEntity() != Entity::Null) //持久化 
+            {
+                const EntityInfo& entityInfo = World::GetEntityInfo(value.GetEntity());
+                archetype = entityInfo.archetype;
+                components = entityInfo.components;
+
+                //持久化原型
+                int componentCount = archetype->GetComponentCount();
+                std::vector<uuids::uuid> componentTypes = std::vector<uuids::uuid>(componentCount);
+                for (std::size_t i = 0; i < componentCount; ++i)
+                    componentTypes[i] = archetype->GetComponentType(i).GetID();
+                dataTransferrer.TransferField("componentTypes", componentTypes);
+            }
+            else //反持久化
+            {
+                //反持久化原型
+                std::vector<uuids::uuid> componentTypeIDs;
+                dataTransferrer.TransferField("componentTypes", componentTypeIDs);
+                std::vector<std::reference_wrapper<const Type>> componentTypes;
+                for (auto& componentTypeID : componentTypeIDs)
+                {
+                    std::optional<std::reference_wrapper<const Type>> optionalType = Type::GetType(componentTypeID);
+                    if (optionalType.has_value())
+                        componentTypes.push_back(optionalType.value());
+                }
+
+                archetype = &Archetype::CreateOrGet(componentTypes);
+                value = {World::AddEntity(*archetype), true};
+                components = World::GetEntityInfo(value.GetEntity()).components;
+            }
+
+            //序列化组件
+            for (std::size_t i = 0; i < archetype->GetComponentCount(); ++i)
+            {
+                const Type& type = archetype->GetComponentType(i);
+                void* component = components + archetype->GetComponentOffset(i);
+
+                dataTransferrer.PushNode(std::format("component_{}", i), DataType::Class);
+                type.Serialize(dataTransferrer, component);
+                dataTransferrer.PopNode();
+            }
+        }
+    }
+}

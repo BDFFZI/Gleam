@@ -84,7 +84,7 @@ TEST(Persistence, AssetBundle)
         AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
         AssetBundle::SaveBinary("Assets/" + to_string(assetBundle.GetID()), assetBundle);
         //验证卸载资源包
-        AssetBundle::UnLoad(assetBundle);
+        AssetBundle::Unload(assetBundle);
     }
 
     //测试加载自依赖资源包
@@ -101,7 +101,7 @@ TEST(Persistence, AssetBundle)
         ASSERT_EQ(asset0.name, "Asset0");
         ASSERT_EQ(asset1.name, "Asset1");
         ASSERT_EQ(asset1.dependency, &asset2);
-        AssetBundle::UnLoad(assetBundle);
+        AssetBundle::Unload(assetBundle);
     }
 
     //测试资源包分包的保存
@@ -123,8 +123,8 @@ TEST(Persistence, AssetBundle)
         //保存资源包
         AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
         AssetBundle::SaveJson("Assets/assetBundle2.asset", assetBundle2);
-        AssetBundle::UnLoad(assetBundle);
-        AssetBundle::UnLoad(assetBundle2);
+        AssetBundle::Unload(assetBundle);
+        AssetBundle::Unload(assetBundle2);
         //测试通过json间接还原二进制资源包
         AssetBundle::DumpJsonToBinary("Assets/assetBundle.asset", "Assets/" + to_string(assetBundleID), true);
         AssetBundle::DumpJsonToBinary("Assets/assetBundle2.asset", "Assets/" + to_string(assetBundle2ID), true);
@@ -135,7 +135,7 @@ TEST(Persistence, AssetBundle)
         AssetBundle& assetBundle2 = AssetBundle::LoadBinary("Assets/" + to_string(assetBundle2ID));
         TestAsset* data3 = static_cast<TestAsset*>(assetBundle2.GetAssets()[1].GetObject())->dependency;
         ASSERT_EQ(data3, nullptr);
-        AssetBundle::UnLoad(assetBundle2);
+        AssetBundle::Unload(assetBundle2);
     }
 
     {
@@ -160,8 +160,8 @@ TEST(Persistence, AssetBundle)
         ASSERT_EQ(data->name, "Asset0");
         ASSERT_EQ(data->dependency->name, "Asset1");
 
-        AssetBundle::UnLoad(assetBundle);
-        AssetBundle::UnLoad(assetBundle2);
+        AssetBundle::Unload(assetBundle);
+        AssetBundle::Unload(assetBundle2);
     }
 
     //测试多资源包引用未托管对象，保存时复制对象的现象
@@ -174,8 +174,8 @@ TEST(Persistence, AssetBundle)
             assetBundle2.GetObject<TestAsset>(0).dependency = &testAsset;
             AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
             AssetBundle::SaveJson("Assets/assetBundle2.asset", assetBundle2);
-            AssetBundle::UnLoad(assetBundle);
-            AssetBundle::UnLoad(assetBundle2);
+            AssetBundle::Unload(assetBundle);
+            AssetBundle::Unload(assetBundle2);
         }
 
         {
@@ -209,9 +209,9 @@ TEST(Persistence, Resources)
         Resources::Save(assetBundle0);
         Resources::Save(assetBundle1);
         Resources::Save(assetBundle2);
-        AssetBundle::UnLoad(assetBundle0);
-        AssetBundle::UnLoad(assetBundle1);
-        AssetBundle::UnLoad(assetBundle2);
+        AssetBundle::Unload(assetBundle0);
+        AssetBundle::Unload(assetBundle1);
+        AssetBundle::Unload(assetBundle2);
     }
 
     //加载

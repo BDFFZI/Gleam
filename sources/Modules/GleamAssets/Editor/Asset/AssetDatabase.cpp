@@ -75,7 +75,7 @@ namespace Gleam
                     assetBundleID = assetImporter.SaveAndReloadAsset();
                     AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetBundleID);
                     Resources::Save(assetBundle);
-                    AssetBundle::UnLoad(assetBundle);
+                    AssetBundle::Unload(assetBundle);
                 }
             }
         }

@@ -11,10 +11,11 @@ namespace Gleam
             CloseScene(*it->first);
 
         AssetBundle& assetBundle = AssetDatabase::Load(path);
-        Scene& scene = Scene::FromAssetBundle(assetBundle);
+        Scene& scene = SceneAsset::FromAssetBundle(assetBundle);
         AssetDatabase::Unload(path);
 
         sceneAssets.emplace(&scene, path);
+        currentScenePath = path;
         return scene;
     }
     void EditorSceneManager::CloseScene(Scene& scene)
@@ -27,8 +28,16 @@ namespace Gleam
         auto& path = sceneAssets.at(&scene);
 
         AssetBundle& assetBundle = AssetDatabase::Load(path);
-        Scene::ToAssetBundle(scene, assetBundle);
+        SceneAsset::ToAssetBundle(scene, assetBundle);
         AssetDatabase::Save(path);
         AssetDatabase::Unload(path);
+    }
+    void EditorSceneManager::ClearScene()
+    {
+        std::vector<Scene*> scenes;
+        std::ranges::copy(sceneAssets | std::views::keys, std::back_inserter(scenes));
+
+        for (auto& scene : scenes)
+            CloseScene(*scene);
     }
 }

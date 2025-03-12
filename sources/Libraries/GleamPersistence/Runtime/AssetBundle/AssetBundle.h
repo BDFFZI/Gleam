@@ -28,7 +28,7 @@ namespace Gleam
         }
 
         static AssetBundle& Create(uuids::uuid assetBundleID = {});
-        static void UnLoad(AssetBundle& assetBundle, bool releaseOwnership = false);
+        static void Unload(AssetBundle& assetBundle, bool releaseOwnership = false);
 
         static AssetBundle& Load(AssetBundle& newAssetBundle, bool reload = false);
         static AssetBundle& LoadBinary(std::string_view fileName, bool reload = false);

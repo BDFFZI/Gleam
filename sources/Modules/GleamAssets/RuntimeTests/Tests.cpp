@@ -3,21 +3,18 @@
 #include <gtest/gtest.h>
 #include <stduuid/uuid.h>
 
-#include "GleamAssets/Runtime/Scene.h"
+#include "GleamAssets/Runtime/SceneManager.h"
+#include "GleamAssets/Runtime/Scene/EntityAsset.h"
+#include "GleamAssets/Runtime/Scene/Scene.h"
+#include "GleamAssets/Runtime/Scene/SceneAsset.h"
 #include "GleamECS/Runtime/Archetype.h"
 #include "GleamECS/Runtime/System.h"
 #include "GleamECS/Runtime/View.h"
+#include "GleamEngine/Runtime/Engine.h"
+#include "GleamPersistence/Runtime/Resources.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 
 using namespace Gleam;
-
-// void Start() override
-// {
-//     Scene& scene = Scene::Create("Test");
-//     Entity entity = World::AddEntity(DataArchetype);
-//     World::SetComponents(entity, data);
-//     scene.AddEntity(entity);
-// }
 
 struct MyComponent
 {
@@ -45,10 +42,29 @@ Gleam_MakeGlobalSystem(MySystem)
 
 class MySystem2 : public System
 {
+    void Start() override
+    {
+        View<MyComponent>::Each([](MyComponent& myComponent)
+        {
+            std::cout << myComponent.value << std::endl;
+        });
+    }
+    void Update() override
+    {
+        Engine::Stop();
+    }
+    void Stop() override
+    {
+        View<MyComponent>::Each([](MyComponent& myComponent)
+        {
+            std::cout << myComponent.value << std::endl;
+        });
+    }
 };
 Gleam_MakeGlobalSystem(MySystem2)
 
-TEST(ECS, Scene)
+// TEST(Assets, Scene)
+void main()
 {
     //测试场景的创建和保存
     {
@@ -62,9 +78,9 @@ TEST(ECS, Scene)
         scene.AddSystem(GlobalMySystem);
         //持久化
         AssetBundle& assetBundle = AssetBundle::Create();
-        Scene::ToAssetBundle(scene, assetBundle);
+        SceneAsset::ToAssetBundle(scene, assetBundle);
         AssetBundle::SaveJson("TestScene.json", assetBundle);
-        AssetBundle::UnLoad(assetBundle);
+        AssetBundle::Unload(assetBundle);
         //卸载资源包不影响，场景内实体
         ASSERT_EQ(View<Transform>::Count(), 2);
         //销毁场景会移除实体
@@ -78,8 +94,8 @@ TEST(ECS, Scene)
         AssetBundle& assetBundle = AssetBundle::LoadJson("TestScene.json");
         ASSERT_EQ(View<Transform>::Count(), 2);
         //场景通过读取资源包恢复数据
-        Scene& scene = Scene::FromAssetBundle(assetBundle);
-        AssetBundle::UnLoad(assetBundle); //从资源包内恢复场景后资源包就可以直接删除了（如果不需要再次存储的话）。
+        Scene& scene = SceneAsset::FromAssetBundle(assetBundle);
+        AssetBundle::Unload(assetBundle); //从资源包内恢复场景后资源包就可以直接删除了（如果不需要再次存储的话）。
         ASSERT_EQ(scene.GetEntities().size(), 3);
         ASSERT_TRUE(scene.HasSystem(GlobalMySystem));
         //验证场景内实体信息正确性
@@ -97,7 +113,7 @@ TEST(ECS, Scene)
     {
         //中途添加系统
         AssetBundle& assetBundle = AssetBundle::LoadJson("TestScene.json");
-        Scene& scene = Scene::FromAssetBundle(assetBundle);
+        Scene& scene = SceneAsset::FromAssetBundle(assetBundle);
         scene.AddSystem(GlobalMySystem2);
         ASSERT_EQ(scene.GetSystems().size(), 2);
         //启动场景
@@ -112,20 +128,44 @@ TEST(ECS, Scene)
         //实体被更新
         ASSERT_EQ(World::GetComponent<MyComponent>(assetBundle.GetObject<EntityAsset>(3).GetEntity()).value, 4);
         //写回资源包并卸载场景
-        Scene::ToAssetBundle(scene, assetBundle);
+        SceneAsset::ToAssetBundle(scene, assetBundle);
         AssetBundle::SaveJson("TestScene.json", assetBundle);
-        AssetBundle::UnLoad(assetBundle);
+        AssetBundle::Unload(assetBundle);
         Scene::Destroy(scene);
     }
 
     {
         //重新加载
         AssetBundle& assetBundle = AssetBundle::LoadJson("TestScene.json");
-        Scene& scene = Scene::FromAssetBundle(assetBundle);
-        AssetBundle::UnLoad(assetBundle);
+        Scene& scene = SceneAsset::FromAssetBundle(assetBundle);
+        AssetBundle::Unload(assetBundle);
 
         ASSERT_EQ(scene.GetEntities().size(), 3);
         ASSERT_EQ(scene.GetSystems().size(), 2);
         Scene::Destroy(scene);
     }
+
+    World::Clear();
+}
+
+TEST(Assets, Runtime)
+{
+    uuids::uuid id = MD5("TestScene").toArray();
+    //资源化一个场景
+    {
+        Scene& scene = Scene::Create("TestScene");
+        scene.AddEntity(World::AddEntity(MyComponent{123}));
+        scene.AddSystem(GlobalMySystem);
+        scene.AddSystem(GlobalMySystem2);
+        AssetBundle& assetBundle = AssetBundle::Create(id);
+        SceneAsset::ToAssetBundle(scene, assetBundle);
+        Resources::Save(assetBundle);
+        assetBundle.Unload(assetBundle);
+        Scene::Destroy(scene);
+    }
+
+    //加载场景
+    SceneManager::LoadScene(id);
+
+    Engine::Start();
 }

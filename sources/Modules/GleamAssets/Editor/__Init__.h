@@ -5,13 +5,15 @@
 #include "System/HierarchyWindow_Scene.h"
 #include "System/ProjectWindow.h"
 #include "GleamEngine/Editor/Editor.h"
+#include "System/EditorSceneSystem.h"
 
 namespace Gleam
 {
     Gleam_AddEditorSystems(
         GlobalProjectWindow,
         GlobalAssetBundleWindow,
-        GlobalHierarchyWindow_Scene
+        GlobalHierarchyWindow_Scene,
+        GlobalEditorSceneSystem
     )
 
     Gleam_AddProjectWindowDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene)
@@ -22,4 +24,4 @@ namespace Gleam
 }
 
 
-auto a = Gleam::FieldDataTransferrer_Transfer<Gleam::Entity>::Invoke;
+// auto a = Gleam::FieldDataTransferrer_Transfer<Gleam::Entity>::Invoke;

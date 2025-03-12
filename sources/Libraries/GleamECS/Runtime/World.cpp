@@ -16,6 +16,10 @@ namespace Gleam
     {
         return systems;
     }
+    EntityInfo& World::GetEntityInfo(const Entity entity)
+    {
+        return entityInfos.at(entity);
+    }
 
     bool World::HasEntity(const Entity entity)
     {
@@ -42,8 +46,9 @@ namespace Gleam
         //内存赋值
         archetype.Construct(heapAddress);
         *reinterpret_cast<Entity*>(heapAddress) = entity;
-        //返回实体信息
+        //设置实体信息
         SetEntityInfo(entity, std::make_optional<EntityInfo>(archetype, heapOrigin, heapAddress));
+
         return entity;
     }
     void World::AddEntities(const Archetype& archetype, const int count, Entity* outEntities)
@@ -58,24 +63,27 @@ namespace Gleam
             //内存赋值
             archetype.Construct(item);
             *reinterpret_cast<Entity*>(item) = entity;
-            //返回实体信息
+            //设置实体信息
             SetEntityInfo(entity, std::make_optional<EntityInfo>(archetype, heapOrigin + itemIndex, item));
-            if (outEntities != nullptr)outEntities[itemIndex] = entity;
+
+            if (outEntities != nullptr)
+                outEntities[itemIndex] = entity;
         });
     }
     void World::RemoveEntity(Entity& entity)
     {
-        assert(entity != Entity::Null && "实体参数不能为空！");
-        assert(World::HasEntity(entity) && "实体必须存在！");
+        assert(entity != Entity::Null && "实体为空！");
+        assert(World::HasEntity(entity) && "实体不存在！");
 
         const EntityInfo entityInfo = GetEntityInfo(entity);
+        //去除实体信息
+        SetEntityInfo(entity, std::nullopt);
         //运行析构函数
         const Archetype* archetype = entityInfo.archetype;
         archetype->Destruct(entityInfo.components);
         //从内存中移除
         RemoveHeapItem(*archetype, entityInfo.indexAtHeap);
-        //去除实体信息
-        SetEntityInfo(entity, std::nullopt);
+
         entity = Entity::Null;
     }
     void World::RemoveAllEntities()
@@ -84,8 +92,8 @@ namespace Gleam
         {
             heap.ForeachElements([archetype](std::byte* address)
             {
-                //去除实体信息
                 Entity entity = *reinterpret_cast<Entity*>(address);
+                //去除实体信息
                 SetEntityInfo(entity, std::nullopt);
                 //运行析构函数
                 archetype->Destruct(address);
@@ -96,12 +104,14 @@ namespace Gleam
     }
     void World::MoveEntity(const Entity entity, const Archetype& newArchetype)
     {
-        assert(entity != Entity::Null && "实体参数不能为空！");
-        assert(World::HasEntity(entity) && "实体必须存在！");
+        assert(entity != Entity::Null && "实体为空！");
+        assert(World::HasEntity(entity) && "实体不存在！");
 
         //获取旧实体信息
         EntityInfo oldEntityInfo = GetEntityInfo(entity);
         const Archetype* oldArchetype = oldEntityInfo.archetype;
+        assert(oldArchetype != &newArchetype && "实体已经基于目标原型！");
+
         //分配新内存
         Heap& newHeap = GetEntityHeap(newArchetype);
         std::byte* newAddress = newHeap.AddElement();
@@ -210,10 +220,6 @@ namespace Gleam
     {
         return static_cast<Entity>(nextEntity++);
     }
-    EntityInfo& World::GetEntityInfo(const Entity entity)
-    {
-        return entityInfos.at(entity);
-    }
     void World::SetEntityInfo(const Entity entity, const std::optional<EntityInfo>& info)
     {
         if (info.has_value())
@@ -267,6 +273,7 @@ namespace Gleam
             const Entity movedEntity = *reinterpret_cast<Entity*>(element);
             //重设实体信息
             EntityInfo movedEntityInfo = GetEntityInfo(movedEntity);
+            assert(movedEntityInfo.indexAtHeap != elementIndex && "被删除和移动的实体是同一个！");
             movedEntityInfo.components = element;
             movedEntityInfo.indexAtHeap = elementIndex;
             SetEntityInfo(movedEntity, movedEntityInfo);

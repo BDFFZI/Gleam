@@ -31,7 +31,7 @@ namespace Gleam
         assetBundleRefCount[assetBundleID]--;
 
         if (assetBundleRefCount[assetBundleID] == 0)
-            AssetBundle::UnLoad(assetBundle);
+            AssetBundle::Unload(assetBundle);
     }
 
     void Resources::Reload(const uuids::uuid assetBundleID)

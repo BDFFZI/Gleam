@@ -1,11 +1,13 @@
 ﻿#pragma once
 #include "CustomUI.h"
 #include "Gizmos.h"
-#include "GleamPresentation/Runtime/__Init__.h"
 #include "System/GameWindow.h"
 #include "System/GizmosSystem.h"
 #include "System/HandlesSystem.h"
 #include "System/SceneWindow.h"
+
+#include "GleamPresentation/Runtime/__Init__.h"
+#include "GleamEngine/Editor/Editor.h"
 
 namespace Gleam
 {
@@ -24,7 +26,7 @@ namespace Gleam
         GlobalHandlesSystem,
         GlobalGizmosSystem
     )
-    
+
     Gleam_AddInspectorWindowUI(Point, InspectorWindowUI_Point)
     Gleam_AddInspectorWindowUI(Segment, InspectorWindowUI_Segment)
     Gleam_AddInspectorWindowUI(Cuboid, InspectorWindowUI_Cuboid)
