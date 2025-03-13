@@ -4,7 +4,7 @@
 #include <fstream>
 #include <regex>
 
-#include "AssetRefTransferrer.h"
+#include "CustomTransferrer.h"
 #include "GleamPersistence/Runtime/Serializer/BinaryReader.h"
 #include "GleamPersistence/Runtime/Serializer/BinaryWriter.h"
 #include "GleamPersistence/Runtime/Serializer/JsonReader.h"
@@ -41,27 +41,21 @@ namespace Gleam
 
         std::stringstream outStream;
         BinaryWriter binaryWriter = BinaryWriter(outStream);
-        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
         AssetBundleType.Serialize(binaryWriter, &assetBundle);
-        FieldDataTransferrer_TransferPtrEvent = nullptr;
         File::WriteAllText(fileName, outStream.str());
     }
     void AssetBundle::SaveJson(const std::string_view fileName, AssetBundle& assetBundle)
     {
         assetBundle.AddAssetDependency();
 
-        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
         std::string json = JsonUtility::ToJson(&assetBundle, AssetBundleType, true);
-        FieldDataTransferrer_TransferPtrEvent = nullptr;
         File::WriteAllText(fileName, json);
     }
     void AssetBundle::SaveMeta(const std::string_view fileName, AssetBundle& assetBundle)
     {
         //收集依赖信息
-        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
         AssetRefStatistician assetRefStatistician = {};
         AssetBundleType.Serialize(assetRefStatistician, &assetBundle);
-        FieldDataTransferrer_TransferPtrEvent = nullptr;
         //填充资源包元信息
         AssetBundleMeta assetBundleMeta;
         for (auto& assetRef : assetRefStatistician.result)
@@ -77,9 +71,7 @@ namespace Gleam
     {
         //反序列化得到json中的资源包数据
         AssetBundle newAssetBundle = {};
-        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
         JsonUtility::FromJson(File::ReadAllText(jsonFile), AssetBundleType, &newAssetBundle);
-        FieldDataTransferrer_TransferPtrEvent = nullptr;
         //转存为二进制文件
         SaveBinary(binaryFile, newAssetBundle);
         //保存meta信息
@@ -128,11 +120,9 @@ namespace Gleam
         }
 
         //依赖同资源包资源的指针，可能在依赖对象反资源化前被处理，导致无法获取依赖项的数据。
-        //因此要在所有资源对象反序列化后重新资源化一次指针，利用上一次保存的指针与资源依赖的关系，重新连接资源。
-        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
-        NullTransferrer pointerTransferrer = {};
-        AssetBundleType.Serialize(pointerTransferrer, result);
-        FieldDataTransferrer_TransferPtrEvent = nullptr;
+        //因此要在所有资源对象反序列化后重新序列化一次指针，利用上一次保存的指针与资源依赖的关系，重新连接资源。
+        PointerSerializer pointerSerializer;
+        AssetBundleType.Serialize(pointerSerializer, result);
 
         return *result;
     }
@@ -144,9 +134,7 @@ namespace Gleam
         std::ifstream inStream(fileName.data(), std::ios::in | std::ios::binary);
         BinaryReader binaryReader = BinaryReader(inStream);
         AssetBundle newAssetBundle = {};
-        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
         AssetBundleType.Serialize(binaryReader, &newAssetBundle);
-        FieldDataTransferrer_TransferPtrEvent = nullptr;
 
         return Load(newAssetBundle, reload);
     }
@@ -156,9 +144,7 @@ namespace Gleam
 
         //反序列化得到磁盘的中的资源包数据
         AssetBundle newAssetBundle = {};
-        FieldDataTransferrer_TransferPtrEvent = SerializePtr;
         JsonUtility::FromJson(File::ReadAllText(fileName), AssetBundleType, &newAssetBundle);
-        FieldDataTransferrer_TransferPtrEvent = nullptr;
 
         return Load(newAssetBundle, reload);
     }
@@ -303,18 +289,6 @@ namespace Gleam
         return asset;
     }
 
-    void AssetBundle::SerializePtr(FieldDataTransferrer& serializer, void*& value, std::type_index)
-    {
-        AssetRef assetRef = pointerMapping[reinterpret_cast<uintptr_t>(&value)];
-        {
-            assetRef = GetAssetRef(value).value_or(assetRef); //获取引用数据对应的资源依赖
-            assert(value == nullptr || !assetRef.assetBundleID.is_nil() && "指针引用的物体未被资源化！");
-            serializer.Transfer(assetRef);
-            value = GetObject(assetRef).value_or(nullptr); //根据资源依赖获取数据
-        }
-        pointerMapping[reinterpret_cast<uintptr_t>(&value)] = assetRef;
-    }
-
     void AssetBundle::BuildAssetIndex()
     {
         for (auto& assetBundle : assets)
@@ -336,31 +310,21 @@ namespace Gleam
     void AssetBundle::AddAssetDependency()
     {
         //获取依赖且未被资源包托管的对象
-        std::vector<std::tuple<void*, const Type*>> dependencies; //未托管对象
-        std::unordered_map<void*, std::vector<void**>> users; //使用对象的指针
-        NullTransferrer nullTransferrer = {};
-        FieldDataTransferrer_TransferPtrEvent = [&dependencies,&users](FieldDataTransferrer&, void*& value, const std::type_index typeIndex)
-        {
-            if (value == nullptr)
-                return;
-
-            std::optional<std::reference_wrapper<const Type>> optionalType = Type::GetType(typeIndex);
-            if (optionalType.has_value() && !dataToAsset.contains(value))
-            {
-                dependencies.emplace_back(value, &optionalType.value().get());
-                users[value].push_back(&value);
-            }
-        };
-        AssetBundleType.Serialize(nullTransferrer, this);
-        FieldDataTransferrer_TransferPtrEvent = nullptr;
+        PointerStatistician pointerStatistician = {};
+        AssetBundleType.Serialize(pointerStatistician, this);
         //将这些对象添加为本资源包的资源
-        for (const auto& [object,objectType] : dependencies)
+        for (const auto& [object,objectTypeIndex] : pointerStatistician.dependencies)
         {
-            void* duplicate = objectType->Create();
-            objectType->Copy(duplicate, object);
-            AddAsset(duplicate, *objectType, true);
+            auto optionalObjectType = Type::GetType(objectTypeIndex);
+            if (!optionalObjectType.has_value())
+                continue; //不支持未注册反射的类型
+
+            const Type& objectType = optionalObjectType.value();
+            void* duplicate = objectType.Create();
+            objectType.Copy(duplicate, object);
+            AddAsset(duplicate, objectType, true);
             //修改使用者的指针引用
-            for (auto& user : users[object])
+            for (auto& user : pointerStatistician.dependencyUsers[object])
                 *user = duplicate;
         }
     }

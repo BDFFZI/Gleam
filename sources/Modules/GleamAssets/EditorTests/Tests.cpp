@@ -5,7 +5,7 @@
 #include "GleamAssets/Editor/Asset/AssetDatabase.h"
 #include "GleamAssets/Editor/Asset/AssetImporter.h"
 #include "GleamAssets/Editor/System/ProjectWindow.h"
-#include "GleamAssets/Runtime/Scene/Scene.h"
+#include "GleamECS/Runtime/Scene.h"
 #include "GleamECS/Runtime/View.h"
 
 Gleam_Main

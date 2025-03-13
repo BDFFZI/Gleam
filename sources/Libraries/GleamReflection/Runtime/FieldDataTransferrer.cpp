@@ -34,8 +34,6 @@ namespace Gleam
             type.Serialize(*this, value);
             PopNode();
         }
-        else
-            throw std::runtime_error("不支持的传输类型！");
     }
     void FieldDataTransferrer::Transfer(float& value)
     {

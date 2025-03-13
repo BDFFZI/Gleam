@@ -1,9 +1,10 @@
 #pragma once
 #include "GleamReflection/Runtime/FieldDataTransferrer.h"
+#include "Serializer.h"
 
 namespace Gleam
 {
-    class BinarySerializer : public FieldDataTransferrer
+    class BinarySerializer : public Serializer
     {
     public:
         void PushNode(std::optional<std::string_view> name, DataType dataType) override

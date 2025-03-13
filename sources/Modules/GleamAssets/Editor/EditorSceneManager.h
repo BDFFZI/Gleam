@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <filesystem>
 
-#include "GleamAssets/Runtime/Scene/Scene.h"
+#include "GleamECS/Runtime/Scene.h"
 
 namespace Gleam
 {

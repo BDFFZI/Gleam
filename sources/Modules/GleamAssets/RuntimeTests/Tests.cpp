@@ -5,7 +5,7 @@
 
 #include "GleamAssets/Runtime/SceneManager.h"
 #include "GleamAssets/Runtime/Scene/EntityAsset.h"
-#include "GleamAssets/Runtime/Scene/Scene.h"
+#include "GleamECS/Runtime/Scene.h"
 #include "GleamAssets/Runtime/Scene/SceneAsset.h"
 #include "GleamECS/Runtime/Archetype.h"
 #include "GleamECS/Runtime/System.h"

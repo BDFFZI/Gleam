@@ -19,6 +19,7 @@ namespace Gleam
         {
             return allScenes | std::views::transform([](auto& scene) { return std::reference_wrapper(*scene); });
         }
+        static Scene& GetActiveScene();
         static std::optional<std::reference_wrapper<Scene>> GetScene(System& system);
         static std::optional<std::reference_wrapper<Scene>> GetScene(Entity entity);
 

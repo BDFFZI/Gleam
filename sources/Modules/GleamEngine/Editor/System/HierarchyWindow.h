@@ -7,7 +7,7 @@
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 
 #ifdef GleamAssetsRuntime
-#include "GleamAssets/Runtime/Scene/Scene.h"
+#include "GleamECS/Runtime/Scene.h"
 #endif
 
 namespace Gleam

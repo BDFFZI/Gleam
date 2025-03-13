@@ -60,7 +60,6 @@ TEST(Persistence, Asset)
     ASSERT_EQ(static_cast<TestAsset*>(assets[1].GetObject())->name, static_cast<TestAsset*>(newAssets[1].GetObject())->name);
 }
 
-
 TEST(Persistence, AssetBundle)
 {
     uuids::uuid assetBundleID = uuids::uuid::from_string("c57022f0-53a7-4b6b-99d5-41a1e5c8f51e").value();
@@ -183,23 +182,26 @@ TEST(Persistence, AssetBundle)
             AssetBundle& assetBundle2 = AssetBundle::LoadJson("Assets/assetBundle2.asset");
             ASSERT_EQ(assetBundle.GetObject<TestAsset>(2), assetBundle2.GetObject<TestAsset>(2));
             ASSERT_NE(&assetBundle.GetObject<TestAsset>(2), &assetBundle2.GetObject<TestAsset>(2));
+            AssetBundle::Unload(assetBundle);
+            AssetBundle::Unload(assetBundle2);
         }
     }
 }
 
 TEST(Persistence, Resources)
 {
-    uuids::uuid assetBundle0ID = uuids::uuid_system_generator()();
-    uuids::uuid assetBundle1ID = uuids::uuid_system_generator()();
+    uuids::uuid assetBundle0ID = MD5("assetBundle0").toArray();
+    uuids::uuid assetBundle1ID = MD5("assetBundle1").toArray();
+    uuids::uuid assetBundle2ID = MD5("assetBundle2").toArray();
     //构建Resources资源包
     {
         TestAsset testAsset[3];
         testAsset[0] = {"Asset0", &testAsset[2]};
         testAsset[1] = {"Asset1", &testAsset[2]};
-        testAsset[2] = {"Asset2",nullptr};
+        testAsset[2] = {"Asset2", nullptr};
         AssetBundle& assetBundle0 = AssetBundle::Create(assetBundle0ID);
         AssetBundle& assetBundle1 = AssetBundle::Create(assetBundle1ID);
-        AssetBundle& assetBundle2 = AssetBundle::Create();
+        AssetBundle& assetBundle2 = AssetBundle::Create(assetBundle2ID);
         assetBundle0.AddAsset(&testAsset[0], TestAssetType, false);
         assetBundle1.AddAsset(&testAsset[1], TestAssetType, false);
         assetBundle2.AddAsset(&testAsset[2], TestAssetType, false);
@@ -219,14 +221,16 @@ TEST(Persistence, Resources)
         ASSERT_EQ(std::ranges::size(AssetBundle::GetAllAssetBundles()), 0);
 
         AssetBundle& assetBundle0 = Resources::Load(assetBundle0ID);
-        ASSERT_EQ(assetBundle0.GetObject<TestAsset>(0).name, "Asset0");
-        ASSERT_EQ(assetBundle0.GetObject<TestAsset>(0).dependency->name, "Asset2");
+        TestAsset& testAsset0 = assetBundle0.GetObject<TestAsset>(0);
+        ASSERT_EQ(testAsset0.name, "Asset0");
+        ASSERT_EQ(testAsset0.dependency->name, "Asset2");
         ASSERT_EQ(std::ranges::size(AssetBundle::GetAllAssetBundles()), 2);
 
         AssetBundle& assetBundle1 = Resources::Load(assetBundle1ID);
-        ASSERT_EQ(assetBundle1.GetObject<TestAsset>(0).name, "Asset1");
-        ASSERT_EQ(assetBundle1.GetObject<TestAsset>(0).dependency->name, "Asset2");
-        ASSERT_EQ(assetBundle1.GetObject<TestAsset>(0).dependency, assetBundle0.GetObject<TestAsset>(0).dependency);
+        TestAsset& testAsset1 = assetBundle1.GetObject<TestAsset>(0);
+        ASSERT_EQ(testAsset1.name, "Asset1");
+        ASSERT_EQ(testAsset1.dependency->name, "Asset2");
+        ASSERT_EQ(testAsset1.dependency, testAsset0.dependency);
         ASSERT_EQ(std::ranges::size(AssetBundle::GetAllAssetBundles()), 3);
 
         Resources::Unload(assetBundle0);

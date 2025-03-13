@@ -2,10 +2,11 @@
 #include <stack>
 
 #include "GleamReflection/Runtime/FieldDataTransferrer.h"
+#include "Serializer.h"
 
 namespace Gleam
 {
-    class JsonSerializer : public FieldDataTransferrer
+    class JsonSerializer : public Serializer
     {
     public:
         JsonSerializer(rapidjson::Document& document)

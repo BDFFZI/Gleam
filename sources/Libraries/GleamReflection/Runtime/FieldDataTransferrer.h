@@ -13,9 +13,8 @@ namespace Gleam
         Field, Array, Class
     };
 
-    class FieldDataTransferrer;
     /**
-     * 自定义特定类型的字段传输器
+     * 自定义针对特殊类型的字段传输器（不直接使用函数模板，是因为函数模板不支持部分特化，但若无需部分特化，建议直接特化函数来减少堆栈）
      *
      * 由于基于模板，因此针对各种类型扩展都非常方便，但也因此仅对直接调用有效，使用RTTI访问将绕过该函数。
      * 建议仅用于扩展基于模板的基础类型，例如向量，其通过模板实现，同时一般都作为类成员使用而不是独立存储。
@@ -24,13 +23,12 @@ namespace Gleam
     template <typename TValue>
     struct FieldDataTransferrer_Transfer
     {
-        static void Invoke(FieldDataTransferrer& serializer, TValue& value);
+        // 若要实现自定义传输，请实现下方注释的函数
+        // static void Invoke(FieldDataTransferrer& serializer, TValue& value);
     };
 
     /**
-     * 字段数据传输器，用于实现对象的序列化。
-     * 
-     * 该传输器能在没有任何信息损耗的情况传递成员数据。相比Type，可以充分发挥模板和无损类型信息的优势。
+     * 字段数据传输器，以此实现在没有任何信息损耗的情况完整递归的遍历所有成员数据。相比Type访问成员数据，该传输器可以充分发挥模板和无损类型信息的优势。
      */
     class FieldDataTransferrer
     {
@@ -101,33 +99,40 @@ namespace Gleam
             PopNode();
         }
 
-        virtual void PushNode(std::optional<std::string_view> name, DataType dataType) =0;
-        virtual void PopNode() =0;
+        virtual void PushNode(std::optional<std::string_view> name, DataType dataType)
+        {
+        }
+        virtual void PopNode()
+        {
+        }
         virtual void Transfer(void* value, std::type_index typeIndex);
-        virtual void Transfer(double& value) = 0;
+        virtual void Transfer(double& value)
+        {
+        }
         virtual void Transfer(float& value);
-        virtual void Transfer(int64_t& value) = 0;
+        virtual void Transfer(int64_t& value)
+        {
+        }
         virtual void Transfer(int32_t& value);
         virtual void Transfer(uint64_t& value);
         virtual void Transfer(uint32_t& value);
         virtual void Transfer(bool& value);
         virtual void Transfer(char& value);
-        virtual void Transfer(std::string& value) = 0;
-        virtual void Transfer(std::vector<std::byte>& value) = 0;
+        virtual void Transfer(std::string& value)
+        {
+        }
+        virtual void Transfer(std::vector<std::byte>& value)
+        {
+        }
         virtual void Transfer(uuids::uuid& value);
         template <class TValue>
-        void Transfer(TValue& value)
+        void Transfer(TValue& value) //传输特殊字段
         {
-            //对于无法直接处理的字段数据类型，首先尝试使用其自定义的数据传输器
-            FieldDataTransferrer_Transfer<TValue>::Invoke(*this, value);
+            if constexpr (requires() { FieldDataTransferrer_Transfer<TValue>::Invoke; })
+                FieldDataTransferrer_Transfer<TValue>::Invoke(*this, value); //优先使用自定义实现
+            else
+                this->Transfer(&value, typeid(value)); //否则用RTTI处理
         }
     };
     static_assert(FieldTransferrer<FieldDataTransferrer>);
-
-    //若传递的数据类型没有实现传输函数，默认直接改用RTTI传递给虚函数，以便转交给传输器自身处理。
-    template <typename TValue>
-    void FieldDataTransferrer_Transfer<TValue>::Invoke(FieldDataTransferrer& serializer, TValue& value)
-    {
-        serializer.Transfer(&value, typeid(TValue));
-    }
 }

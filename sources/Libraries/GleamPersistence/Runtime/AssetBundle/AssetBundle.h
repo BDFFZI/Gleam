@@ -92,9 +92,7 @@ namespace Gleam
          * 故需要在第一次序列化时缓存指针的资源引用，然后第二次序列化时提取出来。
          */
         inline static std::unordered_map<std::uintptr_t, AssetRef> pointerMapping = {};
-
-        static void SerializePtr(FieldDataTransferrer& serializer, void*& value, std::type_index);
-
+        
         uuids::uuid id;
         std::vector<Asset> assets;
         std::unordered_set<int> assetIDSet;
@@ -118,4 +116,4 @@ namespace Gleam
 
 // 依赖自定义指针传输来同步资源引用
 // ReSharper disable once CppUnusedIncludeDirective
-#include "PointerTransferrer.h"
+#include "CustomTransferrer.h"
