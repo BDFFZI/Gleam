@@ -16,6 +16,8 @@ namespace Gleam
         Gleam_MakeType_AddField(assetBundleID);
         Gleam_MakeType_AddField(assetID);
     }
+
+    std::string to_string(const AssetRef& value);
 }
 
 template <>

@@ -19,7 +19,6 @@ namespace Gleam
         {
             return allScenes | std::views::transform([](auto& scene) { return std::reference_wrapper(*scene); });
         }
-        static Scene& GetActiveScene();
         static std::optional<std::reference_wrapper<Scene>> GetScene(System& system);
         static std::optional<std::reference_wrapper<Scene>> GetScene(Entity entity);
 
@@ -30,17 +29,15 @@ namespace Gleam
          */
         static Scene& Create(std::string_view name);
         /**
-         * 销毁Scene及其托管的相关资源
-         * @param name 
-         */
-        static void Destroy(std::string_view name);
-        static void Destroy(Scene& scene);
-        /**
-         * 销毁或释放所有Scene，并清理Scene存储器。
+         * 移除Scene并销毁或释放其托管的相关资源
          *
-         * 通常用于在World.Clear()前调用，以便转交资源所有权给World，并清理Scene存储器
+         * 释放即让场景放弃其对托管资源的所有权，原本其托管的所有System和Entity将完全交由World管理。
+         * 因为除了Scene，World也有回收Entity和System的权力，当由World回收时，Scene应当释放所有权。
+         * @param name
+         * @param onlyRelease 
          */
-        static void Clear(bool release = false);
+        static void Destroy(std::string_view name, bool onlyRelease = false);
+        static void Destroy(Scene& scene, bool onlyRelease = false);
 
         static std::optional<std::reference_wrapper<Scene>> GetScene(std::string_view name);
 
@@ -77,16 +74,6 @@ namespace Gleam
          * 将Systems移除出世界中以停止更新事件
          */
         void Stop();
-        /**
-         * 释放所有权，将所有System和Entity完全交由World管理。
-         *
-         * 除了Scene，World也有回收Entity和System的权力，当由World回收时，Scene应当释放所有权。
-         */
-        void Release();
-        /**
-         * 销毁Scene托管的所有资源。
-         */
-        void Reset();
 
         void AddSystem(System& system);
         void RemoveSystem(System& system);

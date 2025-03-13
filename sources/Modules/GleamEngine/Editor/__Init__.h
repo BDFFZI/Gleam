@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Editor.h"
-#include "CustomEvent.h"
 #include "System/InspectorWindow.h"
 #include "System/HierarchyWindow.h"
 #include "System/ProfilerWindow.h"
@@ -10,9 +9,9 @@
 
 namespace Gleam
 {
-    Gleam_AddEngineEvent(Start, ReplaceRuntimeSystem, 0);
-    Gleam_AddEngineEvent(Update, PlayOrStopEngine, 0);
-    Gleam_AddEngineEvent(Update, FetchProfile, 1);
+    Gleam_AddEngineEvent(Start, Editor_ReplaceRuntimeSystem, 0);
+    Gleam_AddEngineEvent(Update, Editor_PlayOrStopEngine, 0);
+    Gleam_AddEngineEvent(Update, ProfilerWindow_FetchProfile, 1);
 
     Gleam_AddEditorSystems(
         GlobalEditorUISystem,

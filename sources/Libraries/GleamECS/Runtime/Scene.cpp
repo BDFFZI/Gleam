@@ -24,7 +24,7 @@ namespace Gleam
         scene->name = name;
         return *scene;
     }
-    void Scene::Destroy(std::string_view name)
+    void Scene::Destroy(std::string_view name, const bool onlyRelease)
     {
         auto it = std::ranges::find_if(allScenes, [&name](std::unique_ptr<Scene>& scenePtr)
         {
@@ -34,29 +34,28 @@ namespace Gleam
             throw std::runtime_error("目标场景不存在！");
 
         Scene& scene = **it;
-        scene.Reset(); //销毁场景资源
+
+        if (!onlyRelease)
+        {
+            //从世界中移除托管的资源
+            if (scene.isRunning)
+                scene.Stop();
+            for (Entity entity : scene.entities)
+                World::RemoveEntity(entity);
+        }
+        //移除索引信息
+        for (System* system : scene.systems)
+            systemWorld.erase(system);
+        for (Entity entity : scene.entities)
+            entityWorld.erase(entity);
+        scene.systems.clear();
+        scene.entities.clear();
+
         allScenes.erase(it);
     }
-    void Scene::Destroy(Scene& scene)
+    void Scene::Destroy(Scene& scene, const bool onlyRelease)
     {
-        Destroy(scene.name);
-    }
-    void Scene::Clear(const bool release)
-    {
-        if (release)
-        {
-            for (auto& scene : allScenes)
-                scene->Release();
-        }
-        else
-        {
-            for (auto& scene : allScenes)
-                scene->Reset();
-        }
-
-        allScenes.clear();
-        assert(systemWorld.empty() && "场景回收异常！");
-        assert(entityWorld.empty() && "场景回收异常！");
+        Destroy(scene.name, onlyRelease);
     }
 
     std::optional<std::reference_wrapper<Scene>> Scene::GetScene(std::string_view name)
@@ -78,25 +77,6 @@ namespace Gleam
         for (System* system : systems)
             World::RemoveSystem(*system);
         isRunning = false;
-    }
-    void Scene::Release()
-    {
-        //移除索引信息
-        for (System* system : systems)
-            systemWorld.erase(system);
-        for (Entity entity : entities)
-            entityWorld.erase(entity);
-
-        systems.clear();
-        entities.clear();
-    }
-    void Scene::Reset()
-    {
-        if (isRunning) //从世界中移除系统
-            Stop();
-        for (Entity entity : entities) //从世界中移除实体
-            World::RemoveEntity(entity);
-        Release();
     }
 
     void Scene::AddSystem(System& system)

@@ -7,6 +7,9 @@ namespace Gleam
 {
     /**
      * Entity包装器，是Entity在资源包中的替身，使Entity以及Entity引用可以被资源化
+     *
+     * 每当一个Entity与资源包有连接时，EntityAsset就会存在，用于管理Entity与AssetRef的关联信息。
+     * 资源卸载后EntityAsset也会销毁，因此可以用EntityAsset是否存在来判断，Entity是否与资源包相连
      */
     class EntityAsset
     {

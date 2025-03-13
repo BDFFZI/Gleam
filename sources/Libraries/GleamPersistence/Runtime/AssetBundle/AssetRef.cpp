@@ -1,9 +1,16 @@
 ﻿#include "AssetRef.h"
 
-bool Gleam::AssetRef::operator==(const AssetRef& other) const
+namespace Gleam
 {
-    return assetBundleID == other.assetBundleID
-        && assetID == other.assetID;
+    bool AssetRef::operator==(const AssetRef& other) const
+    {
+        return assetBundleID == other.assetBundleID
+            && assetID == other.assetID;
+    }
+    std::string to_string(const AssetRef& value)
+    {
+        return std::format("{{{}:{}}}", to_string(value.assetBundleID), value.assetID);
+    }
 }
 
 size_t std::hash<Gleam::AssetRef>::operator()(const Gleam::AssetRef& value) const noexcept

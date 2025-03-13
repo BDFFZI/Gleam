@@ -160,7 +160,7 @@ namespace Gleam
         friend class Scene;
         template <class T>
         friend struct FieldDataTransferrer_Transfer;
-        friend void ReplaceRuntimeSystem();
+        friend void Editor_ReplaceRuntimeSystem();
         friend void ExtendWorldFunction();
 
         //实体信息

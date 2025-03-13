@@ -1,6 +1,7 @@
 ﻿#include "Editor.h"
 
 #include "GleamECS/Runtime/World.h"
+#include "GleamEngine/Runtime/Engine.h"
 
 namespace Gleam
 {
@@ -11,5 +12,34 @@ namespace Gleam
     bool& Editor::IsPlaying()
     {
         return isPlaying;
+    }
+
+    void Editor_ReplaceRuntimeSystem()
+    {
+        for (auto system : Engine::RuntimeSystems())
+            World::RemoveSystem(system);
+        World::FlushSystemQueue();
+        for (auto system : Editor::EditorSystems())
+            World::AddSystem(system);
+    }
+    void Editor_PlayOrStopEngine()
+    {
+        static bool lastIsPlaying = false;
+        if (lastIsPlaying != Editor::IsPlaying())
+        {
+            if (Editor::IsPlaying())
+            {
+                for (auto system : Engine::RuntimeSystems())
+                    World::AddSystem(system);
+            }
+            else
+            {
+                World::Clear();
+                for (auto system : Editor::EditorSystems())
+                    World::AddSystem(system);
+            }
+        }
+
+        lastIsPlaying = Editor::IsPlaying();
     }
 }

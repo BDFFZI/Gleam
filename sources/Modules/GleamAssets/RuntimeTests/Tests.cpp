@@ -63,8 +63,7 @@ class MySystem2 : public System
 };
 Gleam_MakeGlobalSystem(MySystem2)
 
-// TEST(Assets, Scene)
-void main()
+TEST(Assets, Scene)
 {
     //测试场景的创建和保存
     {
@@ -150,10 +149,10 @@ void main()
 
 TEST(Assets, Runtime)
 {
-    uuids::uuid id = MD5("TestScene").toArray();
+    uuids::uuid id = MD5("TestScene2").toArray();
     //资源化一个场景
     {
-        Scene& scene = Scene::Create("TestScene");
+        Scene& scene = Scene::Create("TestScene2");
         scene.AddEntity(World::AddEntity(MyComponent{123}));
         scene.AddSystem(GlobalMySystem);
         scene.AddSystem(GlobalMySystem2);

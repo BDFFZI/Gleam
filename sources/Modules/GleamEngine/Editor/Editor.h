@@ -20,4 +20,7 @@ namespace Gleam
 #define Gleam_AddEditorSystems(...) Gleam_MakeInitEvent(){\
         ::Gleam::Editor::EditorSystems().insert(::Gleam::Editor::EditorSystems().end(),{__VA_ARGS__});\
     }
+
+    void Editor_ReplaceRuntimeSystem();
+    void Editor_PlayOrStopEngine();
 }

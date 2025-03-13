@@ -21,4 +21,6 @@ namespace Gleam
         void Update() override;
     };
     Gleam_MakeGlobalSystem(ProfilerWindow)
+
+    void ProfilerWindow_FetchProfile();
 }

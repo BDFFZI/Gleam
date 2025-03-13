@@ -77,4 +77,9 @@ namespace Gleam
 
         ImGui::End();
     }
+
+    void ProfilerWindow_FetchProfile()
+    {
+        GlobalProfilerWindow.SetProfile(Profiler::FlushProfile());
+    }
 }
