@@ -1,11 +1,11 @@
 #pragma once
 #include "CustomImporter.h"
 #include "CustomUI.h"
+#include "EditorSceneManager.h"
 #include "System/AssetBundleWindow.h"
 #include "System/HierarchyWindow_Scene.h"
 #include "System/ProjectWindow.h"
 #include "GleamEngine/Editor/Editor.h"
-#include "System/EditorSceneSystem.h"
 
 namespace Gleam
 {
@@ -13,7 +13,7 @@ namespace Gleam
         GlobalProjectWindow,
         GlobalAssetBundleWindow,
         GlobalHierarchyWindow_Scene,
-        GlobalEditorSceneSystem
+        GlobalEditorSceneManager_EditorEvent
     )
 
     Gleam_AddProjectWindowDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene)

@@ -10,26 +10,22 @@ namespace Gleam
     /**
      * 支持通过资源包加载、切换场景，并负责这些场景的回收工作
      *
-     * 注意！编辑器时或运行时加载场景都应通过该接口，因为场景本身是不托管资源包信息的，因此无法处理第三方加载的场景。
+     * 注意！编辑器时或运行时加载场景都应通过该接口，因为场景本身是不托管资源包信息的，因此SceneManager无法处理第三方加载的场景。
      */
     class SceneManager
     {
     public:
-        static void LoadScene(const uuids::uuid assetBundleID)
-        {
-            AssetBundle& assetBundle = Resources::Load(assetBundleID);
-            Scene& scene = SceneAsset::FromAssetBundle(assetBundle);
-            scenes.emplace(assetBundle.GetID(), &scene);
-
-#ifdef GleamEngineEditor
-            if (Editor::IsPlaying())
-#endif
-            scene.Start();
-        }
-        static void UnloadScene(const uuids::uuid assetBundleID)
-        {
-            stoppingScenes.push_back(assetBundleID);
-        }
+        static bool HasScene(uuids::uuid assetBundleID);
+        static Scene& LoadScene(uuids::uuid assetBundleID, bool start = true);
+        static void UnloadScene(uuids::uuid assetBundleID);
+        /**
+         * 立即卸载场景。
+         *
+         * 注意！这种方式无法保证系统停止事件在实体回收前触发。
+         * @param assetBundleID 
+         */
+        static void UnloadSceneImmediate(uuids::uuid assetBundleID);
+        static void UnloadSceneImmediate(Scene& scene);
 
     private:
         friend void SceneManager_FlushUnloadingScenes();
@@ -59,7 +55,6 @@ namespace Gleam
         }
 
     private:
-        void Start() override;
         void Stop() override;
     };
     Gleam_MakeGlobalSystem(SceneManager_RuntimeEvent)

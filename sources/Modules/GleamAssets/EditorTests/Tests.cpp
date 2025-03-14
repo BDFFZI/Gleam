@@ -5,6 +5,7 @@
 #include "GleamAssets/Editor/Asset/AssetDatabase.h"
 #include "GleamAssets/Editor/Asset/AssetImporter.h"
 #include "GleamAssets/Editor/System/ProjectWindow.h"
+#include "GleamAssets/Runtime/SceneAsset/SceneAsset.h"
 #include "GleamECS/Runtime/Scene.h"
 #include "GleamECS/Runtime/View.h"
 
@@ -58,6 +59,7 @@ Gleam_MakeEngineStartEvent(Init, 0)
         {
             AssetBundle& assetBundle = AssetBundle::Create(MD5("TestScene").toArray());
             SceneAsset::ToAssetBundle(scene, assetBundle);
+            std::filesystem::create_directories("./Assets/Scenes");
             AssetDatabase::Save("Assets/Scenes/TestScene.scene", assetBundle);
             AssetBundle::Unload(assetBundle);
         }

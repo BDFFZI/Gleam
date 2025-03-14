@@ -35,7 +35,8 @@ namespace Gleam
     }
     void HierarchyWindow_Scene::DrawScenePopup(Scene& scene)
     {
-        if (ImGui::BeginPopupContextItem("ScenePopup"))
+        std::string id = std::format("{}ScenePopup", scene.GetName());
+        if (ImGui::BeginPopupContextItem(id.data()))
         {
             if (ImGui::MenuItem("Save"))
                 EditorSceneManager::SaveScene(scene);

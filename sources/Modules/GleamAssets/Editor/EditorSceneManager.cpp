@@ -1,43 +1,38 @@
 ﻿#include "EditorSceneManager.h"
 
 #include "Asset/AssetDatabase.h"
+#include "Asset/AssetImporter.h"
+#include "GleamAssets/Runtime/SceneManager.h"
 
 namespace Gleam
 {
-    Scene& EditorSceneManager::OpenScene(const std::filesystem::path& path)
+    void EditorSceneManager::OpenScene(const std::filesystem::path& path)
     {
-        auto it = std::ranges::find_if(sceneAssets, [&path](auto& pair) { return pair.second == path; });
-        if (it != sceneAssets.end())
-            CloseScene(*it->first);
+        uuids::uuid assetBundleID = AssetDatabase::GetAssetBundleID(path);
+        if (SceneManager::HasScene(assetBundleID))
+            SceneManager::UnloadSceneImmediate(assetBundleID);
 
-        AssetBundle& assetBundle = AssetDatabase::Load(path);
-        Scene& scene = SceneAsset::FromAssetBundle(assetBundle);
-        AssetDatabase::Unload(path);
-
-        sceneAssets.emplace(&scene, path);
-        currentScenePath = path;
-        return scene;
+        Scene& scene = SceneManager::LoadScene(assetBundleID, false);
+        scenePaths[&scene] = path;
+        lastScenePath = path;
     }
     void EditorSceneManager::CloseScene(Scene& scene)
     {
-        sceneAssets.erase(&scene);
-        Scene::Destroy(scene);
+        SceneManager::UnloadSceneImmediate(scene);
     }
     void EditorSceneManager::SaveScene(Scene& scene)
     {
-        auto& path = sceneAssets.at(&scene);
+        auto& path = scenePaths.at(&scene);
+        AssetBundle& assetBundle = AssetDatabase::GetAssetBundle(path);
 
-        AssetBundle& assetBundle = AssetDatabase::Load(path);
         SceneAsset::ToAssetBundle(scene, assetBundle);
         AssetDatabase::Save(path);
-        AssetDatabase::Unload(path);
     }
-    void EditorSceneManager::ClearScene()
-    {
-        std::vector<Scene*> scenes;
-        std::ranges::copy(sceneAssets | std::views::keys, std::back_inserter(scenes));
 
-        for (auto& scene : scenes)
-            CloseScene(*scene);
+    void EditorSceneManager_EditorEvent::Start()
+    {
+        EditorSceneManager::scenePaths.clear();
+        if (!EditorSceneManager::lastScenePath.empty())
+            EditorSceneManager::OpenScene(EditorSceneManager::lastScenePath);
     }
 }

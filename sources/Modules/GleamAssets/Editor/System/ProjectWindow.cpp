@@ -6,6 +6,7 @@
 #include "GleamAssets/Editor/Asset/AssetDatabase.h"
 #include "GleamAssets/Editor/Asset/AssetImporter.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
+#include "GleamPersistence/Runtime/Resources.h"
 #include "GleamUI/Runtime/UI.h"
 #include "GleamWindow/Runtime/Window.h"
 
@@ -73,7 +74,7 @@ namespace Gleam
                 auto& menu = fileMenus[extension];
                 UI::Menu(menu);
             }
-            
+
             if (AssetDatabase::HasLoaded(path))
             {
                 if (ImGui::MenuItem("ReLoad"))
@@ -86,35 +87,35 @@ namespace Gleam
         }
 
         //显示资源信息
+        uuids::uuid assetBundleID = AssetDatabase::GetAssetBundleID(path);
         if (isUnfolding)
         {
             //首次展开，需加载资源包到内存
-            uuids::uuid assetBundleID = AssetDatabase::GetAssetBundleID(path);
             if (!assetBundlesLoading.contains(assetBundleID))
             {
-                AssetDatabase::Load(path);
+                Resources::Load(assetBundleID);
                 assetBundlesLoading.insert(assetBundleID);
             }
 
             //显示资源包内容
-            AssetBundle& assetBundle = AssetDatabase::GetAssetBundle(path);
-            for (const AssetSlot& asset : assetBundle.GetAssetSlots())
+            AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetBundleID);
+            for (const AssetSlot& assetSlot : assetBundle.GetAssetSlots())
             {
-                if (ImGui::Button(std::to_string(asset.GetID()).c_str()))
+                if (ImGui::Button(std::to_string(assetSlot.GetID()).c_str()))
                 {
                     GlobalInspectorWindow.SetTarget(InspectorTarget{
-                        asset.GetObject(),
-                        Type::GetType(asset.GetTypeID()).value().get().GetIndex()
+                        assetSlot.GetAsset().GetObject(),
+                        assetSlot.GetAsset().GetObjectType().GetIndex()
                     });
                 }
             }
         }
-        else if (assetBundlesLoading.contains(AssetDatabase::GetAssetBundleID(path)))
+        else if (assetBundlesLoading.contains(assetBundleID))
         {
             //首次关闭，卸载资源包
             RemoveAssetInspector(path);
-            AssetDatabase::Unload(path);
-            assetBundlesLoading.erase(AssetDatabase::GetAssetBundleID(path));
+            Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
+            assetBundlesLoading.erase(assetBundleID);
         }
 
         ImGui::PopID();
@@ -163,7 +164,7 @@ namespace Gleam
     {
         //除了结束时还未卸载的资源包
         for (auto assetBundleID : assetBundlesLoading)
-            AssetBundle::Unload(AssetBundle::GetAssetBundle(assetBundleID));
+            Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
     }
 
     void ProjectWindow::Update()

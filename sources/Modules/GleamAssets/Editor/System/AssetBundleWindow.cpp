@@ -15,13 +15,13 @@ namespace Gleam
             {
                 if (ImGui::CollapsingHeader(to_string(assetBundle.GetID()).data()))
                 {
-                    for (const AssetSlot& asset : assetBundle.GetAssetSlots())
+                    for (const AssetSlot& assetSlot : assetBundle.GetAssetSlots())
                     {
-                        if (ImGui::Button(std::to_string(asset.GetID()).c_str()))
+                        if (ImGui::Button(std::to_string(assetSlot.GetID()).c_str()))
                         {
                             GlobalInspectorWindow.SetTarget(InspectorTarget{
-                                asset.GetObject(),
-                                Type::GetType(asset.GetTypeID()).value().get().GetIndex()
+                                assetSlot.GetAsset().GetObject(),
+                                assetSlot.GetAsset().GetObjectType().GetIndex()
                             });
                         }
                     }
