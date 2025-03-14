@@ -22,12 +22,14 @@ namespace Gleam
 
         static void Start()
         {
+            assert(!isStopping && "引擎尚未启动就已被关闭，请检查运行流程！");
+            
             for (auto system : runtimeSystems)
                 World::AddSystem(system);
 
             for (auto& event : startEvents | std::views::values)
                 event();
-
+            
             while (!isStopping)
             {
 #ifdef GleamEngineEditor

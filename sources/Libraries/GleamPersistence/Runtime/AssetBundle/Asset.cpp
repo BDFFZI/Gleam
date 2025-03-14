@@ -2,18 +2,13 @@
 
 namespace Gleam
 {
-    Asset::Asset()
-        : id(-1), typeID({}), object(nullptr), ownership(false)
-    {
-    }
-    Asset::Asset(const int id, const uuids::uuid typeID, void* object, const bool ownership)
-        : id(id), typeID(typeID), object(object), ownership(ownership)
+    Asset::Asset(void* object, const Type& objectType, const bool ownership)
+        : object(object), objectType(&objectType), ownership(ownership)
     {
     }
     Asset::Asset(Asset&& asset) noexcept
     {
-        id = asset.id;
-        typeID = asset.typeID;
+        objectType = asset.objectType;
         object = asset.object;
         ownership = asset.ownership;
         asset.ownership = false;
@@ -22,12 +17,10 @@ namespace Gleam
     {
         if (ownership)
         {
-            Type::GetType(typeID).value().get().Destruct(object);
-            std::free(object);
+            objectType->Destroy(object);
         }
 
-        id = asset.id;
-        typeID = asset.typeID;
+        objectType = asset.objectType;
         object = asset.object;
         ownership = asset.ownership;
         asset.ownership = false;
@@ -37,20 +30,24 @@ namespace Gleam
     {
         if (ownership)
         {
-            Type::GetType(typeID).value().get().Destroy(object);
+            objectType->Destroy(object);
         }
     }
 
-    int Asset::GetID() const
-    {
-        return id;
-    }
-    uuids::uuid Asset::GetTypeID() const
-    {
-        return typeID;
-    }
     void* Asset::GetObject() const
     {
         return object;
+    }
+    const Type& Asset::GetObjectType() const
+    {
+        return *objectType;
+    }
+    bool Asset::GetOwnership() const
+    {
+        return ownership;
+    }
+    void Asset::SetOwnership(const bool ownership)
+    {
+        this->ownership = ownership;
     }
 }

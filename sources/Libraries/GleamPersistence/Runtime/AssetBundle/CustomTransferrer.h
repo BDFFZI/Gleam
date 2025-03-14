@@ -1,6 +1,7 @@
 #pragma once
 #include "GleamReflection/Runtime/FieldDataTransferrer.h"
 #include "GleamReflection/Runtime/Type.h"
+#include "AssetBundle.h"
 
 namespace Gleam
 {
@@ -31,10 +32,10 @@ namespace Gleam
      *
      * 具体的统计函数由FieldDataTransferrer_Transfer实现
      */
-    class PointerStatistician : public FieldDataTransferrer
+    class ObjectRefStatistician : public FieldDataTransferrer
     {
     public:
-        std::vector<std::tuple<void*, std::type_index>> dependencies; //指针引用的未托管对象
+        std::vector<Asset> dependencies; //指针引用的未托管可持久化对象
         std::unordered_map<void*, std::vector<void**>> dependencyUsers; //引用这些对象的指针
     };
 
@@ -45,6 +46,10 @@ namespace Gleam
     {
     };
 
+    /**
+     * 针对对象依赖（指针）的特制传输器
+     * @tparam TValue 
+     */
     template <typename TValue>
     struct FieldDataTransferrer_Transfer<TValue*>
     {
@@ -57,25 +62,28 @@ namespace Gleam
                 dynamic_cast<AssetRefStatistician*>(&serializer)
             )
             {
-                AssetRef assetRef = AssetBundle::pointerMapping[reinterpret_cast<uintptr_t>(&value)];
+                AssetRef assetRef = AssetBundle::pointerToAssetSlot[reinterpret_cast<uintptr_t>(&value)]; //读取来自首次反序列化时保存的值或默认空值
                 {
-                    assetRef = AssetBundle::GetAssetRef(value).value_or(assetRef); //获取引用数据对应的资源依赖
-                    assert(value == nullptr || !assetRef.assetBundleID.is_nil() && "指针引用的物体未被资源化！");
-                    serializer.Transfer(assetRef);
+                    //优先获取目标对象的资源地址（序列化时保存），否则使用指针映射表存储的资源地址
+                    assetRef = AssetBundle::GetAssetRef(value).value_or(assetRef);
+                    assert(value == nullptr || !assetRef.assetBundleID.is_nil() && "指针引用的物体未被持久化！");
+                    serializer.Transfer(assetRef); //序列化时写入或首次反序列化时从文件读取（PointerSerializer不执行传输）
                     value = static_cast<TValue*>(AssetBundle::GetObject(assetRef).value_or(nullptr)); //根据资源依赖获取数据
                 }
-                AssetBundle::pointerMapping[reinterpret_cast<uintptr_t>(&value)] = assetRef;
+                AssetBundle::pointerToAssetSlot[reinterpret_cast<uintptr_t>(&value)] = assetRef; //首次反序列化结束时保存来自资源文件的值
             }
-            //统计指针
-            else if (PointerStatistician* statistician = dynamic_cast<PointerStatistician*>(&serializer))
+            //统计未托管可持久化对象
+            else if (ObjectRefStatistician* statistician = dynamic_cast<ObjectRefStatistician*>(&serializer))
             {
-                if (value == nullptr)
-                    return;
-                if (AssetBundle::dataToAsset.contains(value))
+                if (value == nullptr || AssetBundle::objectToAssetSlot.contains(value))
                     return;
 
-                statistician->dependencies.emplace_back(value, typeid(TValue));
-                statistician->dependencyUsers[value].emplace_back(reinterpret_cast<void**>(&value));
+                auto optionalType = Type::GetType(typeid(*value));
+                if (optionalType.has_value())
+                {
+                    statistician->dependencies.emplace_back(Asset{value, optionalType.value(), false});
+                    statistician->dependencyUsers[value].emplace_back(reinterpret_cast<void**>(&value));
+                }
             }
             //默认传输方式
             else

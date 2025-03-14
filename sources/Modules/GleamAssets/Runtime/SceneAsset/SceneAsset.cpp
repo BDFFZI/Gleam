@@ -6,7 +6,7 @@ namespace Gleam
 {
     void SceneAsset::ToAssetBundle(Scene& scene, AssetBundle& assetBundle)
     {
-        int assetCount = static_cast<int>(assetBundle.GetAssets().size());
+        int assetCount = static_cast<int>(assetBundle.GetAssetSlots().size());
 
         //保存场景和系统信息
         SceneAsset sceneAsset;
@@ -40,11 +40,11 @@ namespace Gleam
     }
     Scene& SceneAsset::FromAssetBundle(AssetBundle& assetBundle)
     {
-        const std::vector<Asset>& assets = assetBundle.GetAssets();
+        const std::vector<AssetSlot>& assets = assetBundle.GetAssetSlots();
         size_t assetCount = assets.size();
 
         //读取场景和系统信息
-        SceneAsset& sceneAsset = *static_cast<SceneAsset*>(assets[0].GetObject());
+        SceneAsset& sceneAsset = *static_cast<SceneAsset*>(assets[0].GetAsset().GetObject());
         std::string_view name = sceneAsset.name;
         std::vector<System*> systems;
         for (auto id : sceneAsset.systems)
@@ -59,7 +59,7 @@ namespace Gleam
         std::vector<Entity> entities;
         for (std::size_t i = 1; i < assetCount; ++i)
         {
-            EntityAsset& entityAsset = *static_cast<EntityAsset*>(assets[i].GetObject());
+            EntityAsset& entityAsset = *static_cast<EntityAsset*>(assets[i].GetAsset().GetObject());
             entities.emplace_back(entityAsset.GetEntity());
             entityAsset.SetOwnership(false);
         }

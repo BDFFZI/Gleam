@@ -48,8 +48,8 @@ TEST(Persistence, Asset)
         {"Hello Asset2!"}
     };
     std::vector<Asset> assets;
-    assets.emplace_back(0, type.GetID(), &testAsset);
-    assets.emplace_back(1, type.GetID(), &testAsset);
+    assets.emplace_back(&testAsset, type, false);
+    assets.emplace_back(&testAsset, type, false);
     //保存资源
     jsonWriter.TransferField("assets", assets);
     //读取资源
@@ -77,8 +77,8 @@ TEST(Persistence, AssetBundle)
         //验证创建资源包
         AssetBundle& assetBundle = AssetBundle::Create(assetBundleID);
         //验证添加资源
-        assetBundle.AddAsset(&testAsset[0], TestAssetType, false);
-        assetBundle.AddAsset(&testAsset[1], TestAssetType, false);
+        assetBundle.AddAsset(Asset{&testAsset[0], TestAssetType, false});
+        assetBundle.AddAsset(Asset{&testAsset[1], TestAssetType, false});
         //验证保存资源包
         AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
         AssetBundle::SaveBinary("Assets/" + to_string(assetBundle.GetID()), assetBundle);
@@ -93,7 +93,7 @@ TEST(Persistence, AssetBundle)
         ASSERT_EQ(uuid, assetBundleID);
         //验证加载资源包
         AssetBundle& assetBundle = AssetBundle::LoadBinary("Assets/" + to_string(assetBundleID));
-        ASSERT_EQ(assetBundle.GetAssets().size(), 3);
+        ASSERT_EQ(assetBundle.GetAssetSlots().size(), 3);
         TestAsset& asset0 = assetBundle.GetObject<TestAsset>(0);
         TestAsset& asset1 = assetBundle.GetObject<TestAsset>(1);
         TestAsset& asset2 = assetBundle.GetObject<TestAsset>(2);
@@ -114,10 +114,10 @@ TEST(Persistence, AssetBundle)
 
         //创建资源包2
         AssetBundle& assetBundle2 = AssetBundle::Create(assetBundle2ID);
-        assetBundle2.AddAsset(&testAsset[3], TestAssetType, false);
+        assetBundle2.AddAsset(Asset{&testAsset[3], TestAssetType, false});
         //迁移资源包1资源
         AssetBundle& assetBundle = AssetBundle::LoadBinary("Assets/" + to_string(assetBundleID));
-        Asset asset = assetBundle.ExtractAsset(assetBundle.GetAssets()[0].GetID());
+        Asset asset = assetBundle.ExtractAsset(assetBundle.GetAssetSlots()[0].GetID());
         assetBundle2.EmplaceAsset(std::move(asset));
         //保存资源包
         AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
@@ -132,7 +132,7 @@ TEST(Persistence, AssetBundle)
     //测试未加载依赖资源包时，引用丢失的现象
     {
         AssetBundle& assetBundle2 = AssetBundle::LoadBinary("Assets/" + to_string(assetBundle2ID));
-        TestAsset* data3 = static_cast<TestAsset*>(assetBundle2.GetAssets()[1].GetObject())->dependency;
+        TestAsset* data3 = assetBundle2.GetObject<TestAsset>(1).dependency;
         ASSERT_EQ(data3, nullptr);
         AssetBundle::Unload(assetBundle2);
     }
@@ -141,7 +141,7 @@ TEST(Persistence, AssetBundle)
         //测试正确加载资源包后，获取到引用资源的现象
         AssetBundle& assetBundle = AssetBundle::LoadBinary("Assets/" + to_string(assetBundleID)); //资源包2依赖资源包1，必须加载，否则丢失引用
         AssetBundle& assetBundle2 = AssetBundle::LoadBinary("Assets/" + to_string(assetBundle2ID));
-        TestAsset* data = static_cast<TestAsset*>(assetBundle2.GetAssets()[1].GetObject());
+        TestAsset* data = &assetBundle2.GetObject<TestAsset>(1);
         ASSERT_EQ(data->name, "Asset0");
         ASSERT_EQ(data->dependency->name, "Asset1");
 
@@ -202,9 +202,9 @@ TEST(Persistence, Resources)
         AssetBundle& assetBundle0 = AssetBundle::Create(assetBundle0ID);
         AssetBundle& assetBundle1 = AssetBundle::Create(assetBundle1ID);
         AssetBundle& assetBundle2 = AssetBundle::Create(assetBundle2ID);
-        assetBundle0.AddAsset(&testAsset[0], TestAssetType, false);
-        assetBundle1.AddAsset(&testAsset[1], TestAssetType, false);
-        assetBundle2.AddAsset(&testAsset[2], TestAssetType, false);
+        assetBundle0.AddAsset(Asset{&testAsset[0], TestAssetType, false});
+        assetBundle1.AddAsset(Asset{&testAsset[1], TestAssetType, false});
+        assetBundle2.AddAsset(Asset{&testAsset[2], TestAssetType, false});
         AssetBundle::SaveJson("Assets/assetBundle0.json", assetBundle0);
         AssetBundle::SaveJson("Assets/assetBundle1.json", assetBundle1);
         AssetBundle::SaveJson("Assets/assetBundle2.json", assetBundle2);

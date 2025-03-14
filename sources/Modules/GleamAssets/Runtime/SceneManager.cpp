@@ -2,7 +2,7 @@
 
 #include "GleamEngine/Editor/Editor.h"
 #include "GleamPersistence/Runtime/Resources.h"
-#include "Scene/SceneAsset.h"
+#include "SceneAsset/SceneAsset.h"
 
 namespace Gleam
 {

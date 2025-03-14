@@ -33,7 +33,7 @@ namespace Gleam
     {
         AssetBundle& assetBundle = AssetDatabase::GetAssetBundle(path);
         auto optionalTarget = GlobalInspectorWindow.GetTarget();
-        if (optionalTarget.has_value() && assetBundle.GetAsset(optionalTarget->data).has_value())
+        if (optionalTarget.has_value() && assetBundle.GetAssetSlot(optionalTarget->data).has_value())
             GlobalInspectorWindow.SetTarget(std::nullopt);
     }
     void ProjectWindow::ShowFile(const std::filesystem::path& path)
@@ -98,7 +98,7 @@ namespace Gleam
 
             //显示资源包内容
             AssetBundle& assetBundle = AssetDatabase::GetAssetBundle(path);
-            for (const Asset& asset : assetBundle.GetAssets())
+            for (const AssetSlot& asset : assetBundle.GetAssetSlots())
             {
                 if (ImGui::Button(std::to_string(asset.GetID()).c_str()))
                 {

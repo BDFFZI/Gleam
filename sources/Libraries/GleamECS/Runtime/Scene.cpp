@@ -81,7 +81,6 @@ namespace Gleam
 
     void Scene::AddSystem(System& system)
     {
-        assert(System::GetSystem(system.GetID()).has_value() && "场景中使用的系统必须是全局系统！");
         assert(!systems.contains(&system) && "场景中已存在该系统！");
 
         systems.emplace(&system);

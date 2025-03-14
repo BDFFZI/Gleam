@@ -15,7 +15,7 @@ namespace Gleam
             {
                 if (ImGui::CollapsingHeader(to_string(assetBundle.GetID()).data()))
                 {
-                    for (const Asset& asset : assetBundle.GetAssets())
+                    for (const AssetSlot& asset : assetBundle.GetAssetSlots())
                     {
                         if (ImGui::Button(std::to_string(asset.GetID()).c_str()))
                         {

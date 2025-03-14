@@ -39,19 +39,9 @@ namespace Gleam
             );
         }
 
-        /**
-         * 全局System创建函数。
-         *
-         * 全局系统将添加到全局统计容器中，这些被统计的系统将可以被Scene实现序列化。
-         * 注意！全局系统默认用TypeID做索引，故每种类型的System默认只能有一个全局系统
-         * 
-         * @tparam TSystem 
-         * @return 
-         */
         template <typename TSystem> requires std::derived_from<TSystem, System>
-        static TSystem CreateGlobal(std::string_view name = "", uuids::uuid id = {})
+        static TSystem Create(std::string_view name = "", uuids::uuid id = {})
         {
-            Type& systemType = Type::CreateOrGet<TSystem>();
             TSystem system;
             //设置名称
             if (!name.empty())
@@ -67,39 +57,14 @@ namespace Gleam
             if (!id.is_nil())
                 system.id = id;
             else if (system.id.is_nil())
-            {
-                //生成默认ID
-                system.id = systemType.GetID();
-            }
+                system.id = MD5(name.data()).toArray();
             //设置父类
+            Type& systemType = Type::CreateOrGet<TSystem>();
             if (!systemType.GetParent().has_value()) //生成默认父类
                 systemType.SetParent(Type::GetType(typeid(System)).value());
             //注册索引
             assert(!allSystems.contains(system.id) && "已有相同ID的系统已被注册！");
             allSystems.emplace(system.id, &system);
-
-            return system;
-        }
-        /**
-         * 一个更完善的System创建函数。
-         *
-         * 相比自行构造System，该函数能显式设置系统名称以及注册类型信息。
-         * @tparam TSystem 
-         * @param name 
-         * @return 
-         */
-        template <typename TSystem> requires std::derived_from<TSystem, System>
-        static TSystem Create(const std::string_view name)
-        {
-            Type& systemType = Type::CreateOrGet<TSystem>();
-            TSystem system;
-            //设置名称
-            system.name = name;
-            //设置ID（非全局系统，ID无效）
-            system.id = {};
-            //设置Type的父类信息
-            if (!systemType.GetParent().has_value())
-                systemType.SetParent(Type::GetType(typeid(System)).value());
 
             return system;
         }
@@ -236,6 +201,6 @@ namespace Gleam
         std::set<System*, SystemPtrComparer> subSystemUpdateQueue = {};
     };
 
-#define Gleam_MakeGlobalSystem(systemClass,...) \
-inline systemClass Global##systemClass = ::Gleam::System::CreateGlobal<systemClass>(__VA_ARGS__);
+#define Gleam_MakeGlobalSystem(systemClass) \
+inline systemClass Global##systemClass = ::Gleam::System::Create<systemClass>("",Type::CreateOrGet<systemClass>().GetID());
 }

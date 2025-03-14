@@ -88,27 +88,27 @@ namespace Gleam
         {
             AssetBundle& oldAssetBundle = assetBundles.at(newAssetBundle.id);
             //统计目前内存中的资源
-            std::unordered_map<int, Asset*> oldAssets;
-            for (auto& asset : oldAssetBundle.assets)
-                oldAssets.emplace(asset.id, &asset);
+            std::unordered_map<int, AssetSlot*> oldAssetSlots;
+            for (auto& asset : oldAssetBundle.assetSlots)
+                oldAssetSlots.emplace(asset.id, &asset);
             //更新资源
-            for (auto& asset : newAssetBundle.assets)
+            for (auto& newAssetSlot : newAssetBundle.assetSlots)
             {
-                if (oldAssets.contains(asset.id)) //内存中已有该资源，替换值
+                if (oldAssetSlots.contains(newAssetSlot.id)) //内存中已有该资源，替换值
                 {
-                    Asset* oldAsset = oldAssets[asset.id];
-                    const Type& type = Type::GetType(oldAsset->GetTypeID()).value().get();
-                    type.Move(oldAsset->object, asset.object);
-                    oldAssets.erase(asset.id);
+                    Asset& oldAsset = oldAssetSlots[newAssetSlot.id]->GetAsset();
+                    const Type& type = oldAsset.GetObjectType();
+                    type.Move(oldAsset.GetObject(), newAssetSlot.GetAsset().GetObject());
+                    oldAssetSlots.erase(newAssetSlot.id);
                 }
                 else //内存中没有，加入
                 {
-                    oldAssetBundle.EmplaceAsset(std::move(asset));
+                    oldAssetBundle.EmplaceAsset(std::move(newAssetSlot));
                 }
             }
             //去除内存中多余资源
-            for (auto& [id,asset] : oldAssets)
-                oldAssetBundle.RemoveAsset(asset->object);
+            for (auto& assetSlot : oldAssetSlots | std::views::values)
+                oldAssetBundle.RemoveAsset(assetSlot->GetAsset().GetObject());
 
             result = &oldAssetBundle;
         }
@@ -119,10 +119,13 @@ namespace Gleam
             result = &assetBundles.emplace(newAssetBundle.id, std::move(newAssetBundle)).first->second;
         }
 
-        //依赖同资源包资源的指针，可能在依赖对象反资源化前被处理，导致无法获取依赖项的数据。
+        //依赖同资源包资源的指针，可能在依赖对象反持久化前被处理，导致无法获取依赖项的数据。
         //因此要在所有资源对象反序列化后重新序列化一次指针，利用上一次保存的指针与资源依赖的关系，重新连接资源。
         PointerSerializer pointerSerializer;
         AssetBundleType.Serialize(pointerSerializer, result);
+
+        //清除临时保存的指针资源引用信息
+        pointerToAssetSlot.clear();
 
         return *result;
     }
@@ -160,8 +163,8 @@ namespace Gleam
 
     std::optional<AssetRef> AssetBundle::GetAssetRef(void* data)
     {
-        if (dataToAsset.contains(data))
-            return dataToAsset.at(data);
+        if (objectToAssetSlot.contains(data))
+            return objectToAssetSlot.at(data);
         return std::nullopt;
     }
     std::optional<void*> AssetBundle::GetObject(const AssetRef& assetRef)
@@ -173,9 +176,9 @@ namespace Gleam
             return std::nullopt;
 
         //获取资源包中的资源
-        auto result = assetBundle->GetAssetFromID(assetRef.assetID);
+        auto result = assetBundle->GetAssetSlot(assetRef.assetID);
         if (result.has_value())
-            return result.value().get().object;
+            return result.value().get().GetAsset().GetObject();
 
         return std::nullopt;
     }
@@ -208,123 +211,139 @@ namespace Gleam
     {
         return id;
     }
-    const Asset& AssetBundle::GetAsset(const int index) const
+    const std::vector<AssetSlot>& AssetBundle::GetAssetSlots() const
     {
-        return assets[index];
+        return assetSlots;
     }
-    std::optional<std::reference_wrapper<const Asset>> AssetBundle::GetAsset(void* data)
+    std::optional<std::reference_wrapper<AssetSlot>> AssetBundle::GetAssetSlot(void* object)
     {
-        auto it = std::ranges::find_if(assets, [data](Asset& asset) { return asset.object == data; });
-        if (it != assets.end())
+        auto it = std::ranges::find_if(assetSlots, [object](AssetSlot& assetSlot)
+        {
+            return assetSlot.GetAsset().GetObject() == object;
+        });
+        if (it != assetSlots.end())
             return *it;
         return std::nullopt;
     }
-    const std::vector<Asset>& AssetBundle::GetAssets() const
+    std::optional<std::reference_wrapper<AssetSlot>> AssetBundle::GetAssetSlot(int slotID)
     {
-        return assets;
+        auto it = std::ranges::find_if(assetSlots, [slotID](const AssetSlot& asset)
+        {
+            return asset.id == slotID;
+        });
+        if (it != assetSlots.end())
+            return *it;
+        return std::nullopt;
     }
-    std::optional<std::reference_wrapper<const Asset>> AssetBundle::GetAssetFromID(int assetID) const
+    Asset& AssetBundle::GetAsset(const int index)
     {
-        const auto it = std::ranges::find_if(assets, [assetID](const Asset& asset) { return asset.id == assetID; });
-        return it == assets.end() ? std::nullopt : std::optional<std::reference_wrapper<const Asset>>{*it};
+        return assetSlots[index].GetAsset();
     }
 
-    void AssetBundle::AddAsset(void* data, const Type& dataType, const bool ownership)
+    void AssetBundle::AddAsset(Asset&& asset)
     {
         //添加资源
-        Asset asset = {GenerateAssetID(), dataType.GetID(), data, ownership};
         EmplaceAsset(std::move(asset));
     }
     void AssetBundle::RemoveAsset(void* data)
     {
         //获取资源
-        auto it = std::ranges::find_if(assets, [data](Asset& asset) { return asset.object == data; });
-        auto index = it - assets.begin();
-        auto& asset = assets[index];
+        auto it = std::ranges::find_if(assetSlots, [data](AssetSlot& assetSlot)
+        {
+            return assetSlot.GetAsset().GetObject() == data;
+        });
+        auto index = it - assetSlots.begin();
+        auto& asset = assetSlots[index];
         //移除索引信息
-        dataToAsset.erase(data);
-        assetToData.erase(AssetRef{id, asset.id});
-        assetIDSet.erase(asset.id);
+        objectToAssetSlot.erase(data);
+        assetSlotToObject.erase(AssetRef{id, asset.id});
+        assetSlotIDSet.erase(asset.id);
         //从内存中移除资源
-        assets.erase(assets.begin() + index);
+        assetSlots.erase(assetSlots.begin() + index);
     }
     void AssetBundle::ClearAssets(const bool releaseOwnership)
     {
         if (releaseOwnership)
         {
-            for (auto& asset : assets)
-                asset.ownership = false;
+            for (auto& assetSlot : assetSlots)
+                assetSlot.GetAsset().SetOwnership(false);
         }
 
-        for (auto& asset : assets)
+        for (auto& assetSlot : assetSlots)
         {
             //移除索引信息
-            dataToAsset.erase(asset.object);
-            assetToData.erase(AssetRef{id, asset.id});
+            objectToAssetSlot.erase(assetSlot.GetAsset().GetObject());
+            assetSlotToObject.erase(AssetRef{id, assetSlot.id});
         }
 
-        assetIDSet.clear();
-        assets.clear();
+        assetSlotIDSet.clear();
+        assetSlots.clear();
     }
-    Asset& AssetBundle::EmplaceAsset(Asset&& asset)
+    Asset AssetBundle::ExtractAsset(int slotID)
     {
-        assert(!dataToAsset.contains(asset.object) && "资源已被添加到资源包！");
+        //提取资源槽
+        auto it = std::ranges::find_if(assetSlots, [slotID](AssetSlot& asset)
+        {
+            return asset.id == slotID;
+        });
+        AssetSlot assetSlot = std::move(*it);
+        assetSlots.erase(it);
+        assetSlotIDSet.erase(assetSlot.id);
 
-        asset.id = GenerateAssetID(); //不同资源包内的资源ID可能重复，故需要重新生成
-        dataToAsset.insert({asset.object, AssetRef{id, asset.id}});
-        assetToData.insert({AssetRef{id, asset.id}, asset.object});
-        assetIDSet.insert(asset.id);
-        return assets.emplace_back(std::move(asset));
-    }
-    Asset AssetBundle::ExtractAsset(int assetID)
-    {
-        auto it = std::ranges::find_if(assets, [assetID](Asset& asset) { return asset.id == assetID; });
-        Asset asset = std::move(*it);
-
-        dataToAsset.erase(asset.object);
-        assetToData.erase(AssetRef{id, asset.id});
-        assetIDSet.erase(asset.id);
-        assets.erase(it);
+        //提取资源
+        Asset asset = std::move(assetSlot.GetAsset());
+        objectToAssetSlot.erase(asset.GetObject());
+        assetSlotToObject.erase(AssetRef{id, assetSlot.id});
 
         return asset;
+    }
+    Asset& AssetBundle::EmplaceAsset(Asset&& asset, const std::optional<int> expectedSlotID)
+    {
+        assert(!objectToAssetSlot.contains(asset.GetObject()) && "资源已被添加到资源包！");
+        assert(!assetSlotIDSet.contains(expectedSlotID.value_or(-1)) && "资源编号已被占用！");
+
+        int slotID = expectedSlotID.value_or(GenerateAssetID());
+        objectToAssetSlot.insert({asset.GetObject(), AssetRef{id, slotID}});
+        assetSlotToObject.insert({AssetRef{id, slotID}, asset.GetObject()});
+        assetSlotIDSet.insert(slotID);
+
+        return assetSlots.emplace_back(slotID, std::move(asset)).GetAsset();
     }
 
     void AssetBundle::BuildAssetIndex()
     {
-        for (auto& assetBundle : assets)
+        for (auto& assetSlot : assetSlots)
         {
-            assetIDSet.insert(assetBundle.id);
-            dataToAsset.insert({assetBundle.object, AssetRef{id, assetBundle.id}});
-            assetToData.insert({AssetRef{id, assetBundle.id}, assetBundle.object});
+            assetSlotIDSet.insert(assetSlot.id);
+            objectToAssetSlot.insert({assetSlot.GetAsset().GetObject(), AssetRef{id, assetSlot.id}});
+            assetSlotToObject.insert({AssetRef{id, assetSlot.id}, assetSlot.GetAsset().GetObject()});
         }
     }
     int AssetBundle::GenerateAssetID() const
     {
-        std::default_random_engine engine = std::default_random_engine(static_cast<uint32_t>(time(nullptr) + assetIDSet.size()));
+        std::default_random_engine engine = std::default_random_engine(static_cast<uint32_t>(time(nullptr) + assetSlotIDSet.size()));
         std::uniform_int_distribution random = std::uniform_int_distribution(0, std::numeric_limits<int>::max());
         int assetID = random(engine);
-        while (assetIDSet.contains(assetID))
+        while (assetSlotIDSet.contains(assetID))
             assetID = random(engine);
         return assetID;
     }
     void AssetBundle::AddAssetDependency()
     {
         //获取依赖且未被资源包托管的对象
-        PointerStatistician pointerStatistician = {};
+        ObjectRefStatistician pointerStatistician = {};
         AssetBundleType.Serialize(pointerStatistician, this);
         //将这些对象添加为本资源包的资源
-        for (const auto& [object,objectTypeIndex] : pointerStatistician.dependencies)
+        for (auto& asset : pointerStatistician.dependencies)
         {
-            auto optionalObjectType = Type::GetType(objectTypeIndex);
-            if (!optionalObjectType.has_value())
-                continue; //不支持未注册反射的类型
-
-            const Type& objectType = optionalObjectType.value();
-            void* duplicate = objectType.Create();
-            objectType.Copy(duplicate, object);
-            AddAsset(duplicate, objectType, true);
+            //优先复制资源
+            void* duplicate = asset.GetObjectType().Create();
+            asset.GetObjectType().Copy(duplicate, asset.GetObject());
+            AddAsset(Asset{duplicate, asset.GetObjectType(), true});
+            //无法复制则尝试移动
+            //TODO
             //修改使用者的指针引用
-            for (auto& user : pointerStatistician.dependencyUsers[object])
+            for (auto& user : pointerStatistician.dependencyUsers[asset.GetObject()])
                 *user = duplicate;
         }
     }

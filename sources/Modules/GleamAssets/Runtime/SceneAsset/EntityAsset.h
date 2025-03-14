@@ -6,7 +6,7 @@
 namespace Gleam
 {
     /**
-     * Entity包装器，是Entity在资源包中的替身，使Entity以及Entity引用可以被资源化
+     * Entity持久化包装器，用Entity模拟出正常对象一样用指针引用、序列化、构造析构的功能，从而使其能被序列化
      *
      * 每当一个Entity与资源包有连接时，EntityAsset就会存在，用于管理Entity与AssetRef的关联信息。
      * 资源卸载后EntityAsset也会销毁，因此可以用EntityAsset是否存在来判断，Entity是否与资源包相连
@@ -33,7 +33,7 @@ namespace Gleam
         Entity entity;
         bool ownership;
     };
-    //Entity资源化函数
+    //Entity持久化函数
     Gleam_MakeType(EntityAsset, "112887C5-1B8D-42DF-801D-4360DA6F8A15")
     {
         if constexpr (std::derived_from<TFieldTransferrer, FieldDataTransferrer>)
@@ -56,7 +56,7 @@ namespace Gleam
                     componentTypes[i] = archetype->GetComponentType(i).GetID();
                 dataTransferrer.TransferField("componentTypes", componentTypes);
             }
-            else //反持久化
+            else //反持久化（EntityAsset除了反序列化时，逻辑上不允许创建空置，因此为空时一定是反序列化）
             {
                 //反持久化原型
                 std::vector<uuids::uuid> componentTypeIDs;
