@@ -52,6 +52,25 @@ namespace Gleam
         //保存导入器
         AssetImporter::GetImporter(path).SaveAndReloadAsset();
     }
+    void AssetDatabase::Move(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
+    {
+        if (!is_directory(oldPath))
+            std::filesystem::rename(oldPath.string() + ".meta", newPath.string() + ".meta");
+        std::filesystem::rename(oldPath, newPath);
+    }
+    void AssetDatabase::Delete(const std::filesystem::path& path)
+    {
+        if (is_directory(path))
+        {
+            remove_all(path);
+        }
+        else
+        {
+            std::filesystem::remove(path);
+            std::filesystem::remove(path.string() + ".meta");
+        }
+    }
+
     uuids::uuid AssetDatabase::GetAssetBundleID(const std::filesystem::path& path)
     {
         return AssetImporter::GetImporter(path).GetAssetBundleID();

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <functional>
+#include <iostream>
 #include <optional>
 #include <ranges>
 #include <set>
@@ -32,43 +33,58 @@ namespace Gleam
         static constexpr int32_t MaxOrder = std::numeric_limits<int32_t>::max();
         static constexpr int32_t DefaultOrder = 0;
 
-        static auto GetAllSystems()
+        static auto GetAllGlobalSystems()
         {
-            return allSystems | std::views::values | std::views::transform(
-                [](auto system) { return std::reference_wrapper<System>(*system); }
+            return allGlobalSystems | std::views::values | std::views::transform(
+                [](auto& system) { return std::reference_wrapper<System>(*system); }
             );
         }
 
         template <typename TSystem> requires std::derived_from<TSystem, System>
-        static TSystem Create(std::string_view name = "", uuids::uuid id = {})
+        static TSystem& CreateGlobal(std::string_view name = "", const uuids::uuid id = {})
         {
-            TSystem system;
-            //设置名称
-            if (!name.empty())
-                system.name = name;
-            else if (system.name.empty())
-            {
-                //生成默认名称
-                std::string defaultName = std::string(typeid(TSystem).name());
-                defaultName = defaultName.substr(defaultName.find_last_of(' ') + 1);
-                system.name = defaultName;
-            }
-            //设置编号
-            if (!id.is_nil())
-                system.id = id;
-            else if (system.id.is_nil())
-                system.id = MD5(name.data()).toArray();
+            std::unique_ptr<System> system = std::unique_ptr<System>{new TSystem()};
             //设置父类
             Type& systemType = Type::CreateOrGet<TSystem>();
             if (!systemType.GetParent().has_value()) //生成默认父类
                 systemType.SetParent(Type::GetType(typeid(System)).value());
+            //设置名称
+            if (!name.empty())
+                system->name = name;
+            else if (system->name.empty())
+            {
+                //生成默认名称
+                std::string defaultName = std::string(typeid(TSystem).name());
+                defaultName = defaultName.substr(defaultName.find_last_of(' ') + 1);
+                system->name = defaultName;
+            }
+            //设置编号
+            if (!id.is_nil())
+                system->id = id;
+            else if (system->id.is_nil())
+                system->id = MD5(name.data()).toArray();
             //注册索引
-            assert(!allSystems.contains(system.id) && "已有相同ID的系统已被注册！");
-            allSystems.emplace(system.id, &system);
+            assert(!allGlobalSystems.contains(system->id) && "已有相同ID的系统已被注册！");
+            auto& result = allGlobalSystems.emplace(system->id, std::move(system)).first->second;
+
+            return *static_cast<TSystem*>(result.get());
+        }
+        template <typename TSystem> requires std::derived_from<TSystem, System>
+        static TSystem Create(std::string_view name)
+        {
+            TSystem system;
+
+            //设置父类
+            Type& systemType = Type::CreateOrGet<TSystem>();
+            if (!systemType.GetParent().has_value()) //生成默认父类
+                systemType.SetParent(Type::GetType(typeid(System)).value());
+            //设置名称
+            system.name = name;
 
             return system;
         }
-        static std::optional<std::reference_wrapper<System>> GetSystem(uuids::uuid id);
+
+        static std::optional<std::reference_wrapper<System>> GetGlobalSystem(uuids::uuid id);
 
         System();
         explicit System(std::optional<std::reference_wrapper<SystemGroup>> group, int minOrder = MinOrder, int maxOrder = MaxOrder, std::string_view name = "");
@@ -93,7 +109,7 @@ namespace Gleam
         friend class SystemEvent;
         Gleam_MakeType_Friend
 
-        inline static std::unordered_map<uuids::uuid, System*> allSystems = {};
+        inline static std::unordered_map<uuids::uuid, std::unique_ptr<System>> allGlobalSystems = {};
 
         std::string name;
         uuids::uuid id;
@@ -116,6 +132,8 @@ namespace Gleam
     class SystemEvent : public System
     {
     public:
+        static SystemEvent StartEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, int order, std::function<void()> startEvent);
+
         SystemEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, int minOrder = MinOrder, int maxOrder = MaxOrder);
         SystemEvent(const std::string_view& name, System& system, OrderRelation orderRelation);
         SystemEvent(SystemEvent&&) noexcept = default;
@@ -202,5 +220,8 @@ namespace Gleam
     };
 
 #define Gleam_MakeGlobalSystem(systemClass) \
-inline systemClass Global##systemClass = ::Gleam::System::Create<systemClass>("",Type::CreateOrGet<systemClass>().GetID());
+inline systemClass& Global##systemClass = ::Gleam::System::CreateGlobal<systemClass>("",::Gleam::Type::CreateOrGet<systemClass>().GetID());
+
+#define Gleam_MakeSystemEvent(name,group,order,type,action) \
+inline SystemEvent name = SystemEvent::##type##Event(#name,group,order,action);
 }

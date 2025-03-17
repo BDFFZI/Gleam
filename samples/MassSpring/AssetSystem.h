@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "GameUISystem.h"
 #include "GleamECS/Runtime/Archetype.h"
-#include "GleamECS/Runtime/Archetype.h"
 #include "GleamECS/Runtime/System.h"
 #include "GleamRendering/Runtime/Entity/Archetype.h"
 

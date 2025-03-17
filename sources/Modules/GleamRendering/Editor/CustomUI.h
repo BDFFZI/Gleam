@@ -19,7 +19,7 @@ namespace Gleam
     void InspectorWindowUI_Rectangle(Rectangle& rectangle);
     void InspectorWindowUI_Sphere(Sphere& sphere);
 
-    inline static Entity SceneWindowUI_Entity_Target = Entity::Null;
+    inline Entity SceneWindowUI_Entity_Target = Entity::Null;
     void SceneWindowUI_Entity(Entity entity);
     void SceneWindowUI_LocalToWorld(LocalToWorld& localToWorld);
 }

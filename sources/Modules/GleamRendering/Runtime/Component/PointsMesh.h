@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Renderer.h"
+#include "GleamGraphics/Runtime/SwapChain.h"
 #include "GleamMath/Runtime/Geometry/3D/Point.h"
 
 namespace Gleam

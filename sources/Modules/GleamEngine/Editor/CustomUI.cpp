@@ -24,26 +24,30 @@ namespace Gleam
     }
     void DrawEntity(const Entity entity, const InspectorWindow::CustomUI& componentGUI)
     {
-        EntityInfo entityInfo = World::GetEntityInfo(entity);
-        const Archetype& archetype = *entityInfo.archetype;
-        //绘制实体编号
-        ImGui::Text("Entity:%i", static_cast<int>(entity));
-        ImGui::SameLine();
-        ImGui::Text("Archetype:%s", archetype.GetName().data());
-        //绘制组件
-        for (int i = 0; i < archetype.GetComponentCount(); ++i)
         {
-            const Type& componentType = archetype.GetComponentType(i);
-            void* component = entityInfo.components + archetype.GetComponentOffset(i);
-
-            bool isUsing = true;
-            DrawComponent(component, componentType, componentGUI, &isUsing);
-            if (isUsing == false) //删除组件
+            EntityInfo entityInfo = World::GetEntityInfo(entity);
+            const Archetype& archetype = *entityInfo.archetype;
+            //绘制实体编号
+            ImGui::Text("Entity:%i", static_cast<int>(entity));
+            ImGui::SameLine();
+            ImGui::Text("Archetype:%s", archetype.GetName().data());
+            //绘制组件
+            for (int i = 0; i < archetype.GetComponentCount(); ++i)
             {
-                World::RemoveComponents(entity, {componentType});
-                return;
+                const Type& componentType = archetype.GetComponentType(i);
+                void* component = entityInfo.components + archetype.GetComponentOffset(i);
+
+                bool isUsing = true;
+                DrawComponent(component, componentType, componentGUI, &isUsing);
+                if (isUsing == false) //删除组件
+                {
+                    World::RemoveComponents(entity, {componentType});
+                    return;
+                }
             }
         }
+        //绘制操作
+        ImGui::Separator();
         //添加组件
         ImGuiID addComponent = ImGui::GetID("AddComponent");
         if (ImGui::BeginPopup("AddComponent"))
@@ -70,10 +74,33 @@ namespace Gleam
 
             ImGui::EndPopup();
         }
-
-        ImGui::Separator();
         if (ImGui::Button("AddComponent", float2{ImGui::GetContentRegionAvail().x, 0}))
             ImGui::OpenPopup(addComponent);
+        //移动实体
+        ImGuiID setArchetype = ImGui::GetID("SetArchetype");
+        if (ImGui::BeginPopup("SetArchetype"))
+        {
+            static ImGuiTextFilter filter;
+            filter.Draw("##");
+            if (ImGui::BeginListBox("##"))
+            {
+                for (const Archetype& archetype : Archetype::GetAllArchetypes())
+                {
+                    if (filter.PassFilter(archetype.GetName().data()) && ImGui::Button(archetype.GetName().data()))
+                    {
+                        World::MoveEntity(entity, archetype);
+                        ImGui::CloseCurrentPopup();
+                        break;
+                    }
+                }
+
+                ImGui::EndListBox();
+            }
+
+            ImGui::EndPopup();
+        }
+        if (ImGui::Button("SetArchetype", float2{ImGui::GetContentRegionAvail().x, 0}))
+            ImGui::OpenPopup(setArchetype);
     }
 
     void InspectorWindowUI_Entity(const Entity entity)

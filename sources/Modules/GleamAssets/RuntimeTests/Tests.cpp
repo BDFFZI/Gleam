@@ -41,8 +41,8 @@ class MySystem : public System
 
 TEST(Assets, Scene)
 {
-    MySystem mySystem1 = System::Create<MySystem>("MySystem1");
-    MySystem mySystem2 = System::Create<MySystem>("MySystem2");
+    MySystem mySystem1 = System::CreateGlobal<MySystem>("MySystem1");
+    MySystem mySystem2 = System::CreateGlobal<MySystem>("MySystem2");
     
     //测试场景的创建和保存
     {

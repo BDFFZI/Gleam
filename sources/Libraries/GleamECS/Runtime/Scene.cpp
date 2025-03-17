@@ -90,7 +90,7 @@ namespace Gleam
     }
     void Scene::RemoveSystem(System& system)
     {
-        assert(System::GetSystem(system.GetID()).has_value() && "场景中使用的系统必须是全局系统！");
+        assert(System::GetGlobalSystem(system.GetID()).has_value() && "场景中使用的系统必须是全局系统！");
         assert(systems.contains(&system) && "场景中不存在该系统！");
 
         systems.erase(&system);

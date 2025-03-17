@@ -4,10 +4,10 @@
 
 namespace Gleam
 {
-    std::optional<std::reference_wrapper<System>> System::GetSystem(const uuids::uuid id)
+    std::optional<std::reference_wrapper<System>> System::GetGlobalSystem(const uuids::uuid id)
     {
-        if (allSystems.contains(id))
-            return *allSystems.at(id);
+        if (allGlobalSystems.contains(id))
+            return *allGlobalSystems.at(id);
         return std::nullopt;
     }
 
@@ -59,6 +59,12 @@ namespace Gleam
     }
 
 
+    SystemEvent SystemEvent::StartEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, int order, std::function<void()> startEvent)
+    {
+        SystemEvent systemEvent = SystemEvent(name, group, order, order);
+        systemEvent.OnStart() = std::move(startEvent);
+        return systemEvent;
+    }
     SystemEvent::SystemEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, const int minOrder, const int maxOrder)
         : System(group, minOrder, maxOrder, name)
     {

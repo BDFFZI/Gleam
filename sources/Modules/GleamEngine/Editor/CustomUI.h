@@ -5,7 +5,7 @@
 
 namespace Gleam
 {
-    inline static Entity InspectorWindowUI_Entity_Target = Entity::Null;
+    inline Entity InspectorWindowUI_Entity_Target = Entity::Null;
     void InspectorWindowUI_Entity(Entity entity);
     void InspectorWindowUI_LocalTransform(LocalTransform& localTransform);
 }

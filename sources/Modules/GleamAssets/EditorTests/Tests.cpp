@@ -40,6 +40,13 @@ class MySystem : public System
             std::cout << component.value << std::endl;
         });
     }
+    void Update() override
+    {
+        View<MyComponent>::Each([&](auto& component)
+        {
+            ++component.value;
+        });
+    }
     void Stop() override
     {
         View<MyComponent>::Each([&](auto& component)

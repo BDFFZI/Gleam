@@ -29,7 +29,12 @@ namespace Gleam
         AssetDatabase::Save(path);
     }
 
-    void EditorSceneManager_EditorEvent::Start()
+    void StartScenes()
+    {
+        for (auto& scene : SceneManager::GetAllScenes() | UnwrapRef)
+            scene.Start();
+    }
+    void OpenLastScene()
     {
         EditorSceneManager::scenePaths.clear();
         if (!EditorSceneManager::lastScenePath.empty())

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "GleamGraphics/Runtime/SwapChain.h"
 #include "GleamMath/Runtime/Geometry/3D/Line.h"
 #include "GleamRendering/Runtime/Asset/Mesh.h"
 
@@ -7,6 +8,14 @@ namespace Gleam
     struct LinesMesh
     {
         std::vector<Segment> lines;
+
+        // LinesMesh() = default;
+        // LinesMesh(LinesMesh&&) = default;
+        // LinesMesh& operator=(LinesMesh&&) = default;
+        // ~LinesMesh()
+        // {
+        //     SwapChain::WaitPresent();
+        // }
 
     private:
         friend class LinesRendererSystem;

@@ -49,7 +49,7 @@ namespace Gleam
         std::vector<System*> systems;
         for (auto id : sceneAsset.systems)
         {
-            auto optionalSystem = System::GetSystem(id);
+            auto optionalSystem = System::GetGlobalSystem(id);
             if (optionalSystem.has_value())
                 systems.emplace_back(&optionalSystem.value().get());
         }

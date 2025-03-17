@@ -3,5 +3,5 @@
 
 namespace Gleam
 {
-    inline TimeSystem EditorTimeSystem = System::Create<TimeSystem>("EditorTimeSystem");
+    inline TimeSystem& EditorTimeSystem = System::CreateGlobal<TimeSystem>("EditorTimeSystem");
 }

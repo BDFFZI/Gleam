@@ -11,6 +11,10 @@ foreach(ProjectName ${AllProjects})
         set(SourceDependencies "")
 
         foreach(dependency ${Dependencies})
+            if(NOT DEFINED ${dependency}Source)
+                message(FATAL_ERROR "依赖项目不存在：${dependency}")
+            endif()
+
             list(PREPEND RealDependencies ${dependency})
             list(APPEND SourceDependencies ${${dependency}Dependencies})
         endforeach()

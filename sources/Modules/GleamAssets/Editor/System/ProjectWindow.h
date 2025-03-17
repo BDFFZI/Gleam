@@ -26,7 +26,10 @@ namespace Gleam
         inline static std::filesystem::path fileDrawing = "";
         inline static std::filesystem::path directoryDrawing = "";
         inline static std::set<uuids::uuid> assetBundlesLoading = {};
+        inline static std::vector<std::tuple<std::filesystem::path, std::filesystem::path>> movingPaths = {};
 
+        static void DragDropMovePath(const std::filesystem::path& path);
+        static void RemoveAssetInspector(const std::filesystem::path& path);
         static void ShowFile(const std::filesystem::path& path);
         static void ShowDirectory(const std::filesystem::path& path);
 

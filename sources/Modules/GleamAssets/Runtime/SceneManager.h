@@ -15,6 +15,13 @@ namespace Gleam
     class SceneManager
     {
     public:
+        static auto GetAllScenes()
+        {
+            return allScenes | std::views::values | std::views::transform(
+                [](auto* scene) { return std::reference_wrapper<Scene>(*scene); }
+            );
+        }
+
         static bool HasScene(uuids::uuid assetBundleID);
         static Scene& LoadScene(uuids::uuid assetBundleID, bool start = true);
         static void UnloadScene(uuids::uuid assetBundleID);
@@ -31,13 +38,13 @@ namespace Gleam
         friend void SceneManager_FlushUnloadingScenes();
         friend class SceneManager_RuntimeEvent;
 
-        inline static std::unordered_map<uuids::uuid, Scene*> scenes;
+        inline static std::unordered_map<uuids::uuid, Scene*> allScenes;
         inline static std::vector<uuids::uuid> stoppingScenes;
         inline static std::vector<uuids::uuid> destroyingScenes;
     };
 
     /**
-     * 停止Scene后等待1帧再实际销毁，从而使Scene中的System能有时间处理Scene中的Entity。
+     * 停止Scene后需等待1帧再实际销毁，从而使Scene中的System能有时间处理Scene中的Entity。
      * 
      * 当引擎停止时，由于没有事件通知（有也没用，因为该函数要延迟1帧销毁，但引擎立即就要停止了），该函数不会执行。
      * 但无妨，因为World.Clear()也会实现相同的功能，而且避免了World和Scene重复销毁Entity的问题。
@@ -45,7 +52,7 @@ namespace Gleam
     void SceneManager_FlushUnloadingScenes();
 
     /**
-     * 辅助SceneManager在引擎运行的部分时间段执行一些额外处理
+     * 引擎停止时，需释放场景（世界负责回收，场景需释放所有权）并回收资源包
      */
     class SceneManager_RuntimeEvent : public System
     {

@@ -9,11 +9,15 @@
 
 namespace Gleam
 {
+    Gleam_AddSystems(
+        EditorSceneManager_RuntimeStartEvent
+    )
+
     Gleam_AddEditorSystems(
         GlobalProjectWindow,
         GlobalAssetBundleWindow,
         GlobalHierarchyWindow_Scene,
-        GlobalEditorSceneManager_EditorEvent
+        EditorSceneManager_EditorStartEvent
     )
 
     Gleam_AddProjectWindowDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene)
@@ -22,6 +26,3 @@ namespace Gleam
     Gleam_MakeAssetImporter(".asset", Type::CreateOrGet<JsonObjectImporter>());
     Gleam_MakeAssetImporter(".scene", Type::CreateOrGet<JsonObjectImporter>());
 }
-
-
-// auto a = Gleam::FieldDataTransferrer_Transfer<Gleam::Entity>::Invoke;

@@ -17,7 +17,7 @@ namespace Gleam
         {
             DataType wrapDataType = dataTypes.top();
             int& wrapItemIndex = itemIndices.top();
-            rapidjson::Value& wrap = *nodes.top();
+            rapidjson::Value* wrap = nodes.top();
 
             rapidjson::Value* currentNode;
 
@@ -25,21 +25,25 @@ namespace Gleam
             {
                 currentNode = nodes.top();
             }
-            else //进入新节点
+            else if (wrap != nullptr) //进入新节点
             {
                 wrapItemIndex++; //当前获取的成员在容器中的索引
                 if (wrapDataType == DataType::Class) //在类中基于名称获取成员
                 {
-                    currentNode = &wrap.operator[](name->data());
+                    currentNode = wrap->HasMember(name->data()) ? &wrap->operator[](name->data()) : nullptr;
                 }
                 else if (wrapDataType == DataType::Array) //在数组中基于索引创建成员
                 {
-                    currentNode = &wrap.GetArray()[wrapItemIndex];
+                    currentNode = &wrap->GetArray()[wrapItemIndex];
                 }
                 else
                 {
                     throw std::runtime_error("在非容器结构中获取成员！");
                 }
+            }
+            else
+            {
+                currentNode = nullptr;
             }
 
             PushStruct(currentNode, dataType);
@@ -52,6 +56,9 @@ namespace Gleam
         template <class TValue>
         void TransferT(TValue& value)
         {
+            if (nodes.top() == nullptr)
+                return;
+
             if (dataTypes.top() == DataType::Array)
             {
                 itemIndices.top()++;
@@ -65,6 +72,9 @@ namespace Gleam
         void Transfer(int64_t& value) override { TransferT(value); }
         void Transfer(std::string& value) override
         {
+            if (nodes.top() == nullptr)
+                return;
+            
             if (dataTypes.top() == DataType::Array)
             {
                 itemIndices.top()++;

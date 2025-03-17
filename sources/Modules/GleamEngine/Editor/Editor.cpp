@@ -9,6 +9,10 @@ namespace Gleam
     {
         return editorSystems;
     }
+    std::vector<std::reference_wrapper<System>>& Editor::EditorOnlySystems()
+    {
+        return editorOnlySystems;
+    }
     bool& Editor::IsPlaying()
     {
         return isPlaying;
@@ -19,7 +23,10 @@ namespace Gleam
         for (auto system : Engine::RuntimeSystems())
             World::RemoveSystem(system);
         World::FlushSystemQueue();
+        
         for (auto system : Editor::EditorSystems())
+            World::AddSystem(system);
+        for (auto system : Editor::EditorOnlySystems())
             World::AddSystem(system);
     }
     void Editor_PlayOrStopEngine()
@@ -29,13 +36,18 @@ namespace Gleam
         {
             if (Editor::IsPlaying())
             {
+                for (auto system : Editor::EditorOnlySystems())
+                    World::RemoveSystem(system);
                 for (auto system : Engine::RuntimeSystems())
                     World::AddSystem(system);
             }
             else
             {
                 World::Clear();
+                
                 for (auto system : Editor::EditorSystems())
+                    World::AddSystem(system);
+                for (auto system : Editor::EditorOnlySystems())
                     World::AddSystem(system);
             }
         }

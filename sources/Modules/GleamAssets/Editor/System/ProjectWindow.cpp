@@ -30,7 +30,26 @@ namespace Gleam
         return directoryDrawing;
     }
 
-    void RemoveAssetInspector(const std::filesystem::path& path)
+    void ProjectWindow::DragDropMovePath(const std::filesystem::path& path)
+    {
+        if (ImGui::BeginDragDropSource())
+        {
+            static std::filesystem::path draggingCache = {};
+            draggingCache = path;
+            ImGui::SetDragDropPayload(typeid(std::filesystem::path).name(), &draggingCache, sizeof(draggingCache));
+            ImGui::EndDragDropSource();
+        }
+        if (is_directory(path) && ImGui::BeginDragDropTarget())
+        {
+            if (auto payload = ImGui::AcceptDragDropPayload(typeid(std::filesystem::path).name()))
+            {
+                auto sourcePath = *static_cast<std::filesystem::path*>(payload->Data);
+                movingPaths.emplace_back(sourcePath, path / sourcePath.filename());
+            }
+            ImGui::EndDragDropTarget();
+        }
+    }
+    void ProjectWindow::RemoveAssetInspector(const std::filesystem::path& path)
     {
         AssetBundle& assetBundle = AssetDatabase::GetAssetBundle(path);
         auto optionalTarget = GlobalInspectorWindow.GetTarget();
@@ -57,13 +76,14 @@ namespace Gleam
         ImGui::PushID(fileName.data());
 
         //资源标题UI，显示打开按钮、资源名称、导入器选择按钮
-        const bool isUnfolding = ImGui::CollapsingHeader(std::format("##{}", fileName).data(), ImGuiTreeNodeFlags_AllowOverlap);
+        bool isUnfolding = ImGui::CollapsingHeader(std::format("##{}", fileName).data(), ImGuiTreeNodeFlags_AllowOverlap);
         ImGui::SameLine();
         if (ImGui::Button(fileName.data(), {ImGui::GetContentRegionAvail().x, 0}))
         {
             AssetImporter& assetImporter = AssetImporter::GetImporter(path);
             GlobalInspectorWindow.SetTarget(InspectorTarget{assetImporter});
         }
+        DragDropMovePath(path);
 
         //资源右键菜单
         if (ImGui::BeginPopupContextItem("FilePopup"))
@@ -73,6 +93,12 @@ namespace Gleam
                 fileDrawing = path;
                 auto& menu = fileMenus[extension];
                 UI::Menu(menu);
+            }
+
+            if (ImGui::MenuItem("Delete"))
+            {
+                AssetDatabase::Delete(path);
+                isUnfolding = false;
             }
 
             if (AssetDatabase::HasLoaded(path))
@@ -124,6 +150,8 @@ namespace Gleam
     {
         std::string name = path.filename().string();
         const bool isUnfolding = ImGui::TreeNode(name.c_str());
+        DragDropMovePath(path);
+
         if (ImGui::BeginPopupContextItem())
         {
             directoryDrawing = path;
@@ -166,7 +194,6 @@ namespace Gleam
         for (auto assetBundleID : assetBundlesLoading)
             Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
     }
-
     void ProjectWindow::Update()
     {
         static bool lastIsFocused = false;
@@ -193,5 +220,9 @@ namespace Gleam
         }
 
         ImGui::End();
+
+        for (auto& movingPath : movingPaths)
+            AssetDatabase::Move(std::get<0>(movingPath), std::get<1>(movingPath));
+        movingPaths.clear();
     }
 }

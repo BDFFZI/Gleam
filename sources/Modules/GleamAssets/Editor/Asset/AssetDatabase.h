@@ -15,10 +15,12 @@ namespace Gleam
         static void Unload(const std::filesystem::path& path);
         static void Save(const std::filesystem::path& path);
         static void Save(const std::filesystem::path& path, AssetBundle& assetBundle);
+        static void Move(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
+        static void Delete(const std::filesystem::path& path);
 
         static uuids::uuid GetAssetBundleID(const std::filesystem::path& path);
         static AssetBundle& GetAssetBundle(const std::filesystem::path& path);
-        
+
         /**
          * 将所有Assets中的资源解压到Resources以便使用依赖加载和引用计数功能
          * @param directory 

@@ -55,7 +55,7 @@ namespace Gleam
             filter.Draw("##");
             if (ImGui::BeginListBox("##"))
             {
-                for (System& system : System::GetAllSystems())
+                for (System& system : System::GetAllGlobalSystems())
                 {
                     if (filter.PassFilter(system.GetName().data()) && ImGui::Button(system.GetName().data()))
                     {
