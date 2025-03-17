@@ -191,4 +191,26 @@ namespace Gleam
             ImGui::PopID();
         }
     }
+    
+    void HierarchyWindow::Update()
+    {
+        if (ImGui::Begin("HierarchyWindow"))
+        {
+            ImGui::SeparatorText("Statistics");
+            ImGui::BulletText(std::format("IsPlaying:{}", Editor::IsPlaying()).c_str());
+            ImGui::BulletText(std::format("NextEntity:{}", World::nextEntity).c_str());
+            //帧率信息
+            static float deltaTime = 0;
+            deltaTime = std::lerp(deltaTime, EditorTimeSystem.GetDeltaTimeReal(), 0.3f);
+            ImGui::BulletText(
+                "FrameRate:%5.1f ms/f (%5.1f FPS)",
+                deltaTime * 1000.0,
+                1.0 / deltaTime
+            );
+
+            ImGui::SeparatorText("World");
+            DrawWorldUnfolding();
+        }
+        ImGui::End();
+    }
 }

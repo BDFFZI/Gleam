@@ -32,52 +32,39 @@ namespace Gleam
         static void DrawWorldUnfolding();
 
     private:
+        friend void HierarchyWindow_FlushRemovingQueue();
         inline static std::vector<Entity> removingEntities = {};
         inline static std::vector<System*> removingSystems = {};
 
-        void Update() override
-        {
-            if (ImGui::Begin("HierarchyWindow"))
-            {
-                ImGui::SeparatorText("Statistics");
-                ImGui::BulletText(std::format("IsPlaying:{}", Editor::IsPlaying()).c_str());
-                ImGui::BulletText(std::format("NextEntity:{}", World::nextEntity).c_str());
-                //帧率信息
-                static float deltaTime = 0;
-                deltaTime = std::lerp(deltaTime, EditorTimeSystem.GetDeltaTimeReal(), 0.3f);
-                ImGui::BulletText(
-                    "FrameRate:%5.1f ms/f (%5.1f FPS)",
-                    deltaTime * 1000.0,
-                    1.0 / deltaTime
-                );
-
-                ImGui::SeparatorText("World");
-                DrawWorldUnfolding();
-            }
-            ImGui::End();
-
-            for (auto system : removingSystems)
-            {
-#ifdef GleamAssetsRuntime
-                auto optionalScene = Scene::GetScene(*system);
-                if (optionalScene.has_value())
-                    optionalScene->get().RemoveSystem(*system);
-                else
-#endif
-                World::RemoveSystem(*system);
-            }
-            removingSystems.clear();
-            for (auto entity : removingEntities)
-            {
-#ifdef GleamAssetsRuntime
-                auto optionalScene = Scene::GetScene(entity);
-                if (optionalScene.has_value())
-                    optionalScene->get().RemoveEntity(entity);
-#endif
-                World::RemoveEntity(entity);
-            }
-            removingEntities.clear();
-        }
+        void Update() override;
     };
     Gleam_MakeGlobalSystem(HierarchyWindow)
+
+    /**
+     * 有时资源不能立即回收（如渲染资源），因为被占用中，故在系统事件之外回收
+     */
+    inline void HierarchyWindow_FlushRemovingQueue()
+    {
+        for (auto system : HierarchyWindow::removingSystems)
+        {
+#ifdef GleamAssetsRuntime
+            auto optionalScene = Scene::GetScene(*system);
+            if (optionalScene.has_value())
+                optionalScene->get().RemoveSystem(*system);
+            else
+#endif
+            World::RemoveSystem(*system);
+        }
+        HierarchyWindow::removingSystems.clear();
+        for (auto entity : HierarchyWindow::removingEntities)
+        {
+#ifdef GleamAssetsRuntime
+            auto optionalScene = Scene::GetScene(entity);
+            if (optionalScene.has_value())
+                optionalScene->get().RemoveEntity(entity);
+#endif
+            World::RemoveEntity(entity);
+        }
+        HierarchyWindow::removingEntities.clear();
+    }
 }

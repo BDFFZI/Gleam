@@ -9,13 +9,13 @@ namespace Gleam
     {
         std::vector<Segment> lines;
 
-        // LinesMesh() = default;
-        // LinesMesh(LinesMesh&&) = default;
-        // LinesMesh& operator=(LinesMesh&&) = default;
-        // ~LinesMesh()
-        // {
-        //     SwapChain::WaitPresent();
-        // }
+        LinesMesh() = default;
+        LinesMesh(LinesMesh&&) = default;
+        LinesMesh& operator=(LinesMesh&&) = default;
+        ~LinesMesh()
+        {
+            SwapChain::WaitPresent();
+        }
 
     private:
         friend class LinesRendererSystem;
