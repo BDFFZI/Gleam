@@ -23,46 +23,16 @@ namespace Gleam
         }
 
         static bool HasScene(uuids::uuid assetBundleID);
-        static Scene& LoadScene(uuids::uuid assetBundleID, bool start = true);
+        static Scene& LoadScene(uuids::uuid assetBundleID, bool isRunning = true);
         static void UnloadScene(uuids::uuid assetBundleID);
-        /**
-         * 立即卸载场景。
-         *
-         * 注意！这种方式无法保证系统停止事件在实体回收前触发。
-         * @param assetBundleID 
-         */
-        static void UnloadSceneImmediate(uuids::uuid assetBundleID);
-        static void UnloadSceneImmediate(Scene& scene);
 
     private:
-        friend void SceneManager_FlushUnloadingScenes();
-        friend class SceneManager_RuntimeEvent;
+        friend void SceneManager_ReleaseScenes();
 
         inline static std::unordered_map<uuids::uuid, Scene*> allScenes;
-        inline static std::vector<uuids::uuid> stoppingScenes;
-        inline static std::vector<uuids::uuid> destroyingScenes;
     };
 
-    /**
-     * 停止Scene后需等待1帧再实际销毁，从而使Scene中的System能有时间处理Scene中的Entity。
-     * 
-     * 当引擎停止时，由于没有事件通知（有也没用，因为该函数要延迟1帧销毁，但引擎立即就要停止了），该函数不会执行。
-     * 但无妨，因为World.Clear()也会实现相同的功能，而且避免了World和Scene重复销毁Entity的问题。
-     */
-    void SceneManager_FlushUnloadingScenes();
-
-    /**
-     * 引擎停止时，需释放场景（世界负责回收，场景需释放所有权）并回收资源包
-     */
-    class SceneManager_RuntimeEvent : public System
-    {
-    public:
-        SceneManager_RuntimeEvent(): System(GlobalPreUpdateSystem, MinOrder, MinOrder)
-        {
-        }
-
-    private:
-        void Stop() override;
-    };
-    Gleam_MakeGlobalSystem(SceneManager_RuntimeEvent)
+    //引擎停止时，需释放场景（世界负责回收，场景需释放所有权）并回收资源包
+    void SceneManager_ReleaseScenes();
+    Gleam_MakeSystemEvent(SceneManager_ReleaseScenes, Stop, GlobalPostUpdateSystem, System::MaxOrder)
 }

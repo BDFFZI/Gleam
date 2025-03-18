@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamUI/Runtime/UISystem.h"
 #include "GleamUtility/Runtime/Macro.h"
 

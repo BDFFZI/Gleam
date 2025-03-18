@@ -4,7 +4,6 @@
 #include "GleamMassSpring/Runtime/Component/Collider.h"
 #include "GleamMassSpring/Runtime/Component/Particle.h"
 #include "GleamMassSpring/Runtime/Component/Spring.h"
-#include "GleamMath/Runtime/Geometry/3D/Point.h"
 #include "GleamRendering/Editor/CustomUI.h"
 #include "GleamRendering/Editor/Gizmos.h"
 
@@ -27,9 +26,12 @@ namespace Gleam
         });
         View<Spring>::Each([](Spring& springPhysics)
         {
-            Particle& particleA = World::GetComponent<Particle>(springPhysics.particleA);
-            Particle& particleB = World::GetComponent<Particle>(springPhysics.particleB);
-            Gizmos::Draw(Segment{particleA.position, particleB.position});
+            if (springPhysics.particleA == Entity::Null || springPhysics.particleB == Entity::Null)
+                return;
+            auto optionalParticleA = World::TryGetComponent<Particle>(springPhysics.particleA);
+            auto optionalParticleB = World::TryGetComponent<Particle>(springPhysics.particleB);
+            if (optionalParticleA.has_value() && optionalParticleB.has_value())
+                Gizmos::Draw(Segment{optionalParticleA->get().position, optionalParticleB->get().position});
         });
         View<Rectangle, Collider>::Each([](Entity& entity, Rectangle& rectangle, Collider&)
         {

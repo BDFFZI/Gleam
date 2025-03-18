@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "WindowSystem.h"
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "GleamMath/Runtime/Geometry/2D/Rectangle.h"
 #include "GleamWindow/Runtime/InputEnum.h"

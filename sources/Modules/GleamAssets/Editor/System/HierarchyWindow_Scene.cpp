@@ -19,8 +19,11 @@ namespace Gleam
             DrawSceneSystemsPopup(scene);
             if (systemsCollapsing)
             {
-                for (auto entity : scene.GetSystems())
-                    HierarchyWindow::DrawSystem(*entity);
+                for (auto system : scene.GetSystems())
+                {
+                    if (HierarchyWindow::DrawSystem(*system) == false)
+                        break;
+                }
             }
 
             const bool entityCollapsing = ImGui::CollapsingHeader("Entities");
@@ -28,7 +31,10 @@ namespace Gleam
             if (entityCollapsing)
             {
                 for (auto entity : scene.GetEntities())
-                    HierarchyWindow::DrawEntity(entity);
+                {
+                    if (HierarchyWindow::DrawEntity(entity) == false)
+                        break;
+                }
             }
             ImGui::TreePop();
         }

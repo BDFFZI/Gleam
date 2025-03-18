@@ -1,4 +1,5 @@
 ﻿#include "CustomUI.h"
+#include "GleamEngine/Editor/CustomUI.h"
 
 #include "EditorSceneManager.h"
 #include "Asset/AssetDatabase.h"
@@ -21,7 +22,12 @@ namespace Gleam
     void ProjectWindowMenu_OpenScene()
     {
         auto& path = ProjectWindow::GetFileDrawing();
-        
+
         EditorSceneManager::OpenScene(path);
+    }
+
+    void InspectorWindowUI_EntityAsset(EntityAsset& entityAsset)
+    {
+        InspectorWindowUI_Entity(entityAsset.GetEntity());
     }
 }

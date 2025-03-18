@@ -10,15 +10,17 @@
 namespace Gleam
 {
     Gleam_AddSystems(
-        EditorSceneManager_RuntimeStartEvent
+        EditorSceneManager_StartScenesSystem
     )
 
     Gleam_AddEditorSystems(
         GlobalProjectWindow,
         GlobalAssetBundleWindow,
         GlobalHierarchyWindow_Scene,
-        EditorSceneManager_EditorStartEvent
+        EditorSceneManager_OpenLastSceneSystem
     )
+
+    Gleam_AddInspectorWindowUI(EntityAsset, InspectorWindowUI_EntityAsset)
 
     Gleam_AddProjectWindowDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene)
     Gleam_AddProjectWindowFileMenu(".scene", "Open", ProjectWindowMenu_OpenScene)

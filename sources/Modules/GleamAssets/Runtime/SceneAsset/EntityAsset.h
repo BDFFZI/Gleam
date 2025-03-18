@@ -45,9 +45,9 @@ namespace Gleam
 
             if (value.GetEntity() != Entity::Null) //持久化 
             {
-                const EntityInfo& entityInfo = World::GetEntityInfo(value.GetEntity());
+                const EntityInfo& entityInfo = World::GetEntityInfoAllocator().GetEntityInfo(value.GetEntity());
                 archetype = entityInfo.archetype;
-                components = entityInfo.components;
+                components = entityInfo.memoryAddress;
 
                 //持久化原型
                 int componentCount = archetype->GetComponentCount();
@@ -71,7 +71,7 @@ namespace Gleam
 
                 archetype = &Archetype::CreateOrGet(componentTypes);
                 value = {World::AddEntity(*archetype), true};
-                components = World::GetEntityInfo(value.GetEntity()).components;
+                components = World::GetEntityInfoAllocator().GetEntityInfo(value.GetEntity()).memoryAddress;
             }
 
             //序列化组件

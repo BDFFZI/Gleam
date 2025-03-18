@@ -1,4 +1,6 @@
 #include "World.h"
+
+#include "GleamECS/Runtime/Scene.h"
 #include "GleamUtility/Runtime/Ranges.h"
 
 namespace Gleam
@@ -11,8 +13,15 @@ namespace Gleam
     {
         return addingEntities.AddEntity(archetype);
     }
-    void World::RemoveEntity(Entity entity)
+    void World::RemoveEntity(Entity entity, const bool removeFromScene)
     {
+        if (removeFromScene)
+        {
+            auto optionalScene = Scene::GetScene(entity);
+            if (optionalScene.has_value())
+                optionalScene->get().RemoveEntity(entity);
+        }
+
         if (entityInfoAllocator.GetEntityInfo(entity).allocator == &addingEntities)
         {
             addingEntities.RemoveEntity(entity);
@@ -36,30 +45,42 @@ namespace Gleam
         if (system.GetGroup().has_value())
             AddSystem(system.GetGroup().value());
 
+        assert(!removingSystems.contains(&system) && "同时移除和添加系统！");
+
         addingSystems.emplace(&system);
     }
-    void World::AddSystems(const std::initializer_list<std::reference_wrapper<System>> systems)
+    void World::AddSystems(std::initializer_list<std::reference_wrapper<System>> systems)
     {
         for (System& system : systems | UnwrapRef)
             AddSystem(system);
     }
-    void World::RemoveSystem(System& system)
+    void World::RemoveSystem(System& system, const bool removeFromScene)
     {
+        if (removeFromScene)
+        {
+            auto optionalScene = Scene::GetScene(system);
+            if (optionalScene.has_value())
+            {
+                optionalScene->get().RemoveSystem(system);
+                return;
+            }
+        }
+
         if (system.GetGroup().has_value())
             RemoveSystem(system.GetGroup().value());
 
-        if (addingSystems.contains(&system))
+        if (auto it = addingSystems.find(&system); it != addingSystems.end())
         {
-            addingSystems.erase(&system); //优先使用addingSystems抵消，该功能用于实现编辑器模式下拦截用户系统
+            addingSystems.erase(it); //优先使用addingSystems抵消，该功能用于实现编辑器模式下拦截用户系统
             return;
         }
 
         removingSystems.emplace(&system);
     }
-    void World::RemoveSystems(const std::initializer_list<std::reference_wrapper<System>> systems)
+    void World::RemoveSystems(std::initializer_list<std::reference_wrapper<System>> systems, const bool removeFromScene)
     {
         for (System& system : systems | UnwrapRef)
-            RemoveSystem(system);
+            RemoveSystem(system, removeFromScene);
     }
 
     void World::AddComponents(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
@@ -95,7 +116,7 @@ namespace Gleam
     }
     void World::Clear()
     {
-        systems.Clear();
+        systems.Stop();
         addingSystems.clear();
         removingSystems.clear();
         systemUsageCount.clear();
@@ -120,6 +141,7 @@ namespace Gleam
             const int count = --systemUsageCount[system];
             if (count == 0) //首次添加，需实际注册到系统组接收事件。
                 system->GetGroup().value_or(systems).get().RemoveSubSystem(*system);
+            assert(count >= 0 && "重复移除系统！");
         }
         removingSystems.clear();
     }

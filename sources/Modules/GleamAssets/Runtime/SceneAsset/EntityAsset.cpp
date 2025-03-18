@@ -46,11 +46,11 @@ namespace Gleam
         }
         else if (other.entity != Entity::Null)
         {
-            const EntityInfo& otherEntityInfo = World::GetEntityInfo(other.entity);
-            const EntityInfo& entityInfo = World::GetEntityInfo(entity);
+            const EntityInfo& otherEntityInfo = World::GetEntityInfoAllocator().GetEntityInfo(other.entity);
+            const EntityInfo& entityInfo = World::GetEntityInfoAllocator().GetEntityInfo(entity);
             if (entityInfo.archetype != otherEntityInfo.archetype)
                 World::MoveEntity(entity, *otherEntityInfo.archetype);
-            otherEntityInfo.archetype->Move(entityInfo.components, otherEntityInfo.components);
+            otherEntityInfo.archetype->Move(entityInfo.memoryAddress, otherEntityInfo.memoryAddress);
         }
 
         return *this;

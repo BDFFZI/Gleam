@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <filesystem>
 
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Editor/System/EditorUISystem.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 

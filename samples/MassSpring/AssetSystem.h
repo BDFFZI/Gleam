@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "GameUISystem.h"
 #include "GleamECS/Runtime/Archetype.h"
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamRendering/Runtime/Entity/Archetype.h"
 
 Gleam_MakeArchetypeChild(CameraArchetype2, Gleam::CameraArchetype, Gleam::ScreenToClip, Gleam::ScreenToWorld)

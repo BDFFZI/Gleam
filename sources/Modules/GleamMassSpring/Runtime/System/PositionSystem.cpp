@@ -1,10 +1,7 @@
 ﻿#include "PositionSystem.h"
-
-#include "ForceSystem.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "GleamECS/Runtime/View.h"
 #include "GleamMassSpring/Runtime/Component/Particle.h"
-#include "GleamMassSpring/Runtime/Entity/Archetype.h"
 
 void Gleam::PositionSystem::Update()
 {

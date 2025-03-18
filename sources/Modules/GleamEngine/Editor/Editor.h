@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <vector>
 
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamUtility/Runtime/Macro.h"
 
 namespace Gleam
@@ -19,7 +19,7 @@ namespace Gleam
         static inline bool isPlaying = false;
     };
     
-    void Editor_ReplaceRuntimeSystem();
+    void Editor_InterceptRuntimeSystem();
     void Editor_PlayOrStopEngine();
 
 #define Gleam_AddEditorSystems(...) Gleam_MakeInitEvent(){\

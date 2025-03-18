@@ -1,5 +1,5 @@
 #pragma once
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Editor/System/HierarchyWindow.h"
 
 namespace Gleam

@@ -3,6 +3,7 @@
 #include "Asset/AssetDatabase.h"
 #include "Asset/AssetImporter.h"
 #include "GleamAssets/Runtime/SceneManager.h"
+#include "GleamUtility/Runtime/Ranges.h"
 
 namespace Gleam
 {
@@ -10,7 +11,7 @@ namespace Gleam
     {
         uuids::uuid assetBundleID = AssetDatabase::GetAssetBundleID(path);
         if (SceneManager::HasScene(assetBundleID))
-            SceneManager::UnloadSceneImmediate(assetBundleID);
+            SceneManager::UnloadScene(assetBundleID);
 
         Scene& scene = SceneManager::LoadScene(assetBundleID, false);
         scenePaths[&scene] = path;
@@ -18,7 +19,7 @@ namespace Gleam
     }
     void EditorSceneManager::CloseScene(Scene& scene)
     {
-        SceneManager::UnloadSceneImmediate(scene);
+        SceneManager::UnloadScene(AssetDatabase::GetAssetBundleID(scenePaths.at(&scene)));
     }
     void EditorSceneManager::SaveScene(Scene& scene)
     {
@@ -29,12 +30,12 @@ namespace Gleam
         AssetDatabase::Save(path);
     }
 
-    void StartScenes()
+    void EditorSceneManager_StartScenes()
     {
         for (auto& scene : SceneManager::GetAllScenes() | UnwrapRef)
             scene.Start();
     }
-    void OpenLastScene()
+    void EditorSceneManager_OpenLastScene()
     {
         EditorSceneManager::scenePaths.clear();
         if (!EditorSceneManager::lastScenePath.empty())

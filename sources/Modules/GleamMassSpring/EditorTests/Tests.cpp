@@ -1,4 +1,4 @@
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamMassSpring/Editor/System/MassSpringRenderingSystem.h"

@@ -1,6 +1,6 @@
 #pragma once
 #include "UpdateSystem.h"
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Runtime/Component/Transform.h"
 
 namespace Gleam

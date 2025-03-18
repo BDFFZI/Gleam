@@ -1,5 +1,5 @@
 #pragma once
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamRendering/Runtime/System/RenderingSystem.h"
 
 namespace Gleam

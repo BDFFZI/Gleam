@@ -8,7 +8,7 @@
 #include "GleamECS/Runtime/Scene.h"
 #include "GleamAssets/Runtime/SceneAsset/SceneAsset.h"
 #include "GleamECS/Runtime/Archetype.h"
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamECS/Runtime/View.h"
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamPersistence/Runtime/Resources.h"
@@ -41,9 +41,9 @@ class MySystem : public System
 
 TEST(Assets, Scene)
 {
-    MySystem mySystem1 = System::CreateGlobal<MySystem>("MySystem1");
-    MySystem mySystem2 = System::CreateGlobal<MySystem>("MySystem2");
-    
+    MySystem& mySystem1 = System::CreateGlobal<MySystem>("MySystem1");
+    MySystem& mySystem2 = System::CreateGlobal<MySystem>("MySystem2");
+
     //测试场景的创建和保存
     {
         Scene& scene = Scene::Create("TestScene");
@@ -54,15 +54,16 @@ TEST(Assets, Scene)
         scene.AddEntity(World::AddEntity(MyComponent{3, entity}));
         //添加系统
         scene.AddSystem(mySystem1);
+        World::Update(); //应用世界更改
         //持久化
         AssetBundle& assetBundle = AssetBundle::Create();
         SceneAsset::ToAssetBundle(scene, assetBundle);
         AssetBundle::SaveJson("TestScene.json", assetBundle);
-        AssetBundle::Unload(assetBundle);
-        //卸载资源包不影响，场景内实体
+        AssetBundle::Unload(assetBundle); //卸载资源包不影响，场景内实体
         ASSERT_EQ(View<Transform>::Count(), 2);
         //销毁场景会移除实体
         Scene::Destroy(scene);
+        World::Update(); //应用世界更改
         ASSERT_EQ(View<Transform>::Count(), 0);
     }
 
@@ -70,6 +71,7 @@ TEST(Assets, Scene)
     {
         //加载资源包就会加载实体
         AssetBundle& assetBundle = AssetBundle::LoadJson("TestScene.json");
+        World::Update(); //应用世界更改
         ASSERT_EQ(View<Transform>::Count(), 2);
         //场景通过读取资源包恢复数据
         Scene& scene = SceneAsset::FromAssetBundle(assetBundle);
@@ -85,6 +87,7 @@ TEST(Assets, Scene)
         ASSERT_EQ(World::GetComponent<Transform>(myComponent.dependency).position, 999);
 
         Scene::Destroy(scene);
+        World::Update(); //应用世界更改
     }
 
     //测试运行场景
@@ -110,6 +113,7 @@ TEST(Assets, Scene)
         AssetBundle::SaveJson("TestScene.json", assetBundle);
         AssetBundle::Unload(assetBundle);
         Scene::Destroy(scene);
+        World::Update(); //应用世界更改
     }
 
     {

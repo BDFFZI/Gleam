@@ -2,7 +2,7 @@
 #include <functional>
 #include <map>
 
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamECS/Runtime/World/World.h"
 #include "GleamUtility/Runtime/Macro.h"
 

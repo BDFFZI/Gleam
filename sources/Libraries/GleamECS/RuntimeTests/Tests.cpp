@@ -9,6 +9,7 @@
 #include "GleamECS/Runtime/Heap.h"
 #include "GleamECS/Runtime/Scene.h"
 #include "GleamECS/Runtime/View.h"
+#include "GleamECS/Runtime/System/SystemEvent.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 
 using namespace Gleam;
@@ -419,7 +420,7 @@ TEST(ECS, Scene)
         });
     };
 
-    Scene& scene = Scene::Create("TestScene");
+    Scene& scene = Scene::Create("TestScene", true);
     scene.AddEntity(entity);
     scene.AddSystem(system);
 

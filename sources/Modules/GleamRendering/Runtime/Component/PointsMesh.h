@@ -9,6 +9,14 @@ namespace Gleam
     {
         std::vector<Point> points;
 
+        PointsMesh() = default;
+        PointsMesh(PointsMesh&&) = default;
+        PointsMesh& operator=(PointsMesh&&) = default;
+        ~PointsMesh()
+        {
+            SwapChain::WaitPresent();
+        }
+
     private:
         friend class PointsRendererSystem;
         std::optional<std::unique_ptr<Mesh>> pointsMesh;

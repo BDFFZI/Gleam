@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Runtime/System/UpdateSystem.h"
 #include "GleamMath/Runtime/LinearAlgebra/Vector.h"
 #include "GleamWindow/Runtime/Window.h"

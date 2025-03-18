@@ -1,7 +1,7 @@
 #pragma once
 #include <unordered_set>
 #include "GleamECS/Runtime/Archetype.h"
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 
 namespace Gleam
 {
@@ -29,7 +29,7 @@ namespace Gleam
          * @param isRunning 
          * @return 
          */
-        static Scene& Create(std::string_view name, bool isRunning = true);
+        static Scene& Create(std::string_view name, bool isRunning = false);
         /**
          * 移除Scene并销毁或释放其托管的相关资源
          *
@@ -87,8 +87,8 @@ namespace Gleam
     private:
         friend class SceneAsset;
         inline static std::vector<std::unique_ptr<Scene>> allScenes = {};
-        inline static std::unordered_map<System*, Scene*> systemWorld = {};
-        inline static std::unordered_map<Entity, Scene*> entityWorld = {};
+        inline static std::unordered_map<System*, Scene*> systemToWorld = {};
+        inline static std::unordered_map<Entity, Scene*> entityToWorld = {};
 
         std::string name;
         std::unordered_set<System*> systems;

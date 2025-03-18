@@ -18,10 +18,10 @@ namespace Gleam
         return isPlaying;
     }
 
-    void Editor_ReplaceRuntimeSystem()
+    void Editor_InterceptRuntimeSystem()
     {
         for (auto system : Engine::RuntimeSystems())
-            World::RemoveSystem(system);
+            World::RemoveSystem(system); //撤销运行时系统
         for (auto system : Editor::EditorSystems())
             World::AddSystem(system);
         for (auto system : Editor::EditorOnlySystems())
@@ -34,10 +34,10 @@ namespace Gleam
         {
             if (Editor::IsPlaying())
             {
-                for (auto system : Editor::EditorOnlySystems())
-                    World::RemoveSystem(system);
                 for (auto system : Engine::RuntimeSystems())
                     World::AddSystem(system);
+                for (auto system : Editor::EditorOnlySystems())
+                    World::RemoveSystem(system);
             }
             else
             {

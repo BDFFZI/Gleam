@@ -1,18 +1,19 @@
 #include "HierarchyWindow.h"
+
+#include "EditorTimeSystem.h"
 #include "InspectorWindow.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Editor/Editor.h"
-#include "GleamUtility/Runtime/Ranges.h"
 
 namespace Gleam
 {
-    void HierarchyWindow::DrawEntity(Entity entity)
+    bool HierarchyWindow::DrawEntity(Entity entity)
     {
         EditorUI::DrawEntityField(entity);
-        DrawEntityPopup(entity);
+        return DrawEntityPopup(entity);
     }
-    void HierarchyWindow::DrawSystem(System& system)
+    bool HierarchyWindow::DrawSystem(System& system)
     {
         SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(&system);
 
@@ -30,7 +31,8 @@ namespace Gleam
             {ImGui::GetContentRegionAvail().x - ImGui::GetTextLineHeightWithSpacing() * 1.5f, 0} //按钮铺满当前行余下的所有空间
         ))
             GlobalInspectorWindow.SetTarget(InspectorTarget{system});
-        DrawSystemPopup(system);
+        if (DrawSystemPopup(system) == false)
+            return false;
 
         //系统引用计数
         ImGui::SameLine();
@@ -42,6 +44,8 @@ namespace Gleam
             DrawSubSystems(*systemGroup);
             ImGui::TreePop();
         }
+
+        return true;
     }
     void HierarchyWindow::DrawSubSystems(SystemGroup& systemGroup)
     {
@@ -107,33 +111,41 @@ namespace Gleam
             ImGui::EndPopup();
         }
     }
-    void HierarchyWindow::DrawSystemPopup(System& system)
+    bool HierarchyWindow::DrawSystemPopup(System& system)
     {
+        bool result = true;
+
         std::string id = std::format("{}SystemPopup", system.GetName());
         if (ImGui::BeginPopupContextItem(id.data()))
         {
             if (ImGui::Button("RemoveSystem"))
             {
-                removingSystems.push_back(&system);
+                World::RemoveSystem(system);
                 ImGui::CloseCurrentPopup();
+                result = false;
             }
 
             ImGui::EndPopup();
         }
+        return result;
     }
-    void HierarchyWindow::DrawEntityPopup(Entity entity)
+    bool HierarchyWindow::DrawEntityPopup(Entity entity)
     {
+        bool result = true;
+
         std::string id = std::format("{}EntityPopup", static_cast<uint32_t>(entity));
         if (ImGui::BeginPopupContextItem(id.data()))
         {
             if (ImGui::Button("RemoveEntity"))
             {
-                removingEntities.push_back(entity);
+                World::RemoveEntity(entity);
                 ImGui::CloseCurrentPopup();
+                result = false;
             }
 
             ImGui::EndPopup();
         }
+        return result;
     }
 
     void HierarchyWindow::DrawWorld()

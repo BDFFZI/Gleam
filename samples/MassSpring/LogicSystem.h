@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GleamECS/Runtime/Archetype.h"
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamMassSpring/Runtime/System/CollisionSystem.h"
 #include "GleamMassSpring/Runtime/System/ForceSystem.h"
 #include "GleamMassSpring/Runtime/System/PhysicsSystem.h"

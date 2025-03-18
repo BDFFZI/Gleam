@@ -3,7 +3,7 @@
 
 #include "EditorUISystem.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 
 namespace Gleam
 {

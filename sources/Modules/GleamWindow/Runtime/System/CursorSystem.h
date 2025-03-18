@@ -1,6 +1,6 @@
 #pragma once
 #include "InputSystem.h"
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 
 namespace Gleam
 {

@@ -8,10 +8,9 @@
 
 namespace Gleam
 {
-    Gleam_AddEngineUpdateEvent(SceneManager_FlushUnloadingScenes, 0)
-    Gleam_AddSystems(GlobalSceneManager_RuntimeEvent)
+    Gleam_AddSystems(SceneManager_ReleaseScenesSystem)
 
 #ifdef GleamEngineEditor
-    Gleam_AddEditorSystems(GlobalSceneManager_RuntimeEvent)
+    Gleam_AddEditorSystems(SceneManager_ReleaseScenesSystem)
 #endif
 }

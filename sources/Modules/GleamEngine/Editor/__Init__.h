@@ -9,10 +9,9 @@
 
 namespace Gleam
 {
-    Gleam_AddEngineEvent(Start, Editor_ReplaceRuntimeSystem, 0);
+    Gleam_AddEngineEvent(Start, Editor_InterceptRuntimeSystem, 0);
     Gleam_AddEngineEvent(Update, Editor_PlayOrStopEngine, 0);
     Gleam_AddEngineEvent(Update, ProfilerWindow_FetchProfile, 1);
-    Gleam_AddEngineEvent(Update, HierarchyWindow_FlushRemovingQueue, 0);
 
     Gleam_AddEditorSystems(
         GlobalEditorUISystem,

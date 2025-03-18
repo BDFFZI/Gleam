@@ -2,7 +2,7 @@
 
 #include "GleamECS/Runtime/Archetype.h"
 #include "GleamUI/Runtime/UI.h"
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Editor/System/EditorUISystem.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamEngine/Runtime/Component/Transform.h"

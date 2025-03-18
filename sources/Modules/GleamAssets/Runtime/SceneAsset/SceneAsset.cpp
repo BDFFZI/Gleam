@@ -38,7 +38,7 @@ namespace Gleam
             assetBundle.AddAsset(std::move(entityAsset));
         }
     }
-    Scene& SceneAsset::FromAssetBundle(AssetBundle& assetBundle)
+    Scene& SceneAsset::FromAssetBundle(AssetBundle& assetBundle, const bool isRunning)
     {
         const std::vector<AssetSlot>& assets = assetBundle.GetAssetSlots();
         size_t assetCount = assets.size();
@@ -64,7 +64,7 @@ namespace Gleam
             entityAsset.SetOwnership(false);
         }
 
-        Scene& scene = Scene::Create(name);
+        Scene& scene = Scene::Create(name, isRunning);
         scene.name = name;
         for (System* system : systems)
             scene.AddSystem(*system);

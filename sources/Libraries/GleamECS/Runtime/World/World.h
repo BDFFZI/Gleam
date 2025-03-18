@@ -4,7 +4,7 @@
 
 #include "../Heap.h"
 #include "../Archetype.h"
-#include "../System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "EntityInfoAllocator.h"
 #include "EntityAllocator.h"
 
@@ -32,7 +32,7 @@ namespace Gleam
 
         static bool HasEntity(Entity entity);
         static Entity AddEntity(const Archetype& archetype);
-        static void RemoveEntity(Entity entity);
+        static void RemoveEntity(Entity entity, bool removeFromScene = true);
         static void MoveEntity(Entity entity, const Archetype& newArchetype);
 
         template <Component... TComponents>
@@ -61,10 +61,11 @@ namespace Gleam
          * 1. 会自动递归移除依赖的系统组
          * 2. 重复添加后需重复移除，当使用计数为0时才会真正移除系统
          * 
-         * @param system 
+         * @param system
+         * @param removeFromScene 
          */
-        static void RemoveSystem(System& system);
-        static void RemoveSystems(std::initializer_list<std::reference_wrapper<System>> systems);
+        static void RemoveSystem(System& system, bool removeFromScene = true);
+        static void RemoveSystems(std::initializer_list<std::reference_wrapper<System>> systems, bool removeFromScene = true);
 
         static void AddComponents(Entity entity, std::initializer_list<std::reference_wrapper<const Type>> componentTypes);
         static void RemoveComponents(Entity entity, std::initializer_list<std::reference_wrapper<const Type>> componentTypes);
@@ -76,11 +77,11 @@ namespace Gleam
             return entityInfo.archetype->HasComponent(typeid(TComponent));
         }
         template <Component TComponent>
-        static std::optional<TComponent*> TryGetComponent(const Entity entity)
+        static std::optional<std::reference_wrapper<TComponent>> TryGetComponent(const Entity entity)
         {
             if (HasComponent<TComponent>(entity) == false)
                 return std::nullopt;
-            return &GetComponent<TComponent>(entity);
+            return GetComponent<TComponent>(entity);
         }
         template <Component TComponent>
         static bool TryGetComponent(const Entity entity, TComponent*& component)
@@ -146,7 +147,7 @@ namespace Gleam
         friend class Scene;
         template <class T>
         friend struct FieldDataTransferrer_Transfer;
-        friend void Editor_ReplaceRuntimeSystem();
+        friend void Editor_InterceptRuntimeSystem();
         friend void ExtendWorldFunction();
 
         inline static EntityInfoAllocator entityInfoAllocator;
@@ -164,8 +165,8 @@ namespace Gleam
         inline static SystemGroup systems = {std::nullopt}; //场景内所有系统的根系统
         /// 添加或删除系统必须先缓存然后再实际执行，因为在遍历系统的时候是不能修改容器结构的，
         /// 但提供的游戏事件都是遍历容器的时候运行的，所以为了实现在系统事件中增删系统，必须先缓存
-        inline static std::multiset<System*> removingSystems = {};
-        inline static std::multiset<System*> addingSystems = {};
+        inline static std::unordered_multiset<System*> removingSystems = {};
+        inline static std::unordered_multiset<System*> addingSystems = {};
 
         /**
          * 将缓存的添加或卸载中的System通过引用计算后，修改到实际的系统容器中，

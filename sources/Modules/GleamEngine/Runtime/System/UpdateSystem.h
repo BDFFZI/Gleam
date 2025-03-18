@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemEvent.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Runtime/Engine.h"
 
 namespace Gleam

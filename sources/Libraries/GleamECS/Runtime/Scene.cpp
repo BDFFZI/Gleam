@@ -13,13 +13,13 @@ namespace Gleam
     }
     std::optional<std::reference_wrapper<Scene>> Scene::GetScene(System& system)
     {
-        if (auto it = systemWorld.find(&system); it != systemWorld.end())
+        if (auto it = systemToWorld.find(&system); it != systemToWorld.end())
             return *it->second;
         return std::nullopt;
     }
     std::optional<std::reference_wrapper<Scene>> Scene::GetScene(const Entity entity)
     {
-        if (auto it = entityWorld.find(entity); it != entityWorld.end())
+        if (auto it = entityToWorld.find(entity); it != entityToWorld.end())
             return *it->second;
         return std::nullopt;
     }
@@ -49,13 +49,13 @@ namespace Gleam
             if (scene.isRunning)
                 scene.Stop();
             for (Entity entity : scene.entities)
-                World::RemoveEntity(entity);
+                World::RemoveEntity(entity, false);
         }
         //移除索引信息
         for (System* system : scene.systems)
-            systemWorld.erase(system);
+            systemToWorld.erase(system);
         for (Entity entity : scene.entities)
-            entityWorld.erase(entity);
+            entityToWorld.erase(entity);
         scene.systems.clear();
         scene.entities.clear();
 
@@ -75,7 +75,7 @@ namespace Gleam
     void Scene::Stop()
     {
         for (System* system : systems)
-            World::RemoveSystem(*system);
+            World::RemoveSystem(*system, false);
         isRunning = false;
     }
 
@@ -84,7 +84,7 @@ namespace Gleam
         assert(!systems.contains(&system) && "场景中已存在该系统！");
 
         systems.emplace(&system);
-        systemWorld.emplace(&system, this);
+        systemToWorld.emplace(&system, this);
         if (isRunning)
             World::AddSystem(system);
     }
@@ -94,22 +94,22 @@ namespace Gleam
         assert(systems.contains(&system) && "场景中不存在该系统！");
 
         systems.erase(&system);
-        systemWorld.erase(&system);
+        systemToWorld.erase(&system);
         if (isRunning)
-            World::RemoveSystem(system);
+            World::RemoveSystem(system, false);
     }
     void Scene::AddEntity(Entity entity)
     {
         assert(!entities.contains(entity) && "场景中已存在该实体！");
 
         entities.emplace(entity);
-        entityWorld.emplace(entity, this);
+        entityToWorld.emplace(entity, this);
     }
     void Scene::RemoveEntity(const Entity entity)
     {
         assert(entities.contains(entity) && "场景中不存在该实体！");
 
         entities.erase(entity);
-        entityWorld.erase(entity);
+        entityToWorld.erase(entity);
     }
 }

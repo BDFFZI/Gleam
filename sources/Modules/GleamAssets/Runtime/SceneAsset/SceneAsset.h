@@ -22,10 +22,11 @@ namespace Gleam
         static void ToAssetBundle(Scene& scene, AssetBundle& assetBundle);
         /**
          * 从AssetBundle中复原Scene并夺取相关资源的所有权。
-         * @param assetBundle 
+         * @param assetBundle
+         * @param isRunning 
          * @return 
          */
-        static Scene& FromAssetBundle(AssetBundle& assetBundle);
+        static Scene& FromAssetBundle(AssetBundle& assetBundle, bool isRunning = false);
 
     private:
         Gleam_MakeType_Friend

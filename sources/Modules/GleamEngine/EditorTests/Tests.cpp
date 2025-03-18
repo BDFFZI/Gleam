@@ -10,22 +10,9 @@ Gleam_MakeArchetype(DataArchetype, CustomObject)
 
 class MySystem : public System
 {
-    void Update() override
+    void Start() override
     {
-        {
-            Gleam_ProfilerSample("Test 1");
-            {
-                {
-                    Gleam_ProfilerSample("Test A");
-                    std::this_thread::sleep_for(std::chrono::milliseconds(2));
-                }
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-        }
-        {
-            Gleam_ProfilerSample("Test 2");
-            std::this_thread::sleep_for(std::chrono::milliseconds(3));
-        }
+        World::AddEntity(data);
     }
 };
 Gleam_MakeGlobalSystem(MySystem)

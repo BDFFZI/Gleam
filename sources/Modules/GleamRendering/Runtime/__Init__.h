@@ -5,6 +5,7 @@
 #include "System/LinesRendererSystem.h"
 #include "System/PointsRendererSystem.h"
 #include "System/RenderingSystem.h"
+#include "Entity/Archetype.h"
 
 #ifdef GleamEngineEditor
 #include "GleamEngine/Editor/Editor.h"

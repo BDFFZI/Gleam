@@ -119,15 +119,15 @@ namespace Gleam
     {
         //获取实体和组件
         Entity entity = SceneWindowUI_Entity_Target;
-        std::optional<LocalTransform*> transform = World::TryGetComponent<LocalTransform>(entity);
-        if (transform.has_value()) //LocalToWorld可能过时，显式更新一次
-            TransformSystem::ComputeLocalToWorld(*transform.value(), localToWorld);
+        auto optionalTransform = World::TryGetComponent<LocalTransform>(entity);
+        if (optionalTransform.has_value()) //LocalToWorld可能过时，显式更新一次
+            TransformSystem::ComputeLocalToWorld(optionalTransform.value(), localToWorld);
         //获取手柄类型信息
         static constexpr ImGuizmo::OPERATION options[] = {ImGuizmo::BOUNDS, ImGuizmo::TRANSLATE, ImGuizmo::ROTATE, ImGuizmo::SCALE};
         ImGuizmo::OPERATION imGuiOption = options[GlobalSceneWindow.GetHandleOption()];
         //绘制
-        if (transform.has_value())
-            Handles::DrawHandle(imGuiOption, localToWorld.value, *transform.value());
+        if (optionalTransform.has_value())
+            Handles::DrawHandle(imGuiOption, localToWorld.value, optionalTransform.value());
         else
             Handles::DrawHandle(imGuiOption, localToWorld.value, std::nullopt);
     }

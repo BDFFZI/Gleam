@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "GleamPresentation/Runtime/PresentationSystem.h"
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 
 #ifdef GleamRenderingRuntime
 #include "GleamRendering/Runtime/System/RenderingSystem.h"

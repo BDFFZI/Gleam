@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GleamECS/Runtime/Archetype.h"
-#include "GleamECS/Runtime/System.h"
+#include "GleamECS/Runtime/System/SystemGroup.h"
 
 namespace Gleam
 {
