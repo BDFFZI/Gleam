@@ -4,7 +4,7 @@
 
 #include "SceneWindow.h"
 #include "GleamECS/Runtime/View.h"
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamGraphics/Runtime/SwapChain.h"
 #include "GleamRendering/Runtime/System/RenderingSystem.h"

@@ -1,6 +1,6 @@
 #include <thread>
 
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Editor/Editor.h"
 #include "GleamEngine/Editor/Profiler.h"
 #include "GleamEngine/Runtime/Engine.h"

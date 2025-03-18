@@ -1,6 +1,5 @@
 ﻿#include "System.h"
 #include <ranges>
-#include <stdexcept>
 
 namespace Gleam
 {
@@ -59,12 +58,25 @@ namespace Gleam
     }
 
 
-    SystemEvent SystemEvent::StartEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, int order, std::function<void()> startEvent)
+    SystemEvent SystemEvent::StartEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, const int order, std::function<void()> startEvent)
     {
         SystemEvent systemEvent = SystemEvent(name, group, order, order);
-        systemEvent.OnStart() = std::move(startEvent);
+        systemEvent.onStart = std::move(startEvent);
         return systemEvent;
     }
+    SystemEvent SystemEvent::UpdateEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, const int order, std::function<void()> updateEvent)
+    {
+        SystemEvent systemEvent = SystemEvent(name, group, order, order);
+        systemEvent.onUpdate = std::move(updateEvent);
+        return systemEvent;
+    }
+    SystemEvent SystemEvent::StopEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, const int order, std::function<void()> stopEvent)
+    {
+        SystemEvent systemEvent = SystemEvent(name, group, order, order);
+        systemEvent.onStop = std::move(stopEvent);
+        return systemEvent;
+    }
+
     SystemEvent::SystemEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, const int minOrder, const int maxOrder)
         : System(group, minOrder, maxOrder, name)
     {
@@ -118,14 +130,14 @@ namespace Gleam
             SystemGroup* systemGroup = subSystemGroups.back();
             subSystemGroups.pop_back();
 
-            for (auto* subSystem : systemGroup->subSystemStartQueue)
+            for (auto* subSystem : systemGroup->addingSystems)
             {
                 outSubSystems.emplace_back(*subSystem);
                 if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
                     subSystemGroups.push_back(subSystemGroup);
             }
 
-            for (auto* subSystem : systemGroup->subSystemUpdateQueue)
+            for (auto* subSystem : systemGroup->subSystems)
             {
                 outSubSystems.emplace_back(*subSystem);
                 if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
@@ -136,49 +148,54 @@ namespace Gleam
     }
     void SystemGroup::AddSubSystem(System& system)
     {
-        subSystemStartQueue.insert(&system);
+        assert(!addingSystems.contains(&system) && "重复添加系统！");
+
+        addingSystems.insert(&system);
     }
     void SystemGroup::RemoveSubSystem(System& system)
     {
-        System* systemPtr = &system;
-        if (subSystemStartQueue.contains(systemPtr))
-            subSystemStartQueue.erase(systemPtr);
-        else if (subSystemUpdateQueue.contains(systemPtr))
-        {
-            subSystemUpdateQueue.erase(systemPtr);
-            subSystemStopQueue.insert(systemPtr);
-        }
-        else if (subSystemStopQueue.contains(systemPtr))
-            throw std::runtime_error("不能重复移除系统！");
-        else
-            throw std::runtime_error("不能移除尚未添加过的系统！");
+        assert(!removingSystems.contains(&system) && "重复移除系统！");
+
+        removingSystems.insert(&system);
     }
-    void SystemGroup::Start()
+
+    void SystemGroup::FlushStartQueue()
     {
-        if (subSystemStartQueue.empty() == false)
+        for (System* system : addingSystems)
+            subSystems.emplace(system);
+        for (System* system : subSystems)
         {
-            for (System* system : subSystemStartQueue)
+            if (addingSystems.contains(system))
                 system->Start();
-            subSystemUpdateQueue.insert(subSystemStartQueue.begin(), subSystemStartQueue.end());
-            subSystemStartQueue.clear();
+            if (SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(system))
+                systemGroup->FlushStartQueue();
         }
+        addingSystems.clear();
     }
-    void SystemGroup::Stop()
+    void SystemGroup::FlushStopQueue()
     {
-        if (subSystemStopQueue.empty() == false)
+        for (System* system : std::ranges::reverse_view(subSystems))
         {
-            for (System* system : std::ranges::reverse_view(subSystemStopQueue))
+            if (SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(system))
+                systemGroup->FlushStopQueue();
+            if (removingSystems.contains(system))
                 system->Stop();
-            subSystemStopQueue.clear();
+        }
+        for (System* system : removingSystems)
+            subSystems.erase(system);
+        removingSystems.clear();
+    }
+    void SystemGroup::Clear()
+    {
+        for (System* system : std::ranges::reverse_view(subSystems))
+        {
+            if (SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(system))
+                systemGroup->Clear();
+            system->Stop();
         }
 
-        if (subSystemUpdateQueue.empty() == false)
-        {
-            for (System* system : std::ranges::reverse_view(subSystemUpdateQueue))
-                system->Stop();
-            subSystemUpdateQueue.clear();
-        }
-
-        subSystemStartQueue.clear();
+        addingSystems.clear();
+        removingSystems.clear();
+        subSystems.clear();
     }
 }

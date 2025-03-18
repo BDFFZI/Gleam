@@ -28,7 +28,6 @@ namespace Gleam
 
         Entity GetSceneCamera() const;
         InputSystem& GetSceneInputSystem();
-        TimeSystem& GetSceneTimeSystem();
         int GetHandleOption() const;
 
     private:
@@ -40,7 +39,6 @@ namespace Gleam
         //预建资源
         SystemEvent preProcessSystem = SystemEvent("SceneWindow_PreProcess", GlobalPostUpdateSystem);
         InputSystem inputSystem = Create<InputSystem>("SceneWindow_Input");
-        TimeSystem timeSystem = Create<TimeSystem>("SceneWindow_Time");
         Entity sceneCamera = Entity::Null;
         //场景相机渲染目标相关
         std::unique_ptr<GRenderTexture> sceneCameraCanvas;

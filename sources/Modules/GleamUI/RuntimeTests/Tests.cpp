@@ -1,4 +1,4 @@
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamUI/Runtime/UI.h"
 #include "GleamUI/Runtime/UISystem.h"

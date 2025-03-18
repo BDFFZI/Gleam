@@ -1,6 +1,6 @@
 #include "PhysicsSystem.h"
 
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamMassSpring/Runtime/Component/Particle.h"
 #include "GleamMassSpring/Runtime/Entity/Archetype.h"

@@ -3,7 +3,7 @@
 
 #include "Gizmos.h"
 #include "Handles.h"
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/System/TransformSystem.h"
 #include "System/SceneWindow.h"
 
@@ -99,13 +99,13 @@ namespace Gleam
             return;
 
         SceneWindowUI_Entity_Target = entity;
-        EntityInfo entityInfo = World::GetEntityInfo(entity);
+        EntityInfo entityInfo = World::GetEntityInfoAllocator().GetEntityInfo(entity);
         const Archetype& archetype = *entityInfo.archetype;
 
         for (int i = 0; i < archetype.GetComponentCount(); ++i)
         {
             const Type& componentType = archetype.GetComponentType(i);
-            void* component = entityInfo.components + archetype.GetComponentOffset(i);
+            void* component = entityInfo.memoryAddress + archetype.GetComponentOffset(i);
             std::type_index componentTypeIndex = componentType.GetIndex();
 
             //绘制组件内容

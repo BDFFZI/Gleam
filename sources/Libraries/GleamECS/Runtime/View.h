@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "World.h"
+#include "World/World.h"
 #include "GleamUtility/Runtime/Ranges.h"
 
 namespace Gleam
@@ -67,6 +67,9 @@ namespace Gleam
     class View<TFilter, TComponents...>
     {
     public:
+        //TODO 需要自动化
+        static void SetDirty() { isQueried = false; }
+
         template <class TFunction> requires
             ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
         static void Each(TFunction function)
@@ -74,22 +77,22 @@ namespace Gleam
             Query();
             Each_Inner(function, std::make_index_sequence<sizeof...(TComponents)>());
         }
-        static int Count()
-        {
-            Query();
-            return Count_Inner();
-        }
         static void Fetch(std::vector<Entity>& result)
         {
             Query();
             for (int i = 0; i < targetArchetypeCount; i++)
             {
-                Heap& heap = World::GetEntityHeap(*targetArchetypes[i]);
+                Heap& heap = World::GetEntityAllocator().GetEntityHeap(*targetArchetypes[i]);
                 heap.ForeachElements([&result](std::byte* item)
                 {
                     result.push_back(*reinterpret_cast<Entity*>(item));
                 });
             }
+        }
+        static int Count()
+        {
+            Query();
+            return Count_Inner();
         }
 
     private:
@@ -127,7 +130,7 @@ namespace Gleam
             for (int i = 0; i < targetArchetypeCount; i++)
             {
                 const std::array<int, sizeof...(TComponents)>& componentOffset = targetComponentOffsets[i];
-                World::GetEntityHeap(*targetArchetypes[i]).ForeachElements([function,componentOffset](std::byte* item)
+                World::GetEntityAllocator().GetEntityHeap(*targetArchetypes[i]).ForeachElements([function,componentOffset](std::byte* item)
                 {
                     if constexpr (ViewIterator<TFunction, TComponents...>)
                         function(*reinterpret_cast<TComponents*>(item + componentOffset[Indices])...);
@@ -140,7 +143,7 @@ namespace Gleam
         {
             int count = 0;
             for (int i = 0; i < targetArchetypeCount; i++)
-                count += World::GetEntityHeap(*targetArchetypes[i]).GetCount();
+                count += World::GetEntityAllocator().GetEntityHeap(*targetArchetypes[i]).GetCount();
             return count;
         }
     };

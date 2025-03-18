@@ -95,14 +95,14 @@ TEST(Assets, Scene)
         scene.AddSystem(mySystem2);
         ASSERT_EQ(scene.GetSystems().size(), 2);
         //启动场景
-        ASSERT_EQ(World::GetSystems().GetSubSystems().size(), 0);
+        ASSERT_EQ(World::GetRootSystemGroup().GetSubSystems().size(), 0);
         scene.Start();
         World::Update();
-        ASSERT_EQ(World::GetSystems().GetSubSystems().size(), 2);
+        ASSERT_EQ(World::GetRootSystemGroup().GetSubSystems().size(), 2);
         //停止场景
         scene.Stop();
         World::Update();
-        ASSERT_EQ(World::GetSystems().GetSubSystems().size(), 0);
+        ASSERT_EQ(World::GetRootSystemGroup().GetSubSystems().size(), 0);
         //实体被更新
         ASSERT_EQ(World::GetComponent<MyComponent>(assetBundle.GetObject<EntityAsset>(3).GetEntity()).value, 5);
         //写回资源包并卸载场景

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamEngine/Runtime/System/UpdateSystem.h"

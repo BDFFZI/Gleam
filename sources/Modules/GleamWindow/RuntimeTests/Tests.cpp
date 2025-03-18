@@ -1,7 +1,7 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "GleamUtility/Runtime/Macro.h"
 #include "GleamWindow/Runtime/System/CursorSystem.h"

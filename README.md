@@ -127,7 +127,7 @@ Gleam 中文名“微光”，是一款个人为学习用途而搭建的游戏�
 ```cpp
 // Gleam/MyProject/main.cpp
 #include <GleamEngine/Runtime/Engine.h> //引入 Gleam 的 Engine 功能
-#include <GleamECS/Runtime/World.h>// 引入World功能
+#include <GleamECS/Runtime/World/World.h>// 引入World功能
 #include <iostream>
 
 class MySystem : public Gleam::System// 实现System类

@@ -1,6 +1,6 @@
 #include "GizmosSystem.h"
 
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamRendering/Editor/Gizmos.h"
 
 namespace Gleam

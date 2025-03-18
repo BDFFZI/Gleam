@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Engine.h"
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "System/TimeSystem.h"
 #include "System/TransformSystem.h"
 #ifdef GleamEngineEditor

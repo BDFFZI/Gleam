@@ -5,8 +5,9 @@
 #include <benchmark/benchmark.h>
 #include <gtest/gtest.h>
 #include "GleamECS/Runtime/Archetype.h"
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamECS/Runtime/Heap.h"
+#include "GleamECS/Runtime/Scene.h"
 #include "GleamECS/Runtime/View.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 
@@ -194,61 +195,7 @@ TEST(ECS, World)
 
     World::RemoveEntity(entities[0]);
     World::RemoveEntity(entities[1]);
-}
-
-/**
- * 质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
- */
-class PhysicsSystem : public System
-{
-public:
-    constexpr static float DeltaTime = 0.02f;
-
-private:
-    void Update() override
-    {
-        View<Transform, RigidBody>::Each([](Transform& transform, RigidBody& rigidBody)
-        {
-            float acceleration = rigidBody.force / rigidBody.mass; //牛顿第二定律
-            acceleration += rigidBody.mass * -9.8f; //添加重力加速度
-            rigidBody.velocity += acceleration * DeltaTime;
-            transform.position += rigidBody.velocity * DeltaTime;
-            rigidBody.force = 0;
-        });
-
-        View<Transform, RigidBody, SpringPhysics>::Each([](Transform& transform, RigidBody& rigidBody, SpringPhysics& spring)
-        {
-            float vector = spring.pinPosition - transform.position;
-            float direction = vector >= 0 ? 1 : -1;
-            float distance = abs(vector) - spring.length;
-            float elasticForce = spring.elasticity * distance * direction; //弹力或推力
-            float resistance = -0.01f * spring.elasticity * (rigidBody.velocity * direction) * direction; //弹簧内部阻力（不添加无法使弹簧稳定）
-            rigidBody.force += elasticForce + resistance;
-        });
-    }
-};
-
-TEST(ECS, System)
-{
-    PhysicsSystem physicsSystem{};
-    for (int i = 0; i < 10; i++)
-        World::AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
-    World::AddSystem(physicsSystem);
-
-    for (int i = 0; i < 200; i++)
-        World::Update(); //更新
-
-    std::stringstream ss;
-    View<Transform>::Each([&ss](const Entity entity, Transform& transform)
-    {
-        ss << std::format("{:10.3f}", transform.position) << '|';
-        ASSERT_TRUE(World::HasComponent<SpringPhysics>(entity)
-            ?abs(transform.position+5) < 0.1f
-            :transform.position<70);
-    });
-    std::cout << ss.str();
-
-    World::Clear();
+    World::Update();
 }
 
 inline std::stringstream printResult = {};
@@ -338,6 +285,7 @@ TEST(ECS, SystemOrder)
     World::Update();
     World::Clear();
 
+    std::cout << printResult.str() << std::endl;
     ASSERT_EQ(printResult.str(), R"(system1->Start
 system2->Start
 system3->Start
@@ -365,10 +313,66 @@ system1->Stop
 )");
 }
 
+/**
+ * 质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
+ */
+class PhysicsSystem : public System
+{
+public:
+    constexpr static float DeltaTime = 0.02f;
+
+private:
+    void Update() override
+    {
+        View<Transform, RigidBody>::Each([](Transform& transform, RigidBody& rigidBody)
+        {
+            float acceleration = rigidBody.force / rigidBody.mass; //牛顿第二定律
+            acceleration += rigidBody.mass * -9.8f; //添加重力加速度
+            rigidBody.velocity += acceleration * DeltaTime;
+            transform.position += rigidBody.velocity * DeltaTime;
+            rigidBody.force = 0;
+        });
+
+        View<Transform, RigidBody, SpringPhysics>::Each([](Transform& transform, RigidBody& rigidBody, SpringPhysics& spring)
+        {
+            float vector = spring.pinPosition - transform.position;
+            float direction = vector >= 0 ? 1 : -1;
+            float distance = abs(vector) - spring.length;
+            float elasticForce = spring.elasticity * distance * direction; //弹力或推力
+            float resistance = -0.01f * spring.elasticity * (rigidBody.velocity * direction) * direction; //弹簧内部阻力（不添加无法使弹簧稳定）
+            rigidBody.force += elasticForce + resistance;
+        });
+    }
+};
+
+TEST(ECS, System)
+{
+    PhysicsSystem physicsSystem{};
+    for (int i = 0; i < 10; i++)
+        World::AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
+    World::AddSystem(physicsSystem);
+
+    for (int i = 0; i < 200; i++)
+        World::Update(); //更新
+
+    std::stringstream ss;
+    View<Transform>::Each([&ss](const Entity entity, Transform& transform)
+    {
+        ss << std::format("{:10.3f}", transform.position) << '|';
+        ASSERT_TRUE(World::HasComponent<SpringPhysics>(entity)
+            ?abs(transform.position+5) < 0.1f
+            :transform.position<70);
+    });
+    std::cout << ss.str();
+
+    World::Clear();
+}
+
 TEST(ECS, View)
 {
     Entity physicsEntity = World::AddEntity(physicsArchetype);
     Entity physicsWithSpring = World::AddEntity(physicsWithSpringArchetype);
+    World::Update();
     View<Transform, RigidBody>::Each([](auto& transform, auto&)
     {
         ++transform.position;
@@ -385,4 +389,51 @@ TEST(ECS, View)
 
     World::RemoveEntity(physicsEntity);
     World::RemoveEntity(physicsWithSpring);
+}
+
+TEST(ECS, Scene)
+{
+    Entity entity = World::AddEntity(Transform{});
+    View<Transform>::SetDirty();
+
+    SystemEvent system = SystemEvent("TestSystem", std::nullopt);
+    system.OnStart() = []
+    {
+        View<Transform>::Each([](Transform& transform)
+        {
+            transform.position++;
+        });
+    };
+    system.OnUpdate() = []
+    {
+        View<Transform>::Each([](Transform& transform)
+        {
+            transform.position++;
+        });
+    };
+    system.OnStop() = []
+    {
+        View<Transform>::Each([](Transform& transform)
+        {
+            transform.position--;
+        });
+    };
+
+    Scene& scene = Scene::Create("TestScene");
+    scene.AddEntity(entity);
+    scene.AddSystem(system);
+
+    World::Update();
+    ASSERT_EQ(World::GetComponent<Transform>(entity).position, 2);
+    World::Update();
+    ASSERT_EQ(World::GetComponent<Transform>(entity).position, 3);
+
+    scene.RemoveEntity(entity);
+    Scene::Destroy(scene);
+    ASSERT_EQ(World::GetComponent<Transform>(entity).position, 3);
+    World::Update();
+    ASSERT_EQ(World::GetComponent<Transform>(entity).position, 2);
+
+    World::Clear();
+    ASSERT_EQ(World::HasEntity(entity), false);
 }

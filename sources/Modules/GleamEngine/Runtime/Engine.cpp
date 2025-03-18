@@ -1,5 +1,5 @@
 ﻿#include "Engine.h"
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 
 
 namespace Gleam

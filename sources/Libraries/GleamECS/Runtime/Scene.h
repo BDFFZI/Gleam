@@ -19,15 +19,17 @@ namespace Gleam
         {
             return allScenes | std::views::transform([](auto& scene) { return std::reference_wrapper(*scene); });
         }
+        static std::optional<std::reference_wrapper<Scene>> GetScene(std::string_view name);
         static std::optional<std::reference_wrapper<Scene>> GetScene(System& system);
         static std::optional<std::reference_wrapper<Scene>> GetScene(Entity entity);
 
         /**
          * 创建一个空Scene
-         * @param name 
+         * @param name
+         * @param isRunning 
          * @return 
          */
-        static Scene& Create(std::string_view name);
+        static Scene& Create(std::string_view name, bool isRunning = true);
         /**
          * 移除Scene并销毁或释放其托管的相关资源
          *
@@ -39,7 +41,9 @@ namespace Gleam
         static void Destroy(std::string_view name, bool onlyRelease = false);
         static void Destroy(Scene& scene, bool onlyRelease = false);
 
-        static std::optional<std::reference_wrapper<Scene>> GetScene(std::string_view name);
+        Scene() = default;
+        Scene(Scene&) = delete;
+        Scene& operator=(Scene&) = delete;
 
         const std::string& GetName() const
         {

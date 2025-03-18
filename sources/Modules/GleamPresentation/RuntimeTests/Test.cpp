@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamPresentation/Runtime/PresentationSystem.h"
 #include "GleamGraphics/Runtime/SwapChain.h"

@@ -1,6 +1,7 @@
 #include "SceneWindow.h"
 
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
+#include "GleamEngine/Editor/System/EditorTimeSystem.h"
 #include "GleamEngine/Runtime/Component/Transform.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamRendering/Runtime/Entity/Archetype.h"
@@ -16,14 +17,14 @@
 namespace Gleam
 {
     void ControlCamera(
-        class InputSystem& inputSystem, class TimeSystem& timeSystem,
+        InputSystem& inputSystem,
         LocalTransform& localTransform, LocalToWorld localToWorld, Camera& camera,
         float& moveSpeed)
     {
         //用于旋转时保持欧拉角信息，以解决万向锁导致的旋转退化问题
         static float3 eulerAngles = 0;
 
-        const float deltaTime = timeSystem.GetDeltaTime();
+        const float deltaTime = EditorTimeSystem.GetDeltaTime();
         const float moveDelta = deltaTime * static_cast<float>(4 * (inputSystem.GetKey(KeyCode::LeftShift) ? 3 : 1)) * moveSpeed;
 
         float3 right = localToWorld.GetRight();
@@ -120,10 +121,6 @@ namespace Gleam
     {
         return inputSystem;
     }
-    TimeSystem& SceneWindow::GetSceneTimeSystem()
-    {
-        return timeSystem;
-    }
     int SceneWindow::GetHandleOption() const
     {
         return handleOption;
@@ -158,14 +155,13 @@ namespace Gleam
             Camera& camera = World::GetComponent<Camera>(sceneCamera);
             LocalTransform& cameraTransform = World::GetComponent<LocalTransform>(sceneCamera);
             LocalToWorld& cameraLocalToWorld = World::GetComponent<LocalToWorld>(sceneCamera);
-            ControlCamera(inputSystem, timeSystem, cameraTransform, cameraLocalToWorld, camera, moveSpeed);
+            ControlCamera(inputSystem, cameraTransform, cameraLocalToWorld, camera, moveSpeed);
             cameraTransformSaving = cameraTransform;
             cameraSaving = camera;
             cameraSaving.renderTarget = std::nullopt;
         };
         World::AddSystem(preProcessSystem);
         World::AddSystem(inputSystem);
-        World::AddSystem(timeSystem);
 
         sceneCamera = World::AddEntity(SceneCameraArchetype);
         World::SetComponents(sceneCamera, cameraTransformSaving);
@@ -175,7 +171,6 @@ namespace Gleam
     {
         World::RemoveSystem(preProcessSystem);
         World::RemoveSystem(inputSystem);
-        World::RemoveSystem(timeSystem);
         sceneCameraCanvas.reset();
 
         UI::DeleteTexture(sceneCameraCanvasImID);

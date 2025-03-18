@@ -25,7 +25,7 @@ namespace Gleam
     void DrawEntity(const Entity entity, const InspectorWindow::CustomUI& componentGUI)
     {
         {
-            EntityInfo entityInfo = World::GetEntityInfo(entity);
+            EntityInfo entityInfo = World::GetEntityInfoAllocator().GetEntityInfo(entity);
             const Archetype& archetype = *entityInfo.archetype;
             //绘制实体编号
             ImGui::Text("Entity:%i", static_cast<int>(entity));
@@ -35,7 +35,7 @@ namespace Gleam
             for (int i = 0; i < archetype.GetComponentCount(); ++i)
             {
                 const Type& componentType = archetype.GetComponentType(i);
-                void* component = entityInfo.components + archetype.GetComponentOffset(i);
+                void* component = entityInfo.memoryAddress + archetype.GetComponentOffset(i);
 
                 bool isUsing = true;
                 DrawComponent(component, componentType, componentGUI, &isUsing);

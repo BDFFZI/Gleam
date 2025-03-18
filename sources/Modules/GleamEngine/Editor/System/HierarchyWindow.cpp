@@ -1,7 +1,7 @@
 #include "HierarchyWindow.h"
 #include "InspectorWindow.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Editor/Editor.h"
 #include "GleamUtility/Runtime/Ranges.h"
 
@@ -19,7 +19,7 @@ namespace Gleam
         //下拉框
         bool collapsing = ImGui::CollapsingHeader(
             std::format("##{}", system.GetName()).c_str(),
-            (systemGroup == nullptr || systemGroup->subSystemUpdateQueue.empty()
+            (systemGroup == nullptr || systemGroup->subSystems.empty()
                  ? ImGuiTreeNodeFlags_Leaf : 0) //无子系统时不显示箭头
             | ImGuiTreeNodeFlags_AllowItemOverlap //支持叠加按钮
         );
@@ -46,16 +46,16 @@ namespace Gleam
     void HierarchyWindow::DrawSubSystems(SystemGroup& systemGroup)
     {
         ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::GleamGreen());
-        for (const auto subSystem : systemGroup.subSystemStartQueue)
+        for (const auto subSystem : systemGroup.addingSystems)
             DrawSystem(*subSystem);
         ImGui::PopStyleColor();
 
         ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::GleamRed());
-        for (const auto subSystem : systemGroup.subSystemStopQueue)
+        for (const auto subSystem : systemGroup.removingSystems)
             DrawSystem(*subSystem);
         ImGui::PopStyleColor();
 
-        for (const auto subSystem : systemGroup.subSystemUpdateQueue)
+        for (const auto subSystem : systemGroup.subSystems)
             DrawSystem(*subSystem);
     }
 
@@ -152,7 +152,7 @@ namespace Gleam
         if (systemsCollapsing)
         {
             ImGui::PushID("Systems");
-            DrawSubSystems(World::GetSystems());
+            DrawSubSystems(World::GetRootSystemGroup());
             ImGui::PopID();
         }
 
@@ -161,7 +161,7 @@ namespace Gleam
         if (entityCollapsing)
         {
             ImGui::PushID("Entities");
-            for (auto& [archetype,heap] : World::GetEntities())
+            for (auto& [archetype,heap] : World::GetEntityAllocator().GetEntityHeaps())
             {
                 if (heap.GetCount() == 0)
                     continue;
@@ -191,14 +191,14 @@ namespace Gleam
             ImGui::PopID();
         }
     }
-    
+
     void HierarchyWindow::Update()
     {
         if (ImGui::Begin("HierarchyWindow"))
         {
             ImGui::SeparatorText("Statistics");
             ImGui::BulletText(std::format("IsPlaying:{}", Editor::IsPlaying()).c_str());
-            ImGui::BulletText(std::format("NextEntity:{}", World::nextEntity).c_str());
+            ImGui::BulletText(std::format("NextEntity:{}", World::entityInfoAllocator.nextEntity).c_str());
             //帧率信息
             static float deltaTime = 0;
             deltaTime = std::lerp(deltaTime, EditorTimeSystem.GetDeltaTimeReal(), 0.3f);

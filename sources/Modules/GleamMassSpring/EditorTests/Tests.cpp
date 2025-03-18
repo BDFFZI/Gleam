@@ -1,5 +1,5 @@
 #include "GleamECS/Runtime/System.h"
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamMassSpring/Editor/System/MassSpringRenderingSystem.h"
 #include "GleamMassSpring/Runtime/Entity/Archetype.h"

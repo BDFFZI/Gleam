@@ -1,6 +1,6 @@
 ﻿#include "Editor.h"
 
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/Engine.h"
 
 namespace Gleam
@@ -22,8 +22,6 @@ namespace Gleam
     {
         for (auto system : Engine::RuntimeSystems())
             World::RemoveSystem(system);
-        World::FlushSystemQueue();
-        
         for (auto system : Editor::EditorSystems())
             World::AddSystem(system);
         for (auto system : Editor::EditorOnlySystems())
@@ -44,7 +42,7 @@ namespace Gleam
             else
             {
                 World::Clear();
-                
+
                 for (auto system : Editor::EditorSystems())
                     World::AddSystem(system);
                 for (auto system : Editor::EditorOnlySystems())

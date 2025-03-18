@@ -2,26 +2,14 @@
 
 #include <cassert>
 
-#include "Heap.h"
-#include "Archetype.h"
-#include "System.h"
+#include "../Heap.h"
+#include "../Archetype.h"
+#include "../System.h"
+#include "EntityInfoAllocator.h"
+#include "EntityAllocator.h"
 
 namespace Gleam
 {
-    /**
-     * 对每个实体存储的额外信息，如地址原型信息。
-     * 用于实现反向查找，从而像面对对象一样访问实体。
-     */
-    struct EntityInfo
-    {
-        const Archetype* archetype;
-        int indexAtHeap;
-        std::byte* components;
-
-        EntityInfo(const Archetype& archetype, int indexAtHeap, std::byte* components);
-        EntityInfo() = default;
-    };
-
     /**
      * 世界是所有实体和系统的载体，引擎运转的核心。
      */
@@ -29,16 +17,24 @@ namespace Gleam
     {
     public:
         //世界内容
-        static std::unordered_map<const Archetype*, Heap>& GetEntities();
-        static SystemGroup& GetSystems();
-        static EntityInfo& GetEntityInfo(Entity entity);
+        static EntityInfoAllocator& GetEntityInfoAllocator()
+        {
+            return entityInfoAllocator;
+        }
+        static EntityAllocator& GetEntityAllocator()
+        {
+            return entities;
+        }
+        static SystemGroup& GetRootSystemGroup()
+        {
+            return systems;
+        }
 
-        //查询实体
         static bool HasEntity(Entity entity);
-        static Heap& GetEntityHeap(const Archetype& archetype);
-        //添加实体
         static Entity AddEntity(const Archetype& archetype);
-        static void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
+        static void RemoveEntity(Entity entity);
+        static void MoveEntity(Entity entity, const Archetype& newArchetype);
+
         template <Component... TComponents>
         static Entity AddEntity(const TComponents&... components)
         {
@@ -47,17 +43,6 @@ namespace Gleam
             SetComponents(entity, components...);
             return entity;
         }
-        //移除实体
-        static void RemoveEntity(Entity& entity);
-        static void RemoveAllEntities();
-        //移动实体
-        static void MoveEntity(Entity entity, const Archetype& newArchetype);
-        /**
-         * 一种快速简单的实体移动，它假定新旧原型的数据存储布局是完全一样的，从而直接进行内存复制。
-         * @param entity 
-         * @param newArchetype 
-         */
-        static void MoveEntitySimply(Entity entity, const Archetype& newArchetype);
 
         static bool HasSystem(System& system);
         /**
@@ -87,7 +72,7 @@ namespace Gleam
         template <Component TComponent>
         static bool HasComponent(const Entity entity)
         {
-            EntityInfo& entityInfo = entityInfos.at(entity);
+            EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
             return entityInfo.archetype->HasComponent(typeid(TComponent));
         }
         template <Component TComponent>
@@ -101,7 +86,7 @@ namespace Gleam
         static bool TryGetComponent(const Entity entity, TComponent*& component)
         {
             assert(entity != Entity::Null && "目标实体为空！");
-            assert(entityInfos.contains(entity) && "目标实体不存在！");
+            assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
 
             if (HasComponent<TComponent>(entity) == false)
                 return false;
@@ -112,41 +97,41 @@ namespace Gleam
         static TComponent& GetComponent(const Entity entity)
         {
             assert(entity != Entity::Null && "目标实体为空！");
-            assert(entityInfos.contains(entity) && "目标实体不存在！");
+            assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
 
-            EntityInfo& entityInfo = entityInfos.at(entity);
+            EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
             int offset = entityInfo.archetype->GetComponentOffset(typeid(TComponent));
-            return *reinterpret_cast<TComponent*>(entityInfo.components + offset);
+            return *reinterpret_cast<TComponent*>(entityInfo.memoryAddress + offset);
         }
         template <Component... TComponents>
         static void GetComponents(const Entity entity, TComponents*&... outComponents)
         {
             assert(entity != Entity::Null && "目标实体为空！");
-            assert(entityInfos.contains(entity) && "目标实体不存在！");
+            assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
 
-            EntityInfo& entityInfo = entityInfos.at(entity);
+            EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
             const Archetype& archetype = *entityInfo.archetype;
-            ((outComponents = reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetComponentOffset(typeid(TComponents)))), ...);
+            ((outComponents = reinterpret_cast<TComponents*>(entityInfo.memoryAddress + archetype.GetComponentOffset(typeid(TComponents)))), ...);
         }
         template <Component... TComponents>
         static void GetComponents(const Entity entity, TComponents&... outComponents)
         {
             assert(entity != Entity::Null && "目标实体为空！");
-            assert(entityInfos.contains(entity) && "目标实体不存在！");
+            assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
 
-            EntityInfo& entityInfo = entityInfos.at(entity);
+            EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
             const Archetype& archetype = *entityInfo.archetype;
-            ((outComponents = *reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetComponentOffset(typeid(TComponents)))), ...);
+            ((outComponents = *reinterpret_cast<TComponents*>(entityInfo.memoryAddress + archetype.GetComponentOffset(typeid(TComponents)))), ...);
         }
         template <Component... TComponents>
         static void SetComponents(const Entity entity, const TComponents&... components)
         {
             assert(entity != Entity::Null && "目标实体为空！");
-            assert(entityInfos.contains(entity) && "目标实体不存在！");
+            assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
 
-            EntityInfo& entityInfo = entityInfos.at(entity);
+            EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
             const Archetype& archetype = *entityInfo.archetype;
-            ((*reinterpret_cast<TComponents*>(entityInfo.components + archetype.GetComponentOffset(typeid(TComponents))) = components), ...);
+            ((*reinterpret_cast<TComponents*>(entityInfo.memoryAddress + archetype.GetComponentOffset(typeid(TComponents))) = components), ...);
         }
 
 
@@ -157,39 +142,39 @@ namespace Gleam
         Gleam_MakeType_Friend
         friend class HierarchyWindow;
         friend class InspectorWindow;
+        friend class EntityAllocator;
         friend class Scene;
         template <class T>
         friend struct FieldDataTransferrer_Transfer;
         friend void Editor_ReplaceRuntimeSystem();
         friend void ExtendWorldFunction();
 
-        //实体信息
-        inline static uint32_t nextEntity = 1;
-        inline static std::unordered_map<Entity, EntityInfo> entityInfos = {};
+        inline static EntityInfoAllocator entityInfoAllocator;
+        inline static EntityAllocator entities = EntityAllocator{entityInfoAllocator};
+        /// 实体增删为什么要延迟执行？
+        /// 1. 最佳的实体生命周期应大于系统范围，以便能全程被系统处理。例如一段场景结束时，实体需在系统之后销毁，以便系统进行回收工作，但因为系统是延迟修改，所以实体也因此需要延迟。
+        /// 2. 保证了销毁前后的实体视图对称，例如对实体的某种操作同时需要两个不同时间段的系统执行，如果实体在期间被删除，则其中一个系统将丢失目标。
+        /// 3. 实体的结构性变更无法在遍历时立即修改，若想实现该功能，则必须先缓存。
+        /// 4. 部分实体无法被立即销毁，例如渲染资源被异步的图形功能占用，因此必须等待相关功能（即系统的一次调用）完成后，才可处理。
+        /// 实际上最主要的原因是第1、4点，由于相关需求较为常用，故使用ECS实现。另外这些需求实际只要实现销毁延迟即可，但出于一致性原则，创建也采用了相同的流程。
+        inline static EntityAllocator addingEntities = EntityAllocator{entityInfoAllocator};
+        inline static std::vector<Entity> removingEntities = {};
 
-        inline static std::unordered_map<const Archetype*, Heap> entities;
+        inline static std::unordered_map<System*, int> systemUsageCount = {}; //系统使用计数，实现按需自动加载和卸载系统
         inline static SystemGroup systems = {std::nullopt}; //场景内所有系统的根系统
-        //系统使用计数，实现按需自动加载和卸载系统
-        inline static std::unordered_map<System*, int> systemUsageCount = {};
-        ///添加或删除系统必须先缓存然后再实际执行，原因如下：
-        ///1. 在遍历系统的时候是不能修改容器结构的，但提供的游戏事件都是遍历容器的时候运行的，所以如果用户有增删系统的需求，必须先缓存
-        ///2. 插入系统和删除系统是无序的，但系统本身是有序的，为了满足系统的顺序安排，需先缓存并统计系统顺序后再调整
-        inline static std::vector<System*> removingSystems = {};
-        inline static std::vector<System*> addingSystems = {};
-        
-        static Entity GetNextEntity();
-        static void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
+        /// 添加或删除系统必须先缓存然后再实际执行，因为在遍历系统的时候是不能修改容器结构的，
+        /// 但提供的游戏事件都是遍历容器的时候运行的，所以为了实现在系统事件中增删系统，必须先缓存
+        inline static std::multiset<System*> removingSystems = {};
+        inline static std::multiset<System*> addingSystems = {};
+
         /**
-         * 将缓存的添加或卸载中的System通过引用计算后，修改到实际的系统容器中
+         * 将缓存的添加或卸载中的System通过引用计算后，修改到实际的系统容器中，
+         * 此外这会清空缓冲区，从而使它们重新可用，因此后续执行系统事件时，仍能正确接收增删需求。
          */
         static void FlushSystemQueue();
         /**
-         * 将实体从堆中移除并自动修正因此被迁移的实体信息
-         * 
-         * Heap容器的特点是删除时，末尾项会被用来替补空位，所以原末尾项的实体信息需要更变。该函数可以实现该功能。
-         * @param heapIndex 
-         * @param elementIndex
+         * 将缓存的新增或删除的实体，修改到实际的实体容器中
          */
-        static void RemoveHeapItem(const Archetype& heapIndex, int elementIndex);
+        static void FlushEntityQueue();
     };
 }

@@ -3,7 +3,7 @@
 #include <map>
 
 #include "GleamECS/Runtime/System.h"
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 #include "GleamUtility/Runtime/Macro.h"
 
 #ifdef GleamEngineEditor

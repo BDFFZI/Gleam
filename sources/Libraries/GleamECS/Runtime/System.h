@@ -133,6 +133,8 @@ namespace Gleam
     {
     public:
         static SystemEvent StartEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, int order, std::function<void()> startEvent);
+        static SystemEvent UpdateEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, int order, std::function<void()> updateEvent);
+        static SystemEvent StopEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, int order, std::function<void()> stopEvent);
 
         SystemEvent(const std::string_view& name, const std::optional<std::reference_wrapper<SystemGroup>>& group, int minOrder = MinOrder, int maxOrder = MaxOrder);
         SystemEvent(const std::string_view& name, System& system, OrderRelation orderRelation);
@@ -158,7 +160,7 @@ namespace Gleam
         bool operator()(const System* left, const System* right) const
         {
             if (left->GetOrder() == right->GetOrder())
-                return left < right; //确保顺序相同时依然有大小之分，从而避免被误认为相等
+                return left < right; //确保顺序相同时依然有大小之分，从而避免不同系统实例被误认为相等
             return left->GetOrder() < right->GetOrder();
         }
     };
@@ -182,26 +184,9 @@ namespace Gleam
         void AddSubSystem(System& system);
         void RemoveSubSystem(System& system);
 
-        void Start() override;
-        void Stop() override;
         void Update() override
         {
-            if (subSystemStopQueue.empty() == false)
-            {
-                for (System* system : std::ranges::reverse_view(subSystemStopQueue))
-                    system->Stop();
-                subSystemStopQueue.clear();
-            }
-
-            if (subSystemStartQueue.empty() == false)
-            {
-                for (System* system : subSystemStartQueue)
-                    system->Start();
-                subSystemUpdateQueue.insert(subSystemStartQueue.begin(), subSystemStartQueue.end());
-                subSystemStartQueue.clear();
-            }
-
-            for (System* system : subSystemUpdateQueue)
+            for (System* system : subSystems)
             {
 #ifdef GleamEngineEditor
                 auto& name = system->GetName();
@@ -211,12 +196,20 @@ namespace Gleam
             }
         }
 
+        void FlushStartQueue();
+        void FlushStopQueue();
+        void Clear();
+
     private:
         friend class HierarchyWindow;
 
-        std::set<System*, SystemPtrComparer> subSystemStartQueue = {};
-        std::set<System*, SystemPtrComparer> subSystemStopQueue = {};
-        std::set<System*, SystemPtrComparer> subSystemUpdateQueue = {};
+        std::set<System*, SystemPtrComparer> subSystems = {};
+        /// 虽然子系统的添加删除是延迟的，但并不支持遍历时的结构化更改。
+        /// 例如Start时addingSystems被占用，但用户依然可能执行AddSubSystem函数，于是就会导致遍历异常。
+        /// 此处延迟触发的真实原因是因为插入系统和删除系统是无序的，但系统本身是有序的，
+        /// 为了满足系统的顺序安排，只有先缓存再汇总后才可知正确的执行顺序。
+        std::set<System*> addingSystems = {};
+        std::set<System*> removingSystems = {};
     };
 
 #define Gleam_MakeGlobalSystem(systemClass) \

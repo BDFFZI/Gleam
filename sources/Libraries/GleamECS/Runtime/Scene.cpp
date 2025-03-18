@@ -1,9 +1,16 @@
 #include "Scene.h"
 
-#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/World/World.h"
 
 namespace Gleam
 {
+    std::optional<std::reference_wrapper<Scene>> Scene::GetScene(std::string_view name)
+    {
+        auto it = std::ranges::find_if(allScenes, [name](auto& scene) { return scene->name == name; });
+        if (it != allScenes.end())
+            return **it;
+        return std::nullopt;
+    }
     std::optional<std::reference_wrapper<Scene>> Scene::GetScene(System& system)
     {
         if (auto it = systemWorld.find(&system); it != systemWorld.end())
@@ -17,11 +24,12 @@ namespace Gleam
         return std::nullopt;
     }
 
-    Scene& Scene::Create(const std::string_view name)
+    Scene& Scene::Create(const std::string_view name, const bool isRunning)
     {
         assert(GetScene(name) == std::nullopt && "同名场景已存在！");
         std::unique_ptr<Scene>& scene = allScenes.emplace_back(std::make_unique<Scene>());
         scene->name = name;
+        scene->isRunning = isRunning;
         return *scene;
     }
     void Scene::Destroy(std::string_view name, const bool onlyRelease)
@@ -56,14 +64,6 @@ namespace Gleam
     void Scene::Destroy(Scene& scene, const bool onlyRelease)
     {
         Destroy(scene.name, onlyRelease);
-    }
-
-    std::optional<std::reference_wrapper<Scene>> Scene::GetScene(std::string_view name)
-    {
-        auto it = std::ranges::find_if(allScenes, [name](auto& scene) { return scene->name == name; });
-        if (it != allScenes.end())
-            return **it;
-        return std::nullopt;
     }
 
     void Scene::Start()
