@@ -13,8 +13,9 @@ namespace Gleam
         }
 
     private:
-        float2 windowPosition = 0;
-        float2 windowSize = 0;
+        float2 imagePosition = 0;
+        float2 imageSize = 0;
+        float aspect = 1920.0f / 1080.0f;
         std::unique_ptr<GRenderTexture> renderTexture;
         ImTextureID renderTextureID = {};
         bool isDirty = false;

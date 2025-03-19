@@ -179,96 +179,96 @@ namespace Gleam
     {
         sceneWindowDrawing = this;
 
-        ImGui::Begin("SceneWindow", nullptr, ImGuiWindowFlags_MenuBar);
-        //渲染纹理重建检查（别在获取窗口信息后执行！）
-        if (any(windowContentSize != UI::GetWindowContentRegionSize()))
-            isDirty = true;
-        //获取窗口信息
-        windowContentPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
-        windowContentSize = UI::GetWindowContentRegionSize();
-        //设置输入区域范围
-        inputSystem.SetFocusArea(Rectangle::CreateFromOrigin(windowContentPosition, windowContentSize));
-
-        //绘制菜单选项
-        if (ImGui::BeginMenuBar())
+        if (ImGui::Begin("SceneWindow", nullptr, ImGuiWindowFlags_MenuBar))
         {
-            //相机属性
-            if (ImGui::BeginMenu("Camera"))
+            //渲染纹理重建检查（别在获取窗口信息后执行！）
+            if (any(windowContentSize != UI::GetWindowContentRegionSize()))
+                isDirty = true;
+            //获取窗口信息
+            windowContentPosition = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
+            windowContentSize = UI::GetWindowContentRegionSize();
+            //设置输入区域范围
+            inputSystem.SetFocusArea(Rectangle::CreateFromOrigin(windowContentPosition, windowContentSize));
+
+            //绘制菜单选项
+            if (ImGui::BeginMenuBar())
             {
-                if (ImGui::Button("Inspect"))
-                    InspectorWindow::Show(InspectorTarget{sceneCamera});
-                ImGui::Checkbox("Ortho", &World::GetComponent<Camera>(sceneCamera).orthographic);
-                ImGui::DragFloat("Speed", &moveSpeed);
+                //相机属性
+                if (ImGui::BeginMenu("Camera"))
+                {
+                    if (ImGui::Button("Inspect"))
+                        InspectorWindow::Show(InspectorTarget{sceneCamera});
+                    ImGui::Checkbox("Ortho", &World::GetComponent<Camera>(sceneCamera).orthographic);
+                    ImGui::DragFloat("Speed", &moveSpeed);
 
-                ImGui::EndMenu();
+                    ImGui::EndMenu();
+                }
+
+                // 显示SceneUI（如手柄，网格等）
+                if (ImGui::BeginMenu("SceneUI"))
+                {
+                    ImGui::Checkbox("Enable", &showSceneUI);
+                    //手柄选项
+                    static const char* optionName[] = {"Hide", "Position", "Rotation", "Scale"};
+                    ImGui::Combo("Handle", &handleOption, optionName, std::size(optionName));
+
+                    ImGui::EndMenu();
+                }
+
+                ImGui::EndMenuBar();
             }
+            
+            //绘制相机画面
+            if (sceneCameraCanvasImID != nullptr)
+                ImGui::Image(sceneCameraCanvasImID, windowContentSize);
 
-            // 显示SceneUI（如手柄，网格等）
-            if (ImGui::BeginMenu("SceneUI"))
+            //绘制Gizmos
+            if (showSceneUI)
             {
-                ImGui::Checkbox("Enable", &showSceneUI);
-                //手柄选项
-                static const char* optionName[] = {"Hide", "Position", "Rotation", "Scale"};
-                ImGui::Combo("Handle", &handleOption, optionName, std::size(optionName));
+                Camera camera = World::GetComponent<Camera>(sceneCamera);
+                WorldToLocal cameraWorldToLocal = World::GetComponent<WorldToLocal>(sceneCamera);
+                ViewToClip cameraViewToClip = World::GetComponent<ViewToClip>(sceneCamera);
 
-                ImGui::EndMenu();
+                ImGuizmo::SetDrawlist(); //使Gizmos能绘制到场景画面前面
+                ImGuizmo::SetOrthographic(camera.orthographic);
+                ImGuizmo::SetRect(windowContentPosition.x, windowContentPosition.y, windowContentSize.x, windowContentSize.y); //设置绘制区域
+
+                //绘制网格线
+                {
+                    float4x4 objectToWorld = float4x4::Identity();
+                    ImGuizmo::DrawGrid(
+                        reinterpret_cast<float*>(&cameraWorldToLocal.value),
+                        reinterpret_cast<float*>(&cameraViewToClip.value),
+                        reinterpret_cast<float*>(&objectToWorld), 10
+                    );
+                }
+                //绘制右上角世界轴
+                float size = min(windowContentSize.x, windowContentSize.y) * 0.2f;
+                Rectangle rectangle = Rectangle::CreateFromOrigin({windowContentSize.x - size, 0}, {size});
+                ImGuizmo::ViewManipulate(
+                    cameraWorldToLocal.value.data, 1,
+                    windowContentPosition + rectangle.min + rectangle.GetSize(), -rectangle.GetSize(), 0x10FFFFFF);
+                if (Geometry::Contains(rectangle, inputSystem.GetMousePosition()))
+                {
+                    float3 position;
+                    float3x3 rotation;
+                    float3 scale;
+                    DecomposeTRS(inverse(cameraWorldToLocal.value), position, rotation, scale);
+                    World::GetComponent<LocalTransform>(sceneCamera).rotation = Quaternion::Matrix(rotation);
+                }
+
+                //绘制自定义UI或Gizmos
+                if (GlobalInspectorWindow.GetTarget().has_value())
+                {
+                    ImGui::SetCursorPos({});
+                    Handles::WorldToView() = cameraWorldToLocal.value;
+                    Handles::ViewToClip() = cameraViewToClip.value;
+                    auto [data,type] = GlobalInspectorWindow.GetTarget().value();
+                    if (sceneGUIs.contains(type))
+                        sceneGUIs[type](data);
+                }
             }
-
-            ImGui::EndMenuBar();
         }
-
-
-        //绘制相机画面
-        if (sceneCameraCanvasImID != nullptr)
-            ImGui::Image(sceneCameraCanvasImID, windowContentSize);
-
-        //绘制Gizmos
-        if (showSceneUI)
-        {
-            Camera camera = World::GetComponent<Camera>(sceneCamera);
-            WorldToLocal cameraWorldToLocal = World::GetComponent<WorldToLocal>(sceneCamera);
-            ViewToClip cameraViewToClip = World::GetComponent<ViewToClip>(sceneCamera);
-
-            ImGuizmo::SetDrawlist(); //使Gizmos能绘制到场景画面前面
-            ImGuizmo::SetOrthographic(camera.orthographic);
-            ImGuizmo::SetRect(windowContentPosition.x, windowContentPosition.y, windowContentSize.x, windowContentSize.y); //设置绘制区域
-
-            //绘制网格线
-            {
-                float4x4 objectToWorld = float4x4::Identity();
-                ImGuizmo::DrawGrid(
-                    reinterpret_cast<float*>(&cameraWorldToLocal.value),
-                    reinterpret_cast<float*>(&cameraViewToClip.value),
-                    reinterpret_cast<float*>(&objectToWorld), 10
-                );
-            }
-            //绘制右上角世界轴
-            float size = min(windowContentSize.x, windowContentSize.y) * 0.2f;
-            Rectangle rectangle = Rectangle::CreateFromOrigin({windowContentSize.x - size, 0}, {size});
-            ImGuizmo::ViewManipulate(
-                cameraWorldToLocal.value.data, 1,
-                windowContentPosition + rectangle.min + rectangle.GetSize(), -rectangle.GetSize(), 0x10FFFFFF);
-            if (Geometry::Contains(rectangle, inputSystem.GetMousePosition()))
-            {
-                float3 position;
-                float3x3 rotation;
-                float3 scale;
-                DecomposeTRS(inverse(cameraWorldToLocal.value), position, rotation, scale);
-                World::GetComponent<LocalTransform>(sceneCamera).rotation = Quaternion::Matrix(rotation);
-            }
-
-            //绘制自定义UI或Gizmos
-            if (GlobalInspectorWindow.GetTarget().has_value())
-            {
-                ImGui::SetCursorPos({});
-                Handles::WorldToView() = cameraWorldToLocal.value;
-                Handles::ViewToClip() = cameraViewToClip.value;
-                auto [data,type] = GlobalInspectorWindow.GetTarget().value();
-                if (sceneGUIs.contains(type))
-                    sceneGUIs[type](data);
-            }
-        }
-
         ImGui::End();
     }
 }
