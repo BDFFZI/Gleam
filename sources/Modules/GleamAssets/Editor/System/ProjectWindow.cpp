@@ -49,13 +49,6 @@ namespace Gleam
             ImGui::EndDragDropTarget();
         }
     }
-    void ProjectWindow::RemoveAssetInspector(const std::filesystem::path& path)
-    {
-        AssetBundle& assetBundle = AssetDatabase::GetAssetBundle(path);
-        auto optionalTarget = GlobalInspectorWindow.GetTarget();
-        if (optionalTarget.has_value() && assetBundle.GetAssetSlot(optionalTarget->data).has_value())
-            GlobalInspectorWindow.SetTarget(std::nullopt);
-    }
     void ProjectWindow::ShowFile(const std::filesystem::path& path)
     {
         //获取路径信息
@@ -134,14 +127,20 @@ namespace Gleam
                         assetSlot.GetAsset().GetObjectType().GetIndex()
                     });
                 }
+                EditorUI::SetDragDropObject(assetSlot.GetAsset().GetObject(), assetSlot.GetAsset().GetObjectType());
             }
         }
         else if (assetBundlesLoading.contains(assetBundleID))
         {
             //首次关闭，卸载资源包
-            RemoveAssetInspector(path);
-            Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
-            assetBundlesLoading.erase(assetBundleID);
+            auto optionalTarget = GlobalInspectorWindow.GetTarget();
+            auto optionalAssetRef = optionalTarget.has_value() ? AssetBundle::GetAssetRef(optionalTarget->data) : std::nullopt;
+            {
+                Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
+                assetBundlesLoading.erase(assetBundleID);
+            }
+            if (optionalAssetRef.has_value() && !AssetBundle::GetObject(optionalAssetRef.value()).has_value())
+                GlobalInspectorWindow.SetTarget(std::nullopt);
         }
 
         ImGui::PopID();

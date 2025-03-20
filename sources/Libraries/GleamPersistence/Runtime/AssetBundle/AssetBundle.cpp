@@ -4,7 +4,6 @@
 #include <fstream>
 #include <regex>
 
-#include "AssetBundleTransferrer.h"
 #include "GleamPersistence/Runtime/Serializer/BinaryReader.h"
 #include "GleamPersistence/Runtime/Serializer/BinaryWriter.h"
 #include "GleamPersistence/Runtime/Serializer/JsonReader.h"

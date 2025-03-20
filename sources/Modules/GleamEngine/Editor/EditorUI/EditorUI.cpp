@@ -13,7 +13,7 @@ namespace Gleam
         if (type.has_value())
             type.value().get().Serialize(serializer, target);
         else
-            serializer.Transfer(target, targetType);
+            serializer.FallbackTransfer(target, targetType);
     }
     void EditorUI::DrawEntityField(Entity& entity)
     {
@@ -35,5 +35,25 @@ namespace Gleam
                 entity = *static_cast<Entity*>(payload->Data);
             ImGui::EndDragDropTarget();
         }
+    }
+    void EditorUI::SetDragDropObject(void* object, const Type& objectType)
+    {
+        if (ImGui::BeginDragDropSource())
+        {
+            ImGui::SetDragDropPayload(
+                std::to_string(objectType.GetIndex().hash_code()).data(),
+                static_cast<void**>(&object), sizeof(void*));
+            ImGui::EndDragDropSource();
+        }
+    }
+    void* EditorUI::GetDragDropObject(const Type& objectType)
+    {
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (auto payload = ImGui::AcceptDragDropPayload(std::to_string(objectType.GetIndex().hash_code()).data()))
+                return *static_cast<void**>(payload->Data);
+            ImGui::EndDragDropTarget();
+        }
+        return nullptr;
     }
 }

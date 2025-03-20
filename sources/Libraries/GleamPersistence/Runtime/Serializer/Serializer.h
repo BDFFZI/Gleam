@@ -15,7 +15,7 @@ namespace Gleam
         void Transfer(int64_t& value) override = 0;
         void Transfer(std::string& value) override = 0;
         void Transfer(std::vector<std::byte>& value) override = 0;
-        void Transfer(void* value, const std::type_index typeIndex) override
+        void FallbackTransfer(void* value, const std::type_index typeIndex) override
         {
             auto optionalType = Type::GetType(typeIndex);
             if (optionalType.has_value())
@@ -27,6 +27,10 @@ namespace Gleam
             }
             else
                 throw std::runtime_error("不支持的传输类型！");
+        }
+        void FallbackTransferPtr(void*& ptr, std::type_index valueType) override
+        {
+            throw std::runtime_error("不支持的传输类型！");
         }
     };
 }

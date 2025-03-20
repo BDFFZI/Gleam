@@ -66,7 +66,7 @@ namespace Gleam
         Transfer(wrap);
         value = uuids::uuid::from_string(wrap).value_or(uuids::uuid{});
     }
-    void FieldDataTransferrer::Transfer(void* value, const std::type_index typeIndex)
+    void FieldDataTransferrer::FallbackTransfer(void* value, const std::type_index typeIndex)
     {
         auto optionalType = Type::GetType(typeIndex);
         if (optionalType.has_value())

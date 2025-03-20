@@ -14,6 +14,9 @@ namespace Gleam
     }
     float AnimationClip::GetAnimationLength()
     {
+        if (curves.empty())
+            return 0;
+
         return std::ranges::max(curves | std::views::transform([](AnimationCurve& curve)
         {
             return curve.GetTimeSpan();

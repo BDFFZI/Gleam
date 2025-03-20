@@ -42,7 +42,7 @@ namespace Gleam
             Transfer(value);
             PopNode();
         }
-        
+
         /**
          * 枚举类型
          * @tparam TValue 
@@ -87,6 +87,19 @@ namespace Gleam
          */
         void Transfer(std::vector<bool>& value);
         /**
+         * 指针类型
+         * @tparam TValue 
+         * @param value 
+         */
+        template <class TValue>
+        void Transfer(TValue*& value)
+        {
+            if constexpr (requires() { FieldDataTransferrer_Transfer<TValue*>::Invoke; })
+                FieldDataTransferrer_Transfer<TValue*>::Invoke(*this, value); //优先使用自定义实现
+            else
+                this->FallbackTransferPtr(value, typeid(value)); //否则用专门的指针传输回退函数
+        }
+        /**
          * 其他任意类型
          * @tparam TValue 
          * @param value 
@@ -97,7 +110,7 @@ namespace Gleam
             if constexpr (requires() { FieldDataTransferrer_Transfer<TValue>::Invoke; })
                 FieldDataTransferrer_Transfer<TValue>::Invoke(*this, value); //优先使用自定义实现
             else
-                this->Transfer(&value, typeid(value)); //否则用RTTI处理
+                this->FallbackTransfer(&value, typeid(value)); //否则用RTTI处理
         }
 
         virtual void PushNode(std::optional<std::string_view> name, DataType dataType)
@@ -130,7 +143,10 @@ namespace Gleam
          * @param value 
          * @param typeIndex 
          */
-        virtual void Transfer(void* value, std::type_index typeIndex);
+        virtual void FallbackTransfer(void* value, std::type_index typeIndex);
+        virtual void FallbackTransferPtr(void*& object, std::type_index objectType)
+        {
+        }
     };
     static_assert(FieldTransferrer<FieldDataTransferrer>);
 }
