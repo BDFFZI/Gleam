@@ -43,5 +43,5 @@ namespace Gleam
     }
 
 #define Gleam_MakeAssetImporter(extension,type) \
-    Gleam_MakeInitEvent(){AssetImporter::AddCustomImporter(extension,type);}
+    Gleam_MakeInitEvent(){::Gleam::AssetImporter::AddCustomImporter(extension,type);}
 }

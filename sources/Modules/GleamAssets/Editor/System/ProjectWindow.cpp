@@ -225,4 +225,10 @@ namespace Gleam
             AssetDatabase::Move(std::get<0>(movingPath), std::get<1>(movingPath));
         movingPaths.clear();
     }
+
+    void JsonObjectImporter::LoadAsset(const std::filesystem::path& path, uuids::uuid& assetBundleID)
+    {
+        AssetBundle& assetBundle = AssetBundle::LoadJson(path.string(), true);
+        assetBundleID = assetBundle.GetID();
+    }
 }

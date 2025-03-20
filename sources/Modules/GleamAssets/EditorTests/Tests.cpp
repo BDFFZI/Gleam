@@ -13,19 +13,7 @@ Gleam_Main
 
 using namespace Gleam;
 
-void ProjectWindow_CreateTestAsset()
-{
-    auto path = ProjectWindow::GetDirectoryDrawing() / "TestAsset.asset";
-
-    AssetBundle& assetBundle = AssetBundle::Create();
-    {
-        assetBundle.AddAsset(Sphere{{1, 2, 3}, 4});
-        AssetDatabase::Save(path, assetBundle);
-    }
-    AssetBundle::Unload(assetBundle);
-}
-
-Gleam_AddProjectWindowDirectoryMenu("Create/TestAsset", ProjectWindow_CreateTestAsset)
+Gleam_MakeCreateAssetMenu(Sphere,".sphere")
 
 struct MyComponent
 {

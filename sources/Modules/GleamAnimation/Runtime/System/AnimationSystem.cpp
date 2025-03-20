@@ -1,0 +1,20 @@
+﻿#include "AnimationSystem.h"
+
+#include "GleamAnimation/Runtime/Component/Animation.h"
+#include "GleamECS/Runtime/View.h"
+#include "GleamEngine/Runtime/System/TimeSystem.h"
+
+namespace Gleam
+{
+    void AnimationSystem::Update()
+    {
+        View<Animation>::Each([](const Entity entity, Animation& animationClip)
+        {
+            if (animationClip.clip == nullptr || animationClip.isPlaying == false)
+                return;
+
+            animationClip.time += GlobalTimeSystem.GetDeltaTime();
+            animationClip.clip->SampleAnimation(entity, animationClip.time);
+        });
+    }
+}

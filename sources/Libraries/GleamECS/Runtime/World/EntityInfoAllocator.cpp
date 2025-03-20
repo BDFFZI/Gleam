@@ -11,7 +11,7 @@ namespace Gleam
     {
         return entityInfos.contains(entity);
     }
-    EntityInfo& EntityInfoAllocator::GetEntityInfo(const Entity entity)
+    const EntityInfo& EntityInfoAllocator::GetEntityInfo(const Entity entity) const
     {
         return entityInfos.at(entity);
     }

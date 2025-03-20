@@ -73,7 +73,7 @@ namespace Gleam
         template <Component TComponent>
         static bool HasComponent(const Entity entity)
         {
-            EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
+            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
             return entityInfo.archetype->HasComponent(typeid(TComponent));
         }
         template <Component TComponent>
@@ -100,7 +100,7 @@ namespace Gleam
             assert(entity != Entity::Null && "目标实体为空！");
             assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
 
-            EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
+            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
             int offset = entityInfo.archetype->GetComponentOffset(typeid(TComponent));
             return *reinterpret_cast<TComponent*>(entityInfo.memoryAddress + offset);
         }
@@ -110,7 +110,7 @@ namespace Gleam
             assert(entity != Entity::Null && "目标实体为空！");
             assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
 
-            EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
+            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
             const Archetype& archetype = *entityInfo.archetype;
             ((outComponents = reinterpret_cast<TComponents*>(entityInfo.memoryAddress + archetype.GetComponentOffset(typeid(TComponents)))), ...);
         }
@@ -120,7 +120,7 @@ namespace Gleam
             assert(entity != Entity::Null && "目标实体为空！");
             assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
 
-            EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
+            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
             const Archetype& archetype = *entityInfo.archetype;
             ((outComponents = *reinterpret_cast<TComponents*>(entityInfo.memoryAddress + archetype.GetComponentOffset(typeid(TComponents)))), ...);
         }
@@ -130,7 +130,7 @@ namespace Gleam
             assert(entity != Entity::Null && "目标实体为空！");
             assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
 
-            EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
+            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
             const Archetype& archetype = *entityInfo.archetype;
             ((*reinterpret_cast<TComponents*>(entityInfo.memoryAddress + archetype.GetComponentOffset(typeid(TComponents))) = components), ...);
         }

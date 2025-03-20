@@ -35,26 +35,29 @@ namespace Gleam
     public:
         virtual ~FieldDataTransferrer() = default;
 
-        /**
-         * 基础类型
-         * @tparam TValue 
-         * @param name 
-         * @param value 
-         */
-        template <class TValue> requires
-            std::is_arithmetic_v<TValue>
-            || std::is_same_v<TValue, std::string>
-            || std::is_same_v<TValue, std::vector<std::byte>>
+        template <class TValue>
         void TransferField(std::string_view name, TValue& value)
         {
             PushNode(name, DataType::Field);
             Transfer(value);
             PopNode();
         }
+
+        // TODO：与Entity冲突
+        // /**
+        //  * 枚举类型
+        //  * @tparam TValue 
+        //  * @param value 
+        //  */
+        // template <class TValue> requires std::is_enum_v<TValue>
+        // void Transfer(TValue& value)
+        // {
+        //     using type = std::_Unwrap_enum_t<TValue>;
+        //     Transfer(*reinterpret_cast<type*>(&value));
+        // }
         /**
          * 容器类型
          * @tparam TValue 
-         * @param name 
          * @param value 
          */
         template <class TValue> requires
@@ -62,9 +65,9 @@ namespace Gleam
                 && !std::is_same_v<TValue, std::vector<std::byte>>
                 && !std::is_same_v<TValue, std::string>)
             || std::is_array_v<TValue>
-        void TransferField(std::string_view name, TValue& value)
+        void Transfer(TValue& value)
         {
-            PushNode(name, DataType::Class);
+            PushNode(std::nullopt, DataType::Class);
             {
                 size_t size = std::size(value);
                 TransferField("size", size);
@@ -80,23 +83,22 @@ namespace Gleam
             PopNode();
         }
         /**
-         * std::vector<bool>特殊处理
-         * @param name 
+         * 容器类型std::vector<bool>特殊处理
          * @param value 
          */
-        void TransferField(std::string_view name, std::vector<bool>& value);
+        void Transfer(std::vector<bool>& value);
         /**
-         * 其他类型
+         * 其他任意类型
          * @tparam TValue 
-         * @param name 
          * @param value 
          */
         template <class TValue>
-        void TransferField(std::string_view name, TValue& value)
+        void Transfer(TValue& value) //传输特殊字段
         {
-            PushNode(name, DataType::Field);
-            Transfer(value);
-            PopNode();
+            if constexpr (requires() { FieldDataTransferrer_Transfer<TValue>::Invoke; })
+                FieldDataTransferrer_Transfer<TValue>::Invoke(*this, value); //优先使用自定义实现
+            else
+                this->Transfer(&value, typeid(value)); //否则用RTTI处理
         }
 
         virtual void PushNode(std::optional<std::string_view> name, DataType dataType)
@@ -105,7 +107,6 @@ namespace Gleam
         virtual void PopNode()
         {
         }
-        virtual void Transfer(void* value, std::type_index typeIndex);
         virtual void Transfer(double& value)
         {
         }
@@ -125,14 +126,12 @@ namespace Gleam
         {
         }
         virtual void Transfer(uuids::uuid& value);
-        template <class TValue>
-        void Transfer(TValue& value) //传输特殊字段
-        {
-            if constexpr (requires() { FieldDataTransferrer_Transfer<TValue>::Invoke; })
-                FieldDataTransferrer_Transfer<TValue>::Invoke(*this, value); //优先使用自定义实现
-            else
-                this->Transfer(&value, typeid(value)); //否则用RTTI处理
-        }
+        /**
+         * 最终失败回退，基于RTTI处理
+         * @param value 
+         * @param typeIndex 
+         */
+        virtual void Transfer(void* value, std::type_index typeIndex);
     };
     static_assert(FieldTransferrer<FieldDataTransferrer>);
 }

@@ -31,7 +31,7 @@ namespace Gleam
         delete[] dest;
         return result;
     }
-    void String::Split(const std::string& text, const std::string& splitWord, std::vector<std::string>& result)
+    void String::Split(const std::string_view text, const std::string& splitWord, std::vector<std::string>& result)
     {
         size_t begin = 0;
         const size_t splitLength = splitWord.size();
@@ -164,6 +164,6 @@ namespace Gleam
             reinterpret_cast<const unsigned char*>(input.data()),
             static_cast<int>(input.size()),
             reinterpret_cast<unsigned char*>(output.data())
-        ));//存在为凑3字节的空字节，故需二次重置大小来确定
+        )); //存在为凑3字节的空字节，故需二次重置大小来确定
     }
 }

@@ -4,9 +4,9 @@
 
 namespace Gleam
 {
-    void FieldDataTransferrer::TransferField(std::string_view name, std::vector<bool>& value)
+    void FieldDataTransferrer::Transfer(std::vector<bool>& value)
     {
-        PushNode(name, DataType::Class);
+        PushNode(std::nullopt, DataType::Class);
         {
             size_t size = std::size(value);
             TransferField("size", size);
@@ -23,17 +23,6 @@ namespace Gleam
             PopNode();
         }
         PopNode();
-    }
-    void FieldDataTransferrer::Transfer(void* value, const std::type_index typeIndex)
-    {
-        auto optionalType = Type::GetType(typeIndex);
-        if (optionalType.has_value())
-        {
-            const Type& type = optionalType.value();
-            PushNode(std::nullopt, DataType::Class);
-            type.Serialize(*this, value);
-            PopNode();
-        }
     }
     void FieldDataTransferrer::Transfer(float& value)
     {
@@ -76,5 +65,16 @@ namespace Gleam
         std::string wrap = to_string(value);
         Transfer(wrap);
         value = uuids::uuid::from_string(wrap).value_or(uuids::uuid{});
+    }
+    void FieldDataTransferrer::Transfer(void* value, const std::type_index typeIndex)
+    {
+        auto optionalType = Type::GetType(typeIndex);
+        if (optionalType.has_value())
+        {
+            const Type& type = optionalType.value();
+            PushNode(std::nullopt, DataType::Class);
+            type.Serialize(*this, value);
+            PopNode();
+        }
     }
 }

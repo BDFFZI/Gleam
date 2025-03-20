@@ -11,8 +11,8 @@ namespace Gleam
     {
         std::string name;
         std::type_index type;
-        std::ptrdiff_t offset;
-        std::size_t size;
+        int offset;
+        int size;
     };
 
     /**
@@ -31,8 +31,8 @@ namespace Gleam
             fieldInfos.emplace_back(
                 name,
                 typeid(TMember),
-                reinterpret_cast<std::byte*>(&value) - targetAddress,
-                sizeof(TMember)
+                static_cast<int>(reinterpret_cast<std::byte*>(&value) - targetAddress),
+                static_cast<int>(sizeof(TMember))
             );
         }
 

@@ -82,7 +82,7 @@ namespace Gleam
             assert(!allTypes.contains(typeid(T)) && "类型已创建！");
             assert(!id.has_value() || !allTypes.contains(typeid(T)) && "编号已占用！");
 
-            Type& type = allTypes.emplace(typeid(T), Type{}).first->second;
+            Type& type = allTypes[typeid(T)];
 
             type.index = typeid(T);
             type.id = id.value_or(uuids::uuid(MD5(type.index.name()).toArray()));
@@ -133,6 +133,10 @@ namespace Gleam
         static std::optional<std::reference_wrapper<const Type>> GetType(std::type_index typeIndex);
         static std::optional<std::reference_wrapper<const Type>> GetType(uuids::uuid typeID);
 
+        Type() = default;
+        Type(Type&) = delete;
+        Type& operator=(Type&) = delete;
+
         bool operator==(const Type& other) const
         {
             return id == other.id;
@@ -150,6 +154,7 @@ namespace Gleam
         const std::vector<FieldInfo>& GetFields() const;
 
         void SetParent(std::optional<std::reference_wrapper<const Type>> parent);
+        bool FindFields(std::string_view path, std::vector<FieldInfo>& result) const;
 
         void* Create() const;
         void Destroy(void* address) const;

@@ -15,11 +15,14 @@ namespace Gleam
         float Evaluate(float time) const;
 
     private:
+        Gleam_MakeType_Friend
         std::vector<float> times;
         std::vector<float> values;
     };
 
     Gleam_MakeType(AnimationCurve, "25C73BFA-3356-4334-82CF-B2E22F24CE15")
     {
+        Gleam_MakeType_AddField(times);
+        Gleam_MakeType_AddField(values);
     }
 }

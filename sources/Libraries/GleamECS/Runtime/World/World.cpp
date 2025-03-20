@@ -32,7 +32,7 @@ namespace Gleam
     }
     void World::MoveEntity(const Entity entity, const Archetype& newArchetype)
     {
-        EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
+        const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
         entityInfo.allocator->MoveEntity(entity, newArchetype);
     }
 

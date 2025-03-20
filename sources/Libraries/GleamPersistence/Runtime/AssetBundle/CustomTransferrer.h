@@ -1,7 +1,6 @@
 #pragma once
 #include "GleamReflection/Runtime/FieldDataTransferrer.h"
 #include "GleamReflection/Runtime/Type.h"
-#include "AssetBundle.h"
 
 namespace Gleam
 {

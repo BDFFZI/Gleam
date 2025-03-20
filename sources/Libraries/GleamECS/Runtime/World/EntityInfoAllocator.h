@@ -23,7 +23,7 @@ namespace Gleam
     public:
         Entity NextEntity();
         bool HasEntity(Entity entity) const;
-        EntityInfo& GetEntityInfo(Entity entity);
+        const EntityInfo& GetEntityInfo(Entity entity) const;
         void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
         void Clear();
 

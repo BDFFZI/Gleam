@@ -94,9 +94,10 @@ namespace Gleam
         uuids::uuid id;
         int size;
         int componentCount;
-        std::unordered_map<std::type_index, int> componentMapping;
         std::vector<const Type*> componentTypes;
         std::vector<int> componentOffsets;
+        
+        std::unordered_map<std::type_index, int> componentMapping;
 
         Archetype(std::string_view name, std::vector<const Type*> componentTypes);
     };

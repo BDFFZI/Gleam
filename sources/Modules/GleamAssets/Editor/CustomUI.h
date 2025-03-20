@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "GleamAssets/Runtime/SceneAsset/EntityAsset.h"
-#include "GleamECS/Runtime/Archetype.h"
 
 namespace Gleam
 {

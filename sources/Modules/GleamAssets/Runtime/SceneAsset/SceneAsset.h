@@ -2,7 +2,6 @@
 #include "GleamECS/Runtime/Scene.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 #include "GleamReflection/Runtime/Type.h"
-#include "EntityTransferrer.h"//引导编译模板
 
 namespace Gleam
 {

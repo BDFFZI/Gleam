@@ -3,7 +3,9 @@
 
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Editor/System/EditorUISystem.h"
-#include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
+
+#include "GleamAssets/Editor/Asset/AssetImporter.h"
+#include "GleamAssets/Editor/Asset/AssetDatabase.h"
 
 namespace Gleam
 {
@@ -39,9 +41,28 @@ namespace Gleam
     };
     Gleam_MakeGlobalSystem(ProjectWindow)
 
+
+    class JsonObjectImporter : public AssetImporter
+    {
+        void LoadAsset(const std::filesystem::path& path, uuids::uuid& assetBundleID) override;
+    };
+
 #define Gleam_AddProjectWindowDirectoryMenu(name,action) \
 Gleam_MakeInitEvent(){::Gleam::ProjectWindow::AddDirectoryMenu(name,action);}
 
 #define Gleam_AddProjectWindowFileMenu(extension,name,action) \
 Gleam_MakeInitEvent(){::Gleam::ProjectWindow::AddFileMenu(extension,name,action);}
+
+#define Gleam_MakeCreateAssetMenu(type,extension)\
+void ProjectWindowMenu_Create##type##Asset()\
+{\
+AssetBundle& assetBundle = AssetBundle::Create();\
+assetBundle.AddAsset(type{});\
+AssetDatabase::Save(ProjectWindow::GetDirectoryDrawing() / "New"#type##extension, assetBundle);\
+AssetBundle::Unload(assetBundle);\
+}\
+Gleam_MakeInitEvent(){\
+::Gleam::ProjectWindow::AddDirectoryMenu("Create/"#type,ProjectWindowMenu_Create##type##Asset);\
+::Gleam::AssetImporter::AddCustomImporter(extension, Type::CreateOrGet<JsonObjectImporter>());\
+}
 }

@@ -33,6 +33,35 @@ namespace Gleam
     {
         return value > 0 ? 1.0f : value < 0.0f ? -1.0f : 0.0f;
     }
+    /**
+     * 类似取模，但会处理负数情况，保证结果永远在0到length之间
+     *
+     * 实现方法：
+     * 1. 获取t相对length取余后的带符号整数
+     * 2. 该整数始终小于等于t，将t减去该值即可求出t相对length的无符号余数
+     * @param t 
+     * @param length 
+     * @return 
+     */
+    inline float Repeat(const float t, const float length)
+    {
+        return std::clamp(t - std::floor(t / length) * length, 0.0f, length);
+    }
+    /**
+     * 将t限制在0到length间来回跳动
+     *
+     * 实现方法：
+     * 1. t相对length的倍数奇偶性决定了跳动的方向，故先对t无符号取模，获取其在0到2*length的值，其他区域都是该区间的重复。
+     * 2. 直接将t减去其与length的距离即可使length左右两边的数发生弹跳。
+     * @param t 
+     * @param length 
+     * @return 
+     */
+    inline float PingPong(float t, const float length)
+    {
+        t = Repeat(t, length * 2);
+        return length - std::abs(t - length);
+    }
 
     template <typename Type>
         requires std::is_arithmetic_v<Type>
