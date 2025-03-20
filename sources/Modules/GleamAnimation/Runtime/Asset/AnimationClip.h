@@ -4,6 +4,7 @@
 
 #include "AnimationCurve.h"
 #include "GleamECS/Runtime/Archetype.h"
+#include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 
 namespace Gleam
 {

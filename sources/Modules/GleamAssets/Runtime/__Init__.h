@@ -1,6 +1,4 @@
 #pragma once
-
-#include "SceneAsset/EntityTransferrer.h"//引导编译模板
 #include "SceneManager.h"
 
 #ifdef GleamEngineEditor

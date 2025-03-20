@@ -18,7 +18,7 @@ namespace Gleam
         void Transfer(int64_t& value) override;
         void Transfer(std::string& value) override;
         void Transfer(std::vector<std::byte>& value) override;
-        void Transfer(void* value, std::type_index type) override;
+        void Transfer(void* value, std::type_index typeIndex) override;
 
     private:
         float dragSpeed = 0.1f;

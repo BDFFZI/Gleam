@@ -1,6 +1,5 @@
 #pragma once
-#include "GleamReflection/Runtime/FieldDataTransferrer.h"
-#include "GleamReflection/Runtime/Type.h"
+//若要包含该头文件，请直接引入AssetBundle.h，该文件本质是AssetBundle.h的一部分
 
 namespace Gleam
 {

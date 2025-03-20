@@ -87,3 +87,7 @@ namespace Gleam
         }
     }
 }
+
+// 引导编译器编译序列化实体资源所需的模板特化
+// ReSharper disable once CppUnusedIncludeDirective
+#include "EntityAssetTransferrer.h"

@@ -42,19 +42,18 @@ namespace Gleam
             Transfer(value);
             PopNode();
         }
-
-        // TODO：与Entity冲突
-        // /**
-        //  * 枚举类型
-        //  * @tparam TValue 
-        //  * @param value 
-        //  */
-        // template <class TValue> requires std::is_enum_v<TValue>
-        // void Transfer(TValue& value)
-        // {
-        //     using type = std::_Unwrap_enum_t<TValue>;
-        //     Transfer(*reinterpret_cast<type*>(&value));
-        // }
+        
+        /**
+         * 枚举类型
+         * @tparam TValue 
+         * @param value 
+         */
+        template <class TValue> requires std::is_enum_v<TValue>
+        void Transfer(TValue& value)
+        {
+            using type = std::_Unwrap_enum_t<TValue>;
+            Transfer(*reinterpret_cast<type*>(&value));
+        }
         /**
          * 容器类型
          * @tparam TValue 

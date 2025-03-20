@@ -125,6 +125,6 @@ namespace Gleam
     }
 }
 
-// 依赖自定义指针传输来同步资源引用
+// 引导编译器编译资源包功能所需的模板特化
 // ReSharper disable once CppUnusedIncludeDirective
-#include "CustomTransferrer.h"
+#include "AssetBundleTransferrer.h"

@@ -118,32 +118,59 @@ namespace Gleam
         PreTransferNode();
         ImGui::LabelText(GetNodeName().c_str(), "binary data");
     }
-    void EditorUISerializer::Transfer(void* value, const std::type_index type)
+    void EditorUISerializer::Transfer(void* value, const std::type_index typeIndex)
     {
         if (nodeFolds.back() == false)
             return;
 
         PreTransferNode();
-        if (type == typeid(Entity))
+        if (typeIndex == typeid(Entity))
         {
             EditorUI::DrawEntityField(*static_cast<Entity*>(value));
             return;
         }
-        if (type == typeid(Archetype))
+        if (typeIndex == typeid(Archetype))
         {
             ImGui::SeparatorText("Archetype");
             std::string str = to_string(*static_cast<Archetype*>(value));
             ImGui::Text(str.data());
             return;
         }
+        // if (std::string(typeIndex.name()).rfind("__ptr") != std::string::npos)
+        // {
+        //     ImGui::Button(std::format("Ptr:{}", reinterpret_cast<uintptr_t>(*static_cast<void**>(value))).c_str());
+        //     if (ImGui::BeginDragDropSource())
+        //     {
+        //         ImGui::SetDragDropPayload("__ptr", value, sizeof(void*));
+        //         ImGui::EndDragDropSource();
+        //     }
+        //     if (ImGui::BeginDragDropTarget())
+        //     {
+        //         if (auto payload = ImGui::AcceptDragDropPayload("__ptr"))
+        //             *static_cast<void**>(value) = *static_cast<void**>(payload->Data);
+        //         ImGui::EndDragDropTarget();
+        //     }
+        //     //清空按钮
+        //     ImGui::SameLine();
+        //     if (ImGui::Button("X"))
+        //         *static_cast<void**>(value) = nullptr;
+        //     //名称
+        //     ImGui::SameLine();
+        //     ImGui::Text(GetNodeName().c_str());
+        //     return;
+        // }
 
-        try
+        auto optionalType = Type::GetType(typeIndex);
+        if (optionalType.has_value())
         {
-            FieldDataTransferrer::Transfer(value, type);
+            const Type& type = optionalType.value();
+            PushNode(std::nullopt, DataType::Class);
+            type.Serialize(*this, value);
+            PopNode();
         }
-        catch (...)
+        else
         {
-            ImGui::Text("unknown type <%s>", type.name());
+            ImGui::Text("unknown type <%s>", typeIndex.name());
         }
     }
 

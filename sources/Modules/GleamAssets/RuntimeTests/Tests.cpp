@@ -39,8 +39,7 @@ class MySystem : public System
     }
 };
 
-// TEST(Assets, Scene)
-void main()
+TEST(Assets, Scene)
 {
     MySystem& mySystem1 = System::CreateGlobal<MySystem>("MySystem1");
     MySystem& mySystem2 = System::CreateGlobal<MySystem>("MySystem2");

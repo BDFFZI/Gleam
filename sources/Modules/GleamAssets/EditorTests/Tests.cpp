@@ -13,7 +13,17 @@ Gleam_Main
 
 using namespace Gleam;
 
-Gleam_MakeCreateAssetMenu(Sphere,".sphere")
+struct MyAsset
+{
+    SceneAsset* sceneAsset;
+    int value;
+};
+Gleam_MakeType(MyAsset, "")
+{
+    Gleam_MakeType_AddField(sceneAsset);
+    Gleam_MakeType_AddField(value);
+}
+Gleam_MakeCreateAssetMenu(MyAsset, ".myAsset")
 
 struct MyComponent
 {
