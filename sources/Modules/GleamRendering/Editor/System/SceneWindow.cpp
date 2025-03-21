@@ -217,7 +217,7 @@ namespace Gleam
 
                 ImGui::EndMenuBar();
             }
-            
+
             //绘制相机画面
             if (sceneCameraCanvasImID != nullptr)
                 ImGui::Image(sceneCameraCanvasImID, windowContentSize);
@@ -258,14 +258,13 @@ namespace Gleam
                 }
 
                 //绘制自定义UI或Gizmos
-                if (GlobalInspectorWindow.GetTarget().has_value())
+                const auto& [objectPtr,objectTypeIndex] = GlobalInspectorWindow.GetTarget();
+                if (!objectPtr.expired() && sceneGUIs.contains(objectTypeIndex))
                 {
                     ImGui::SetCursorPos({});
                     Handles::WorldToView() = cameraWorldToLocal.value;
                     Handles::ViewToClip() = cameraViewToClip.value;
-                    auto [data,type] = GlobalInspectorWindow.GetTarget().value();
-                    if (sceneGUIs.contains(type))
-                        sceneGUIs[type](data);
+                    sceneGUIs[objectTypeIndex](objectPtr.lock().get());
                 }
             }
         }

@@ -34,50 +34,6 @@ namespace Gleam
         assetBundles.erase(assetBundle.id);
     }
 
-    void AssetBundle::SaveBinary(const std::string_view fileName, AssetBundle& assetBundle)
-    {
-        assetBundle.AddAssetDependency();
-
-        std::stringstream outStream;
-        BinaryWriter binaryWriter = BinaryWriter(outStream);
-        AssetBundleType.Serialize(binaryWriter, &assetBundle);
-        File::WriteAllText(fileName, outStream.str());
-    }
-    void AssetBundle::SaveJson(const std::string_view fileName, AssetBundle& assetBundle)
-    {
-        assetBundle.AddAssetDependency();
-
-        std::string json = JsonUtility::ToJson(&assetBundle, AssetBundleType, true);
-        File::WriteAllText(fileName, json);
-    }
-    void AssetBundle::SaveMeta(const std::string_view fileName, AssetBundle& assetBundle)
-    {
-        //收集依赖信息
-        AssetRefStatistician assetRefStatistician = {};
-        AssetBundleType.Serialize(assetRefStatistician, &assetBundle);
-        //填充资源包元信息
-        AssetBundleMeta assetBundleMeta;
-        for (auto& assetRef : assetRefStatistician.result)
-        {
-            if (assetRef.assetBundleID != assetBundle.id)
-                assetBundleMeta.dependencies.push_back(assetRef.assetBundleID);
-        }
-        //保存元信息
-        std::string meta = JsonUtility::ToJson(&assetBundleMeta, AssetBundleMetaType, true);
-        File::WriteAllText(std::string(fileName) + ".meta", meta);
-    }
-    void AssetBundle::DumpJsonToBinary(const std::string_view jsonFile, const std::string_view binaryFile, const bool saveMeta)
-    {
-        //反序列化得到json中的资源包数据
-        AssetBundle newAssetBundle = {};
-        JsonUtility::FromJson(File::ReadAllText(jsonFile), AssetBundleType, &newAssetBundle);
-        //转存为二进制文件
-        SaveBinary(binaryFile, newAssetBundle);
-        //保存meta信息
-        if (saveMeta)
-            SaveMeta(binaryFile, newAssetBundle);
-    }
-
     AssetBundle& AssetBundle::Load(AssetBundle& newAssetBundle, const bool reload)
     {
         assert(reload || (!HasInMemory(newAssetBundle.id) && "内存中已有目标资源包！"));
@@ -128,39 +84,83 @@ namespace Gleam
 
         return *result;
     }
-    AssetBundle& AssetBundle::LoadBinary(const std::string_view fileName, const bool reload)
+    AssetBundle& AssetBundle::LoadBinary(const std::filesystem::path& assetBundlePath, const bool reload)
     {
-        assert(std::filesystem::exists(fileName) && "文件不存在！");
+        assert(std::filesystem::exists(assetBundlePath) && "文件不存在！");
 
         //反序列化得到磁盘的中的资源包数据
-        std::ifstream inStream(fileName.data(), std::ios::in | std::ios::binary);
+        std::ifstream inStream(assetBundlePath, std::ios::in | std::ios::binary);
         BinaryReader binaryReader = BinaryReader(inStream);
         AssetBundle newAssetBundle = {};
         AssetBundleType.Serialize(binaryReader, &newAssetBundle);
 
         return Load(newAssetBundle, reload);
     }
-    AssetBundle& AssetBundle::LoadJson(const std::string_view fileName, const bool reload)
+    AssetBundle& AssetBundle::LoadJson(const std::filesystem::path& assetBundlePath, const bool reload)
     {
-        assert(std::filesystem::exists(fileName) && "文件不存在！");
+        assert(std::filesystem::exists(assetBundlePath) && "文件不存在！");
 
         //反序列化得到磁盘的中的资源包数据
         AssetBundle newAssetBundle = {};
-        JsonUtility::FromJson(File::ReadAllText(fileName), AssetBundleType, &newAssetBundle);
+        JsonUtility::FromJson(File::ReadAllText(assetBundlePath), AssetBundleType, &newAssetBundle);
 
         return Load(newAssetBundle, reload);
     }
-    AssetBundleMeta AssetBundle::LoadMeta(const std::string_view fileName)
+    AssetBundleMeta AssetBundle::LoadMeta(const std::filesystem::path& assetBundlePath)
     {
-        std::string json = File::ReadAllText(std::string(fileName) + ".meta");
+        std::string json = File::ReadAllText(assetBundlePath.string() + ".meta");
         AssetBundleMeta assetBundleMeta;
         JsonUtility::FromJson(json, AssetBundleMetaType, &assetBundleMeta);
         return assetBundleMeta;
     }
 
-    bool AssetBundle::HasMeta(const std::string_view fileName)
+    void AssetBundle::SaveBinary(const std::filesystem::path& assetBundlePath, AssetBundle& assetBundle)
     {
-        return std::filesystem::exists(std::string(fileName) + ".meta");
+        assetBundle.AddAssetDependency();
+
+        std::stringstream outStream;
+        BinaryWriter binaryWriter = BinaryWriter(outStream);
+        AssetBundleType.Serialize(binaryWriter, &assetBundle);
+        File::WriteAllText(assetBundlePath, outStream.str());
+    }
+    void AssetBundle::SaveJson(const std::filesystem::path& assetBundlePath, AssetBundle& assetBundle)
+    {
+        assetBundle.AddAssetDependency();
+
+        std::string json = JsonUtility::ToJson(&assetBundle, AssetBundleType, true);
+        File::WriteAllText(assetBundlePath, json);
+    }
+    void AssetBundle::SaveMeta(const std::filesystem::path& assetBundlePath, AssetBundle& assetBundle)
+    {
+        //收集依赖信息
+        AssetRefStatistician assetRefStatistician = {};
+        AssetBundleType.Serialize(assetRefStatistician, &assetBundle);
+        //填充资源包元信息
+        AssetBundleMeta assetBundleMeta;
+        for (auto& assetRef : assetRefStatistician.result)
+        {
+            if (assetRef.assetBundleID != assetBundle.id)
+                assetBundleMeta.dependencies.push_back(assetRef.assetBundleID);
+        }
+        //保存元信息
+        std::string meta = JsonUtility::ToJson(&assetBundleMeta, AssetBundleMetaType, true);
+        File::WriteAllText(assetBundlePath.string() + ".meta", meta);
+    }
+    void AssetBundle::DumpJsonToBinary(const std::filesystem::path& jsonAssetBundlePath, const std::filesystem::path& binaryAssetBundlePath, const bool saveMeta)
+    {
+        //反序列化得到json中的资源包数据
+        AssetBundle newAssetBundle = {};
+        JsonUtility::FromJson(File::ReadAllText(jsonAssetBundlePath), AssetBundleType, &newAssetBundle);
+        //转存为二进制文件
+        SaveBinary(binaryAssetBundlePath, newAssetBundle);
+        //保存meta信息
+        if (saveMeta)
+            SaveMeta(binaryAssetBundlePath, newAssetBundle);
+    }
+
+    bool AssetBundle::HasMeta(const std::filesystem::path& assetBundlePath)
+    {
+        return std::filesystem::exists(assetBundlePath.string() + ".meta");
     }
     bool AssetBundle::HasInMemory(const uuids::uuid assetBundleID)
     {
@@ -196,9 +196,9 @@ namespace Gleam
         return std::nullopt;
     }
 
-    uuids::uuid AssetBundle::GetIDFromJson(const std::string_view fileName)
+    uuids::uuid AssetBundle::GetIDFromJson(const std::filesystem::path& assetBundlePath)
     {
-        std::ifstream inStream(fileName.data(), std::ios::in | std::ios::binary);
+        std::ifstream inStream(assetBundlePath, std::ios::in | std::ios::binary);
         std::string json;
         json.resize(60);
         inStream.read(json.data(), static_cast<std::streamsize>(json.size()));

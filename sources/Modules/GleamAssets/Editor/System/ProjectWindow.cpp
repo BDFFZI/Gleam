@@ -189,6 +189,7 @@ namespace Gleam
         //除了结束时还未卸载的资源包
         for (auto assetBundleID : assetBundlesLoading)
             Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
+        assetBundlesLoading.clear();
     }
     void ProjectWindow::Update()
     {

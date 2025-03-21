@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <filesystem>
 #include <unordered_set>
 #include <memory>
 
@@ -38,23 +39,23 @@ namespace Gleam
         static void Unload(AssetBundle& assetBundle, bool releaseOwnership = false);
 
         static AssetBundle& Load(AssetBundle& newAssetBundle, bool reload = false);
-        static AssetBundle& LoadBinary(std::string_view fileName, bool reload = false);
-        static AssetBundle& LoadJson(std::string_view fileName, bool reload = false);
-        static AssetBundleMeta LoadMeta(std::string_view fileName);
+        static AssetBundle& LoadBinary(const std::filesystem::path& assetBundlePath, bool reload = false);
+        static AssetBundle& LoadJson(const std::filesystem::path& assetBundlePath, bool reload = false);
+        static AssetBundleMeta LoadMeta(const std::filesystem::path& assetBundlePath);
 
-        static void SaveBinary(std::string_view fileName, AssetBundle& assetBundle);
-        static void SaveJson(std::string_view fileName, AssetBundle& assetBundle);
-        static void SaveMeta(std::string_view fileName, AssetBundle& assetBundle);
-        static void DumpJsonToBinary(std::string_view jsonFile, std::string_view binaryFile, bool saveMeta);
+        static void SaveBinary(const std::filesystem::path& assetBundlePath, AssetBundle& assetBundle);
+        static void SaveJson(const std::filesystem::path& assetBundlePath, AssetBundle& assetBundle);
+        static void SaveMeta(const std::filesystem::path& assetBundlePath, AssetBundle& assetBundle);
+        static void DumpJsonToBinary(const std::filesystem::path& jsonAssetBundlePath, const std::filesystem::path& binaryAssetBundlePath, bool saveMeta);
 
-        static bool HasMeta(std::string_view fileName);
+        static bool HasMeta(const std::filesystem::path& filePath);
         static bool HasInMemory(uuids::uuid assetBundleID);
         static AssetBundle& GetAssetBundle(uuids::uuid assetBundleID);
         static std::optional<AssetRef> GetAssetRef(void* data);
         static std::optional<AssetRef> GetAssetRef(const std::weak_ptr<void>& data);
         static std::optional<std::shared_ptr<void>> GetObject(const AssetRef& assetRef);
 
-        static uuids::uuid GetIDFromJson(std::string_view fileName);
+        static uuids::uuid GetIDFromJson(const std::filesystem::path& filePath);
 
         AssetBundle() = default;
         AssetBundle(AssetBundle&&) = default;

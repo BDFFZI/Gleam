@@ -27,6 +27,14 @@ namespace Gleam
             this->objectPtr = objectPtr;
             objectTypeIndex = typeid(*objectPtr.get());
         }
+        InspectorTarget(Entity entity)
+        {
+            static std::shared_ptr<Entity> inspecting = nullptr;
+            inspecting = std::make_shared<Entity>(entity);
+
+            this->objectPtr = inspecting;
+            this->objectTypeIndex = typeid(Entity);
+        }
         /**
          * 设置一个完全由用户负责控制生命周期的对象，用户应能确保该对象不会变成野指针！
          * @tparam T 
@@ -69,7 +77,7 @@ namespace Gleam
         inline static bool useDebugGUI = false;
 
         InspectorTarget inspectorTarget;
-        
+
         void Update() override;
     };
     Gleam_MakeGlobalSystem(InspectorWindow)

@@ -45,9 +45,20 @@ namespace Gleam
     {
         auto assetBundlePath = resourceDirectory / to_string(assetBundle.GetID());
         AssetBundle::SaveBinary(assetBundlePath.string(), assetBundle);
-        AssetBundleMeta oldAssetBundleMeta = {};
-        if (AssetBundle::HasMeta(assetBundlePath))
-            oldAssetBundleMeta = AssetBundle::LoadMeta(assetBundlePath.string());
+
+        AssetBundleMeta oldAssetBundleMeta = AssetBundle::HasMeta(assetBundlePath) ? AssetBundle::LoadMeta(assetBundlePath.string()) : AssetBundleMeta{};
         AssetBundle::SaveMeta(assetBundlePath.string(), assetBundle);
+        AssetBundleMeta newAssetBundleMeta = AssetBundle::LoadMeta(assetBundlePath.string());
+
+        std::unordered_set<uuids::uuid> newDependencies = {newAssetBundleMeta.dependencies.begin(), newAssetBundleMeta.dependencies.end()};
+        for (auto oldDependency : oldAssetBundleMeta.dependencies)
+        {
+            if (!newDependencies.contains(oldDependency))
+                Unload(AssetBundle::GetAssetBundle(oldDependency)); //卸载不再依赖的资源包
+            else
+                newDependencies.erase(oldDependency); //无变化的资源包，忽略
+        }
+        for (auto newDependency : newDependencies)
+            Load(newDependency); //加载新增的依赖资源包
     }
 }

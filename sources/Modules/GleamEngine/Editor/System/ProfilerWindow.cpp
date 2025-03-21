@@ -6,6 +6,16 @@
 
 namespace Gleam
 {
+    void SortProfile(Profile& profile)
+    {
+        auto children = profile.children | std::views::take(profile.childrenCount);
+        std::ranges::sort(children, [](Profile& a, Profile& b)
+        {
+            return a.time > b.time;
+        });
+        for (auto& childProfile : children)
+            SortProfile(childProfile);
+    }
     void DrawProfile(Profile& profile)
     {
         ImGui::TableNextRow();
@@ -62,6 +72,12 @@ namespace Gleam
     {
         lastProfile = std::move(profiler);
     }
+    void ProfilerWindow::SetShowProfile(Profile& profile)
+    {
+        showProfile = profile;
+        if (sort)
+            SortProfile(showProfile);
+    }
     void ProfilerWindow::Update()
     {
         ImGui::Begin("ProfilerWindow");
@@ -70,10 +86,20 @@ namespace Gleam
             DrawRootProfile("LastProfile", lastProfile);
 
         if (ImGui::Button("Tick"))
+        {
             tickProfile = lastProfile;
+            SetShowProfile(tickProfile);
+        }
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Sort", &sort))
+        {
+            SetShowProfile(tickProfile);
+        }
+
+        //显示探针
         ImGui::SameLine();
         if (ImGui::CollapsingHeader("TickProfile", ImGuiTreeNodeFlags_DefaultOpen))
-            DrawRootProfile("TickProfile", tickProfile);
+            DrawRootProfile("TickProfile", showProfile);
 
         ImGui::End();
     }

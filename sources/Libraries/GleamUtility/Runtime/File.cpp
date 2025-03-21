@@ -6,20 +6,20 @@
 
 namespace Gleam
 {
-    void File::WriteAllText(const std::string_view filename, const std::string_view content)
+    void File::WriteAllText(const std::filesystem::path& filePath, const std::string_view content)
     {
-        auto rootDirectory = std::filesystem::path(filename).parent_path();
+        auto rootDirectory = std::filesystem::path(filePath).parent_path();
         if (!rootDirectory.empty() && !exists(rootDirectory))
             create_directory(rootDirectory);
 
-        std::ofstream file(filename.data(), std::ios::binary);
+        std::ofstream file(filePath, std::ios::binary);
         file.write(content.data(), static_cast<std::streamsize>(content.size()));
         file.close();
     }
-    std::string File::ReadAllText(const std::string_view filename)
+    std::string File::ReadAllText(const std::filesystem::path& filePath)
     {
         //通过ate标志初始就将读取位置设在流末尾
-        std::ifstream file(filename.data(), std::ios::ate | std::ios::binary);
+        std::ifstream file(filePath, std::ios::ate | std::ios::binary);
         if (!file.is_open())
             throw std::runtime_error("文件打开失败！");
 

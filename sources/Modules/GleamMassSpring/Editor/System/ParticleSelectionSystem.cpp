@@ -19,6 +19,7 @@ namespace Gleam
         float4x4 screenToClip = World::GetComponent<ScreenToClip>(GlobalSceneWindow.GetSceneCamera()).value;
         float2 mousePositionNDC = mul(screenToClip, float4(inputSystem.GetMousePosition(), 0, 1)).xy;
 
+        //检索当前鼠标位置的质点实体
         optionalEntity = Entity::Null;
         optionalEntityZ = 1;
         View<Particle>::Each([this,&worldToClip,mousePositionNDC](const Entity entity, const Particle& point)
@@ -36,19 +37,8 @@ namespace Gleam
             }
         });
 
-        //取消选择
-        if (inputSystem.GetMouseButtonUp(MouseButton::Left) && !ImGuizmo::IsUsingAny())
-        {
-            if (optionalEntity != Entity::Null)
-                inspectingEntity = optionalEntity;
-            if (!GlobalInspectorWindow.GetTarget().has_value())
-                GlobalInspectorWindow.SetTarget(InspectorTarget{inspectingEntity});
-            else if (GlobalInspectorWindow.GetTarget().value().type == typeid(Entity))
-            {
-                Entity entity = *static_cast<Entity*>(GlobalInspectorWindow.GetTarget().value().data);
-                if (!World::HasEntity(entity) || World::HasComponent<Particle>(entity))
-                    GlobalInspectorWindow.SetTarget(InspectorTarget{inspectingEntity});
-            }
-        }
+        //选择质点
+        if (optionalEntity != Entity::Null && inputSystem.GetMouseButtonUp(MouseButton::Left) && !ImGuizmo::IsUsingAny())
+            GlobalInspectorWindow.SetTarget(optionalEntity);
     }
 }

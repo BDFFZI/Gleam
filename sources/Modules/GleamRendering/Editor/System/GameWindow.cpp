@@ -15,22 +15,22 @@ namespace Gleam
 {
     void GameWindow::Start()
     {
-        imageSize = 0; //以便重启时能触发纹理重建
+        lastImageSize = 0; //以便重启时能触发纹理重建
         preProcessSystem.OnUpdate() = [this]
         {
             //重建渲染目标和纹理
-            if (isDirty && imageSize.x > 0 && imageSize.y > 0)
+            if (isDirty && lastImageSize.x > 0 && lastImageSize.y > 0)
             {
                 isDirty = false;
                 SwapChain::WaitPresent();
                 if (renderTextureID != nullptr)
                     UI::DeleteTexture(renderTextureID);
-                renderTexture = std::make_unique<GRenderTexture>(static_cast<int2>(imageSize));
+                renderTexture = std::make_unique<GRenderTexture>(static_cast<int2>(lastImageSize));
                 renderTextureID = UI::CreateTexture(*renderTexture);
                 GlobalRenderingSystem.SetDefaultRenderTarget(*renderTexture);
             }
             //更新输入系统的焦点范围为GameWindow
-            GlobalInputSystem.SetFocusArea(Rectangle::CreateFromOrigin(imagePosition, imageSize));
+            GlobalInputSystem.SetFocusArea(Rectangle::CreateFromOrigin(imagePosition, lastImageSize));
         };
         World::AddSystem(preProcessSystem);
     }
@@ -45,11 +45,8 @@ namespace Gleam
     {
         if (ImGui::Begin("GameWindow", nullptr, ImGuiWindowFlags_MenuBar))
         {
-            //判断重建纹理
-            if (any(imageSize != UI::GetWindowContentRegionSize()))
-                isDirty = true;
             //获取窗口信息
-            imageSize = ImGui::GetContentRegionAvail();
+            float2 imageSize = ImGui::GetContentRegionAvail();
             if (!equal(aspect, 0.0f))
             {
                 if (imageSize.x / imageSize.y > aspect)
@@ -58,6 +55,10 @@ namespace Gleam
                     imageSize.y = imageSize.x / aspect;
             }
             imagePosition = ImGui::GetCursorScreenPos() + ImGui::GetContentRegionAvail() / 2 - imageSize / 2;
+            //判断重建纹理
+            if (any(imageSize != lastImageSize))
+                isDirty = true;
+            lastImageSize = imageSize;
             //游戏窗口菜单
             if (ImGui::BeginMenuBar())
             {

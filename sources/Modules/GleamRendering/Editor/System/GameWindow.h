@@ -14,7 +14,7 @@ namespace Gleam
 
     private:
         float2 imagePosition = 0;
-        float2 imageSize = 0;
+        float2 lastImageSize = 0;
         float aspect = 1920.0f / 1080.0f;
         std::unique_ptr<GRenderTexture> renderTexture;
         ImTextureID renderTextureID = {};

@@ -19,9 +19,7 @@ namespace Gleam
     {
         if (ImGui::Button(std::format("Entity:{}", static_cast<uint32_t>(entity)).c_str()))
         {
-            static std::shared_ptr<Entity> inspecting = nullptr;
-            inspecting = std::make_shared<Entity>(entity);
-            GlobalInspectorWindow.SetTarget(inspecting);
+            GlobalInspectorWindow.SetTarget(entity);
         }
         if (ImGui::BeginDragDropSource())
         {

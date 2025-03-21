@@ -15,8 +15,7 @@ namespace Gleam
 
     private:
         Gleam_MakeType_Friend
-
-        Entity inspectingEntity = Entity::Null;
+        
         Entity optionalEntity = Entity::Null;
         float optionalEntityZ = 1;
 
