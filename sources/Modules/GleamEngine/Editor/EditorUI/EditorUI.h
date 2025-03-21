@@ -10,10 +10,7 @@ namespace Gleam
     public:
         static void DrawSerializedContent(void* target, std::type_index targetType);
         static void DrawEntityField(Entity& entity);
-        static void SetDragDropObject(void* object, const Type& objectType);
-        static void* GetDragDropObject(const Type& objectType);
-
-    private:
-        inline static Entity inspecting = Entity::Null;
+        static void SetDragDropObject(const std::shared_ptr<void>& objectPtr, std::type_index objectTypeIndex);
+        static std::shared_ptr<void> GetDragDropObject(std::type_index objectType);
     };
 }

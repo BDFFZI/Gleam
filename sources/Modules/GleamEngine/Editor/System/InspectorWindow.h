@@ -9,17 +9,41 @@ namespace Gleam
 {
     struct InspectorTarget
     {
-        void* data = nullptr;
-        std::type_index type = typeid(void);
+        std::weak_ptr<void> objectPtr = {};
+        std::type_index objectTypeIndex = typeid(void);
 
         InspectorTarget() = default;
-        InspectorTarget(void* data, std::type_index type);
-        template <class T>
-            requires !std::is_same_v<T, InspectorTarget> && !std::is_reference_v<T>
-        InspectorTarget(T& target)
+        InspectorTarget(nullptr_t)
+            : InspectorTarget()
         {
-            data = &target;
-            type = typeid(target);
+        }
+        InspectorTarget(const std::shared_ptr<void>& objectPtr, const std::type_index objectTypeIndex)
+            : objectPtr(objectPtr), objectTypeIndex(objectTypeIndex)
+        {
+        }
+        template <class T> requires !std::is_void_v<T>
+        InspectorTarget(const std::shared_ptr<T>& objectPtr)
+        {
+            this->objectPtr = objectPtr;
+            objectTypeIndex = typeid(*objectPtr.get());
+        }
+        /**
+         * 设置一个完全由用户负责控制生命周期的对象，用户应能确保该对象不会变成野指针！
+         * @tparam T 
+         * @param object 
+         */
+        template <class T> requires
+            !std::is_reference_v<T> && !std::is_pointer_v<T> && !std::is_same_v<T, InspectorTarget> && !std::is_same_v<T, std::shared_ptr<T>>
+        explicit InspectorTarget(T& object)
+        {
+            static std::shared_ptr<T> cachePtr;
+            cachePtr = std::shared_ptr<T>(&object, [](T*)
+            {
+                //一个不会销毁的假共享指针
+            });
+
+            this->objectPtr = cachePtr;
+            objectTypeIndex = typeid(object);
         }
     };
 
@@ -27,26 +51,25 @@ namespace Gleam
     {
     public:
         using CustomUI = std::unordered_map<std::type_index, std::function<void(void*)>>;
-        
+
         static bool& UseDebugGUI();
         static const CustomUI& GetCustomUI();
         static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorUI);
-        static void Show(InspectorTarget inspectorTarget);
+        static void Show(const InspectorTarget& inspectorTarget);
 
         InspectorWindow(): System(GlobalEditorUISystem, DefaultOrder, MaxOrder)
         {
         }
 
-        const std::optional<InspectorTarget>& GetTarget() const;
-        void SetTarget(const std::optional<InspectorTarget>& target);
+        const InspectorTarget& GetTarget() const;
+        void SetTarget(const InspectorTarget& target);
 
     private:
         inline static CustomUI inspectorGUIs = {};
         inline static bool useDebugGUI = false;
 
-        std::optional<InspectorTarget> target;
-
-        void Stop() override;
+        InspectorTarget inspectorTarget;
+        
         void Update() override;
     };
     Gleam_MakeGlobalSystem(InspectorWindow)

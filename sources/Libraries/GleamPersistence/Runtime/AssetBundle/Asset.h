@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "GleamReflection/Runtime/FieldDataTransferrer.h"
 #include "GleamReflection/Runtime/Type.h"
+#include "GleamWindow/Runtime/InputEnum.h"
 
 #undef GetObject
 
@@ -18,31 +19,37 @@ namespace Gleam
     {
     public:
         Asset() = default;
-        Asset(void* object, const Type& objectType, bool ownership);
+        Asset(const std::shared_ptr<void>& object, const Type& objectType);
         template <class T> requires !std::is_reference_v<T>
         Asset(T&& data)
         {
             const Type& type = Type::GetType(typeid(T)).value();
             objectType = &type;
-            object = type.Create();
-            ownership = true;
-            type.Move(object, &data);
+            objectPtr = type.MakeShared(type.Create());
+            type.Move(objectPtr.get(), &data);
         }
-        Asset(Asset&& asset) noexcept;
-        Asset& operator=(Asset&& asset) noexcept;
-        ~Asset();
+        Asset(Asset&& other) noexcept;
+        Asset& operator=(Asset&& other) noexcept;
 
-        void* GetObject() const;
+
+        std::shared_ptr<void>& GetObjectPtr();
         const Type& GetObjectType() const;
-        bool GetOwnership() const;
-        void SetOwnership(bool ownership);
+        template <class T>
+        T& GetObject()
+        {
+            return *static_cast<T*>(objectPtr.get());
+        }
+        template <class T>
+        std::shared_ptr<T> GetObjectPtr()
+        {
+            return std::shared_ptr<T>(objectPtr, static_cast<T*>(objectPtr.get()));
+        }
 
     private:
         Gleam_MakeType_Friend
 
-        void* object;
+        std::shared_ptr<void> objectPtr;
         const Type* objectType;
-        bool ownership;
     };
 
     Gleam_MakeType(Asset, "E21E1632-F550-4A06-AC51-08221E4A6E9D")
@@ -55,21 +62,19 @@ namespace Gleam
 
             const Type& type = *value.objectType;
 
-            if (value.object == nullptr) //反持久化
+            if (value.objectPtr == nullptr) //反持久化
             {
-                value.object = type.Create();
-                value.ownership = true;
+                value.objectPtr = type.MakeShared(type.Create());
             }
 
             transferrer.PushNode("data", DataType::Class);
-            type.Serialize(transferrer, value.object);
+            type.Serialize(transferrer, value.objectPtr.get());
             transferrer.PopNode();
         }
         else
         {
-            Gleam_MakeType_AddField(object);
+            Gleam_MakeType_AddField(objectPtr);
             Gleam_MakeType_AddField(objectType);
-            Gleam_MakeType_AddField(ownership);
         }
     }
 }

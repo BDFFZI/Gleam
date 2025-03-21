@@ -6,11 +6,6 @@
 
 namespace Gleam
 {
-    InspectorTarget::InspectorTarget(void* data, const std::type_index type)
-        : data(data), type(type)
-    {
-    }
-    
     bool& InspectorWindow::UseDebugGUI()
     {
         return useDebugGUI;
@@ -23,28 +18,24 @@ namespace Gleam
     {
         inspectorGUIs.insert({typeIndex, drawInspectorUI});
     }
-    void InspectorWindow::Show(InspectorTarget inspectorTarget)
+    void InspectorWindow::Show(const InspectorTarget& inspectorTarget)
     {
-        InspectorWindow* inspectorWindow = new InspectorWindow();
-        inspectorWindow->SetTarget(inspectorTarget);
-        World::AddSystem(*inspectorWindow);
+        static std::unique_ptr<InspectorWindow> copyWindowCache;
+
+        copyWindowCache = std::make_unique<InspectorWindow>();
+        copyWindowCache->SetTarget(inspectorTarget);
+        World::AddSystem(*copyWindowCache);
     }
 
-    const std::optional<InspectorTarget>& InspectorWindow::GetTarget() const
+    const InspectorTarget& InspectorWindow::GetTarget() const
     {
-        return target;
+        return inspectorTarget;
     }
-    void InspectorWindow::SetTarget(const std::optional<InspectorTarget>& target)
+    void InspectorWindow::SetTarget(const InspectorTarget& target)
     {
-        this->target = target;
+        this->inspectorTarget = target;
     }
 
-
-    void InspectorWindow::Stop()
-    {
-        if (this != &GlobalInspectorWindow)
-            delete this;
-    }
     void InspectorWindow::Update()
     {
         if (this == &GlobalInspectorWindow)
@@ -64,10 +55,10 @@ namespace Gleam
         //绘制菜单项
         if (ImGui::BeginMenuBar())
         {
-            if (ImGui::MenuItem("Clone") && target.has_value())
-                Show(target.value());
+            if (ImGui::MenuItem("Clone"))
+                Show(inspectorTarget);
             if (ImGui::MenuItem("Clear"))
-                SetTarget(std::nullopt);
+                SetTarget(nullptr);
             if (ImGui::BeginMenu("Debug"))
             {
                 ImGui::Checkbox("UseDebugGUI", &useDebugGUI);
@@ -77,14 +68,16 @@ namespace Gleam
             ImGui::EndMenuBar();
         }
         //绘制目标
-        if (target.has_value())
+        if (!inspectorTarget.objectPtr.expired())
         {
-            auto [data, typeIndex] = target.value();
-            if (inspectorGUIs.contains(typeIndex))
-                inspectorGUIs[typeIndex](data);
+            auto [objectPtr, objectTypeIndex] = inspectorTarget;
+            if (inspectorGUIs.contains(objectTypeIndex))
+                inspectorGUIs[objectTypeIndex](objectPtr.lock().get());
             else
-                EditorUI::DrawSerializedContent(data, typeIndex);
+                EditorUI::DrawSerializedContent(objectPtr.lock().get(), objectTypeIndex);
         }
+        else
+            ImGui::Text("Target has expired");
 
         ImGui::End();
     }

@@ -118,29 +118,26 @@ namespace Gleam
 
             //显示资源包内容
             AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetBundleID);
-            for (const AssetSlot& assetSlot : assetBundle.GetAssetSlots())
+            for (AssetSlot& assetSlot : assetBundle.GetAssetSlots())
             {
                 if (ImGui::Button(std::to_string(assetSlot.GetID()).c_str()))
                 {
                     GlobalInspectorWindow.SetTarget(InspectorTarget{
-                        assetSlot.GetAsset().GetObject(),
+                        assetSlot.GetAsset().GetObjectPtr(),
                         assetSlot.GetAsset().GetObjectType().GetIndex()
                     });
                 }
-                EditorUI::SetDragDropObject(assetSlot.GetAsset().GetObject(), assetSlot.GetAsset().GetObjectType());
+                EditorUI::SetDragDropObject(
+                    assetSlot.GetAsset().GetObjectPtr(),
+                    assetSlot.GetAsset().GetObjectType().GetIndex()
+                );
             }
         }
         else if (assetBundlesLoading.contains(assetBundleID))
         {
             //首次关闭，卸载资源包
-            auto optionalTarget = GlobalInspectorWindow.GetTarget();
-            auto optionalAssetRef = optionalTarget.has_value() ? AssetBundle::GetAssetRef(optionalTarget->data) : std::nullopt;
-            {
-                Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
-                assetBundlesLoading.erase(assetBundleID);
-            }
-            if (optionalAssetRef.has_value() && !AssetBundle::GetObject(optionalAssetRef.value()).has_value())
-                GlobalInspectorWindow.SetTarget(std::nullopt);
+            Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
+            assetBundlesLoading.erase(assetBundleID);
         }
 
         ImGui::PopID();

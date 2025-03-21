@@ -2,52 +2,32 @@
 
 namespace Gleam
 {
-    Asset::Asset(void* object, const Type& objectType, const bool ownership)
-        : object(object), objectType(&objectType), ownership(ownership)
+    Asset::Asset(const std::shared_ptr<void>& object, const Type& objectType)
+        : objectPtr(object), objectType(&objectType)
     {
     }
-    Asset::Asset(Asset&& asset) noexcept
+    Asset::Asset(Asset&& other) noexcept
     {
-        objectType = asset.objectType;
-        object = asset.object;
-        ownership = asset.ownership;
-        asset.ownership = false;
+        objectType = other.objectType;
+        objectPtr = other.objectPtr;
+        other.objectPtr.reset();
+        other.objectType = nullptr;
     }
-    Asset& Asset::operator=(Asset&& asset) noexcept
+    Asset& Asset::operator=(Asset&& other) noexcept
     {
-        if (ownership)
-        {
-            objectType->Destroy(object);
-        }
-
-        objectType = asset.objectType;
-        object = asset.object;
-        ownership = asset.ownership;
-        asset.ownership = false;
+        objectType = other.objectType;
+        objectPtr = other.objectPtr;
+        other.objectPtr.reset();
+        other.objectType = nullptr;
         return *this;
     }
-    Asset::~Asset()
-    {
-        if (ownership)
-        {
-            objectType->Destroy(object);
-        }
-    }
 
-    void* Asset::GetObject() const
+    std::shared_ptr<void>& Asset::GetObjectPtr()
     {
-        return object;
+        return objectPtr;
     }
     const Type& Asset::GetObjectType() const
     {
         return *objectType;
-    }
-    bool Asset::GetOwnership() const
-    {
-        return ownership;
-    }
-    void Asset::SetOwnership(const bool ownership)
-    {
-        this->ownership = ownership;
     }
 }

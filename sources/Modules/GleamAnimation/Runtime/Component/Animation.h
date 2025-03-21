@@ -5,7 +5,7 @@ namespace Gleam
 {
     struct Animation
     {
-        AnimationClip* clip;
+        std::weak_ptr<AnimationClip> clip;
         bool isPlaying;
         float time;
     };

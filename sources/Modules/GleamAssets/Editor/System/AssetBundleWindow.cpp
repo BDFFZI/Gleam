@@ -15,12 +15,12 @@ namespace Gleam
             {
                 if (ImGui::CollapsingHeader(to_string(assetBundle.GetID()).data()))
                 {
-                    for (const AssetSlot& assetSlot : assetBundle.GetAssetSlots())
+                    for (AssetSlot& assetSlot : assetBundle.GetAssetSlots())
                     {
                         if (ImGui::Button(std::to_string(assetSlot.GetID()).c_str()))
                         {
                             GlobalInspectorWindow.SetTarget(InspectorTarget{
-                                assetSlot.GetAsset().GetObject(),
+                                assetSlot.GetAsset().GetObjectPtr(),
                                 assetSlot.GetAsset().GetObjectType().GetIndex()
                             });
                         }

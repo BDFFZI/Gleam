@@ -19,11 +19,11 @@ using namespace Gleam;
 struct TestAsset
 {
     std::string name;
-    TestAsset* dependency;
+    std::weak_ptr<TestAsset> dependency;
 
     bool operator==(const TestAsset& other) const
     {
-        return name == other.name && dependency == other.dependency;
+        return name == other.name && dependency.lock() == other.dependency.lock();
     }
 };
 
@@ -43,21 +43,21 @@ TEST(Persistence, Asset)
     JsonReader jsonReader = {document};
 
     //装载资源
-    TestAsset testAsset[] = {
-        {"Hi Asset1!"},
-        {"Hello Asset2!"}
+    std::shared_ptr<TestAsset> testAsset[] = {
+        std::make_shared<TestAsset>("Hi Asset1!"),
+        std::make_shared<TestAsset>("Hello Asset2!")
     };
     std::vector<Asset> assets;
-    assets.emplace_back(&testAsset, type, false);
-    assets.emplace_back(&testAsset, type, false);
+    assets.emplace_back(testAsset[0], type);
+    assets.emplace_back(testAsset[1], type);
     //保存资源
     jsonWriter.TransferField("assets", assets);
     //读取资源
-    std::vector<Asset> newAssets = std::vector<Asset>(2);
+    std::vector<Asset> newAssets = std::vector<Asset>();
     jsonReader.TransferField("assets", newAssets);
 
-    ASSERT_EQ(static_cast<TestAsset*>(assets[0].GetObject())->name, static_cast<TestAsset*>(newAssets[0].GetObject())->name);
-    ASSERT_EQ(static_cast<TestAsset*>(assets[1].GetObject())->name, static_cast<TestAsset*>(newAssets[1].GetObject())->name);
+    ASSERT_EQ(assets[0].GetObject<TestAsset>().name, newAssets[0].GetObject<TestAsset>().name);
+    ASSERT_EQ(assets[1].GetObject<TestAsset>().name, newAssets[1].GetObject<TestAsset>().name);
 }
 
 TEST(Persistence, AssetBundle)
@@ -67,18 +67,18 @@ TEST(Persistence, AssetBundle)
 
     //测试创建自依赖资源包
     {
-        TestAsset testAsset[] = {
-            {"Asset0"},
-            {"Asset1"},
-            {"Asset2"},
+        std::shared_ptr<TestAsset> testAsset[] = {
+            std::make_shared<TestAsset>("Asset0"),
+            std::make_shared<TestAsset>("Asset1"),
+            std::make_shared<TestAsset>("Asset2"),
         };
-        testAsset[0].dependency = &testAsset[1];
-        testAsset[1].dependency = &testAsset[2];
+        testAsset[0]->dependency = testAsset[1];
+        testAsset[1]->dependency = testAsset[2];
         //验证创建资源包
         AssetBundle& assetBundle = AssetBundle::Create(assetBundleID);
         //验证添加资源
-        assetBundle.AddAsset(Asset{&testAsset[0], TestAssetType, false});
-        assetBundle.AddAsset(Asset{&testAsset[1], TestAssetType, false});
+        assetBundle.AddAsset(Asset{testAsset[0], TestAssetType});
+        assetBundle.AddAsset(Asset{testAsset[1], TestAssetType});
         //验证保存资源包
         AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
         AssetBundle::SaveBinary("Assets/" + to_string(assetBundle.GetID()), assetBundle);
@@ -96,25 +96,26 @@ TEST(Persistence, AssetBundle)
         ASSERT_EQ(assetBundle.GetAssetSlots().size(), 3);
         TestAsset& asset0 = assetBundle.GetObject<TestAsset>(0);
         TestAsset& asset1 = assetBundle.GetObject<TestAsset>(1);
-        TestAsset& asset2 = assetBundle.GetObject<TestAsset>(2);
+        TestAsset& asset2 = assetBundle.GetObject<TestAsset>(2); //该资源因依赖被自动移入资源包
         ASSERT_EQ(asset0.name, "Asset0");
         ASSERT_EQ(asset1.name, "Asset1");
-        ASSERT_EQ(asset1.dependency, &asset2);
+        ASSERT_EQ(asset2.name, "Asset2");
+        ASSERT_EQ(asset1.dependency.lock().get(), &asset2);
         AssetBundle::Unload(assetBundle);
     }
 
     //测试资源包分包的保存
     {
-        TestAsset testAsset[] = {
-            {"Asset0"},
-            {"Asset1"},
-            {"Asset2"},
-            {"Asset3"},
+        std::shared_ptr<TestAsset> testAsset[] = {
+            std::make_shared<TestAsset>("Asset0"),
+            std::make_shared<TestAsset>("Asset1"),
+            std::make_shared<TestAsset>("Asset2"),
+            std::make_shared<TestAsset>("Asset3"),
         };
 
         //创建资源包2
         AssetBundle& assetBundle2 = AssetBundle::Create(assetBundle2ID);
-        assetBundle2.AddAsset(Asset{&testAsset[3], TestAssetType, false});
+        assetBundle2.AddAsset(Asset{testAsset[3], TestAssetType});
         //迁移资源包1资源
         AssetBundle& assetBundle = AssetBundle::LoadBinary("Assets/" + to_string(assetBundleID));
         Asset asset = assetBundle.ExtractAsset(assetBundle.GetAssetSlots()[0].GetID());
@@ -132,8 +133,8 @@ TEST(Persistence, AssetBundle)
     //测试未加载依赖资源包时，引用丢失的现象
     {
         AssetBundle& assetBundle2 = AssetBundle::LoadBinary("Assets/" + to_string(assetBundle2ID));
-        TestAsset* data3 = assetBundle2.GetObject<TestAsset>(1).dependency;
-        ASSERT_EQ(data3, nullptr);
+        std::weak_ptr<TestAsset> data3 = assetBundle2.GetObject<TestAsset>(1).dependency;
+        ASSERT_TRUE(data3.expired());
         AssetBundle::Unload(assetBundle2);
     }
 
@@ -143,21 +144,21 @@ TEST(Persistence, AssetBundle)
         AssetBundle& assetBundle2 = AssetBundle::LoadBinary("Assets/" + to_string(assetBundle2ID));
         TestAsset* data = &assetBundle2.GetObject<TestAsset>(1);
         ASSERT_EQ(data->name, "Asset0");
-        ASSERT_EQ(data->dependency->name, "Asset1");
+        ASSERT_EQ(data->dependency.lock()->name, "Asset1");
 
         //修改资源包内容，用于后续测试重载
         data->name += "Append";
-        data->dependency->name += "Append";
+        data->dependency.lock()->name += "Append";
 
         //重载资源包1并测试内容正确性
         AssetBundle::LoadBinary("Assets/" + to_string(assetBundleID), true);
         ASSERT_EQ(data->name, "Asset0Append");
-        ASSERT_EQ(data->dependency->name, "Asset1");
+        ASSERT_EQ(data->dependency.lock()->name, "Asset1");
 
         //重载资源包2并测试内容正确性
         AssetBundle::LoadBinary("Assets/" + to_string(assetBundle2ID), true);
         ASSERT_EQ(data->name, "Asset0");
-        ASSERT_EQ(data->dependency->name, "Asset1");
+        ASSERT_EQ(data->dependency.lock()->name, "Asset1");
 
         AssetBundle::Unload(assetBundle);
         AssetBundle::Unload(assetBundle2);
@@ -168,9 +169,9 @@ TEST(Persistence, AssetBundle)
         {
             AssetBundle& assetBundle = AssetBundle::LoadBinary("Assets/" + to_string(assetBundleID)); //资源包2依赖资源包1，必须加载，否则丢失引用
             AssetBundle& assetBundle2 = AssetBundle::LoadBinary("Assets/" + to_string(assetBundle2ID));
-            TestAsset testAsset = {"Asset5", &assetBundle.GetObject<TestAsset>(1)};
-            assetBundle.GetObject<TestAsset>(0).dependency = &testAsset;
-            assetBundle2.GetObject<TestAsset>(0).dependency = &testAsset;
+            std::shared_ptr<TestAsset> testAsset = std::make_shared<TestAsset>("Asset5", assetBundle.GetAsset(1).GetObjectPtr<TestAsset>());
+            assetBundle.GetObject<TestAsset>(0).dependency = testAsset;
+            assetBundle2.GetObject<TestAsset>(0).dependency = testAsset;
             AssetBundle::SaveJson("Assets/assetBundle.asset", assetBundle);
             AssetBundle::SaveJson("Assets/assetBundle2.asset", assetBundle2);
             AssetBundle::Unload(assetBundle);
@@ -195,16 +196,16 @@ TEST(Persistence, Resources)
     uuids::uuid assetBundle2ID = MD5("assetBundle2").toArray();
     //构建Resources资源包
     {
-        TestAsset testAsset[3];
-        testAsset[0] = {"Asset0", &testAsset[2]};
-        testAsset[1] = {"Asset1", &testAsset[2]};
-        testAsset[2] = {"Asset2", nullptr};
+        std::shared_ptr<TestAsset> testAsset[3];
+        testAsset[2] = std::make_shared<TestAsset>("Asset2");
+        testAsset[0] = std::make_shared<TestAsset>("Asset0", testAsset[2]);
+        testAsset[1] = std::make_shared<TestAsset>("Asset1", testAsset[2]);
         AssetBundle& assetBundle0 = AssetBundle::Create(assetBundle0ID);
         AssetBundle& assetBundle1 = AssetBundle::Create(assetBundle1ID);
         AssetBundle& assetBundle2 = AssetBundle::Create(assetBundle2ID);
-        assetBundle0.AddAsset(Asset{&testAsset[0], TestAssetType, false});
-        assetBundle1.AddAsset(Asset{&testAsset[1], TestAssetType, false});
-        assetBundle2.AddAsset(Asset{&testAsset[2], TestAssetType, false});
+        assetBundle0.AddAsset(Asset{testAsset[0], TestAssetType});
+        assetBundle1.AddAsset(Asset{testAsset[1], TestAssetType});
+        assetBundle2.AddAsset(Asset{testAsset[2], TestAssetType});
         AssetBundle::SaveJson("Assets/assetBundle0.json", assetBundle0);
         AssetBundle::SaveJson("Assets/assetBundle1.json", assetBundle1);
         AssetBundle::SaveJson("Assets/assetBundle2.json", assetBundle2);
@@ -223,14 +224,14 @@ TEST(Persistence, Resources)
         AssetBundle& assetBundle0 = Resources::Load(assetBundle0ID);
         TestAsset& testAsset0 = assetBundle0.GetObject<TestAsset>(0);
         ASSERT_EQ(testAsset0.name, "Asset0");
-        ASSERT_EQ(testAsset0.dependency->name, "Asset2");
+        ASSERT_EQ(testAsset0.dependency.lock()->name, "Asset2");
         ASSERT_EQ(std::ranges::size(AssetBundle::GetAllAssetBundles()), 2);
 
         AssetBundle& assetBundle1 = Resources::Load(assetBundle1ID);
         TestAsset& testAsset1 = assetBundle1.GetObject<TestAsset>(0);
         ASSERT_EQ(testAsset1.name, "Asset1");
-        ASSERT_EQ(testAsset1.dependency->name, "Asset2");
-        ASSERT_EQ(testAsset1.dependency, testAsset0.dependency);
+        ASSERT_EQ(testAsset1.dependency.lock()->name, "Asset2");
+        ASSERT_EQ(testAsset1.dependency.lock(), testAsset0.dependency.lock());
         ASSERT_EQ(std::ranges::size(AssetBundle::GetAllAssetBundles()), 3);
 
         Resources::Unload(assetBundle0);

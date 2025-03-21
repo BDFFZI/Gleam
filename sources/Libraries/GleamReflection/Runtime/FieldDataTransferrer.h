@@ -92,12 +92,12 @@ namespace Gleam
          * @param value 
          */
         template <class TValue>
-        void Transfer(TValue*& value)
+        void Transfer(std::weak_ptr<TValue>& value)
         {
-            if constexpr (requires() { FieldDataTransferrer_Transfer<TValue*>::Invoke; })
-                FieldDataTransferrer_Transfer<TValue*>::Invoke(*this, value); //优先使用自定义实现
+            if constexpr (requires() { FieldDataTransferrer_Transfer<std::weak_ptr<TValue>>::Invoke; })
+                FieldDataTransferrer_Transfer<std::weak_ptr<TValue>>::Invoke(*this, value); //优先使用自定义实现
             else
-                this->FallbackTransferPtr(value, typeid(value)); //否则用专门的指针传输回退函数
+                this->FallbackTransferPtr(*reinterpret_cast<std::weak_ptr<void>*>(value), typeid(*value.lock().get())); //否则用专门的指针传输回退函数
         }
         /**
          * 其他任意类型
@@ -144,7 +144,7 @@ namespace Gleam
          * @param typeIndex 
          */
         virtual void FallbackTransfer(void* value, std::type_index typeIndex);
-        virtual void FallbackTransferPtr(void*& object, std::type_index objectType)
+        virtual void FallbackTransferPtr(std::weak_ptr<void>& value, std::type_index objectTypeIndex)
         {
         }
     };

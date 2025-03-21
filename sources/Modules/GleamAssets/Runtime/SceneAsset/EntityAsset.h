@@ -100,14 +100,21 @@ namespace Gleam
             dynamic_cast<AssetRefStatistician*>(this)
         )
         {
-            //将实体包装成指针。序列化引用，需要一个在两次序列化间地址不变的指针来索引资源地址和接收对象引用
-            static std::unordered_map<void*, EntityAsset*> tempPointerMapping = {};
-            EntityAsset*& ptr = tempPointerMapping[&value];
-
+            //获取引用实体的资源指针
             auto optionalEntityAsset = EntityAsset::GetEntityAsset(value);
-            ptr = optionalEntityAsset.has_value() ? &optionalEntityAsset.value().get() : nullptr;
-            Transfer(ptr);
-            value = ptr != nullptr ? ptr->GetEntity() : Entity::Null;
+            EntityAsset* entityAsset = optionalEntityAsset.has_value() ? &optionalEntityAsset.value().get() : nullptr;
+
+            AssetRef assetRef = AssetBundle::pointerToAssetRef[&value]; //读取来自首次反序列化时保存的值或默认空值
+            {
+                //优先利用资源指针获取目标对象的准确资源地址（序列化时保存），否则使用指针映射表存储的资源地址（首次反序列时保存）
+                assetRef = AssetBundle::GetAssetRef(entityAsset).value_or(assetRef);
+                assert(entityAsset == nullptr || !assetRef.assetBundleID.is_nil() && "引用的实体未被持久化！");
+                Transfer(assetRef); //序列化时写入或首次反序列化时从文件读取（PointerSerializer不执行传输）
+                //根据资源依赖获取数据
+                std::shared_ptr<void> object = AssetBundle::GetObject(assetRef).value_or(std::shared_ptr<void>{});
+                value = object == nullptr ? Entity::Null : static_cast<EntityAsset*>(object.get())->GetEntity();
+            }
+            AssetBundle::pointerToAssetRef[&value] = assetRef; //首次反序列化结束时保存来自资源文件的值
         }
         //统计未托管的可持久化实体
         else if (ObjectRefStatistician* statistician = dynamic_cast<ObjectRefStatistician*>(this))

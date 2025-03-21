@@ -19,7 +19,7 @@ namespace Gleam
             assetBundle.GetObject<SceneAsset>(0) = sceneAsset;
 
         //保存实体信息
-        std::vector<void*> needless;
+        std::vector<std::shared_ptr<void>> needless;
         std::unordered_set<Entity> missing = scene.entities;
         for (int i = 1; i < assetCount; i++)
         {
@@ -28,10 +28,12 @@ namespace Gleam
             if (scene.entities.contains(entity))
                 missing.erase(entity);
             else
-                needless.push_back(&entityAsset);
+                needless.push_back(assetBundle.GetAsset(i).GetObjectPtr());
         }
-        for (void* asset : needless)
+        //去除资源包中多余的
+        for (const std::shared_ptr<void>& asset : needless)
             assetBundle.RemoveAsset(asset);
+        //添加资源包中缺少的
         for (Entity entity : missing)
         {
             EntityAsset entityAsset = {entity, false};
@@ -40,11 +42,8 @@ namespace Gleam
     }
     Scene& SceneAsset::FromAssetBundle(AssetBundle& assetBundle, const bool isRunning)
     {
-        const std::vector<AssetSlot>& assets = assetBundle.GetAssetSlots();
-        size_t assetCount = assets.size();
-
         //读取场景和系统信息
-        SceneAsset& sceneAsset = *static_cast<SceneAsset*>(assets[0].GetAsset().GetObject());
+        SceneAsset& sceneAsset = assetBundle.GetAsset(0).GetObject<SceneAsset>();
         std::string_view name = sceneAsset.name;
         std::vector<System*> systems;
         for (auto id : sceneAsset.systems)
@@ -57,9 +56,10 @@ namespace Gleam
 
         //读取实体信息
         std::vector<Entity> entities;
+        size_t assetCount = assetBundle.GetAssetCount();
         for (std::size_t i = 1; i < assetCount; ++i)
         {
-            EntityAsset& entityAsset = *static_cast<EntityAsset*>(assets[i].GetAsset().GetObject());
+            EntityAsset& entityAsset = assetBundle.GetAsset(i).GetObject<EntityAsset>();
             entities.emplace_back(entityAsset.GetEntity());
             entityAsset.SetOwnership(false);
         }

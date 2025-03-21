@@ -10,11 +10,11 @@ namespace Gleam
     {
         View<Animation>::Each([](const Entity entity, Animation& animationClip)
         {
-            if (animationClip.clip == nullptr || animationClip.isPlaying == false)
+            if (animationClip.clip.expired() || animationClip.isPlaying == false)
                 return;
 
             animationClip.time += GlobalTimeSystem.GetDeltaTime();
-            animationClip.clip->SampleAnimation(entity, animationClip.time);
+            animationClip.clip.lock()->SampleAnimation(entity, animationClip.time);
         });
     }
 }

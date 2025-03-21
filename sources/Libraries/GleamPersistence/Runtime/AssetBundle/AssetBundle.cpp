@@ -97,7 +97,7 @@ namespace Gleam
                 {
                     Asset& oldAsset = oldAssetSlots[newAssetSlot.id]->GetAsset();
                     const Type& type = oldAsset.GetObjectType();
-                    type.Move(oldAsset.GetObject(), newAssetSlot.GetAsset().GetObject());
+                    type.Move(oldAsset.GetObjectPtr().get(), newAssetSlot.GetAsset().GetObjectPtr().get());
                     oldAssetSlots.erase(newAssetSlot.id);
                 }
                 else //内存中没有，加入
@@ -107,7 +107,7 @@ namespace Gleam
             }
             //去除内存中多余资源
             for (auto& assetSlot : oldAssetSlots | std::views::values)
-                oldAssetBundle.RemoveAsset(assetSlot->GetAsset().GetObject());
+                oldAssetBundle.RemoveAsset(assetSlot->GetAsset().GetObjectPtr());
 
             result = &oldAssetBundle;
         }
@@ -124,7 +124,7 @@ namespace Gleam
         AssetBundleType.Serialize(pointerSerializer, result);
 
         //清除临时保存的指针资源引用信息
-        pointerToAssetSlot.clear();
+        pointerToAssetRef.clear();
 
         return *result;
     }
@@ -153,20 +153,34 @@ namespace Gleam
     AssetBundleMeta AssetBundle::LoadMeta(const std::string_view fileName)
     {
         std::string json = File::ReadAllText(std::string(fileName) + ".meta");
-
         AssetBundleMeta assetBundleMeta;
         JsonUtility::FromJson(json, AssetBundleMetaType, &assetBundleMeta);
         return assetBundleMeta;
     }
 
-
+    bool AssetBundle::HasMeta(const std::string_view fileName)
+    {
+        return std::filesystem::exists(std::string(fileName) + ".meta");
+    }
+    bool AssetBundle::HasInMemory(const uuids::uuid assetBundleID)
+    {
+        return assetBundles.contains(assetBundleID);
+    }
+    AssetBundle& AssetBundle::GetAssetBundle(const uuids::uuid assetBundleID)
+    {
+        return assetBundles.at(assetBundleID);
+    }
     std::optional<AssetRef> AssetBundle::GetAssetRef(void* data)
     {
         if (objectToAssetSlot.contains(data))
             return objectToAssetSlot.at(data);
         return std::nullopt;
     }
-    std::optional<void*> AssetBundle::GetObject(const AssetRef& assetRef)
+    std::optional<AssetRef> AssetBundle::GetAssetRef(const std::weak_ptr<void>& data)
+    {
+        return GetAssetRef(data.lock().get());
+    }
+    std::optional<std::shared_ptr<void>> AssetBundle::GetObject(const AssetRef& assetRef)
     {
         AssetBundle* assetBundle;
         if (HasInMemory(assetRef.assetBundleID))
@@ -177,17 +191,9 @@ namespace Gleam
         //获取资源包中的资源
         auto result = assetBundle->GetAssetSlot(assetRef.assetID);
         if (result.has_value())
-            return result.value().get().GetAsset().GetObject();
+            return result.value().get().GetAsset().GetObjectPtr();
 
         return std::nullopt;
-    }
-    AssetBundle& AssetBundle::GetAssetBundle(const uuids::uuid assetBundleID)
-    {
-        return assetBundles.at(assetBundleID);
-    }
-    bool AssetBundle::HasInMemory(const uuids::uuid assetBundleID)
-    {
-        return assetBundles.contains(assetBundleID);
     }
 
     uuids::uuid AssetBundle::GetIDFromJson(const std::string_view fileName)
@@ -210,15 +216,15 @@ namespace Gleam
     {
         return id;
     }
-    const std::vector<AssetSlot>& AssetBundle::GetAssetSlots() const
+    std::vector<AssetSlot>& AssetBundle::GetAssetSlots()
     {
         return assetSlots;
     }
-    std::optional<std::reference_wrapper<AssetSlot>> AssetBundle::GetAssetSlot(void* object)
+    std::optional<std::reference_wrapper<AssetSlot>> AssetBundle::GetAssetSlot(const std::shared_ptr<void>& object)
     {
         auto it = std::ranges::find_if(assetSlots, [object](AssetSlot& assetSlot)
         {
-            return assetSlot.GetAsset().GetObject() == object;
+            return assetSlot.GetAsset().GetObjectPtr() == object;
         });
         if (it != assetSlots.end())
             return *it;
@@ -238,24 +244,27 @@ namespace Gleam
     {
         return assetSlots[index].GetAsset();
     }
+    int AssetBundle::GetAssetCount() const
+    {
+        return static_cast<int>(assetSlots.size());
+    }
 
     void AssetBundle::AddAsset(Asset&& asset)
     {
         //添加资源
         EmplaceAsset(std::move(asset));
     }
-    void AssetBundle::RemoveAsset(void* data)
+    void AssetBundle::RemoveAsset(const std::shared_ptr<void>& data)
     {
         //获取资源
-        auto it = std::ranges::find_if(assetSlots, [data](AssetSlot& assetSlot)
+        auto it = std::ranges::find_if(assetSlots, [&data](AssetSlot& assetSlot)
         {
-            return assetSlot.GetAsset().GetObject() == data;
+            return assetSlot.GetAsset().GetObjectPtr() == data;
         });
         auto index = it - assetSlots.begin();
         auto& asset = assetSlots[index];
         //移除索引信息
-        objectToAssetSlot.erase(data);
-        assetSlotToObject.erase(AssetRef{id, asset.id});
+        objectToAssetSlot.erase(data.get());
         assetSlotIDSet.erase(asset.id);
         //从内存中移除资源
         assetSlots.erase(assetSlots.begin() + index);
@@ -265,15 +274,12 @@ namespace Gleam
         if (releaseOwnership)
         {
             for (auto& assetSlot : assetSlots)
-                assetSlot.GetAsset().SetOwnership(false);
+                assetSlot.GetAsset().GetObjectPtr().reset();
         }
 
+        //移除索引信息
         for (auto& assetSlot : assetSlots)
-        {
-            //移除索引信息
-            objectToAssetSlot.erase(assetSlot.GetAsset().GetObject());
-            assetSlotToObject.erase(AssetRef{id, assetSlot.id});
-        }
+            objectToAssetSlot.erase(assetSlot.GetAsset().GetObjectPtr().get());
 
         assetSlotIDSet.clear();
         assetSlots.clear();
@@ -291,19 +297,17 @@ namespace Gleam
 
         //提取资源
         Asset asset = std::move(assetSlot.GetAsset());
-        objectToAssetSlot.erase(asset.GetObject());
-        assetSlotToObject.erase(AssetRef{id, assetSlot.id});
+        objectToAssetSlot.erase(asset.GetObjectPtr().get());
 
         return asset;
     }
     Asset& AssetBundle::EmplaceAsset(Asset&& asset, const std::optional<int> expectedSlotID)
     {
-        assert(!objectToAssetSlot.contains(asset.GetObject()) && "资源已被添加到资源包！");
+        assert(!objectToAssetSlot.contains(asset.GetObjectPtr().get()) && "资源已被添加到资源包！");
         assert(!assetSlotIDSet.contains(expectedSlotID.value_or(-1)) && "资源编号已被占用！");
 
         int slotID = expectedSlotID.value_or(GenerateAssetID());
-        objectToAssetSlot.insert({asset.GetObject(), AssetRef{id, slotID}});
-        assetSlotToObject.insert({AssetRef{id, slotID}, asset.GetObject()});
+        objectToAssetSlot.insert({asset.GetObjectPtr().get(), AssetRef{id, slotID}});
         assetSlotIDSet.insert(slotID);
 
         return assetSlots.emplace_back(slotID, std::move(asset)).GetAsset();
@@ -314,8 +318,7 @@ namespace Gleam
         for (auto& assetSlot : assetSlots)
         {
             assetSlotIDSet.insert(assetSlot.id);
-            objectToAssetSlot.insert({assetSlot.GetAsset().GetObject(), AssetRef{id, assetSlot.id}});
-            assetSlotToObject.insert({AssetRef{id, assetSlot.id}, assetSlot.GetAsset().GetObject()});
+            objectToAssetSlot.insert({assetSlot.GetAsset().GetObjectPtr().get(), AssetRef{id, assetSlot.id}});
         }
     }
     int AssetBundle::GenerateAssetID() const
@@ -335,15 +338,20 @@ namespace Gleam
         //将这些对象添加为本资源包的资源
         for (auto& asset : pointerStatistician.dependencies)
         {
-            //优先复制资源
-            void* duplicate = asset.GetObjectType().Create();
-            asset.GetObjectType().Copy(duplicate, asset.GetObject());
-            AddAsset(Asset{duplicate, asset.GetObjectType(), true});
-            //无法复制则尝试移动
-            //TODO
-            //修改使用者的指针引用
-            for (auto& user : pointerStatistician.dependencyUsers[asset.GetObject()])
-                *user = duplicate;
+            auto& assetType = asset.GetObjectType();
+            if (assetType.CanCopy()) //优先复制资源到资源包
+            {
+                std::shared_ptr<void> duplicate = assetType.MakeShared(assetType.Create());
+                assetType.Copy(duplicate.get(), asset.GetObjectPtr().get());
+                AddAsset(Asset{duplicate, asset.GetObjectType()});
+                //修改使用者的指针引用
+                for (std::weak_ptr<void>* user : pointerStatistician.dependencyUsers[asset.GetObjectPtr()])
+                    *user = duplicate;
+            }
+            else //否则直接移动到资源包
+            {
+                AddAsset(std::move(asset));
+            }
         }
     }
 }

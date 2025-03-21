@@ -16,6 +16,10 @@ namespace Gleam
     template <typename T>
     struct Type_Raii
     {
+        static std::shared_ptr<void> MakeShared(void* obj)
+        {
+            return std::shared_ptr<T>(static_cast<T*>(obj));
+        }
         static void* Create()
         {
             return new T();
@@ -40,19 +44,13 @@ namespace Gleam
         {
             *static_cast<T*>(destination) = std::move(*static_cast<T*>(source));
         }
-        static void CopyConstruct(void* destination, void* source)
+        static void CopyConstruct(void* destination, void* source) requires std::is_copy_constructible_v<T>
         {
-            if constexpr (requires() { new(destination) T(*static_cast<T*>(source)); })
-                new(destination) T(*static_cast<T*>(source));
-            else
-                throw std::runtime_error("类型不支持复制构造！");
+            new(destination) T(*static_cast<T*>(source));
         }
-        static void Copy(void* destination, void* source)
+        static void Copy(void* destination, void* source) requires std::is_copy_assignable_v<T>
         {
-            if constexpr (requires() { *static_cast<T*>(destination) = *static_cast<T*>(source); })
-                *static_cast<T*>(destination) = *static_cast<T*>(source);
-            else
-                throw std::runtime_error("类型不支持复制！");
+            *static_cast<T*>(destination) = *static_cast<T*>(source);
         }
     };
 
@@ -88,6 +86,7 @@ namespace Gleam
             type.id = id.value_or(uuids::uuid(MD5(type.index.name()).toArray()));
             type.size = sizeof(T);
             type.parent = parent;
+            type.makeShared = Type_Raii<T>::MakeShared;
             type.create = Type_Raii<T>::Create;
             type.destroy = Type_Raii<T>::Destroy;
             type.construct = Type_Raii<T>::Construct;
@@ -152,10 +151,13 @@ namespace Gleam
         int GetSize() const;
         std::optional<std::reference_wrapper<const Type>> GetParent() const;
         const std::vector<FieldInfo>& GetFields() const;
+        bool CanCopyConstruct() const { return copyConstruct != nullptr; }
+        bool CanCopy() const { return copy != nullptr; }
 
         void SetParent(std::optional<std::reference_wrapper<const Type>> parent);
         bool FindFields(std::string_view path, std::vector<FieldInfo>& result) const;
 
+        std::shared_ptr<void> MakeShared(void* address) const;
         void* Create() const;
         void Destroy(void* address) const;
         void Construct(void* address) const;
@@ -176,6 +178,7 @@ namespace Gleam
         int size = 0;
         std::optional<std::reference_wrapper<const Type>> parent = std::nullopt;
         std::vector<FieldInfo> fields = {};
+        std::function<std::shared_ptr<void>(void*)> makeShared = nullptr;
         std::function<void*()> create = nullptr;
         std::function<void(void*)> destroy = nullptr;
         std::function<void(void*)> construct = nullptr;

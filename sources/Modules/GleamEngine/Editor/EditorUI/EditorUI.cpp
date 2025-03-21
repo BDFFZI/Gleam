@@ -19,8 +19,9 @@ namespace Gleam
     {
         if (ImGui::Button(std::format("Entity:{}", static_cast<uint32_t>(entity)).c_str()))
         {
-            inspecting = entity;
-            GlobalInspectorWindow.SetTarget(InspectorTarget{inspecting});
+            static std::shared_ptr<Entity> inspecting = nullptr;
+            inspecting = std::make_shared<Entity>(entity);
+            GlobalInspectorWindow.SetTarget(inspecting);
         }
         if (ImGui::BeginDragDropSource())
         {
@@ -36,22 +37,22 @@ namespace Gleam
             ImGui::EndDragDropTarget();
         }
     }
-    void EditorUI::SetDragDropObject(void* object, const Type& objectType)
+    void EditorUI::SetDragDropObject(const std::shared_ptr<void>& objectPtr, const std::type_index objectTypeIndex)
     {
         if (ImGui::BeginDragDropSource())
         {
             ImGui::SetDragDropPayload(
-                std::to_string(objectType.GetIndex().hash_code()).data(),
-                static_cast<void**>(&object), sizeof(void*));
+                std::to_string(objectTypeIndex.hash_code()).data(),
+                &objectPtr, sizeof(std::shared_ptr<void>));
             ImGui::EndDragDropSource();
         }
     }
-    void* EditorUI::GetDragDropObject(const Type& objectType)
+    std::shared_ptr<void> EditorUI::GetDragDropObject(const std::type_index objectType)
     {
         if (ImGui::BeginDragDropTarget())
         {
-            if (auto payload = ImGui::AcceptDragDropPayload(std::to_string(objectType.GetIndex().hash_code()).data()))
-                return *static_cast<void**>(payload->Data);
+            if (auto payload = ImGui::AcceptDragDropPayload(std::to_string(objectType.hash_code()).data()))
+                return *static_cast<std::shared_ptr<void>*>(payload->Data);
             ImGui::EndDragDropTarget();
         }
         return nullptr;

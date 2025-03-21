@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <unordered_set>
+#include <memory>
 
 #include "Asset.h"
 #include "AssetRef.h"
@@ -46,10 +47,12 @@ namespace Gleam
         static void SaveMeta(std::string_view fileName, AssetBundle& assetBundle);
         static void DumpJsonToBinary(std::string_view jsonFile, std::string_view binaryFile, bool saveMeta);
 
-        static std::optional<AssetRef> GetAssetRef(void* data);
-        static std::optional<void*> GetObject(const AssetRef& assetRef);
-        static AssetBundle& GetAssetBundle(uuids::uuid assetBundleID);
+        static bool HasMeta(std::string_view fileName);
         static bool HasInMemory(uuids::uuid assetBundleID);
+        static AssetBundle& GetAssetBundle(uuids::uuid assetBundleID);
+        static std::optional<AssetRef> GetAssetRef(void* data);
+        static std::optional<AssetRef> GetAssetRef(const std::weak_ptr<void>& data);
+        static std::optional<std::shared_ptr<void>> GetObject(const AssetRef& assetRef);
 
         static uuids::uuid GetIDFromJson(std::string_view fileName);
 
@@ -58,24 +61,25 @@ namespace Gleam
         AssetBundle& operator=(AssetBundle&&) = default;
 
         uuids::uuid GetID() const;
-        const std::vector<AssetSlot>& GetAssetSlots() const;
-        std::optional<std::reference_wrapper<AssetSlot>> GetAssetSlot(void* object);
+        std::vector<AssetSlot>& GetAssetSlots();
+        std::optional<std::reference_wrapper<AssetSlot>> GetAssetSlot(const std::shared_ptr<void>& object);
         std::optional<std::reference_wrapper<AssetSlot>> GetAssetSlot(int slotID);
         Asset& GetAsset(int index);
+        int GetAssetCount() const;
         template <typename T>
         T& GetObject(const int index)
         {
-            return *static_cast<T*>(assetSlots[index].GetAsset().GetObject());
+            return assetSlots[index].GetAsset().GetObject<T>();
         }
 
         void AddAsset(Asset&& asset);
-        template <class T> requires !std::is_reference_v<T>
+        template <class T> requires !std::is_reference_v<T> && !std::is_pointer_v<T>
         Asset& AddAsset(T&& data)
         {
             Asset asset = Asset{std::move(data)};
             return EmplaceAsset(std::move(asset));
         }
-        void RemoveAsset(void* data);
+        void RemoveAsset(const std::shared_ptr<void>& data);
 
         void ClearAssets(bool releaseOwnership = false);
         Asset ExtractAsset(int slotID);
@@ -84,12 +88,12 @@ namespace Gleam
     private:
         template <typename T>
         friend struct FieldDataTransferrer_Transfer;
+        friend FieldDataTransferrer;
 
         Gleam_MakeType_Friend
 
         inline static std::unordered_map<uuids::uuid, AssetBundle> assetBundles = {};
         inline static std::unordered_map<void*, AssetRef> objectToAssetSlot = {}; //数据对应的资源
-        inline static std::unordered_map<AssetRef, void*> assetSlotToObject = {}; //资源对应的数据
         /**
          * 每个指针字段绑定的资源引用。
          * 
@@ -102,7 +106,7 @@ namespace Gleam
          * 1. 不同时间创建的对象可以使用相同的指针地址（尤其是实体的内存布局，很容易触发），因此该表存储的值可能有误。
          * 2. 指针为空除了因为引用丢失，也可能是用户有意设置，但因为无法区分，用户将始终无法使指针在持久化时置空。
          */
-        inline static std::unordered_map<std::uintptr_t, AssetRef> pointerToAssetSlot = {};
+        inline static std::unordered_map<void*, AssetRef> pointerToAssetRef = {};
 
         uuids::uuid id;
         std::vector<AssetSlot> assetSlots;
@@ -155,7 +159,7 @@ namespace Gleam
     {
     public:
         std::vector<Asset> dependencies; //指针引用的未托管可持久化对象
-        std::unordered_map<void*, std::vector<void**>> dependencyUsers; //引用这些对象的指针
+        std::unordered_map<std::shared_ptr<void>, std::vector<std::weak_ptr<void>*>> dependencyUsers; //引用这些对象的指针
     };
 
     /**
@@ -170,9 +174,9 @@ namespace Gleam
      * @tparam TValue 
      */
     template <typename TValue>
-    struct FieldDataTransferrer_Transfer<TValue*>
+    struct FieldDataTransferrer_Transfer<std::weak_ptr<TValue>>
     {
-        static void Invoke(FieldDataTransferrer& serializer, TValue*& value)
+        static void Invoke(FieldDataTransferrer& serializer, std::weak_ptr<TValue>& value)
         {
             //将指针视作AssetRef进行传输
             if (
@@ -181,33 +185,34 @@ namespace Gleam
                 dynamic_cast<AssetRefStatistician*>(&serializer)
             )
             {
-                AssetRef assetRef = AssetBundle::pointerToAssetSlot[reinterpret_cast<uintptr_t>(&value)]; //读取来自首次反序列化时保存的值或默认空值
+                AssetRef assetRef = AssetBundle::pointerToAssetRef[&value]; //读取来自首次反序列化时保存的值或默认空值
                 {
                     //优先获取目标对象的资源地址（序列化时保存），否则使用指针映射表存储的资源地址
                     assetRef = AssetBundle::GetAssetRef(value).value_or(assetRef);
-                    assert(value == nullptr || !assetRef.assetBundleID.is_nil() && "指针引用的物体未被持久化！");
+                    assert(value.expired() || !assetRef.assetBundleID.is_nil() && "指针引用的物体未被持久化！");
                     serializer.Transfer(assetRef); //序列化时写入或首次反序列化时从文件读取（PointerSerializer不执行传输）
-                    value = static_cast<TValue*>(AssetBundle::GetObject(assetRef).value_or(nullptr)); //根据资源依赖获取数据
+                    //根据资源依赖获取数据
+                    std::shared_ptr<void> object = AssetBundle::GetObject(assetRef).value_or(std::shared_ptr<void>{});
+                    value = std::shared_ptr<TValue>(object, static_cast<TValue*>(object.get()));
                 }
-                AssetBundle::pointerToAssetSlot[reinterpret_cast<uintptr_t>(&value)] = assetRef; //首次反序列化结束时保存来自资源文件的值
+                AssetBundle::pointerToAssetRef[&value] = assetRef; //首次反序列化结束时保存来自资源文件的值
             }
             //统计未托管可持久化对象
             else if (ObjectRefStatistician* statistician = dynamic_cast<ObjectRefStatistician*>(&serializer))
             {
-                if (value == nullptr || AssetBundle::objectToAssetSlot.contains(value))
-                    return;
+                if (value.expired() || AssetBundle::GetAssetRef(value).has_value())
+                    return; //指针为空或指向的对象已被托管为资源
+                auto optionalType = Type::GetType(typeid(*value.lock().get()));
+                if (!optionalType.has_value())
+                    return; //指针指向的类型不支持反射
 
-                auto optionalType = Type::GetType(typeid(*value));
-                if (optionalType.has_value())
-                {
-                    statistician->dependencies.emplace_back(Asset{value, optionalType.value(), false});
-                    statistician->dependencyUsers[value].emplace_back(reinterpret_cast<void**>(&value));
-                }
+                statistician->dependencies.emplace_back(value.lock(), optionalType.value());
+                statistician->dependencyUsers[value.lock()].emplace_back(reinterpret_cast<std::weak_ptr<void>*>(&value));
             }
             //默认传输方式
             else
             {
-                serializer.FallbackTransferPtr(*reinterpret_cast<void**>(&value), typeid(*value));
+                serializer.FallbackTransferPtr(*reinterpret_cast<std::weak_ptr<void>*>(&value), typeid(*value.lock().get()));
             }
         }
     };

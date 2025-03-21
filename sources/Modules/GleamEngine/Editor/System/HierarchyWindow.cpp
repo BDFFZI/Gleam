@@ -30,7 +30,9 @@ namespace Gleam
             system.GetName().c_str(),
             {ImGui::GetContentRegionAvail().x - ImGui::GetTextLineHeightWithSpacing() * 1.5f, 0} //按钮铺满当前行余下的所有空间
         ))
+        {
             GlobalInspectorWindow.SetTarget(InspectorTarget{system});
+        }
         if (DrawSystemPopup(system) == false)
             return false;
 
@@ -198,7 +200,7 @@ namespace Gleam
             for (const Archetype& archetype : Archetype::GetAllArchetypes())
             {
                 if (ImGui::Button(archetype.GetName().data()))
-                    GlobalInspectorWindow.SetTarget(const_cast<Archetype&>(archetype));
+                    GlobalInspectorWindow.SetTarget(InspectorTarget{const_cast<Archetype&>(archetype)});
             }
             ImGui::PopID();
         }

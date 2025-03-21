@@ -79,7 +79,10 @@ namespace Gleam
     void SystemGroup::FlushStartQueue()
     {
         for (System* system : addingSystems)
-            subSystems.emplace(system);
+        {
+            auto result = subSystems.emplace(system);
+            assert(result.second && "添加子系统失败！");
+        }
         for (System* system : subSystems)
         {
             if (addingSystems.contains(system))
@@ -99,7 +102,10 @@ namespace Gleam
                 systemGroup->FlushStopQueue();
         }
         for (System* system : removingSystems)
-            subSystems.erase(system);
+        {
+            auto result = subSystems.erase(system);
+            assert(result == 1 && "移除子系统失败！"); //你是否在Stop中销毁了系统自身？
+        }
         removingSystems.clear();
     }
 }

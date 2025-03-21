@@ -45,6 +45,9 @@ namespace Gleam
     {
         auto assetBundlePath = resourceDirectory / to_string(assetBundle.GetID());
         AssetBundle::SaveBinary(assetBundlePath.string(), assetBundle);
+        AssetBundleMeta oldAssetBundleMeta = {};
+        if (AssetBundle::HasMeta(assetBundlePath))
+            oldAssetBundleMeta = AssetBundle::LoadMeta(assetBundlePath.string());
         AssetBundle::SaveMeta(assetBundlePath.string(), assetBundle);
     }
 }

@@ -19,7 +19,7 @@ namespace Gleam
         void Transfer(std::string& value) override;
         void Transfer(std::vector<std::byte>& value) override;
         void FallbackTransfer(void* value, std::type_index typeIndex) override;
-        void FallbackTransferPtr(void*& object, std::type_index objectTypeIndex) override;
+        void FallbackTransferPtr(std::weak_ptr<void>& value, std::type_index objectTypeIndex) override;
 
     private:
         float dragSpeed = 0.1f;
