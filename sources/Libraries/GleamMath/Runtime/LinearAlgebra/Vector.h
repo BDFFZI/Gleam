@@ -3,20 +3,13 @@
 
 #include "VectorSwizzle.h"
 
+#ifdef GleamReflectionRuntime
+#include "GleamReflection/Runtime/Type.h"
+#endif
+
 namespace Gleam
 {
     //由于头文件依赖的原因，vector模板原型放在了VectorSwizzle.h文件中
-
-    using float2 = vector<float, 2>;
-    using float3 = vector<float, 3>;
-    using float4 = vector<float, 4>;
-    using int2 = vector<int, 2>;
-    using int3 = vector<int, 3>;
-    using int4 = vector<int, 4>;
-    using bool2 = vector<bool, 2>;
-    using bool3 = vector<bool, 3>;
-    using bool4 = vector<bool, 4>;
-
 #define xi 0
 #define yi 1
 #define zi 2
@@ -201,6 +194,40 @@ namespace Gleam
 #undef gi
 #undef bi
 #undef ai
+
+    using float2 = vector<float, 2>;
+    using float3 = vector<float, 3>;
+    using float4 = vector<float, 4>;
+    using int2 = vector<int, 2>;
+    using int3 = vector<int, 3>;
+    using int4 = vector<int, 4>;
+    using bool2 = vector<bool, 2>;
+    using bool3 = vector<bool, 3>;
+    using bool4 = vector<bool, 4>;
+
+    //TODO 改用模板实现
+#ifdef GleamReflectionRuntime
+    Gleam_MakeType(float2, "E77257A0-8A7A-485D-A2AE-CB03EE6B7A4B")
+    {
+        Gleam_MakeType_AddField(x);
+        Gleam_MakeType_AddField(y);
+    }
+    
+    Gleam_MakeType(float3, "487D217A-18EB-41C0-A23A-17B6863DF935")
+    {
+        Gleam_MakeType_AddField(x);
+        Gleam_MakeType_AddField(y);
+        Gleam_MakeType_AddField(z);
+    }
+
+    Gleam_MakeType(float4, "FAC218AA-6214-4FA2-BF63-FF8E19B65701")
+    {
+        Gleam_MakeType_AddField(x);
+        Gleam_MakeType_AddField(y);
+        Gleam_MakeType_AddField(z);
+        Gleam_MakeType_AddField(w);
+    }
+#endif
 }
 
 #include <type_traits>
@@ -231,7 +258,6 @@ struct std::hash<Gleam::vector<Type, Number>> // NOLINT(cert-dcl58-cpp)
 };
 
 #ifdef GleamReflectionRuntime
-#include "GleamReflection/Runtime/FieldDataTransferrer.h"
 template <class Type, int Number>
 struct Gleam::FieldDataTransferrer_Transfer<Gleam::vector<Type, Number>>
 {

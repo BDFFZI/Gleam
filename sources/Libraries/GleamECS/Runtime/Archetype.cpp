@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "Query.h"
 #include "View.h"
 #include "GleamUtility/Runtime/md5.h"
 
@@ -14,8 +15,20 @@ namespace Gleam
         for (const auto& type : componentTypes)
             types.push_back(&type.get());
 
-        Archetype archetype = {name, types};
-        return allArchetypes.emplace(archetype.id, std::move(archetype)).first->second;
+        Archetype tempArchetype = Archetype{name, types};
+        Archetype& archetype = allArchetypes.emplace(tempArchetype.id, std::move(tempArchetype)).first->second;
+
+        //通知查询更新
+        for (auto type : componentTypes)
+        {
+            std::unordered_set<Query*> queries; //多个组件可能关联同一个查询，故需要做并集处理
+            for (Query* query : Query::componentToQueries[type.get().GetIndex()])
+                queries.insert(query);
+            for (Query* query : queries)
+                query->addArchetypes(archetype);
+        }
+
+        return archetype;
     }
     Archetype& Archetype::CreateOrGet(const std::vector<std::reference_wrapper<const Type>>& componentTypes)
     {

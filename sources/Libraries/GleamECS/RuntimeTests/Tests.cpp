@@ -381,7 +381,7 @@ TEST(ECS, View)
     ASSERT_EQ(World::GetComponent<Transform>(physicsEntity).position, 1);
     ASSERT_EQ(World::GetComponent<Transform>(physicsWithSpring).position, 1);
 
-    View<ViewExclusion<SpringPhysics>, Transform, RigidBody>::Each([](auto& transform, auto&)
+    View<QueryExclusion<SpringPhysics>, Transform, RigidBody>::Each([](auto& transform, auto&)
     {
         ++transform.position;
     });
@@ -395,7 +395,6 @@ TEST(ECS, View)
 TEST(ECS, Scene)
 {
     Entity entity = World::AddEntity(Transform{});
-    View<Transform>::SetDirty();
 
     SystemEvent system = SystemEvent("TestSystem", std::nullopt);
     system.OnStart() = []

@@ -1,5 +1,6 @@
 #include "UI.h"
 
+#include <filesystem>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
@@ -21,11 +22,14 @@ namespace Gleam
 
     void UI::Init()
     {
+        //获取来自编辑器的预设窗口布局
+        if (!std::filesystem::exists("imgui.ini") && std::filesystem::exists("StreamingAssets/imgui.ini"))
+            std::filesystem::copy("StreamingAssets/imgui.ini", "imgui.ini");
+
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
-        io.IniFilename = "./StreamingAssets/imgui.ini";
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // 启用ImGui键盘按钮功能
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; //启用ImGui船坞功能
         io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange; //禁止ImGui修改光标可见性

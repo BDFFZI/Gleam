@@ -6,7 +6,7 @@ namespace Gleam
     struct Animation
     {
         std::weak_ptr<AnimationClip> clip;
-        bool isPlaying;
+        bool isPlaying = true;
         float time;
     };
     Gleam_MakeType(Animation, "9929918F-F9D3-40EF-B8F0-4D2BAF38A357")

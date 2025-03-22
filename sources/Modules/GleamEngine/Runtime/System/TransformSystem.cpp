@@ -16,7 +16,7 @@ namespace Gleam
     }
     void TransformSystem::Update()
     {
-        View<ViewExclusion<Parent>, LocalTransform, LocalToWorld>::Each(
+        View<QueryExclusion<Parent>, LocalTransform, LocalToWorld>::Each(
             [this](LocalTransform& localTransform, LocalToWorld& localToWorld)
             {
                 ComputeLocalToWorld(localTransform, localToWorld);

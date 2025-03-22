@@ -74,11 +74,6 @@ namespace Gleam
         const Type& GetComponentType(int index) const;
         int GetComponentOffset(int index) const;
         int GetComponentOffset(std::type_index component) const;
-        template <class... TComponents>
-        std::array<int, sizeof...(TComponents)> GetComponentOffset() const
-        {
-            return {GetComponentOffset(typeid(TComponents))...};
-        }
 
         void Construct(std::byte* address) const;
         void Destruct(std::byte* address) const;

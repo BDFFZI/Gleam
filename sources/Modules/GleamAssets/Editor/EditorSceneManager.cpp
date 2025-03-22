@@ -19,7 +19,10 @@ namespace Gleam
     }
     void EditorSceneManager::CloseScene(Scene& scene)
     {
-        SceneManager::UnloadScene(AssetDatabase::GetAssetBundleID(scenePaths.at(&scene)));
+        std::filesystem::path scenePath = scenePaths.at(&scene);
+        SceneManager::UnloadScene(AssetDatabase::GetAssetBundleID(scenePath));
+        if (scenePath == lastScenePath)
+            lastScenePath = "";
     }
     void EditorSceneManager::SaveScene(Scene& scene)
     {
