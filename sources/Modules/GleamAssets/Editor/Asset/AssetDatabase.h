@@ -13,10 +13,13 @@ namespace Gleam
         static AssetBundle& Load(const std::filesystem::path& path);
         static void Reload(const std::filesystem::path& path);
         static void Unload(const std::filesystem::path& path);
-        static void Save(const std::filesystem::path& path);
-        static void Save(const std::filesystem::path& path, AssetBundle& assetBundle);
+
+        static void CreateFolder(const std::filesystem::path& folderPath);
+        static void Create(const std::filesystem::path& filePath, AssetBundle& assetBundle);
+        static void Save(const std::filesystem::path& filePath);
         static void Move(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
         static void Delete(const std::filesystem::path& path);
+
 
         static uuids::uuid GetAssetBundleID(const std::filesystem::path& path);
         static AssetBundle& GetAssetBundle(const std::filesystem::path& path);

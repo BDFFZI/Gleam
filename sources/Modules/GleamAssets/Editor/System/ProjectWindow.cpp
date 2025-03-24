@@ -49,6 +49,41 @@ namespace Gleam
             ImGui::EndDragDropTarget();
         }
     }
+    ImGuiID ProjectWindow::DrawRenamePopup(const std::filesystem::path& path)
+    {
+        std::string id = path.string() + "Rename";
+        if (ImGui::BeginPopup(id.c_str()))
+        {
+            static char buffer[64];
+            ImGui::InputText("##NewName", buffer, sizeof(buffer));
+            if (ImGui::Button("Confirm") && std::strlen(buffer) != 0)
+            {
+                std::string newPath = path.string();
+                String::Replace(newPath, path.stem().string(), buffer);
+                movingPaths.emplace_back(path, newPath);
+
+                for (char& i : buffer)
+                    i = 0;
+            }
+            ImGui::EndPopup();
+        }
+        return ImGui::GetID(id.c_str());
+    }
+    ImGuiID ProjectWindow::DrawDeletePopup(const std::filesystem::path& path)
+    {
+        std::string id = path.string() + "Delete";
+        if (ImGui::BeginPopup(id.c_str()))
+        {
+            if (ImGui::Button("Confirm"))
+            {
+                removingPaths.emplace_back(path);
+            }
+
+            ImGui::EndPopup();
+        }
+        return ImGui::GetID(id.c_str());
+    }
+
     void ProjectWindow::ShowFile(const std::filesystem::path& path)
     {
         //获取路径信息
@@ -66,21 +101,25 @@ namespace Gleam
             return;
         }
 
-        ImGui::PushID(fileName.data());
+        //名称显示
+        const bool isUnfolding = ImGui::TreeNodeEx(
+            path.filename().string().c_str(),
+            ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth
+        );
 
-        //资源标题UI，显示打开按钮、资源名称、导入器选择按钮
-        bool isUnfolding = ImGui::CollapsingHeader(std::format("##{}", fileName).data(), ImGuiTreeNodeFlags_AllowOverlap);
-        ImGui::SameLine();
-        if (ImGui::Button(fileName.data(), {ImGui::GetContentRegionAvail().x, 0}))
+        if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) //检视功能
         {
             AssetImporter& assetImporter = AssetImporter::GetImporter(path);
             GlobalInspectorWindow.SetTarget(InspectorTarget{assetImporter});
         }
-        DragDropMovePath(path);
+        DragDropMovePath(path); //拖拽移动功能
+        ImGuiID renamePopup = DrawRenamePopup(path);
+        ImGuiID deletePopup = DrawDeletePopup(path);
 
-        //资源右键菜单
-        if (ImGui::BeginPopupContextItem("FilePopup"))
+        //右键菜单
+        if (ImGui::BeginPopupContextItem())
         {
+            //自定义菜单
             if (fileMenus.contains(extension))
             {
                 fileDrawing = path;
@@ -90,10 +129,12 @@ namespace Gleam
 
             if (ImGui::MenuItem("Delete"))
             {
-                AssetDatabase::Delete(path);
-                isUnfolding = false;
+                ImGui::OpenPopup(deletePopup);
             }
-
+            if (ImGui::MenuItem("Rename"))
+            {
+                ImGui::OpenPopup(renamePopup);
+            }
             if (AssetDatabase::HasLoaded(path))
             {
                 if (ImGui::MenuItem("ReLoad"))
@@ -132,6 +173,8 @@ namespace Gleam
                     assetSlot.GetAsset().GetObjectType().GetIndex()
                 );
             }
+
+            ImGui::TreePop();
         }
         else if (assetBundlesLoading.contains(assetBundleID))
         {
@@ -139,23 +182,46 @@ namespace Gleam
             Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
             assetBundlesLoading.erase(assetBundleID);
         }
-
-        ImGui::PopID();
     }
     void ProjectWindow::ShowDirectory(const std::filesystem::path& path)
     {
-        std::string name = path.filename().string();
-        const bool isUnfolding = ImGui::TreeNode(name.c_str());
-        DragDropMovePath(path);
+        //名称显示
+        const bool isUnfolding = ImGui::TreeNodeEx(
+            path.filename().string().c_str(),
+            ImGuiTreeNodeFlags_SpanAvailWidth
+        );
 
+        DragDropMovePath(path); //拖拽移动功能
+        ImGuiID renamePopup = DrawRenamePopup(path);
+        ImGuiID deletePopup = DrawDeletePopup(path);
+
+        //右键菜单
         if (ImGui::BeginPopupContextItem())
         {
+            //自定义菜单
             directoryDrawing = path;
             fileDrawing = "";
             UI::Menu(directoryMenus);
+
+            if (ImGui::BeginMenu("Create"))
+            {
+                if (ImGui::MenuItem("Folder"))
+                    AssetDatabase::CreateFolder(path / "NewFolder");
+                ImGui::EndMenu();
+            }
+            if (ImGui::MenuItem("Delete"))
+            {
+                ImGui::OpenPopup(deletePopup);
+            }
+            if (ImGui::MenuItem("Rename"))
+            {
+                ImGui::OpenPopup(renamePopup);
+            }
+
             ImGui::EndPopup();
         }
 
+        //显示子文件
         if (isUnfolding)
         {
             //统计目录下元素
@@ -180,19 +246,21 @@ namespace Gleam
 
     void ProjectWindow::Start()
     {
+        //初始化并刷新资源文件夹
         if (!std::filesystem::exists("Assets"))
             std::filesystem::create_directory("Assets");
         AssetDatabase::Refresh();
     }
     void ProjectWindow::Stop()
     {
-        //除了结束时还未卸载的资源包
+        //回收结束时还未卸载的资源包
         for (auto assetBundleID : assetBundlesLoading)
             Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
         assetBundlesLoading.clear();
     }
     void ProjectWindow::Update()
     {
+        //根据窗口焦点状态刷新资源文件夹
         static bool lastIsFocused = false;
         if (lastIsFocused != Window::GetIsFocused())
         {
@@ -203,6 +271,7 @@ namespace Gleam
 
         if (ImGui::Begin("ProjectWindow", nullptr, ImGuiWindowFlags_MenuBar))
         {
+            //窗口菜单
             if (ImGui::BeginMenuBar())
             {
                 if (ImGui::MenuItem("Refresh"))
@@ -211,16 +280,32 @@ namespace Gleam
                 ImGui::EndMenuBar();
             }
 
+            //绘制文件夹
             ShowDirectory("Assets");
             if (std::filesystem::exists("StreamingAssets"))
                 ShowDirectory("StreamingAssets");
         }
-
         ImGui::End();
 
+        //处理文件结构变化
         for (auto& movingPath : movingPaths)
             AssetDatabase::Move(std::get<0>(movingPath), std::get<1>(movingPath));
         movingPaths.clear();
+        for (auto& removingPath : removingPaths)
+        {
+            if (!is_directory(removingPath))
+            {
+                uuids::uuid assetBundleID = AssetDatabase::GetAssetBundleID(removingPath);
+                if (assetBundlesLoading.contains(assetBundleID))
+                {
+                    Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
+                    assetBundlesLoading.erase(assetBundleID);
+                }
+            }
+
+            AssetDatabase::Delete(removingPath);
+        }
+        removingPaths.clear();
     }
 
     void JsonObjectImporter::LoadAsset(const std::filesystem::path& path, uuids::uuid& assetBundleID)

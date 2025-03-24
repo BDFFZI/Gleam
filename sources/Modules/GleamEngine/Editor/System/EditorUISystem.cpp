@@ -1,8 +1,10 @@
 ﻿#include "EditorUISystem.h"
 
+#include "GleamUI/Runtime/UI.h"
+#include <ImGuizmo.h>
+
 #include "GleamEngine/Editor/Editor.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
-#include "GleamUI/Runtime/UI.h"
 #include "GleamUtility/Runtime/String.h"
 
 namespace Gleam
@@ -13,12 +15,22 @@ namespace Gleam
     }
 
     std::vector<std::string> path = {};
+    void EditorUISystem::Start()
+    {
+        //初始化ImGuizmo
+        ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
+        ImGuizmo::AllowAxisFlip(false); //禁用手柄轴自动反转
+        ImGuizmo::SetGizmoSizeClipSpace(0.2f); //设置手柄在剪辑空间的大小
+        
+        SystemGroup::Start();
+    }
     void EditorUISystem::Update()
     {
+        //启动ImGuizmo
+        ImGuizmo::BeginFrame();
         //增加船坞功能
         ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
         //绘制菜单项
-        // ImGui::PushStyleColor(ImGuiCol_MenuBarBg, Editor::IsPlaying() ? float4::DarkGreen() : float4::Blue());
         if (ImGui::BeginMainMenuBar())
         {
             //系统菜单项
@@ -43,7 +55,6 @@ namespace Gleam
 
             ImGui::EndMainMenuBar();
         }
-        // ImGui::PopStyleColor();
 
         //绘制其他界面
         SystemGroup::Update();

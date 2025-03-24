@@ -34,23 +34,28 @@ namespace Gleam
         AssetImporter& assetMeta = AssetImporter::GetImporter(path);
         Resources::Unload(AssetBundle::GetAssetBundle(assetMeta.GetAssetBundleID()));
     }
-    void AssetDatabase::Save(const std::filesystem::path& path)
+
+    void AssetDatabase::CreateFolder(const std::filesystem::path& folderPath)
     {
-        AssetImporter& assetMeta = AssetImporter::GetImporter(path);
-        AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetMeta.GetAssetBundleID());
-        //保存到资源文件夹
-        AssetBundle::SaveJson(path.string(), assetBundle);
-        //保存到缓存文件夹
-        Resources::Save(assetBundle);
+        std::filesystem::create_directory(folderPath.string());
     }
-    void AssetDatabase::Save(const std::filesystem::path& path, AssetBundle& assetBundle)
+    void AssetDatabase::Create(const std::filesystem::path& filePath, AssetBundle& assetBundle)
     {
         //保存到资源文件夹
-        AssetBundle::SaveJson(path.string(), assetBundle);
+        AssetBundle::SaveJson(filePath.string(), assetBundle);
         //保存到缓存文件夹
         Resources::Save(assetBundle);
         //保存导入器
-        AssetImporter::GetImporter(path).SaveAndReloadAsset();
+        AssetImporter::GetImporter(filePath).SaveAndReloadAsset();
+    }
+    void AssetDatabase::Save(const std::filesystem::path& filePath)
+    {
+        AssetImporter& assetMeta = AssetImporter::GetImporter(filePath);
+        AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetMeta.GetAssetBundleID());
+        //保存到资源文件夹
+        AssetBundle::SaveJson(filePath.string(), assetBundle);
+        //保存到缓存文件夹
+        Resources::Save(assetBundle);
     }
     void AssetDatabase::Move(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
     {

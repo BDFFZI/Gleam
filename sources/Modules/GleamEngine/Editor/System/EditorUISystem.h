@@ -17,10 +17,11 @@ namespace Gleam
     private:
         std::vector<std::tuple<std::string, std::function<void()>>> editorMenus = {};
 
+        void Start() override;
         void Update() override;
     };
     Gleam_MakeGlobalSystem(EditorUISystem)
 
-#define Gleam_MakeEditorMenu(name,action) \
-    Gleam_MakeInitEvent(){EditorUISystem.AddEditorMenu(name,action);}
+#define Gleam_AddEditorMenu(name,action) \
+    Gleam_MakeInitEvent(){GlobalEditorUISystem.AddEditorMenu(name,action);}
 }

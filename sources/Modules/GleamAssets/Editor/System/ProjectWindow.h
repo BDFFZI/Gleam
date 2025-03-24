@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <filesystem>
+#include <imgui.h>
 
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Editor/System/EditorUISystem.h"
@@ -27,13 +28,17 @@ namespace Gleam
         inline static std::unordered_map<std::string, std::unordered_map<std::string, std::function<void()>>> fileMenus = {};
         inline static std::filesystem::path fileDrawing = "";
         inline static std::filesystem::path directoryDrawing = "";
-        inline static std::set<uuids::uuid> assetBundlesLoading = {};
-        inline static std::vector<std::tuple<std::filesystem::path, std::filesystem::path>> movingPaths = {};
 
-        static void DragDropMovePath(const std::filesystem::path& path);
-        static void ShowFile(const std::filesystem::path& path);
-        static void ShowDirectory(const std::filesystem::path& path);
+        std::set<uuids::uuid> assetBundlesLoading = {};
+        std::vector<std::tuple<std::filesystem::path, std::filesystem::path>> movingPaths = {};
+        std::vector<std::filesystem::path> removingPaths = {};
 
+        void DragDropMovePath(const std::filesystem::path& path);
+        ImGuiID DrawRenamePopup(const std::filesystem::path& path);
+        ImGuiID DrawDeletePopup(const std::filesystem::path& path);
+        void ShowFile(const std::filesystem::path& path);
+        void ShowDirectory(const std::filesystem::path& path);
+        
         void Start() override;
         void Stop() override;
         void Update() override;
@@ -55,9 +60,10 @@ Gleam_MakeInitEvent(){::Gleam::ProjectWindow::AddFileMenu(extension,name,action)
 #define Gleam_MakeCreateAssetMenu(type,extension)\
 void ProjectWindowMenu_Create##type##Asset()\
 {\
+std::filesystem::path path = ProjectWindow::GetDirectoryDrawing() / "New"#type##extension;\
 AssetBundle& assetBundle = AssetBundle::Create();\
 assetBundle.AddAsset(type{});\
-AssetDatabase::Save(ProjectWindow::GetDirectoryDrawing() / "New"#type##extension, assetBundle);\
+AssetDatabase::Create(path, assetBundle);\
 AssetBundle::Unload(assetBundle);\
 }\
 Gleam_MakeInitEvent(){\

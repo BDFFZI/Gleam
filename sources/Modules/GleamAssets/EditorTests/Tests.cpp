@@ -65,7 +65,7 @@ Gleam_MakeEngineStartEvent(Init, 0)
             AssetBundle& assetBundle = AssetBundle::Create(MD5("TestScene").toArray());
             SceneAsset::ToAssetBundle(scene, assetBundle);
             std::filesystem::create_directories("./Assets/Scenes");
-            AssetDatabase::Save("Assets/Scenes/TestScene.scene", assetBundle);
+            AssetDatabase::Create("Assets/Scenes/TestScene.scene", assetBundle);
             AssetBundle::Unload(assetBundle);
         }
         Scene::Destroy(scene);

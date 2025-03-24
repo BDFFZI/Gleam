@@ -53,6 +53,15 @@ namespace Gleam
             begin += splitLength;
         }
     }
+    void String::Replace(std::string& text, const std::string_view from, const std::string_view to)
+    {
+        std::string::size_type position = 0;
+        while ((position = text.find(from, position)) != std::string::npos)
+        {
+            text.replace(position, from.length(), to);
+            position += to.length();
+        }
+    }
 
     int String::EncodingBase64(const unsigned char* in_data, int in_count, unsigned char* out_base64)
     {

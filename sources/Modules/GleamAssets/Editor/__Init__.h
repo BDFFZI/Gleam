@@ -20,7 +20,7 @@ namespace Gleam
     )
 
     Gleam_AddInspectorWindowUI(EntityAsset, InspectorWindowUI_EntityAsset)
-
+    
     Gleam_AddProjectWindowDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene)
     Gleam_AddProjectWindowFileMenu(".scene", "Open", ProjectWindowMenu_OpenScene)
 

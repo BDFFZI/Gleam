@@ -1,7 +1,18 @@
 #pragma once
+#include "GleamECS/Runtime/System/System.h"
+#include "GleamEngine/Editor/System/EditorUISystem.h"
 
-class AnimationWindow
+namespace Gleam
 {
-public:
-    
-};
+    class AnimationWindow : public System
+    {
+    public:
+        AnimationWindow(): System(GlobalEditorUISystem)
+        {
+        }
+
+    private:
+        void Update() override;
+    };
+    Gleam_MakeGlobalSystem(AnimationWindow);
+}

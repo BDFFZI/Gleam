@@ -11,6 +11,7 @@ namespace Gleam
         static std::wstring ToWString(const std::string& input);
         static std::string ToString(const std::wstring& input);
         static void Split(std::string_view text, const std::string& splitWord, std::vector<std::string>& result);
+        static void Replace(std::string& text, std::string_view from, std::string_view to);
 
         static int EncodingBase64(const unsigned char* in_data, int in_count, unsigned char* out_base64);
         static int DecodingBase64(const unsigned char* in_base64, int in_count, unsigned char* out_data);

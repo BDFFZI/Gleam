@@ -3,7 +3,6 @@
 #include "Gizmos.h"
 #include "System/GameWindow.h"
 #include "System/GizmosSystem.h"
-#include "System/HandlesSystem.h"
 #include "System/SceneWindow.h"
 
 #include "GleamPresentation/Runtime/__Init__.h"
@@ -23,7 +22,6 @@ namespace Gleam
     Gleam_AddEditorSystems(
         GlobalGameWindow,
         GlobalSceneWindow,
-        GlobalHandlesSystem,
         GlobalGizmosSystem
     )
 
