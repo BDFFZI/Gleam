@@ -45,7 +45,11 @@ namespace Gleam
         if (system.GetGroup().has_value())
             AddSystem(system.GetGroup().value());
 
-        assert(!removingSystems.contains(&system) && "同时移除和添加系统！");
+        if (auto it = removingSystems.find(&system); it != removingSystems.end())
+        {
+            removingSystems.erase(it); //优先使用removingSystems抵消，该功能用于实现两个场景共用系统的情况
+            return;
+        }
 
         addingSystems.emplace(&system);
     }

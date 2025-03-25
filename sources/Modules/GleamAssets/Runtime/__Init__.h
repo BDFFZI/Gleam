@@ -1,5 +1,6 @@
 #pragma once
 #include "SceneManager.h"
+#include "SettingManager.h"
 
 #ifdef GleamEngineEditor
 #include "GleamEngine/Editor/Editor.h"
@@ -12,4 +13,7 @@ namespace Gleam
 #ifdef GleamEngineEditor
     Gleam_AddEditorSystems(SceneManager_ReleaseScenesSystem)
 #endif
+
+    Gleam_AddEngineStartEvent(SettingManager_LoadSettings, 0);
+    Gleam_AddEngineStopEvent(SettingManager_SaveSettings, 0);
 }

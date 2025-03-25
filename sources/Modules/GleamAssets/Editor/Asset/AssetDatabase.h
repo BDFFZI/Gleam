@@ -19,18 +19,14 @@ namespace Gleam
         static void Save(const std::filesystem::path& filePath);
         static void Move(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
         static void Delete(const std::filesystem::path& path);
-
-
+        
         static uuids::uuid GetAssetBundleID(const std::filesystem::path& path);
         static AssetBundle& GetAssetBundle(const std::filesystem::path& path);
 
         /**
-         * 将所有Assets中的资源解压到Resources以便使用依赖加载和引用计数功能
+         * 将目标目录中的所有资源解压到Resources以便使用依赖加载和引用计数功能
          * @param directory 
          */
-        static void Refresh(const std::filesystem::path& directory = assetDirectory);
-
-    private:
-        inline static std::filesystem::path assetDirectory = "Assets";
+        static void Refresh(const std::filesystem::path& directory);
     };
 }

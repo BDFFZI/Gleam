@@ -249,7 +249,7 @@ namespace Gleam
         //初始化并刷新资源文件夹
         if (!std::filesystem::exists("Assets"))
             std::filesystem::create_directory("Assets");
-        AssetDatabase::Refresh();
+        AssetDatabase::Refresh("Assets");
     }
     void ProjectWindow::Stop()
     {
@@ -265,7 +265,7 @@ namespace Gleam
         if (lastIsFocused != Window::GetIsFocused())
         {
             if (Window::GetIsFocused())
-                AssetDatabase::Refresh();
+                AssetDatabase::Refresh("Assets");
             lastIsFocused = Window::GetIsFocused();
         }
 
@@ -275,13 +275,15 @@ namespace Gleam
             if (ImGui::BeginMenuBar())
             {
                 if (ImGui::MenuItem("Refresh"))
-                    AssetDatabase::Refresh();
+                    AssetDatabase::Refresh("Assets");
 
                 ImGui::EndMenuBar();
             }
 
             //绘制文件夹
             ShowDirectory("Assets");
+            if (std::filesystem::exists("ProjectSettings"))
+                ShowDirectory("ProjectSettings");
             if (std::filesystem::exists("StreamingAssets"))
                 ShowDirectory("StreamingAssets");
         }

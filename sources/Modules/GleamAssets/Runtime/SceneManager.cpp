@@ -11,6 +11,13 @@ namespace Gleam
     Scene& SceneManager::LoadScene(const uuids::uuid assetBundleID, const bool isRunning)
     {
         AssetBundle& assetBundle = Resources::Load(assetBundleID);
+
+        //卸载已有场景
+        std::vector<uuids::uuid> oldScenes = {};
+        std::ranges::copy(allScenes | std::views::keys, std::back_inserter(oldScenes));
+        for (uuids::uuid id : oldScenes)
+            UnloadScene(id);
+
         Scene& scene = SceneAsset::FromAssetBundle(assetBundle, isRunning);
         allScenes.emplace(assetBundle.GetID(), &scene);
 
@@ -22,7 +29,7 @@ namespace Gleam
         Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
         allScenes.erase(assetBundleID);
     }
-    
+
     void SceneManager_ReleaseScenes()
     {
         //引擎停止，释放场景（世界负责回收，场景需释放所有权）并回收资源包

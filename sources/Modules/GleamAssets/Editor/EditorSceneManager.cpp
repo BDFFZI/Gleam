@@ -4,6 +4,7 @@
 #include "Asset/AssetImporter.h"
 #include "GleamAssets/Runtime/SceneManager.h"
 #include "GleamUtility/Runtime/Ranges.h"
+#include "Setting/EditorSceneSetting.h"
 
 namespace Gleam
 {
@@ -15,14 +16,14 @@ namespace Gleam
 
         Scene& scene = SceneManager::LoadScene(assetBundleID, false);
         scenePaths[&scene] = path;
-        lastScenePath = path;
+        EditorSceneSetting::lastScenePath = path.string();
     }
     void EditorSceneManager::CloseScene(Scene& scene)
     {
         std::filesystem::path scenePath = scenePaths.at(&scene);
         SceneManager::UnloadScene(AssetDatabase::GetAssetBundleID(scenePath));
-        if (scenePath == lastScenePath)
-            lastScenePath = "";
+        if (scenePath == EditorSceneSetting::lastScenePath)
+            EditorSceneSetting::lastScenePath = "";
     }
     void EditorSceneManager::SaveScene(Scene& scene)
     {
@@ -41,7 +42,7 @@ namespace Gleam
     void EditorSceneManager_OpenLastScene()
     {
         EditorSceneManager::scenePaths.clear();
-        if (!EditorSceneManager::lastScenePath.empty())
-            EditorSceneManager::OpenScene(EditorSceneManager::lastScenePath);
+        if (!EditorSceneSetting::lastScenePath.empty())
+            EditorSceneManager::OpenScene(EditorSceneSetting::lastScenePath);
     }
 }
