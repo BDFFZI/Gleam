@@ -1,6 +1,6 @@
 #include "SceneManager.h"
 #include "GleamPersistence/Runtime/Resources.h"
-#include "SceneAsset/SceneAsset.h"
+#include "Asset/SceneAsset.h"
 
 namespace Gleam
 {

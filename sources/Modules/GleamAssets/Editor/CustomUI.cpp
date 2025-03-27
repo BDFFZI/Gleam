@@ -3,7 +3,7 @@
 
 #include "EditorSceneManager.h"
 #include "Asset/AssetDatabase.h"
-#include "GleamAssets/Runtime/SceneAsset/SceneAsset.h"
+#include "GleamAssets/Runtime/Asset/SceneAsset.h"
 #include "System/ProjectWindow.h"
 
 namespace Gleam

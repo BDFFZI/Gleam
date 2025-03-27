@@ -82,11 +82,15 @@ namespace Gleam
     }
     AssetBundle& AssetDatabase::GetAssetBundle(const std::filesystem::path& path)
     {
-        return AssetBundle::GetAssetBundle(AssetImporter::GetImporter(path).GetAssetBundleID());
+        auto realPath = GetRealPath(path);
+
+        return AssetBundle::GetAssetBundle(AssetImporter::GetImporter(realPath).GetAssetBundleID());
     }
     void AssetDatabase::Refresh(const std::filesystem::path& directory)
     {
-        for (const auto& child : std::filesystem::directory_iterator{directory})
+        auto realDirectory = GetRealPath(directory);
+
+        for (const auto& child : std::filesystem::directory_iterator{realDirectory})
         {
             if (child.is_directory())
                 Refresh(child.path());
@@ -103,5 +107,11 @@ namespace Gleam
                 }
             }
         }
+    }
+
+    std::filesystem::path AssetDatabase::GetRealPath(const std::filesystem::path& path)
+    {
+        std::filesystem::path relativePath = relative(path);
+        return redirectRoot / relativePath;
     }
 }

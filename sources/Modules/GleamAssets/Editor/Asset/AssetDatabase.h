@@ -19,7 +19,7 @@ namespace Gleam
         static void Save(const std::filesystem::path& filePath);
         static void Move(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
         static void Delete(const std::filesystem::path& path);
-        
+
         static uuids::uuid GetAssetBundleID(const std::filesystem::path& path);
         static AssetBundle& GetAssetBundle(const std::filesystem::path& path);
 
@@ -28,5 +28,10 @@ namespace Gleam
          * @param directory 
          */
         static void Refresh(const std::filesystem::path& directory);
+
+    private:
+        inline static std::filesystem::path redirectRoot = "";
+
+        static std::filesystem::path GetRealPath(const std::filesystem::path& path);
     };
 }

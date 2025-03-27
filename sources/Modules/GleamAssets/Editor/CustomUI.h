@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "GleamAssets/Runtime/SceneAsset/EntityAsset.h"
+#include "GleamAssets/Runtime/Asset/EntityAsset.h"
 
 namespace Gleam
 {

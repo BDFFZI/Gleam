@@ -4,9 +4,9 @@
 #include <stduuid/uuid.h>
 
 #include "GleamAssets/Runtime/SceneManager.h"
-#include "GleamAssets/Runtime/SceneAsset/EntityAsset.h"
+#include "GleamAssets/Runtime/Asset/EntityAsset.h"
 #include "GleamECS/Runtime/Scene.h"
-#include "GleamAssets/Runtime/SceneAsset/SceneAsset.h"
+#include "GleamAssets/Runtime/Asset/SceneAsset.h"
 #include "GleamECS/Runtime/Archetype.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamECS/Runtime/View.h"
