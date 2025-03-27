@@ -30,11 +30,9 @@ namespace Gleam
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; //启用ImGui船坞功能
         io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange; //禁止ImGui修改光标可见性
 
-        //获取来自编辑器的预设窗口布局
-        std::filesystem::create_directory("ProjectSettings");
-        if (std::filesystem::exists("StreamingAssets/imgui.ini") && !std::filesystem::exists("ProjectSettings/imgui.ini"))
-            std::filesystem::copy("StreamingAssets/imgui.ini", "ProjectSettings/imgui.ini");
-        io.IniFilename = "ProjectSettings/imgui.ini";
+        //优先使用StreamingAssets中提供的布局文件，这些可能是用户有意提供的
+        if (std::filesystem::exists("StreamingAssets/imgui.ini") && !std::filesystem::exists("imgui.ini"))
+            std::filesystem::copy("StreamingAssets/imgui.ini", "imgui.ini");
 
         descriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(std::vector<GLDescriptorBinding>{
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
