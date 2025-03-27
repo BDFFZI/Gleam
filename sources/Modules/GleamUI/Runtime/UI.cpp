@@ -31,7 +31,8 @@ namespace Gleam
         io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange; //禁止ImGui修改光标可见性
 
         //获取来自编辑器的预设窗口布局
-        if (!std::filesystem::exists("ProjectSettings/imgui.ini") && std::filesystem::exists("StreamingAssets/imgui.ini"))
+        std::filesystem::create_directory("ProjectSettings");
+        if (std::filesystem::exists("StreamingAssets/imgui.ini") && !std::filesystem::exists("ProjectSettings/imgui.ini"))
             std::filesystem::copy("StreamingAssets/imgui.ini", "ProjectSettings/imgui.ini");
         io.IniFilename = "ProjectSettings/imgui.ini";
 

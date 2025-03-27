@@ -13,7 +13,7 @@ namespace Gleam
     {
         return addingEntities.AddEntity(archetype);
     }
-    void World::RemoveEntity(Entity entity, const bool removeFromScene)
+    void World::RemoveEntity(Entity& entity, const bool removeFromScene)
     {
         if (removeFromScene)
         {
@@ -29,6 +29,7 @@ namespace Gleam
         }
 
         removingEntities.emplace_back(entity);
+        entity = Entity::Null; //避免野指针
     }
     void World::MoveEntity(const Entity entity, const Archetype& newArchetype)
     {

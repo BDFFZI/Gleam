@@ -32,7 +32,7 @@ namespace Gleam
 
         static bool HasEntity(Entity entity);
         static Entity AddEntity(const Archetype& archetype);
-        static void RemoveEntity(Entity entity, bool removeFromScene = true);
+        static void RemoveEntity(Entity& entity, bool removeFromScene = true);
         static void MoveEntity(Entity entity, const Archetype& newArchetype);
 
         template <Component... TComponents>

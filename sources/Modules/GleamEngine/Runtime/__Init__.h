@@ -3,7 +3,6 @@
 #include "GleamECS/Runtime/World/World.h"
 #include "System/TimeSystem.h"
 #include "System/TransformSystem.h"
-#include "Entity/Archetype.h"
 
 #ifdef GleamEngineEditor
 #include "GleamEngine/Editor/Editor.h"

@@ -34,7 +34,7 @@ namespace Gleam
             AssetBundle& assetBundle = AssetBundle::Create(MD5(name.data()).toArray());
             {
                 const Type& type = *settings.at(std::string(name));
-                assetBundle.AddAsset(Asset{type.MakeShared(type.Create()), type});
+                assetBundle.EmplaceAsset(Asset{type.MakeShared(type.Create()), type}, 1);
             }
 #ifdef GleamEngineEditor
             std::string filePath = std::string("ProjectSettings/") + name.data();

@@ -4,10 +4,10 @@
         "size": 1,
         "data": [
             {
-                "id": 504407827,
+                "id": 1,
                 "typeID": "28bc4368-5ef1-4c14-8ac7-e942f986f327",
                 "data": {
-                    "lastScenePath": ""
+                    "lastScenePath": "Assets\\StartScene.scene"
                 }
             }
         ]
