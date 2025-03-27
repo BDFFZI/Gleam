@@ -117,7 +117,7 @@ macro(addPackage)
             string(REPLACE "Editor" "Runtime" TargetLibrary ${ProjectName})
             linkLibrary(${TargetLibrary} ${ProjectName})
         endif()
-        
+
         # 引用编辑器核心库
         if(NOT ${PackageName} STREQUAL "GleamEngine")
             linkLibrary("GleamEngineEditor" ${ProjectName})
@@ -141,6 +141,10 @@ macro(addProject)
     initProjectInfo()
     initProject()
     setExecutable()
+
+    # 针对专门的示例项目，重新设置输出目录和工作目录，以兼容部分编辑器模块
+    set_target_properties(${ProjectName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+    set_target_properties(${ProjectName} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 endmacro()
 
 # 链接目标库并自动创建库初始化文件

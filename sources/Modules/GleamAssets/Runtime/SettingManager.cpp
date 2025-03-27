@@ -10,14 +10,5 @@ namespace Gleam
     {
         settings.emplace(name, &type);
     }
-    void SettingManager_LoadSettings()
-    {
-        for (const auto& name : SettingManager::settings | std::views::keys)
-            SettingManager::LoadSetting(name);
-    }
-    void SettingManager_SaveSettings()
-    {
-        for (const auto& name : SettingManager::settings | std::views::keys)
-            SettingManager::SaveSetting(name);
-    }
+
 }

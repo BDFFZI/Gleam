@@ -22,10 +22,6 @@ namespace Gleam
 
     void UI::Init()
     {
-        //获取来自编辑器的预设窗口布局
-        if (!std::filesystem::exists("imgui.ini") && std::filesystem::exists("StreamingAssets/imgui.ini"))
-            std::filesystem::copy("StreamingAssets/imgui.ini", "imgui.ini");
-
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -33,6 +29,11 @@ namespace Gleam
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // 启用ImGui键盘按钮功能
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; //启用ImGui船坞功能
         io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange; //禁止ImGui修改光标可见性
+
+        //获取来自编辑器的预设窗口布局
+        if (!std::filesystem::exists("ProjectSettings/imgui.ini") && std::filesystem::exists("StreamingAssets/imgui.ini"))
+            std::filesystem::copy("StreamingAssets/imgui.ini", "ProjectSettings/imgui.ini");
+        io.IniFilename = "ProjectSettings/imgui.ini";
 
         descriptorSetLayout = std::make_unique<GLDescriptorSetLayout>(std::vector<GLDescriptorBinding>{
             {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}

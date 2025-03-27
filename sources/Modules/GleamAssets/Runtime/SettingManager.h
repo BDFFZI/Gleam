@@ -53,6 +53,14 @@ namespace Gleam
     };
 #define Gleam_AddSetting(name,type) Gleam_MakeInitEvent(){::Gleam::SettingManager::AddSetting(name, type##Type);}
 
-    void SettingManager_LoadSettings();
-    void SettingManager_SaveSettings();
+    inline void SettingManager_LoadSettings()
+    {
+        for (const auto& name : SettingManager::settings | std::views::keys)
+            SettingManager::LoadSetting(name);
+    }
+    inline void SettingManager_SaveSettings()
+    {
+        for (const auto& name : SettingManager::settings | std::views::keys)
+            SettingManager::SaveSetting(name);
+    }
 }

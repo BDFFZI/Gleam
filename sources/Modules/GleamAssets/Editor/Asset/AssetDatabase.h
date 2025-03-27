@@ -28,10 +28,5 @@ namespace Gleam
          * @param directory 
          */
         static void Refresh(const std::filesystem::path& directory);
-
-    private:
-        inline static std::filesystem::path redirectRoot = "";
-
-        static std::filesystem::path GetRealPath(const std::filesystem::path& path);
     };
 }
