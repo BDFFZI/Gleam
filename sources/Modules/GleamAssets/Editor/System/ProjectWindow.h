@@ -15,6 +15,8 @@ namespace Gleam
     public:
         static void AddDirectoryMenu(const std::string& name, const std::function<void()>& action);
         static void AddFileMenu(const std::string& extension, const std::string& name, const std::function<void()>& action);
+        static void SetFileRenameCallback(const std::string& extension, const std::function<void(std::filesystem::path, std::filesystem::path)>& action);
+        static void AddFileDeleteEvent(const std::string& extension, const std::function<void(std::filesystem::path)>& action);
 
         static const std::filesystem::path& GetFileDrawing();
         static const std::filesystem::path& GetDirectoryDrawing();
@@ -26,6 +28,8 @@ namespace Gleam
     private:
         inline static std::unordered_map<std::string, std::function<void()>> directoryMenus = {};
         inline static std::unordered_map<std::string, std::unordered_map<std::string, std::function<void()>>> fileMenus = {};
+        inline static std::unordered_map<std::string, std::function<void(std::filesystem::path, std::filesystem::path)>> fileRenameCallback = {};
+        inline static std::unordered_map<std::string, std::function<void(std::filesystem::path)>> fileDeleteCallback = {};
         inline static std::filesystem::path fileDrawing = "";
         inline static std::filesystem::path directoryDrawing = "";
 
@@ -38,7 +42,7 @@ namespace Gleam
         ImGuiID DrawDeletePopup(const std::filesystem::path& path);
         void ShowFile(const std::filesystem::path& path);
         void ShowDirectory(const std::filesystem::path& path);
-        
+
         void Stop() override;
         void Update() override;
     };

@@ -1,6 +1,7 @@
 #include "SceneManager.h"
 #include "GleamPersistence/Runtime/Resources.h"
 #include "Asset/SceneAsset.h"
+#include "Setting/SceneSetting.h"
 
 namespace Gleam
 {
@@ -22,6 +23,13 @@ namespace Gleam
         allScenes.emplace(assetBundle.GetID(), &scene);
 
         return scene;
+    }
+    std::optional<std::reference_wrapper<Scene>> SceneManager::LoadScene(const std::string_view sceneName, const bool isRunning)
+    {
+        auto it = SceneSetting::sceneNameMapping.find(std::string(sceneName));
+        if (it != SceneSetting::sceneNameMapping.end())
+            return LoadScene(it->second, isRunning);
+        return std::nullopt;
     }
     void SceneManager::UnloadScene(const uuids::uuid assetBundleID)
     {

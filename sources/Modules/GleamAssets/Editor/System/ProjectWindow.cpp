@@ -20,6 +20,14 @@ namespace Gleam
     {
         fileMenus[extension].emplace(name, action);
     }
+    void ProjectWindow::SetFileRenameCallback(const std::string& extension, const std::function<void(std::filesystem::path, std::filesystem::path)>& action)
+    {
+        fileRenameCallback.emplace(extension, action);
+    }
+    void ProjectWindow::AddFileDeleteEvent(const std::string& extension, const std::function<void(std::filesystem::path)>& action)
+    {
+        fileDeleteCallback.emplace(extension, action);
+    }
 
     const std::filesystem::path& ProjectWindow::GetFileDrawing()
     {
@@ -243,7 +251,7 @@ namespace Gleam
             ImGui::TreePop();
         }
     }
-    
+
     void ProjectWindow::Stop()
     {
         //回收结束时还未卸载的资源包
@@ -282,14 +290,24 @@ namespace Gleam
         }
         ImGui::End();
 
-        //处理文件结构变化
+        //处理文件结构性变化
         for (auto& movingPath : movingPaths)
+        {
+            std::string extension = std::get<0>(movingPath).extension().string();
+            if (fileRenameCallback.contains(extension))
+                fileRenameCallback[extension](std::get<0>(movingPath), std::get<1>(movingPath));
+
             AssetDatabase::Move(std::get<0>(movingPath), std::get<1>(movingPath));
+        }
         movingPaths.clear();
         for (auto& removingPath : removingPaths)
         {
             if (!is_directory(removingPath))
             {
+                std::string extension = removingPath.extension().string();
+                if (fileDeleteCallback.contains(extension))
+                    fileDeleteCallback[extension](removingPath);
+
                 uuids::uuid assetBundleID = AssetDatabase::GetAssetBundleID(removingPath);
                 if (assetBundlesLoading.contains(assetBundleID))
                 {

@@ -19,6 +19,13 @@ namespace Gleam
             return AssetBundle::GetAssetBundle(assetBundleID);
         return AssetBundle::LoadBinary(assetBundlePath.string());
     }
+    void Resources::Reload(const uuids::uuid assetBundleID)
+    {
+        assert(assetBundleRefCount[assetBundleID] > 0 && "资源包未被加载！");
+
+        auto assetBundlePath = resourceDirectory / to_string(assetBundleID);
+        AssetBundle::LoadBinary(assetBundlePath.string(), true);
+    }
     void Resources::Unload(AssetBundle& assetBundle)
     {
         uuids::uuid assetBundleID = assetBundle.GetID();
@@ -34,19 +41,20 @@ namespace Gleam
             AssetBundle::Unload(assetBundle);
     }
 
-    void Resources::Reload(const uuids::uuid assetBundleID)
-    {
-        assert(assetBundleRefCount[assetBundleID] > 0 && "资源包未被加载！");
-
-        auto assetBundlePath = resourceDirectory / to_string(assetBundleID);
-        AssetBundle::LoadBinary(assetBundlePath.string(), true);
-    }
-    void Resources::Save(AssetBundle& assetBundle)
+    void Resources::Create(AssetBundle& assetBundle)
     {
         auto assetBundlePath = resourceDirectory / to_string(assetBundle.GetID());
         AssetBundle::SaveBinary(assetBundlePath.string(), assetBundle);
+        AssetBundle::SaveMeta(assetBundlePath.string(), assetBundle);
+    }
+    void Resources::Save(AssetBundle& assetBundle)
+    {
+        assert(assetBundleRefCount[assetBundle.GetID()] > 0 && "资源包未被加载！");
 
-        AssetBundleMeta oldAssetBundleMeta = AssetBundle::HasMeta(assetBundlePath) ? AssetBundle::LoadMeta(assetBundlePath.string()) : AssetBundleMeta{};
+        auto assetBundlePath = resourceDirectory / to_string(assetBundle.GetID());
+        AssetBundle::SaveBinary(assetBundlePath.string(), assetBundle);
+
+        AssetBundleMeta oldAssetBundleMeta = AssetBundle::LoadMeta(assetBundlePath.string());
         AssetBundle::SaveMeta(assetBundlePath.string(), assetBundle);
         AssetBundleMeta newAssetBundleMeta = AssetBundle::LoadMeta(assetBundlePath.string());
 

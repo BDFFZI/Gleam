@@ -17,6 +17,34 @@ namespace Gleam
     {
     public:
         static void AddSetting(std::string_view name, const Type& type);
+
+        static bool HasSetting(const std::string_view name)
+        {
+            if (!settings.contains(name.data()))
+                return false;
+
+#ifdef GleamEngineEditor
+            std::string filePath = std::string("ProjectSettings/") + name.data();
+            return std::filesystem::exists(filePath);
+#else
+            return Resources::Has(MD5(name.data()).toArray());
+#endif
+        }
+        static void CreateSetting(const std::string_view name)
+        {
+            AssetBundle& assetBundle = AssetBundle::Create(MD5(name.data()).toArray());
+            {
+                const Type& type = *settings.at(std::string(name));
+                assetBundle.EmplaceAsset(Asset{type.MakeShared(type.Create()), type}, 1);
+            }
+#ifdef GleamEngineEditor
+            std::string filePath = std::string("ProjectSettings/") + name.data();
+            AssetDatabase::Create(filePath, assetBundle);
+#else
+            Resources::Save(assetBundle);
+#endif
+            AssetBundle::Unload(assetBundle);
+        }
         static void LoadSetting(const std::string_view name)
         {
 #ifdef GleamEngineEditor
@@ -24,7 +52,6 @@ namespace Gleam
             if (!std::filesystem::exists(filePath))
                 return;
             AssetDatabase::Load(filePath);
-            AssetDatabase::Unload(filePath); //加载数据到静态类，因此可以直接卸载
 #else
             Resources::Load(MD5(name.data()).toArray());
 #endif
@@ -44,10 +71,14 @@ namespace Gleam
 #endif
             AssetBundle::Unload(assetBundle);
         }
+        static void UnloadSetting(const std::string_view name)
+        {
+            SaveSetting(name);
+        }
 
     private:
         friend void SettingManager_LoadSettings();
-        friend void SettingManager_SaveSettings();
+        friend void SettingManager_UnloadSettings();
 
         inline static std::unordered_map<std::string, const Type*> settings = {};
     };
@@ -58,9 +89,9 @@ namespace Gleam
         for (const auto& name : SettingManager::settings | std::views::keys)
             SettingManager::LoadSetting(name);
     }
-    inline void SettingManager_SaveSettings()
+    inline void SettingManager_UnloadSettings()
     {
         for (const auto& name : SettingManager::settings | std::views::keys)
-            SettingManager::SaveSetting(name);
+            SettingManager::UnloadSetting(name);
     }
 }

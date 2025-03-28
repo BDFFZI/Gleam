@@ -15,5 +15,5 @@ namespace Gleam
 #endif
 
     Gleam_AddEngineStartEvent(SettingManager_LoadSettings, 0);
-    Gleam_AddEngineStopEvent(SettingManager_SaveSettings, 0);
+    Gleam_AddEngineStopEvent(SettingManager_UnloadSettings, 0);
 }

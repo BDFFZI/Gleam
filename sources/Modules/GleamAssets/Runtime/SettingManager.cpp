@@ -10,5 +10,4 @@ namespace Gleam
     {
         settings.emplace(name, &type);
     }
-
 }

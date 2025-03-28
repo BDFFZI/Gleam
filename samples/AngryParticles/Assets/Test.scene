@@ -1,0 +1,19 @@
+{
+    "id": "0724b184-3857-4256-8bcd-da50ba2c4e97",
+    "assetSlots": {
+        "size": 1,
+        "data": [
+            {
+                "id": 1746171205,
+                "typeID": "3ca95e07-fcd9-4dce-abe3-6115152ea9d7",
+                "data": {
+                    "name": "NewScene",
+                    "systems": {
+                        "size": 0,
+                        "data": []
+                    }
+                }
+            }
+        ]
+    }
+}

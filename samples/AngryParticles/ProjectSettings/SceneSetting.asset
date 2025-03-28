@@ -1,0 +1,19 @@
+{
+    "id": "98b92ae4-93e8-75ce-1477-9a5909dc2b4e",
+    "assetSlots": {
+        "size": 1,
+        "data": [
+            {
+                "id": 1,
+                "typeID": "056c22b3-4cf6-4771-818b-30f67fe75ddd",
+                "data": {
+                    "startSceneName": "",
+                    "sceneNameMapping": {
+                        "size": 0,
+                        "data": []
+                    }
+                }
+            }
+        ]
+    }
+}

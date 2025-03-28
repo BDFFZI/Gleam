@@ -25,6 +25,12 @@ namespace Gleam
 
         EditorSceneManager::OpenScene(path);
     }
+    void ProjectWindowMenu_RenameScene()
+    {
+        auto& path = ProjectWindow::GetFileDrawing();
+
+        EditorSceneManager::OpenScene(path);
+    }
 
     void InspectorWindowUI_EntityAsset(EntityAsset& entityAsset)
     {
