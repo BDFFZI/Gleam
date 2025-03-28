@@ -1,0 +1,21 @@
+{
+    "id": "d334c836-256a-47f4-9f87-e15a1bdd17aa",
+    "assetSlots": {
+        "size": 1,
+        "data": [
+            {
+                "id": 819570321,
+                "typeID": "3ca95e07-fcd9-4dce-abe3-6115152ea9d7",
+                "data": {
+                    "name": "Menu",
+                    "systems": {
+                        "size": 1,
+                        "data": [
+                            "b62a023e-a76c-384a-6267-fe210e946aa9"
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+}

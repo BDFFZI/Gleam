@@ -39,7 +39,6 @@ namespace Gleam
         void ShowFile(const std::filesystem::path& path);
         void ShowDirectory(const std::filesystem::path& path);
         
-        void Start() override;
         void Stop() override;
         void Update() override;
     };

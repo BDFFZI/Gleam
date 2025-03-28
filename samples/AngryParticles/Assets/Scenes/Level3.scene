@@ -1,0 +1,19 @@
+{
+    "id": "19e51748-6f82-4eb8-8f4b-b5373cbdea52",
+    "assetSlots": {
+        "size": 1,
+        "data": [
+            {
+                "id": 1653287073,
+                "typeID": "3ca95e07-fcd9-4dce-abe3-6115152ea9d7",
+                "data": {
+                    "name": "Level3",
+                    "systems": {
+                        "size": 0,
+                        "data": []
+                    }
+                }
+            }
+        ]
+    }
+}

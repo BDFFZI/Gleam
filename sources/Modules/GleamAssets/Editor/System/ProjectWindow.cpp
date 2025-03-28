@@ -243,14 +243,7 @@ namespace Gleam
             ImGui::TreePop();
         }
     }
-
-    void ProjectWindow::Start()
-    {
-        //初始化并刷新资源文件夹
-        if (!std::filesystem::exists("Assets"))
-            std::filesystem::create_directory("Assets");
-        AssetDatabase::Refresh("Assets");
-    }
+    
     void ProjectWindow::Stop()
     {
         //回收结束时还未卸载的资源包

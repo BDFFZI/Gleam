@@ -8,6 +8,16 @@
 
 namespace Gleam
 {
+    Gleam_MakeEngineStartEvent(RefreshAssets, SettingManager_LoadSettingsOrder-1)
+    {
+        if (!std::filesystem::exists("Assets"))
+            std::filesystem::create_directory("Assets");
+        AssetDatabase::Refresh("Assets");
+        if (!std::filesystem::exists("ProjectSettings"))
+            std::filesystem::create_directory("ProjectSettings");
+        AssetDatabase::Refresh("ProjectSettings");
+    }
+
     Gleam_AddSystems(
         EditorSceneManager_StartScenesSystem
     )
@@ -20,7 +30,7 @@ namespace Gleam
     )
 
     Gleam_AddInspectorWindowUI(EntityAsset, InspectorWindowUI_EntityAsset)
-    
+
     Gleam_AddProjectWindowDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene)
     Gleam_AddProjectWindowFileMenu(".scene", "Open", ProjectWindowMenu_OpenScene)
 

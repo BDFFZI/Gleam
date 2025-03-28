@@ -10,11 +10,11 @@
 
 namespace Gleam
 {
-    Gleam_MakeEngineStartEvent(InitWindowLibrary, 0)
+    Gleam_MakeEngineStartEvent(InitWindowLibrary, std::numeric_limits<int>::lowest())
     {
         Window::Init();
     }
-    Gleam_MakeEngineStopEvent(UnInitWindowLibrary, 0)
+    Gleam_MakeEngineStopEvent(UnInitWindowLibrary, std::numeric_limits<int>::lowest())
     {
         Window::UnInit();
     }

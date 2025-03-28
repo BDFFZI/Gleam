@@ -1,0 +1,21 @@
+{
+    "id": "04957659-6200-448c-bd28-d761ae79e1bb",
+    "assetSlots": {
+        "size": 1,
+        "data": [
+            {
+                "id": 996109156,
+                "typeID": "3ca95e07-fcd9-4dce-abe3-6115152ea9d7",
+                "data": {
+                    "name": "Start",
+                    "systems": {
+                        "size": 1,
+                        "data": [
+                            "9c32129f-04c5-b850-f3c1-7ab5c4674c3f"
+                        ]
+                    }
+                }
+            }
+        ]
+    }
+}
