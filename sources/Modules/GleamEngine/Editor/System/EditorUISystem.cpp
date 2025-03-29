@@ -9,25 +9,30 @@
 
 namespace Gleam
 {
-    void EditorUISystem::AddEditorMenu(const std::string& name, const std::function<void()>& action)
+    void EditorUISystem::MakeEditorMenu(const std::string& name, const std::function<void()>& action)
     {
         editorMenus.emplace_back(name, action);
     }
+    void EditorUISystem::ShowIDStackToolWindow()
+    {
+        showIDStackToolWindow = true;
+    }
+    void EditorUISystem::ShowDemoWindow()
+    {
+        showDemoWindow = true;
+    }
 
-    std::vector<std::string> path = {};
     void EditorUISystem::Start()
     {
         //初始化ImGuizmo
         ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
         ImGuizmo::AllowAxisFlip(false); //禁用手柄轴自动反转
         ImGuizmo::SetGizmoSizeClipSpace(0.2f); //设置手柄在剪辑空间的大小
-        
+
         SystemGroup::Start();
     }
     void EditorUISystem::Update()
     {
-        ImGui::ShowIDStackToolWindow();
-        
         //启动ImGuizmo
         ImGuizmo::BeginFrame();
         //增加船坞功能
@@ -51,6 +56,7 @@ namespace Gleam
             //自定义菜单项
             for (auto& [name,func] : editorMenus)
             {
+                static std::vector<std::string> path = {};
                 String::Split(name, "/", path);
                 UI::MenuItem(path, func);
             }
@@ -60,5 +66,10 @@ namespace Gleam
 
         //绘制其他界面
         SystemGroup::Update();
+
+        if (showIDStackToolWindow)
+            ImGui::ShowIDStackToolWindow(&showIDStackToolWindow);
+        if (showDemoWindow)
+            ImGui::ShowDemoWindow(&showDemoWindow);
     }
 }

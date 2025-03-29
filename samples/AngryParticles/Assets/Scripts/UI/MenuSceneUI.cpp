@@ -1,10 +1,10 @@
-﻿#include "MenuScene.h"
+﻿#include "MenuSceneUI.h"
 
 #include <imgui.h>
 
 #include "GleamAssets/Runtime/SceneManager.h"
 
-void MenuScene::Update()
+void MenuSceneUI::Update()
 {
     if (ImGui::Button("Level 1"))
     {

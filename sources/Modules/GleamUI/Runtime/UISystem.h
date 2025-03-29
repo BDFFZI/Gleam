@@ -14,13 +14,13 @@ namespace Gleam
 {
     class UISystem : public SystemGroup
     {
-    public:
+        Gleam_MakeType_Friend
+
+        void Update() override;
+
         UISystem(): SystemGroup(Order)
         {
         }
-
-    private:
-        void Update() override;
     };
     Gleam_MakeGlobalSystem(UISystem)
 }

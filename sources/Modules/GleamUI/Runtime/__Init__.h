@@ -8,23 +8,24 @@
 
 namespace Gleam
 {
-    Gleam_MakeEngineStartEvent(InitUILibrary, InitGraphicsLibraryOrder+1)
+    Gleam_MakeInitEvent()
     {
-        UI::Init();
-    }
+        Engine::AddStartEvent([]
+        {
+            UI::Init();
+        }, InitGraphicsLibraryOrder + 1);
+        Engine::AddStopEvent([]
+        {
+            UI::UnInit();
+        }, UnInitGraphicsLibraryOrder - 1);
 
-    Gleam_MakeEngineStopEvent(UnInitUILibrary, UnInitGraphicsLibraryOrder-1)
-    {
-        UI::UnInit();
-    }
-
-    Gleam_AddRuntimeSystems(
-        GlobalUISystem
-    )
-
+        Engine::AddRuntimeSystems({
+            GlobalUISystem
+        });
 #ifdef GleamEngineEditor
-    Gleam_AddEditorSystems(
-        GlobalUISystem
-    );
+        Editor::AddEditorSystems({
+            GlobalUISystem
+        });
 #endif
+    }
 }

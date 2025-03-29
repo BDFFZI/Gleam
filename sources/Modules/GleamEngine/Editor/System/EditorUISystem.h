@@ -8,20 +8,26 @@ namespace Gleam
     class EditorUISystem : public SystemGroup
     {
     public:
-        EditorUISystem(): SystemGroup(GlobalUISystem, MaxOrder, MaxOrder)
-        {
-        }
-
-        void AddEditorMenu(const std::string& name, const std::function<void()>& action);
+        static void MakeEditorMenu(const std::string& name, const std::function<void()>& action);
+        static void ShowIDStackToolWindow();
+        static void ShowDemoWindow();
 
     private:
-        std::vector<std::tuple<std::string, std::function<void()>>> editorMenus = {};
+        Gleam_MakeType_Friend
+
+        inline static std::vector<std::tuple<std::string, std::function<void()>>> editorMenus = {};
+        inline static bool showIDStackToolWindow = false;
+        inline static bool showDemoWindow = false;
 
         void Start() override;
         void Update() override;
+
+        EditorUISystem(): SystemGroup(GlobalUISystem, MaxOrder, MaxOrder)
+        {
+        }
     };
     Gleam_MakeGlobalSystem(EditorUISystem)
 
 #define Gleam_AddEditorMenu(name,action) \
-    Gleam_MakeInitEvent(){GlobalEditorUISystem.AddEditorMenu(name,action);}
+    Gleam_MakeInitEvent(){EditorUISystem::MakeEditorMenu(name,action);}
 }

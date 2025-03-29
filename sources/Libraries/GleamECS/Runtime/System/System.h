@@ -32,11 +32,12 @@ namespace Gleam
         template <typename TSystem> requires std::derived_from<TSystem, System>
         static TSystem& CreateGlobal(std::string_view name = "", const uuids::uuid id = {})
         {
-            std::unique_ptr<System> system = std::unique_ptr<System>{new TSystem()};
-            //设置父类
+            //注册类型
             Type& systemType = Type::CreateOrGet<TSystem>();
             if (!systemType.GetParent().has_value()) //生成默认父类
                 systemType.SetParent(Type::GetType(typeid(System)).value());
+            //创建实例
+            std::unique_ptr<System> system = std::unique_ptr<System>{static_cast<System*>(systemType.Create())};
             //设置名称
             if (!name.empty())
                 system->name = name;

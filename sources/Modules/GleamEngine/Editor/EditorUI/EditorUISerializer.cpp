@@ -11,9 +11,9 @@ namespace Gleam
     {
         nodePaths.emplace_back(rootName);
     }
-    void EditorUISerializer::PushNode(std::optional<std::string_view> name, const DataType dataType)
+    void EditorUISerializer::PushNode(const std::optional<std::string_view> name, const DataType dataType)
     {
-        nodePaths.push_back(name.has_value() ? name->data() : nodePaths.back());
+        nodePaths.push_back(name.has_value() ? name->data() : nodeTypes.back() == DataType::Field ? nodePaths.back() : "");
         nodeTypes.push_back(dataType);
         nodeFolds.push_back(nodeFolds.back());
         nodeIndices.push_back(0);
@@ -173,16 +173,17 @@ namespace Gleam
     }
     std::string EditorUISerializer::GetNodeName(const int layerOffset)
     {
-        if (nodePaths.back().empty())
-        {
-            if (nodeTypes[nodeTypes.size() - 1 + layerOffset] == DataType::Array) //基元数组（基本元素构成的数组）
-                return GetElementName(nodeIndices[nodeTypes.size() - 1 + layerOffset] - 1); //数组内元素显示为序号
-            if (nodeTypes[nodeTypes.size() - 2 + layerOffset] == DataType::Array) //非基元数组（复合元素（如类）构成的数组）
-                return magic_enum::enum_name(nodeTypes.back()).data()
-                    + GetElementName(nodeIndices[nodeTypes.size() - 2 + layerOffset] - 1);
-        }
+        std::string nodeName = nodePaths[nodePaths.size() - 1 + layerOffset];
+        DataType nodeType = nodeTypes[nodeTypes.size() - 1 + layerOffset];
+        DataType parentNodeType = nodeTypes[nodeTypes.size() - 2 + layerOffset];
 
-        return nodePaths.back();
+        if (nodeType == DataType::Array) //数组内的基本元素（基本元素构成的数组）
+            return GetElementName(nodeIndices[nodeTypes.size() - 1 + layerOffset] - 1); //数组内元素显示为序号
+        if (parentNodeType == DataType::Array && nodeName.empty()) //数组内的非基本元素（复合元素（如类）构成的数组）
+            return magic_enum::enum_name(nodeTypes.back()).data()
+                + GetElementName(nodeIndices[nodeTypes.size() - 2 + layerOffset] - 1);
+
+        return nodeName;
     }
     void EditorUISerializer::PreTransferNode()
     {
