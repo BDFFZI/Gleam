@@ -9,10 +9,8 @@
                 "data": {
                     "name": "Level1",
                     "systems": {
-                        "size": 1,
-                        "data": [
-                            "9c32129f-04c5-b850-f3c1-7ab5c4674c3f"
-                        ]
+                        "size": 0,
+                        "data": []
                     }
                 }
             }

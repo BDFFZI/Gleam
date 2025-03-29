@@ -40,6 +40,6 @@ public:
     int countDown = 3;
 };
 Gleam_MakeGlobalSystem(MySystem)
-Gleam_AddSystems(GlobalMySystem)
+Gleam_AddRuntimeSystems(GlobalMySystem)
 
 inline int main() { Gleam::Engine::Start(); return 0; }

@@ -6,7 +6,7 @@
 
 namespace Gleam
 {
-    void SettingManager::AddSetting(std::string_view name, const Type& type)
+    void SettingManager::MakeSetting(std::string_view name, const Type& type)
     {
         settings.emplace(name, &type);
     }

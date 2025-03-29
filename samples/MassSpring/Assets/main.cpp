@@ -2,7 +2,7 @@
 #include "LogicSystem.h"
 #include "GameRenderingSystem.h"
 
-Gleam_AddSystems(
+Gleam_AddRuntimeSystems(
     GlobalAssetSystem,
     GlobalLogicSystem,
     GlobalGameUISystem,

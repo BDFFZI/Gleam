@@ -8,7 +8,7 @@ void StartSceneUI::Update()
 {
     if (ImGui::Button("Start Game"))
     {
-        Gleam::SceneManager::LoadScene("MenuScene");
+        Gleam::SceneManager::LoadScene("Menu");
     }
     if (ImGui::Button("Exit Game"))
     {

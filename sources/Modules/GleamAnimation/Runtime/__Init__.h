@@ -4,5 +4,5 @@
 
 namespace Gleam
 {
-    Gleam_AddSystems(GlobalAnimationSystem)
+    Gleam_AddRuntimeSystems(GlobalAnimationSystem)
 }

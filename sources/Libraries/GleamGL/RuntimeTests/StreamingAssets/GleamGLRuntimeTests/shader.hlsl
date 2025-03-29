@@ -22,9 +22,9 @@ struct VSOutput
     float2 uv : TEXCOORD0;
 };
 
-VSOutput VertexShader(VSInput input, uint VertexIndex: SV_VertexID)
+VSOutput VertexShader(VSInput input)
 {
-    VSOutput output = (VSOutput)0;
+    VSOutput output;
     output.color = input.color;
     output.uv = input.uv;
     output.positionCS = mul(proj, mul(view, mul(model, float4(input.positionOS, 1.0))));

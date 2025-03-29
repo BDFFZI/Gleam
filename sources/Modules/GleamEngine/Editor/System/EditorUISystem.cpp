@@ -26,6 +26,8 @@ namespace Gleam
     }
     void EditorUISystem::Update()
     {
+        ImGui::ShowIDStackToolWindow();
+        
         //启动ImGuizmo
         ImGuizmo::BeginFrame();
         //增加船坞功能

@@ -28,7 +28,7 @@ namespace Gleam
         Rendering::UnInit();
     }
 
-    Gleam_AddSystems(
+    Gleam_AddRuntimeSystems(
         GlobalRenderingSystem,
         GlobalPointsRendererSystem,
         GlobalLinesRendererSystem,

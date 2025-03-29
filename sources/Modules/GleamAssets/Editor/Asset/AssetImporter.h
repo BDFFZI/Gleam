@@ -11,7 +11,8 @@ namespace Gleam
     class AssetImporter
     {
     public:
-        static void AddCustomImporter(std::string_view extension, Type& type);
+        static void MakeAssetImporter(std::string_view extension, Type& type);
+        static void MakeAssetImporter(std::string_view extension, const Type& type);
         static bool CanImport(const std::filesystem::path& assetPath);
         static AssetImporter& GetImporter(const std::filesystem::path& assetPath);
 
@@ -43,5 +44,5 @@ namespace Gleam
     }
 
 #define Gleam_MakeAssetImporter(extension,type) \
-    Gleam_MakeInitEvent(){::Gleam::AssetImporter::AddCustomImporter(extension,type);}
+    Gleam_MakeInitEvent(){::Gleam::AssetImporter::MakeAssetImporter(extension,type);}
 }

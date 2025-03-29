@@ -6,17 +6,17 @@
 
 namespace Gleam
 {
-    bool& InspectorWindow::UseDebugGUI()
+    void InspectorWindow::MakeCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorUI)
     {
-        return useDebugGUI;
+        inspectorGUIs.insert({typeIndex, drawInspectorUI});
     }
     const InspectorWindow::CustomUI& InspectorWindow::GetCustomUI()
     {
         return inspectorGUIs;
     }
-    void InspectorWindow::AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorUI)
+    bool& InspectorWindow::GetIsDebugGUI()
     {
-        inspectorGUIs.insert({typeIndex, drawInspectorUI});
+        return isDebugGUI;
     }
     void InspectorWindow::Show(const InspectorTarget& inspectorTarget)
     {
@@ -61,7 +61,7 @@ namespace Gleam
                 SetTarget(nullptr);
             if (ImGui::BeginMenu("Debug"))
             {
-                ImGui::Checkbox("UseDebugGUI", &useDebugGUI);
+                ImGui::Checkbox("UseDebugGUI", &isDebugGUI);
                 ImGui::EndMenu();
             }
 

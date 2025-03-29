@@ -10,7 +10,7 @@
 
 namespace Gleam
 {
-    Gleam_AddSystems(
+    Gleam_AddRuntimeSystems(
         GlobalPreUpdateSystem,
         GlobalPostUpdateSystem,
         GlobalTimeSystem,

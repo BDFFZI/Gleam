@@ -8,7 +8,7 @@
 
 namespace Gleam
 {
-    Gleam_AddSystems(SceneManager_ReleaseScenesSystem)
+    Gleam_AddRuntimeSystems(SceneManager_ReleaseScenesSystem)
 
 #ifdef GleamEngineEditor
     Gleam_AddEditorSystems(SceneManager_ReleaseScenesSystem)

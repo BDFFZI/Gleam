@@ -11,6 +11,6 @@ class MySystem : public Gleam::System // 实现System类
     }
 };
 Gleam_MakeGlobalSystem(MySystem) //创建System实例
-Gleam_AddSystems(GlobalMySystem) //将System实例添加到World中
+Gleam_AddRuntimeSystems(GlobalMySystem) //将System实例添加到World中
 
 Gleam_Main //运行引擎

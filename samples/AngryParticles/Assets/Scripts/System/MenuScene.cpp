@@ -20,6 +20,6 @@ void MenuScene::Update()
     }
     if (ImGui::Button("Back"))
     {
-        Gleam::SceneManager::LoadScene("StartScene");
+        Gleam::SceneManager::LoadScene("Start");
     }
 }

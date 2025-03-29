@@ -15,6 +15,7 @@ namespace Gleam
             {
                 if (ImGui::CollapsingHeader(to_string(assetBundle.GetID()).data()))
                 {
+                    ImGui::PushID(&assetBundle);
                     for (AssetSlot& assetSlot : assetBundle.GetAssetSlots())
                     {
                         if (ImGui::Button(std::to_string(assetSlot.GetID()).c_str()))
@@ -25,6 +26,7 @@ namespace Gleam
                             });
                         }
                     }
+                    ImGui::PopID();
                 }
             }
         }

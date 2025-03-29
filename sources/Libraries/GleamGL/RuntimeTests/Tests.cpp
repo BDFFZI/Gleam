@@ -310,7 +310,6 @@ public:
     }
 };
 
-// TEST(Presentation, GL)
 void main()
 {
     constexpr uint32_t WIDTH = 800;

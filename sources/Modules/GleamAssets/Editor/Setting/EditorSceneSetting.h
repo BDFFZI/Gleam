@@ -14,5 +14,5 @@ namespace Gleam
     {
         Gleam_MakeType_AddField(lastScenePath);
     }
-    Gleam_AddSetting("EditorSceneSetting.asset", EditorSceneSetting)
+    Gleam_MakeSetting("EditorSceneSetting.asset", EditorSceneSetting)
 }

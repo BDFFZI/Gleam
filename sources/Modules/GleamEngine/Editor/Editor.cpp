@@ -5,13 +5,13 @@
 
 namespace Gleam
 {
-    std::vector<std::reference_wrapper<System>>& Editor::EditorSystems()
+    void Editor::AddEditorSystems(const std::initializer_list<std::reference_wrapper<System>> systems)
     {
-        return editorSystems;
+        editorSystems.insert(editorSystems.end(), systems.begin(), systems.end());
     }
-    std::vector<std::reference_wrapper<System>>& Editor::EditorOnlySystems()
+    void Editor::AddEditorOnlySystems(const std::initializer_list<std::reference_wrapper<System>> systems)
     {
-        return editorOnlySystems;
+        editorOnlySystems.insert(editorOnlySystems.end(), systems.begin(), systems.end());
     }
     bool& Editor::IsPlaying()
     {
@@ -20,11 +20,11 @@ namespace Gleam
 
     void Editor_InterceptRuntimeSystem()
     {
-        for (auto system : Engine::RuntimeSystems())
+        for (auto system : Engine::runtimeSystems)
             World::RemoveSystem(system); //撤销运行时系统
-        for (auto system : Editor::EditorSystems())
+        for (auto system : Editor::editorSystems)
             World::AddSystem(system);
-        for (auto system : Editor::EditorOnlySystems())
+        for (auto system : Editor::editorOnlySystems)
             World::AddSystem(system);
     }
     void Editor_PlayOrStopEngine()
@@ -34,18 +34,18 @@ namespace Gleam
         {
             if (Editor::IsPlaying())
             {
-                for (auto system : Engine::RuntimeSystems())
+                for (auto system : Engine::runtimeSystems)
                     World::AddSystem(system);
-                for (auto system : Editor::EditorOnlySystems())
+                for (auto system : Editor::editorOnlySystems)
                     World::RemoveSystem(system);
             }
             else
             {
                 World::Clear();
 
-                for (auto system : Editor::EditorSystems())
+                for (auto system : Editor::editorSystems)
                     World::AddSystem(system);
-                for (auto system : Editor::EditorOnlySystems())
+                for (auto system : Editor::editorOnlySystems)
                     World::AddSystem(system);
             }
         }

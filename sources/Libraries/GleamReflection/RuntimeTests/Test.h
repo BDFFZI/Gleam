@@ -74,6 +74,8 @@ struct CustomObject : CustomParent
     std::vector<std::string> stringVectorValue;
     std::vector<CustomBasicField> customBasicFieldVectorValue;
     std::vector<CustomClassField> customClassFieldVectorValue;
+    std::tuple<std::string, int> tupleValue;
+    std::unordered_map<std::string, int> mapValue;
 
     friend bool operator==(const CustomObject& lhs, const CustomObject& rhs)
     {
@@ -88,7 +90,9 @@ struct CustomObject : CustomParent
             && lhs.boolVectorValue == rhs.boolVectorValue
             && lhs.stringVectorValue == rhs.stringVectorValue
             && lhs.customBasicFieldVectorValue == rhs.customBasicFieldVectorValue
-            && lhs.customClassFieldVectorValue == rhs.customClassFieldVectorValue;
+            && lhs.customClassFieldVectorValue == rhs.customClassFieldVectorValue
+            && lhs.tupleValue == rhs.tupleValue
+            && lhs.mapValue == rhs.mapValue;
     }
 };
 
@@ -99,6 +103,8 @@ Gleam_MakeChildType(CustomObject, "", CustomParentType)
     Gleam_MakeType_AddField(stringVectorValue);
     Gleam_MakeType_AddField(customBasicFieldVectorValue);
     Gleam_MakeType_AddField(customClassFieldVectorValue);
+    Gleam_MakeType_AddField(tupleValue);
+    Gleam_MakeType_AddField(mapValue);
 }
 
 inline CustomObject data = {
@@ -109,5 +115,7 @@ inline CustomObject data = {
     //向量类型
     {3, 2, 1}, {false, true}, {"Hello 1", "Hello 2", "Hello 3",},
     {CustomBasicField{1, 0, 0}, CustomBasicField{0, 2, 0}, CustomBasicField{0, 0, 3}},
-    {{"next is int3", {2, 2, 2}}}
+    {{"next is int3", {2, 2, 2}}},
+    {"tuple", 123},
+    {{"key", 321}}
 };

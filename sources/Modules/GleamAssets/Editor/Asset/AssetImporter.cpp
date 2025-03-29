@@ -5,11 +5,15 @@
 
 namespace Gleam
 {
-    void AssetImporter::AddCustomImporter(const std::string_view extension, Type& type)
+    void AssetImporter::MakeAssetImporter(const std::string_view extension, Type& type)
     {
         if (type.GetParent() == std::nullopt)
             type.SetParent(AssetImporterType);
 
+        customImporters.emplace(std::string(extension), &type);
+    }
+    void AssetImporter::MakeAssetImporter(const std::string_view extension, const Type& type)
+    {
         customImporters.emplace(std::string(extension), &type);
     }
 

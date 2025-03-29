@@ -25,11 +25,12 @@ namespace Gleam
 
         EditorSceneManager::OpenScene(path);
     }
-    void ProjectWindowMenu_RenameScene()
+    void ProjectWindowEvent_RenameScene(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
     {
-        auto& path = ProjectWindow::GetFileDrawing();
-
-        EditorSceneManager::OpenScene(path);
+        AssetBundle& assetBundle = AssetDatabase::Load(oldPath);
+        assetBundle.GetObject<SceneAsset>(0).SetName(newPath.stem().string());
+        AssetDatabase::Save(oldPath);
+        AssetDatabase::Unload(oldPath);
     }
 
     void InspectorWindowUI_EntityAsset(EntityAsset& entityAsset)

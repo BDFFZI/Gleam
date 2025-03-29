@@ -42,7 +42,7 @@ namespace Gleam
     void EditorSceneManager_OpenLastScene()
     {
         EditorSceneManager::scenePaths.clear();
-        if (!EditorSceneSetting::lastScenePath.empty())
+        if (std::filesystem::exists(EditorSceneSetting::lastScenePath))
             EditorSceneManager::OpenScene(EditorSceneSetting::lastScenePath);
     }
 }

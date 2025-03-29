@@ -8,32 +8,34 @@
 
 namespace Gleam
 {
-    Gleam_MakeEngineStartEvent(RefreshAssets, SettingManager_LoadSettingsOrder-1)
+    Gleam_MakeInitEvent()
     {
-        if (!std::filesystem::exists("Assets"))
-            std::filesystem::create_directory("Assets");
-        AssetDatabase::Refresh("Assets");
-        if (!std::filesystem::exists("ProjectSettings"))
-            std::filesystem::create_directory("ProjectSettings");
-        AssetDatabase::Refresh("ProjectSettings");
+        Engine::AddRuntimeSystems({
+            EditorSceneManager_StartScenesSystem
+        });
+        Editor::AddEditorSystems({
+            GlobalProjectWindow,
+            GlobalAssetBundleWindow,
+            GlobalHierarchyWindow_Scene,
+            EditorSceneManager_OpenLastSceneSystem
+        });
+
+        InspectorWindow::MakeCustomUI<EntityAsset>(InspectorWindowUI_EntityAsset);
+        ProjectWindow::MakeDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene);
+        ProjectWindow::MakeFileMenu(".scene", "Open", ProjectWindowMenu_OpenScene);
+        ProjectWindow::MakeFileRenameEvent(".scene", ProjectWindowEvent_RenameScene);
+
+        AssetImporter::MakeAssetImporter(".asset", JsonObjectImporterType);
+        AssetImporter::MakeAssetImporter(".scene", JsonObjectImporterType);
+
+        Engine::AddStartEvent([]
+        {
+            if (!std::filesystem::exists("Assets"))
+                std::filesystem::create_directory("Assets");
+            AssetDatabase::Refresh("Assets");
+            if (!std::filesystem::exists("ProjectSettings"))
+                std::filesystem::create_directory("ProjectSettings");
+            AssetDatabase::Refresh("ProjectSettings");
+        }, SettingManager_LoadSettingsOrder - 1);
     }
-
-    Gleam_AddSystems(
-        EditorSceneManager_StartScenesSystem
-    )
-
-    Gleam_AddEditorSystems(
-        GlobalProjectWindow,
-        GlobalAssetBundleWindow,
-        GlobalHierarchyWindow_Scene,
-        EditorSceneManager_OpenLastSceneSystem
-    )
-
-    Gleam_AddInspectorWindowUI(EntityAsset, InspectorWindowUI_EntityAsset)
-
-    Gleam_AddProjectWindowDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene)
-    Gleam_AddProjectWindowFileMenu(".scene", "Open", ProjectWindowMenu_OpenScene)
-
-    Gleam_MakeAssetImporter(".asset", Type::CreateOrGet<JsonObjectImporter>());
-    Gleam_MakeAssetImporter(".scene", Type::CreateOrGet<JsonObjectImporter>());
 }

@@ -34,7 +34,7 @@ namespace Gleam
             return vector(
                 cosY * cosZ + sinY * sinX * sinZ, -cosY * sinZ + sinY * sinX * cosZ, sinY * cosX,
                 cosX * sinZ, cosX * cosZ, -sinX,
-                -sinY * cosX + cosY * sinX * sinZ, sinY * sinZ + cosY * sinX * cosZ, cosY * cosX
+                -sinY * cosZ + cosY * sinX * sinZ, sinY * sinZ + cosY * sinX * cosZ, cosY * cosX
             );
         }
         /**

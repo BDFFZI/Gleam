@@ -9,23 +9,25 @@ namespace Gleam
     class Editor
     {
     public:
-        static std::vector<std::reference_wrapper<System>>& EditorSystems();
-        static std::vector<std::reference_wrapper<System>>& EditorOnlySystems();
+        static void AddEditorSystems(std::initializer_list<std::reference_wrapper<System>> systems);
+        static void AddEditorOnlySystems(std::initializer_list<std::reference_wrapper<System>> systems);
         static bool& IsPlaying();
 
     private:
+        friend void Editor_InterceptRuntimeSystem();
+        friend void Editor_PlayOrStopEngine();
         static inline std::vector<std::reference_wrapper<System>> editorSystems;
         static inline std::vector<std::reference_wrapper<System>> editorOnlySystems;
         static inline bool isPlaying = false;
     };
-    
+
     void Editor_InterceptRuntimeSystem();
     void Editor_PlayOrStopEngine();
 
 #define Gleam_AddEditorSystems(...) Gleam_MakeInitEvent(){\
-::Gleam::Editor::EditorSystems().insert(::Gleam::Editor::EditorSystems().end(),{__VA_ARGS__});\
+Editor::AddEditorSystems({__VA_ARGS__});\
 }
 #define Gleam_AddEditorOnlySystems(...) Gleam_MakeInitEvent(){\
-::Gleam::Editor::EditorOnlySystems().insert(::Gleam::Editor::EditorOnlySystems().end(),{__VA_ARGS__});\
+Editor::AddEditorOnlySystems({__VA_ARGS__});\
 }
 }

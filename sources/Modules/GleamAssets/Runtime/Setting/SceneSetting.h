@@ -18,5 +18,5 @@ namespace Gleam
         Gleam_MakeType_AddField(startSceneName);
         Gleam_MakeType_AddField(sceneNameMapping);
     }
-    Gleam_AddSetting("SceneSetting.asset", SceneSetting)
+    Gleam_MakeSetting("SceneSetting.asset", SceneSetting)
 }

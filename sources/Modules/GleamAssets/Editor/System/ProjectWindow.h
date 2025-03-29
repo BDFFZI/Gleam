@@ -13,10 +13,10 @@ namespace Gleam
     class ProjectWindow : public System
     {
     public:
-        static void AddDirectoryMenu(const std::string& name, const std::function<void()>& action);
-        static void AddFileMenu(const std::string& extension, const std::string& name, const std::function<void()>& action);
-        static void SetFileRenameCallback(const std::string& extension, const std::function<void(std::filesystem::path, std::filesystem::path)>& action);
-        static void AddFileDeleteEvent(const std::string& extension, const std::function<void(std::filesystem::path)>& action);
+        static void MakeDirectoryMenu(const std::string& name, const std::function<void()>& action);
+        static void MakeFileMenu(const std::string& extension, const std::string& name, const std::function<void()>& action);
+        static void MakeFileRenameEvent(const std::string& extension, const std::function<void(std::filesystem::path, std::filesystem::path)>& action);
+        static void MakeFileDeleteEvent(const std::string& extension, const std::function<void(std::filesystem::path)>& action);
 
         static const std::filesystem::path& GetFileDrawing();
         static const std::filesystem::path& GetDirectoryDrawing();
@@ -28,8 +28,8 @@ namespace Gleam
     private:
         inline static std::unordered_map<std::string, std::function<void()>> directoryMenus = {};
         inline static std::unordered_map<std::string, std::unordered_map<std::string, std::function<void()>>> fileMenus = {};
-        inline static std::unordered_map<std::string, std::function<void(std::filesystem::path, std::filesystem::path)>> fileRenameCallback = {};
-        inline static std::unordered_map<std::string, std::function<void(std::filesystem::path)>> fileDeleteCallback = {};
+        inline static std::unordered_map<std::string, std::function<void(std::filesystem::path, std::filesystem::path)>> fileRenameEvent = {};
+        inline static std::unordered_map<std::string, std::function<void(std::filesystem::path)>> fileDeleteEvent = {};
         inline static std::filesystem::path fileDrawing = "";
         inline static std::filesystem::path directoryDrawing = "";
 
@@ -53,12 +53,15 @@ namespace Gleam
     {
         void LoadAsset(const std::filesystem::path& path, uuids::uuid& assetBundleID) override;
     };
+    Gleam_MakeChildType(JsonObjectImporter, "", AssetImporterType)
+    {
+    }
 
-#define Gleam_AddProjectWindowDirectoryMenu(name,action) \
-Gleam_MakeInitEvent(){::Gleam::ProjectWindow::AddDirectoryMenu(name,action);}
+#define Gleam_MakeProjectWindowDirectoryMenu(name,action) \
+Gleam_MakeInitEvent(){::Gleam::ProjectWindow::MakeDirectoryMenu(name,action);}
 
-#define Gleam_AddProjectWindowFileMenu(extension,name,action) \
-Gleam_MakeInitEvent(){::Gleam::ProjectWindow::AddFileMenu(extension,name,action);}
+#define Gleam_MakeProjectWindowFileMenu(extension,name,action) \
+Gleam_MakeInitEvent(){::Gleam::ProjectWindow::MakeFileMenu(extension,name,action);}
 
 #define Gleam_MakeCreateAssetMenu(type,extension)\
 void ProjectWindowMenu_Create##type##Asset()\
@@ -70,7 +73,7 @@ AssetDatabase::Create(path, assetBundle);\
 AssetBundle::Unload(assetBundle);\
 }\
 Gleam_MakeInitEvent(){\
-::Gleam::ProjectWindow::AddDirectoryMenu("Create/"#type,ProjectWindowMenu_Create##type##Asset);\
-::Gleam::AssetImporter::AddCustomImporter(extension, Type::CreateOrGet<JsonObjectImporter>());\
+::Gleam::ProjectWindow::MakeDirectoryMenu("Create/"#type,ProjectWindowMenu_Create##type##Asset);\
+::Gleam::AssetImporter::MakeAssetImporter(extension, Type::CreateOrGet<JsonObjectImporter>());\
 }
 }

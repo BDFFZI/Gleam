@@ -17,7 +17,6 @@ namespace Gleam
         nodeTypes.push_back(dataType);
         nodeFolds.push_back(nodeFolds.back());
         nodeIndices.push_back(0);
-
         nodeIndices[nodeIndices.size() - 2]++; //推送节点，父节点元素+1
 
         //不需要考虑Array的结构UI，因为Serializer会将Array放在Class结构中传输，故统一只要考虑Class的结构UI即可
@@ -29,16 +28,16 @@ namespace Gleam
     }
     void EditorUISerializer::PopNode()
     {
-        if (nodeTypes.back() == DataType::Class)
-        {
-            if (nodeFolds.back())
-                ImGui::TreePop();
-        }
         if (nodeTypes.back() == DataType::Array)
         {
             TransferBufferedArray(); //根据缓存的数组元素信息构建数组UI（为了实现将基于数组的float3等类型改为字段显示方式）
             arrayBuffer.clear();
             arrayType = 0;
+        }
+        if (nodeTypes.back() == DataType::Class)
+        {
+            if (nodeFolds.back())
+                ImGui::TreePop();
         }
 
         nodePaths.pop_back();
@@ -47,6 +46,35 @@ namespace Gleam
         nodeIndices.pop_back();
     }
 
+    void EditorUISerializer::Transfer(int32_t& value)
+    {
+        if (nodeFolds.back() == false)
+            return;
+
+        if (nodeTypes.back() == DataType::Array)
+        {
+            //基元数组内的元素改用缓存实现
+            arrayBuffer.push_back(&value);
+            arrayType = 2;
+            return;
+        }
+
+        PreTransferNode();
+        if (GetNodeName() == "value")
+            printf("");
+        if (ImGui::DragInt(GetNodeName().c_str(), &value, dragSpeed))
+            printf("");
+    }
+    void EditorUISerializer::Transfer(int64_t& value)
+    {
+        if (nodeFolds.back() == false)
+            return;
+
+        PreTransferNode();
+        int intValue = static_cast<int>(value);
+        ImGui::DragInt(GetNodeName().c_str(), &intValue, dragSpeed);
+        value = intValue;
+    }
     void EditorUISerializer::Transfer(float& value)
     {
         if (nodeFolds.back() == false)
@@ -63,22 +91,6 @@ namespace Gleam
         PreTransferNode();
         ImGui::DragFloat(GetNodeName().c_str(), &value, dragSpeed);
     }
-    void EditorUISerializer::Transfer(int32_t& value)
-    {
-        if (nodeFolds.back() == false)
-            return;
-
-        if (nodeTypes.back() == DataType::Array)
-        {
-            //基元数组内的元素改用缓存实现
-            arrayBuffer.push_back(&value);
-            arrayType = 2;
-            return;
-        }
-
-        PreTransferNode();
-        ImGui::DragInt(GetNodeName().c_str(), &value, dragSpeed);
-    }
     void EditorUISerializer::Transfer(double& value)
     {
         if (nodeFolds.back() == false)
@@ -88,16 +100,6 @@ namespace Gleam
         float floatValue = static_cast<float>(value);
         ImGui::DragFloat(GetNodeName().c_str(), &floatValue, dragSpeed);
         value = floatValue;
-    }
-    void EditorUISerializer::Transfer(int64_t& value)
-    {
-        if (nodeFolds.back() == false)
-            return;
-
-        PreTransferNode();
-        int intValue = static_cast<int>(value);
-        ImGui::DragInt(GetNodeName().c_str(), &intValue, dragSpeed);
-        value = intValue;
     }
     void EditorUISerializer::Transfer(std::string& value)
     {
@@ -128,17 +130,14 @@ namespace Gleam
         if (typeIndex == typeid(Entity))
         {
             EditorUI::DrawEntityField(*static_cast<Entity*>(value));
-            return;
         }
-        if (typeIndex == typeid(Archetype))
+        else if (typeIndex == typeid(Archetype))
         {
             ImGui::SeparatorText("Archetype");
             std::string str = to_string(*static_cast<Archetype*>(value));
             ImGui::Text(str.data());
-            return;
         }
-        auto optionalType = Type::GetType(typeIndex);
-        if (optionalType.has_value())
+        else if (auto optionalType = Type::GetType(typeIndex); optionalType.has_value())
         {
             const Type& type = optionalType.value();
             PushNode(std::nullopt, DataType::Class);
@@ -174,11 +173,14 @@ namespace Gleam
     }
     std::string EditorUISerializer::GetNodeName(const int layerOffset)
     {
-        if (nodeTypes[nodeTypes.size() - 1 + layerOffset] == DataType::Array) //基元数组（基本元素构成的数组）
-            return GetElementName(nodeIndices[nodeTypes.size() - 1 + layerOffset] - 1); //数组内元素显示为序号
-        if (nodeTypes[nodeTypes.size() - 2 + layerOffset] == DataType::Array) //非基元数组（复合元素（如类）构成的数组）
-            return magic_enum::enum_name(nodeTypes.back()).data()
-                + GetElementName(nodeIndices[nodeTypes.size() - 2 + layerOffset] - 1);
+        if (nodePaths.back().empty())
+        {
+            if (nodeTypes[nodeTypes.size() - 1 + layerOffset] == DataType::Array) //基元数组（基本元素构成的数组）
+                return GetElementName(nodeIndices[nodeTypes.size() - 1 + layerOffset] - 1); //数组内元素显示为序号
+            if (nodeTypes[nodeTypes.size() - 2 + layerOffset] == DataType::Array) //非基元数组（复合元素（如类）构成的数组）
+                return magic_enum::enum_name(nodeTypes.back()).data()
+                    + GetElementName(nodeIndices[nodeTypes.size() - 2 + layerOffset] - 1);
+        }
 
         return nodePaths.back();
     }

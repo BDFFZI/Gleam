@@ -209,9 +209,9 @@ TEST(Persistence, Resources)
         AssetBundle::SaveJson("Assets/assetBundle0.json", assetBundle0);
         AssetBundle::SaveJson("Assets/assetBundle1.json", assetBundle1);
         AssetBundle::SaveJson("Assets/assetBundle2.json", assetBundle2);
-        Resources::Save(assetBundle0);
-        Resources::Save(assetBundle1);
-        Resources::Save(assetBundle2);
+        Resources::Create(assetBundle0);
+        Resources::Create(assetBundle1);
+        Resources::Create(assetBundle2);
         AssetBundle::Unload(assetBundle0);
         AssetBundle::Unload(assetBundle1);
         AssetBundle::Unload(assetBundle2);
@@ -279,5 +279,6 @@ TEST(Persistence, JsonSerializer)
     CustomObject newData = {};
     type.Serialize(jsonReader, &newData);
 
+    
     ASSERT_EQ(newData, data);
 }

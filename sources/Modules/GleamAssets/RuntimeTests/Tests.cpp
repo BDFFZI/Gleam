@@ -165,7 +165,7 @@ TEST(Assets, Runtime)
         scene.AddSystem(GlobalMySystem2);
         AssetBundle& assetBundle = AssetBundle::Create(id);
         SceneAsset::ToAssetBundle(scene, assetBundle);
-        Resources::Save(assetBundle);
+        Resources::Create(assetBundle);
         assetBundle.Unload(assetBundle);
         Scene::Destroy(scene);
     }

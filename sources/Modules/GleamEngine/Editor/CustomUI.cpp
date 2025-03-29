@@ -110,7 +110,7 @@ namespace Gleam
             InspectorWindowUI_Entity_Target = entity;
             DrawEntity(
                 entity,
-                InspectorWindow::UseDebugGUI() ? InspectorWindow::CustomUI{} : InspectorWindow::GetCustomUI()
+                InspectorWindow::GetIsDebugGUI() ? InspectorWindow::CustomUI{} : InspectorWindow::GetCustomUI()
             );
         }
     }

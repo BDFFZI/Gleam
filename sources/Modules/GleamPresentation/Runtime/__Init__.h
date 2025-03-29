@@ -24,7 +24,7 @@ namespace Gleam
         GL::UnInitialize();
     }
 
-    Gleam_AddSystems(
+    Gleam_AddRuntimeSystems(
         GlobalPresentationSystem
     )
 

@@ -19,7 +19,7 @@ namespace Gleam
         Window::UnInit();
     }
 
-    Gleam_AddSystems(
+    Gleam_AddRuntimeSystems(
         GlobalCursorSystem,
         GlobalWindowSystem,
         GlobalInputSystem

@@ -18,18 +18,18 @@ namespace Gleam
         static void AddStartEvent(const std::function<void()>& event, int order = 0);
         static void AddStopEvent(const std::function<void()>& event, int order = 0);
         static void AddUpdateEvent(const std::function<void()>& event, int order = 0);
-        static std::vector<std::reference_wrapper<System>>& RuntimeSystems();
+        static void AddRuntimeSystems(std::initializer_list<std::reference_wrapper<System>> systems);
 
         static void Start()
         {
             assert(!isStopping && "引擎尚未启动就已被关闭，请检查运行流程！");
-            
+
             for (auto system : runtimeSystems)
                 World::AddSystem(system);
 
             for (auto& event : startEvents | std::views::values)
                 event();
-            
+
             while (!isStopping)
             {
 #ifdef GleamEngineEditor
@@ -52,6 +52,8 @@ namespace Gleam
 
     private:
         friend class Editor;
+        friend void Editor_InterceptRuntimeSystem();
+        friend void Editor_PlayOrStopEngine();
 
         static inline std::vector<std::reference_wrapper<System>> runtimeSystems;
         static inline std::multimap<int, std::function<void()>> startEvents;
@@ -87,5 +89,5 @@ return 0;\
 }
 
     ///将系统添加到世界，并注册到运行时系统组
-#define Gleam_AddSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::RuntimeSystems().insert(::Gleam::Engine::RuntimeSystems().end(),{__VA_ARGS__});}
+#define Gleam_AddRuntimeSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::AddRuntimeSystems({__VA_ARGS__});}
 }

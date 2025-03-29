@@ -28,8 +28,17 @@ namespace Gleam
          */
         static Scene& FromAssetBundle(AssetBundle& assetBundle, bool isRunning = false);
 
+        const std::string& GetName() const
+        {
+            return name;
+        }
+        void SetName(const std::string& name)
+        {
+            this->name = name;
+        }
     private:
         Gleam_MakeType_Friend
+
         std::string name;
         std::vector<uuids::uuid> systems;
     };

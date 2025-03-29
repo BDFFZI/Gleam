@@ -55,6 +55,82 @@ namespace Gleam
             Transfer(*reinterpret_cast<type*>(&value));
         }
         /**
+         * 元组类型
+         */
+        template <class... TValue>
+        void Transfer(std::tuple<TValue...>& value)
+        {
+            auto TransferTuple = [this]<size_t... Indices>(
+                std::tuple<TValue...>& value, std::index_sequence<Indices...>)
+            {
+                PushNode(std::nullopt, DataType::Class);
+                (this->TransferField(std::format("item_{}", Indices), std::get<Indices>(value)), ...);
+                PopNode();
+            };
+
+            TransferTuple(value, std::make_index_sequence<sizeof...(TValue)>());
+        }
+        /**
+         * 字典类型
+         * @tparam TValue 
+         * @param map 
+         */
+        template <class TKey, class TValue>
+        void Transfer(std::unordered_map<TKey, TValue>& map)
+        {
+            PushNode(std::nullopt, DataType::Class);
+            {
+                size_t size = std::size(map);
+                TransferField("size", size);
+
+                PushNode("data", DataType::Array);
+                if (size > std::size(map)) //反序列化
+                {
+                    for (size_t i = 0; i < size; i++)
+                    {
+                        TKey key;
+                        TValue value;
+                        PushNode(std::nullopt, DataType::Class); //在数组容器内，所有序列化器都会忽略字段名称，故序列化和反序列化时允许不一致
+                        TransferField("key", key);
+                        TransferField("value", value);
+                        PopNode();
+                        map.insert({key, value});
+                    }
+                }
+                else //序列化
+                {
+                    static std::vector<typename std::unordered_map<TKey, TValue>::node_type> nodes = {};
+
+                    //提取所有节点
+                    nodes.clear();
+                    while (!map.empty())
+                        nodes.push_back(map.extract(map.begin()));
+                    //修改并插回节点
+                    for (auto& node : nodes)
+                    {
+                        //我们需要一个稳定的锚点，但map的项顺序是不定的。
+                        //如果直接将顺序作为锚点，那逻辑上不同的项，在顺序改变后，可能在ImGui会使用相同的ID。
+                        //因此改为利用map中节点值地址不变和extract移动节点的特性，获得稳定的地址值作为锚点。
+                        uintptr_t address = reinterpret_cast<uintptr_t>(&node.mapped());
+                        PushNode(std::to_string(address), DataType::Class);
+                        TransferField("key", node.key());
+                        TransferField("value", node.mapped());
+                        PopNode();
+
+                        map.insert(std::move(node));
+                    }
+                }
+                PopNode();
+
+                //额外增减
+                if (size > std::size(map) && requires() { TKey{};TValue{}; })
+                    map.insert({TKey{}, TValue{}});
+                else if (size < std::size(map))
+                    map.erase(TKey{});
+            }
+            PopNode();
+        }
+        /**
          * 容器类型
          * @tparam TValue 
          * @param value 

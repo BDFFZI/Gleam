@@ -26,4 +26,4 @@ class TestSystem : public System
     }
 };
 Gleam_MakeGlobalSystem(TestSystem)
-Gleam_AddSystems(GlobalTestSystem)
+Gleam_AddRuntimeSystems(GlobalTestSystem)

@@ -51,6 +51,11 @@ private:
             ImGui::EndPopup();
         }
 
+        static char buffer[10] = {};
+        static char buffer2[10] = {};
+        ImGui::InputText("a", buffer, sizeof(buffer));
+        ImGui::InputText("b", buffer2, sizeof(buffer2));
+        
         ImGui::ArrowButton("ArrowButton", ImGuiDir_Right);
 
         UI::DragFloat4x4("matrix", &matrix);
@@ -78,6 +83,6 @@ private:
     }
 };
 Gleam_MakeGlobalSystem(MySystem)
-Gleam_AddSystems(GlobalMySystem)
+Gleam_AddRuntimeSystems(GlobalMySystem)
 
 Gleam_Main

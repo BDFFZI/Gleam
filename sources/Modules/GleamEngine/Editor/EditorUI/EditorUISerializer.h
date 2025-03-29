@@ -12,10 +12,10 @@ namespace Gleam
         void PushNode(std::optional<std::string_view> name, DataType dataType) override;
         void PopNode() override;
 
-        void Transfer(float& value) override;
         void Transfer(int32_t& value) override;
-        void Transfer(double& value) override;
         void Transfer(int64_t& value) override;
+        void Transfer(float& value) override;
+        void Transfer(double& value) override;
         void Transfer(std::string& value) override;
         void Transfer(std::vector<std::byte>& value) override;
         void FallbackTransfer(void* value, std::type_index typeIndex) override;

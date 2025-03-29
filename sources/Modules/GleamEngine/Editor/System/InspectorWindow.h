@@ -60,9 +60,21 @@ namespace Gleam
     public:
         using CustomUI = std::unordered_map<std::type_index, std::function<void(void*)>>;
 
-        static bool& UseDebugGUI();
+        static void MakeCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorUI);
+        template <class T>
+        static void MakeCustomUI(const std::function<void(T&)>& drawInspectorUI)
+        {
+            MakeCustomUI(
+                typeid(T),
+                [drawInspectorUI](void* target)
+                {
+                    drawInspectorUI(*static_cast<T*>(target));
+                }
+            );
+        }
+
         static const CustomUI& GetCustomUI();
-        static void AddCustomUI(std::type_index typeIndex, const std::function<void(void*)>& drawInspectorUI);
+        static bool& GetIsDebugGUI();
         static void Show(const InspectorTarget& inspectorTarget);
 
         InspectorWindow(): System(GlobalEditorUISystem, DefaultOrder, MaxOrder)
@@ -74,7 +86,7 @@ namespace Gleam
 
     private:
         inline static CustomUI inspectorGUIs = {};
-        inline static bool useDebugGUI = false;
+        inline static bool isDebugGUI = false;
 
         InspectorTarget inspectorTarget;
 
@@ -83,6 +95,6 @@ namespace Gleam
     Gleam_MakeGlobalSystem(InspectorWindow)
 
 #define Gleam_AddInspectorWindowUI(type,drawInspectorUI)\
-    Gleam_MakeInitEvent(){InspectorWindow::AddCustomUI(typeid(type),\
+    Gleam_MakeInitEvent(){InspectorWindow::MakeCustomUI(typeid(type),\
     [](void* target){drawInspectorUI(*static_cast<type##*>(target));});}
 }

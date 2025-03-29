@@ -44,7 +44,7 @@ namespace Gleam
         //保存到资源文件夹
         AssetBundle::SaveJson(filePath.string(), assetBundle);
         //保存到缓存文件夹
-        Resources::Save(assetBundle);
+        Resources::Create(assetBundle);
         //保存导入器
         AssetImporter::GetImporter(filePath).SaveAndReloadAsset();
     }
@@ -98,7 +98,7 @@ namespace Gleam
                 {
                     assetBundleID = assetImporter.SaveAndReloadAsset();
                     AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetBundleID);
-                    Resources::Save(assetBundle);
+                    Resources::Create(assetBundle);
                     AssetBundle::Unload(assetBundle);
                 }
             }

@@ -18,7 +18,7 @@ namespace Gleam
         UI::UnInit();
     }
 
-    Gleam_AddSystems(
+    Gleam_AddRuntimeSystems(
         GlobalUISystem
     )
 

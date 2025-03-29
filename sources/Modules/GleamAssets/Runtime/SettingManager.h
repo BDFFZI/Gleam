@@ -16,13 +16,14 @@ namespace Gleam
     class SettingManager
     {
     public:
-        static void AddSetting(std::string_view name, const Type& type);
+        static void MakeSetting(std::string_view name, const Type& type);
+
+    private:
+        friend void SettingManager_LoadSettings();
+        friend void SettingManager_UnloadSettings();
 
         static bool HasSetting(const std::string_view name)
         {
-            if (!settings.contains(name.data()))
-                return false;
-
 #ifdef GleamEngineEditor
             std::string filePath = std::string("ProjectSettings/") + name.data();
             return std::filesystem::exists(filePath);
@@ -33,24 +34,23 @@ namespace Gleam
         static void CreateSetting(const std::string_view name)
         {
             AssetBundle& assetBundle = AssetBundle::Create(MD5(name.data()).toArray());
-            {
-                const Type& type = *settings.at(std::string(name));
-                assetBundle.EmplaceAsset(Asset{type.MakeShared(type.Create()), type}, 1);
-            }
+            const Type& type = *settings.at(std::string(name));
+            assetBundle.AddAsset(Asset{type.MakeShared(type.Create()), type});
 #ifdef GleamEngineEditor
             std::string filePath = std::string("ProjectSettings/") + name.data();
             AssetDatabase::Create(filePath, assetBundle);
 #else
-            Resources::Save(assetBundle);
+            Resources::Create(assetBundle);
 #endif
             AssetBundle::Unload(assetBundle);
         }
         static void LoadSetting(const std::string_view name)
         {
+            if (!HasSetting(name))
+                CreateSetting(name);
+
 #ifdef GleamEngineEditor
             std::string filePath = std::string("ProjectSettings/") + name.data();
-            if (!std::filesystem::exists(filePath))
-                return;
             AssetDatabase::Load(filePath);
 #else
             Resources::Load(MD5(name.data()).toArray());
@@ -58,31 +58,28 @@ namespace Gleam
         }
         static void SaveSetting(std::string_view name)
         {
-            AssetBundle& assetBundle = AssetBundle::Create(MD5(name.data()).toArray());
-            {
-                const Type& type = *settings.at(std::string(name));
-                assetBundle.EmplaceAsset(Asset{type.MakeShared(type.Create()), type}, 1);
-            }
 #ifdef GleamEngineEditor
             std::string filePath = std::string("ProjectSettings/") + name.data();
-            AssetDatabase::Create(filePath, assetBundle);
+            AssetDatabase::Save(filePath);
 #else
-            Resources::Save(assetBundle);
+            Resources::Save(AssetBundle::GetAssetBundle(MD5(name.data()).toArray()));
 #endif
-            AssetBundle::Unload(assetBundle);
         }
         static void UnloadSetting(const std::string_view name)
         {
             SaveSetting(name);
-        }
 
-    private:
-        friend void SettingManager_LoadSettings();
-        friend void SettingManager_UnloadSettings();
+#ifdef GleamEngineEditor
+            std::string filePath = std::string("ProjectSettings/") + name.data();
+            AssetDatabase::Unload(filePath);
+#else
+            Resources::Unload(AssetBundle::GetAssetBundle(MD5(name.data()).toArray()));
+#endif
+        }
 
         inline static std::unordered_map<std::string, const Type*> settings = {};
     };
-#define Gleam_AddSetting(name,type) Gleam_MakeInitEvent(){::Gleam::SettingManager::AddSetting(name, type##Type);}
+#define Gleam_MakeSetting(name,type) Gleam_MakeInitEvent(){::Gleam::SettingManager::MakeSetting(name, type##Type);}
 
     inline void SettingManager_LoadSettings()
     {

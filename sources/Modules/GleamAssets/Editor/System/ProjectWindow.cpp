@@ -12,21 +12,21 @@
 
 namespace Gleam
 {
-    void ProjectWindow::AddDirectoryMenu(const std::string& name, const std::function<void()>& action)
+    void ProjectWindow::MakeDirectoryMenu(const std::string& name, const std::function<void()>& action)
     {
         directoryMenus.emplace(name, action);
     }
-    void ProjectWindow::AddFileMenu(const std::string& extension, const std::string& name, const std::function<void()>& action)
+    void ProjectWindow::MakeFileMenu(const std::string& extension, const std::string& name, const std::function<void()>& action)
     {
         fileMenus[extension].emplace(name, action);
     }
-    void ProjectWindow::SetFileRenameCallback(const std::string& extension, const std::function<void(std::filesystem::path, std::filesystem::path)>& action)
+    void ProjectWindow::MakeFileRenameEvent(const std::string& extension, const std::function<void(std::filesystem::path, std::filesystem::path)>& action)
     {
-        fileRenameCallback.emplace(extension, action);
+        fileRenameEvent.emplace(extension, action);
     }
-    void ProjectWindow::AddFileDeleteEvent(const std::string& extension, const std::function<void(std::filesystem::path)>& action)
+    void ProjectWindow::MakeFileDeleteEvent(const std::string& extension, const std::function<void(std::filesystem::path)>& action)
     {
-        fileDeleteCallback.emplace(extension, action);
+        fileDeleteEvent.emplace(extension, action);
     }
 
     const std::filesystem::path& ProjectWindow::GetFileDrawing()
@@ -294,8 +294,8 @@ namespace Gleam
         for (auto& movingPath : movingPaths)
         {
             std::string extension = std::get<0>(movingPath).extension().string();
-            if (fileRenameCallback.contains(extension))
-                fileRenameCallback[extension](std::get<0>(movingPath), std::get<1>(movingPath));
+            if (fileRenameEvent.contains(extension))
+                fileRenameEvent[extension](std::get<0>(movingPath), std::get<1>(movingPath));
 
             AssetDatabase::Move(std::get<0>(movingPath), std::get<1>(movingPath));
         }
@@ -305,8 +305,8 @@ namespace Gleam
             if (!is_directory(removingPath))
             {
                 std::string extension = removingPath.extension().string();
-                if (fileDeleteCallback.contains(extension))
-                    fileDeleteCallback[extension](removingPath);
+                if (fileDeleteEvent.contains(extension))
+                    fileDeleteEvent[extension](removingPath);
 
                 uuids::uuid assetBundleID = AssetDatabase::GetAssetBundleID(removingPath);
                 if (assetBundlesLoading.contains(assetBundleID))
