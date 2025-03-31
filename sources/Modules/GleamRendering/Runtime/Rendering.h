@@ -11,8 +11,8 @@ namespace Gleam
         static void Init();
         static void UnInit();
 
-        static const std::unique_ptr<Material>& GetDefaultPointMaterial();
-        static const std::unique_ptr<Material>& GetDefaultLineMaterial();
+        static std::weak_ptr<Material> GetDefaultPointMaterial();
+        static std::weak_ptr<Material> GetDefaultLineMaterial();
         static const GShader& GetDefaultPointShader();
         static const GShader& GetDefaultLineShader();
         static const std::unique_ptr<Mesh>& GetFullScreenMesh();
@@ -22,8 +22,8 @@ namespace Gleam
         //点线绘制
         inline static std::unique_ptr<GShader> defaultPointShader = nullptr;
         inline static std::unique_ptr<GShader> defaultLineShader = nullptr;
-        inline static std::unique_ptr<Material> defaultPointMaterial = nullptr;
-        inline static std::unique_ptr<Material> defaultLineMaterial = nullptr;
+        inline static std::shared_ptr<Material> defaultPointMaterial = nullptr;
+        inline static std::shared_ptr<Material> defaultLineMaterial = nullptr;
         //位块传输
         inline static std::unique_ptr<Mesh> fullScreenMesh;
         inline static std::unique_ptr<GShader> blitShader = nullptr;

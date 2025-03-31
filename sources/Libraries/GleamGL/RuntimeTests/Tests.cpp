@@ -239,7 +239,7 @@ public:
         glCommandBuffer.SetScissor({0, 0}, glSwapChain->imageExtent);
         glCommandBuffer.BeginRenderPass(*glRenderPass, *glFramebuffers[imageIndex]);
         glCommandBuffer.BindPipeline(*glPipeline);
-        glCommandBuffer.BindVertexBuffers(*vertexBuffer);
+        glCommandBuffer.BindVertexBuffer(*vertexBuffer);
         glCommandBuffer.BindIndexBuffer(*indexBuffer);
         glCommandBuffer.BindDescriptorSet(*glPipelineLayout, *glDescriptorSets[bufferIndex]);
         glCommandBuffer.DrawIndexed(static_cast<int>(indexBuffer->size / sizeof(uint32_t)));

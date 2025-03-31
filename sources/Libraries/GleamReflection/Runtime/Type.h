@@ -178,6 +178,7 @@ namespace Gleam
         int size = 0;
         std::optional<std::reference_wrapper<const Type>> parent = std::nullopt;
         std::vector<FieldInfo> fields = {};
+        
         std::function<std::shared_ptr<void>(void*)> makeShared = nullptr;
         std::function<void*()> create = nullptr;
         std::function<void(void*)> destroy = nullptr;

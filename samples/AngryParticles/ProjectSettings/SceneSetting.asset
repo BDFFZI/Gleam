@@ -9,29 +9,8 @@
                 "data": {
                     "startSceneName": "",
                     "sceneNameMapping": {
-                        "size": 5,
-                        "data": [
-                            {
-                                "key": "Level1",
-                                "value": "7bbfe938-dbc0-401c-84bf-98c443575d9e"
-                            },
-                            {
-                                "key": "Start",
-                                "value": "04957659-6200-448c-bd28-d761ae79e1bb"
-                            },
-                            {
-                                "key": "Level3",
-                                "value": "19e51748-6f82-4eb8-8f4b-b5373cbdea52"
-                            },
-                            {
-                                "key": "Menu",
-                                "value": "d334c836-256a-47f4-9f87-e15a1bdd17aa"
-                            },
-                            {
-                                "key": "Level2",
-                                "value": "0a51c259-0801-43b2-9d80-fdb40567b333"
-                            }
-                        ]
+                        "size": 0,
+                        "data": []
                     }
                 }
             }

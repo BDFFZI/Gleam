@@ -173,7 +173,7 @@ namespace Gleam
             if constexpr (requires() { FieldDataTransferrer_Transfer<std::weak_ptr<TValue>>::Invoke; })
                 FieldDataTransferrer_Transfer<std::weak_ptr<TValue>>::Invoke(*this, value); //优先使用自定义实现
             else
-                this->FallbackTransferPtr(*reinterpret_cast<std::weak_ptr<void>*>(value), typeid(*value.lock().get())); //否则用专门的指针传输回退函数
+                this->FallbackTransferPtr(*reinterpret_cast<std::weak_ptr<void>*>(&value), typeid(*value.lock().get())); //否则用专门的指针传输回退函数
         }
         /**
          * 其他任意类型

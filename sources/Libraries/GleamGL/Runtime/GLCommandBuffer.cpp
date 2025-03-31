@@ -271,8 +271,9 @@ void GLCommandBuffer::BindPipeline(const GLPipeline& glPipeline) const
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, glPipeline.pipeline);
 }
-void GLCommandBuffer::BindVertexBuffers(const GLBuffer& glBuffer) const
+void GLCommandBuffer::BindVertexBuffer(const GLBuffer& glBuffer) const
 {
+    //不支持置空，否则验证层会报错
     const VkBuffer vertexBuffers[] = {glBuffer.buffer};
     constexpr VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);

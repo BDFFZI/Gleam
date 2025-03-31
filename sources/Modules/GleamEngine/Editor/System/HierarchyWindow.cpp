@@ -144,6 +144,12 @@ namespace Gleam
                 ImGui::CloseCurrentPopup();
                 result = false;
             }
+            if (ImGui::Button("Clone"))
+            {
+                Entity newEntity = World::CloneEntity(entity);
+                ImGui::CloseCurrentPopup();
+                GlobalInspectorWindow.SetTarget(newEntity);
+            }
 
             ImGui::EndPopup();
         }

@@ -10,17 +10,9 @@ namespace Gleam
     {
         View<LinesMesh>::Each([](LinesMesh& linesRenderer)
         {
-            if (linesRenderer.linesMesh == std::nullopt)
-            {
-                if (linesRenderer.lines.empty() == false)
-                    linesRenderer.linesMesh = std::make_unique<Mesh>(true);
-                else
-                    return;
-            }
-
-            std::unique_ptr<Mesh>& lineMesh = linesRenderer.linesMesh.value();
-            std::vector<Vertex>& lineVertices = lineMesh->GetVertices();
-            std::vector<uint32_t>& lineIndices = lineMesh->GetIndices();
+            Mesh& lineMesh = *linesRenderer.linesMesh;
+            std::vector<Vertex>& lineVertices = lineMesh.GetVertices();
+            std::vector<uint32_t>& lineIndices = lineMesh.GetIndices();
 
             lineVertices.clear();
             lineIndices.clear();
@@ -33,14 +25,14 @@ namespace Gleam
                 lineIndices.emplace_back(lineIndex++);
             }
 
-            lineMesh->SetDirty();
+            lineMesh.SetDirty();
         });
         View<LinesMesh, Renderer>::Each([](LinesMesh& linesRenderer, Renderer& renderer)
         {
-            if (renderer.mesh == std::nullopt && linesRenderer.linesMesh.has_value())
-                renderer.mesh = linesRenderer.linesMesh.value().get();
-            if (renderer.material == std::nullopt)
-                renderer.material = Rendering::GetDefaultLineMaterial().get();
+            if (renderer.mesh.expired())
+                renderer.mesh = linesRenderer.linesMesh;
+            if (renderer.material.expired())
+                renderer.material = Rendering::GetDefaultLineMaterial();
         });
     }
 }

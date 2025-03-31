@@ -64,6 +64,15 @@ namespace Gleam
         static Archetype& CreateOrGet(const std::vector<std::reference_wrapper<const Type>>& componentTypes);
         static uuids::uuid GetID(const std::vector<std::reference_wrapper<const Type>>& componentTypes);
 
+        bool operator==(const Archetype& other) const
+        {
+            return this == &other;
+        }
+        bool operator!=(const Archetype& other) const
+        {
+            return !(*this == other);
+        }
+
         const string& GetName() const;
         uuids::uuid GetID() const;
         int GetSize() const;
@@ -79,6 +88,8 @@ namespace Gleam
         void Destruct(std::byte* address) const;
         void MoveConstruct(std::byte* destination, std::byte* source) const;
         void Move(std::byte* destination, std::byte* source) const;
+        void CopyConstruct(std::byte* destination, std::byte* source) const;
+        void Copy(std::byte* destination, std::byte* source) const;
 
     private:
         Gleam_MakeType_Friend
@@ -91,7 +102,7 @@ namespace Gleam
         int componentCount;
         std::vector<const Type*> componentTypes;
         std::vector<int> componentOffsets;
-        
+
         std::unordered_map<std::type_index, int> componentMapping;
 
         Archetype(std::string_view name, std::vector<const Type*> componentTypes);

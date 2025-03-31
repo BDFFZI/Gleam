@@ -5,6 +5,7 @@
 
 namespace Gleam
 {
+    std::vector<std::tuple<Entity, const Type*>> removingComponents;
     void DrawComponent(void* component, const Type& componentType, const InspectorWindow::CustomUI& componentGUI, bool* isUsing)
     {
         std::type_index componentTypeIndex = componentType.GetIndex();
@@ -40,10 +41,7 @@ namespace Gleam
                 bool isUsing = true;
                 DrawComponent(component, componentType, componentGUI, &isUsing);
                 if (isUsing == false) //删除组件
-                {
-                    World::RemoveComponents(entity, {componentType});
-                    return;
-                }
+                    removingComponents.emplace_back(entity, &componentType);
             }
         }
         //绘制操作
@@ -122,5 +120,10 @@ namespace Gleam
         serializer.TransferField("rotation", eulerAngles);
         localTransform.rotation = Quaternion::Euler(eulerAngles);
         serializer.TransferField("scale", localTransform.scale);
+    }
+
+    void InspectorWindowUI_Entity_DestroyComponents()
+    {
+        
     }
 }

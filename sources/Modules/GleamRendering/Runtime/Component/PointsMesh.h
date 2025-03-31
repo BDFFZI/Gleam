@@ -8,6 +8,7 @@ namespace Gleam
     struct PointsMesh
     {
         std::vector<Point> points;
+        std::shared_ptr<Mesh> pointsMesh = std::make_shared<Mesh>(true);
 
         PointsMesh() = default;
         PointsMesh(PointsMesh&&) = default;
@@ -16,10 +17,6 @@ namespace Gleam
         {
             SwapChain::WaitPresent();
         }
-
-    private:
-        friend class PointsRendererSystem;
-        std::optional<std::unique_ptr<Mesh>> pointsMesh;
     };
 
     Gleam_MakeType(PointsMesh, "B063D6E1-C2DE-4E37-AE7F-0F47502C8A0B")

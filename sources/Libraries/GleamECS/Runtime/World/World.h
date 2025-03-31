@@ -34,6 +34,8 @@ namespace Gleam
         static Entity AddEntity(const Archetype& archetype);
         static void RemoveEntity(Entity& entity, bool removeFromScene = true);
         static void MoveEntity(Entity entity, const Archetype& newArchetype);
+        static void CopyEntity(Entity destination, Entity source);
+        static Entity CloneEntity(Entity entity);
 
         template <Component... TComponents>
         static Entity AddEntity(const TComponents&... components)

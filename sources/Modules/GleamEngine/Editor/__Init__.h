@@ -14,6 +14,7 @@ namespace Gleam
         Engine::AddStartEvent(Editor_InterceptRuntimeSystem, std::numeric_limits<int>::max());
         Engine::AddUpdateEvent(Editor_PlayOrStopEngine, std::numeric_limits<int>::max());
         Engine::AddUpdateEvent(ProfilerWindow_FetchProfile, std::numeric_limits<int>::max());
+        Engine::AddUpdateEvent(InspectorWindowUI_Entity_DestroyComponents, std::numeric_limits<int>::max());
 
         Editor::AddEditorSystems({
             GlobalEditorUISystem,

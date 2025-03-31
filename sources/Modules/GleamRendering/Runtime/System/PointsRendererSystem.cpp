@@ -11,17 +11,9 @@ namespace Gleam
     {
         View<PointsMesh>::Each([](PointsMesh& pointsRenderer)
         {
-            if (pointsRenderer.pointsMesh == std::nullopt)
-            {
-                if (pointsRenderer.points.empty() == false)
-                    pointsRenderer.pointsMesh = std::make_unique<Mesh>(true);
-                else
-                    return;
-            }
-
-            std::unique_ptr<Mesh>& pointMesh = pointsRenderer.pointsMesh.value();
-            std::vector<Vertex>& pointVertices = pointMesh->GetVertices();
-            std::vector<uint32_t>& pointIndices = pointMesh->GetIndices();
+            Mesh& pointMesh = *pointsRenderer.pointsMesh;
+            std::vector<Vertex>& pointVertices = pointMesh.GetVertices();
+            std::vector<uint32_t>& pointIndices = pointMesh.GetIndices();
 
             pointVertices.clear();
             pointIndices.clear();
@@ -32,14 +24,14 @@ namespace Gleam
                 pointIndices.emplace_back(pointIndex++);
             }
 
-            pointMesh->SetDirty();
+            pointMesh.SetDirty();
         });
         View<PointsMesh, Renderer>::Each([](PointsMesh& pointsRenderer, Renderer& renderer)
         {
-            if (renderer.mesh == std::nullopt && pointsRenderer.pointsMesh.has_value())
-                renderer.mesh = pointsRenderer.pointsMesh.value().get();
-            if (renderer.material == std::nullopt)
-                renderer.material = Rendering::GetDefaultPointMaterial().get();
+            if (renderer.mesh.expired())
+                renderer.mesh = pointsRenderer.pointsMesh;
+            if (renderer.material.expired())
+                renderer.material = Rendering::GetDefaultPointMaterial();
         });
     }
 }

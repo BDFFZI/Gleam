@@ -37,8 +37,8 @@ namespace Gleam
             RenderingConfig::LineMeshLayout, RenderingConfig::ColorFormat, RenderingConfig::DepthStencilFormat);
         defaultPointShader = std::make_unique<GShader>(vertexColorGSCodeLayout, pointGSInoutLayout);
         defaultLineShader = std::make_unique<GShader>(vertexColorGSCodeLayout, lineGSInoutLayout);
-        defaultPointMaterial = std::make_unique<Material>(*defaultPointShader);
-        defaultLineMaterial = std::make_unique<Material>(*defaultLineShader);
+        defaultPointMaterial = std::make_shared<Material>(*defaultPointShader);
+        defaultLineMaterial = std::make_shared<Material>(*defaultLineShader);
         //位块传输
         fullScreenMesh = CreateFullScreenMesh();
         blitShader = std::make_unique<GShader>(GSCodeLayout("StreamingAssets/GleamRenderingRuntime/Blit.hlsl"));
@@ -59,11 +59,11 @@ namespace Gleam
         CommandBufferPool::UnInit();
     }
 
-    const std::unique_ptr<Material>& Rendering::GetDefaultPointMaterial()
+    std::weak_ptr<Material> Rendering::GetDefaultPointMaterial()
     {
         return defaultPointMaterial;
     }
-    const std::unique_ptr<Material>& Rendering::GetDefaultLineMaterial()
+    std::weak_ptr<Material> Rendering::GetDefaultLineMaterial()
     {
         return defaultLineMaterial;
     }

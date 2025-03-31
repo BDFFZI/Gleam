@@ -132,6 +132,30 @@ namespace Gleam
             source += componentTypes[i]->GetSize();
         }
     }
+    void Archetype::CopyConstruct(std::byte* destination, std::byte* source) const
+    {
+        std::memcpy(destination, source, sizeof(Entity));
+        destination += sizeof(Entity);
+        source += sizeof(Entity);
+
+        for (int i = 0; i < componentCount; ++i)
+        {
+            componentTypes[i]->CopyConstruct(destination, source);
+            destination += componentTypes[i]->GetSize();
+            source += componentTypes[i]->GetSize();
+        }
+    }
+    void Archetype::Copy(std::byte* destination, std::byte* source) const
+    {
+        destination += sizeof(Entity);
+        source += sizeof(Entity);
+        for (int i = 0; i < componentCount; ++i)
+        {
+            componentTypes[i]->Copy(destination, source);
+            destination += componentTypes[i]->GetSize();
+            source += componentTypes[i]->GetSize();
+        }
+    }
 
     Archetype::Archetype(const std::string_view name, std::vector<const Type*> componentTypes)
     {

@@ -30,11 +30,17 @@ namespace Gleam
          * @param newArchetype 
          */
         void MoveEntitySimply(Entity entity, const Archetype& newArchetype);
-        
+        //复制实体
+        void CopyEntity(Entity destination, Entity source);
+        Entity CloneEntity(Entity source);
+
         void Clear();
+
     private:
         EntityInfoAllocator* entityInfoAllocator = nullptr;
         std::unordered_map<const Archetype*, Heap> entityHeaps;
+
+        void AddEntityUninitialized(const Archetype& archetype, Entity& outEntity, EntityInfo& outEntityInfo);
 
         /**
          * 将实体从堆内存中移除并自动修正因此被迁移的实体信息

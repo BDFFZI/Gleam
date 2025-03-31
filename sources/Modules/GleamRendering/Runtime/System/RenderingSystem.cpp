@@ -21,11 +21,11 @@ namespace Gleam
     RendererInfo::RendererInfo(const float4x4& localToWorld, Renderer& renderer)
         : localToWorld(localToWorld)
     {
-        assert(renderer.material.has_value() && renderer.mesh.has_value() && "渲染资源不完整！");
+        assert(!renderer.material.expired() && !renderer.mesh.expired() && "渲染资源不完整！");
 
-        renderQueue = renderer.material.value()->GetRenderQueue();
-        material = renderer.material.value();
-        mesh = renderer.mesh.value();
+        renderQueue = renderer.material.lock()->GetRenderQueue();
+        material = renderer.material.lock().get();
+        mesh = renderer.mesh.lock().get();
     }
     RendererInfo::RendererInfo(const float4x4& localToWorld, const RenderQueue renderQueue, Material& material, Mesh& mesh, const uint32_t instanceID)
         : localToWorld(localToWorld), renderQueue(renderQueue), material(&material), mesh(&mesh), instanceCount(instanceID)
@@ -62,7 +62,7 @@ namespace Gleam
         });
         View<LocalToWorld, Renderer>::Each([this](auto& localToWorld, auto& renderer)
         {
-            if (renderer.material.has_value() && renderer.mesh.has_value())
+            if (!renderer.material.expired() && !renderer.mesh.expired() && renderer.mesh.lock()->GetGLIndexCount() != 0)
                 rendererInfos.emplace(localToWorld.value, renderer);
         });
         //录制渲染命令

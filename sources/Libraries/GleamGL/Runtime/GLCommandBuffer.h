@@ -79,7 +79,7 @@ public:
     void EndRendering() const;
 
     void BindPipeline(const GLPipeline& glPipeline) const;
-    void BindVertexBuffers(const GLBuffer& glBuffer) const;
+    void BindVertexBuffer(const GLBuffer& glBuffer) const;
     void BindIndexBuffer(const GLBuffer& glBuffer) const;
     void BindDescriptorSet(const GLPipelineLayout& glPipelineLayout, const GLDescriptorSet& glDescriptorSet) const;
     /**

@@ -13,10 +13,7 @@ namespace Gleam
     {
     public:
         virtual ~GMesh() = default;
-        /**
-         * 注意！只有在调用BindToPipeline后该函数才有效
-         * @return 
-         */
+
         virtual uint32_t GetGLIndexCount() = 0;
         virtual void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const GMesh* currentMesh) = 0;
     };
@@ -68,7 +65,10 @@ namespace Gleam
         }
         void SetDirty() { isDirty = true; }
 
-        uint32_t GetGLIndexCount() override { return indexCount; }
+        uint32_t GetGLIndexCount() override
+        {
+            return std::max(static_cast<uint32_t>(indices.size()), indexCount);
+        }
         void BindToPipeline(const GLCommandBuffer& glCommandBuffer, const GMesh* lastMesh) override
         {
             if (isDirty)
@@ -76,12 +76,12 @@ namespace Gleam
                 UploadMeshData();
                 isDirty = false;
 
-                glCommandBuffer.BindVertexBuffers(*vertexBuffer);
+                glCommandBuffer.BindVertexBuffer(*vertexBuffer);
                 glCommandBuffer.BindIndexBuffer(*indexBuffer);
             }
             else if (this != lastMesh)
             {
-                glCommandBuffer.BindVertexBuffers(*vertexBuffer);
+                glCommandBuffer.BindVertexBuffer(*vertexBuffer);
                 glCommandBuffer.BindIndexBuffer(*indexBuffer);
             }
         }
@@ -102,8 +102,8 @@ namespace Gleam
          */
         void UploadMeshData()
         {
-            assert(!vertices.empty() && "未设置任何顶点，网格数据无效");
-            assert(!indices.empty() && "未设置任何索引，网格数据无效");
+            assert(!vertices.empty() && "未设置任何顶点，无法上传网格数据！");
+            assert(!indices.empty() && "未设置任何索引，无法上传格数据！");
 
             indexCount = static_cast<uint32_t>(indices.size()); //indices有可能被清空，需提前设置
 

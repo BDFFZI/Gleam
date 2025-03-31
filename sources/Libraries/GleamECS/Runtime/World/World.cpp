@@ -36,6 +36,14 @@ namespace Gleam
         const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
         entityInfo.allocator->MoveEntity(entity, newArchetype);
     }
+    void World::CopyEntity(const Entity destination, const Entity source)
+    {
+        entities.CopyEntity(destination, source);
+    }
+    Entity World::CloneEntity(const Entity entity)
+    {
+        return entities.CloneEntity(entity);
+    }
 
     bool World::HasSystem(System& system)
     {

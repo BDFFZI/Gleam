@@ -81,7 +81,7 @@ namespace Gleam
 
         return false;
     }
-    
+
     std::shared_ptr<void> Type::MakeShared(void* address) const
     {
         return makeShared(address);
@@ -112,10 +112,12 @@ namespace Gleam
     }
     void Type::CopyConstruct(void* destination, void* source) const
     {
+        assert(CanCopyConstruct() && "不支持复制构造函数！");
         copyConstruct(destination, source);
     }
     void Type::Copy(void* destination, void* source) const
     {
+        assert(CanCopy() && "不支持复制函数！");
         copy(destination, source);
     }
 
