@@ -5,7 +5,6 @@
 
 namespace Gleam
 {
-    std::vector<std::tuple<Entity, const Type*>> removingComponents;
     void DrawComponent(void* component, const Type& componentType, const InspectorWindow::CustomUI& componentGUI, bool* isUsing)
     {
         std::type_index componentTypeIndex = componentType.GetIndex();
@@ -41,7 +40,7 @@ namespace Gleam
                 bool isUsing = true;
                 DrawComponent(component, componentType, componentGUI, &isUsing);
                 if (isUsing == false) //删除组件
-                    removingComponents.emplace_back(entity, &componentType);
+                    World::RemoveComponentsAsync(entity, {componentType});
             }
         }
         //绘制操作
@@ -86,7 +85,7 @@ namespace Gleam
                 {
                     if (filter.PassFilter(archetype.GetName().data()) && ImGui::Button(archetype.GetName().data()))
                     {
-                        World::MoveEntity(entity, archetype);
+                        World::MoveEntityAsync(entity, archetype);
                         ImGui::CloseCurrentPopup();
                         break;
                     }
@@ -120,10 +119,5 @@ namespace Gleam
         serializer.TransferField("rotation", eulerAngles);
         localTransform.rotation = Quaternion::Euler(eulerAngles);
         serializer.TransferField("scale", localTransform.scale);
-    }
-
-    void InspectorWindowUI_Entity_DestroyComponents()
-    {
-        
     }
 }

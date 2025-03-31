@@ -5,7 +5,27 @@
 
 namespace Gleam
 {
-    void World::RemoveEntityAsync(Entity& entity, const bool removeFromScene)
+    void World::MoveEntityAllocator(EntityAllocator& entityAllocator)
+    {
+        assert(&entityAllocator.GetEntityInfoAllocator() == &entityInfoAllocator && "只有实体信息分配器相同才可融并！");
+        for (auto& [archetype, heap] : entityAllocator.GetEntityHeaps())
+        {
+            heap.ForeachElements([archetype](std::byte* address)
+            {
+                Entity entity = *reinterpret_cast<Entity*>(address);
+                //分配新内存
+                Heap& newHeap = entities.GetEntityHeap(*archetype);
+                std::byte* newAddress = newHeap.AddElement();
+                //将旧数据移动到新内存
+                archetype->MoveConstruct(newAddress, address);
+                //设置新实体信息
+                EntityInfo entityInfo = {*archetype, entities, newHeap.GetCount() - 1, newAddress};
+                entityInfoAllocator.SetEntityInfo(entity, entityInfo);
+            });
+        }
+        entityAllocator.GetEntityHeaps().clear();
+    }
+    void World::RemoveEntity(Entity& entity, const bool removeFromScene)
     {
         if (removeFromScene)
         {
@@ -14,13 +34,12 @@ namespace Gleam
                 optionalScene->get().RemoveEntity(entity);
         }
 
-        if (entityInfoAllocator.GetEntityInfo(entity).allocator == &addingEntities)
-        {
-            addingEntities.RemoveEntity(entity);
-            return;
-        }
-
-        removingEntities.emplace_back(entity);
+        entities.RemoveEntity(entity);
+        entity = Entity::Null; //避免野指针
+    }
+    void World::RemoveEntityAsync(Entity& entity, const bool removeFromScene)
+    {
+        removingEntities.emplace_back(entity, removeFromScene);
         entity = Entity::Null; //避免野指针
     }
 
@@ -33,13 +52,9 @@ namespace Gleam
         if (system.GetGroup().has_value())
             AddSystem(system.GetGroup().value());
 
-        if (auto it = removingSystems.find(&system); it != removingSystems.end())
-        {
-            removingSystems.erase(it); //优先使用removingSystems抵消，该功能用于实现两个场景共用系统的情况
-            return;
-        }
-
-        addingSystems.emplace(&system);
+        const int count = ++systemUsageCount[&system];
+        if (count == 1) //首次添加，需实际注册到系统组接收事件。
+            system.GetGroup().value_or(systems).get().AddSubSystem(system);
     }
     void World::AddSystems(std::initializer_list<std::reference_wrapper<System>> systems)
     {
@@ -61,13 +76,10 @@ namespace Gleam
         if (system.GetGroup().has_value())
             RemoveSystem(system.GetGroup().value());
 
-        if (auto it = addingSystems.find(&system); it != addingSystems.end())
-        {
-            addingSystems.erase(it); //优先使用addingSystems抵消，该功能用于实现编辑器模式下拦截用户系统
-            return;
-        }
-
-        removingSystems.emplace(&system);
+        const int count = --systemUsageCount[&system];
+        if (count == 0) //首次移除，需实际从系统组中移除。
+            system.GetGroup().value_or(systems).get().RemoveSubSystem(system);
+        assert(count >= 0 && "重复移除系统！");
     }
     void World::RemoveSystems(std::initializer_list<std::reference_wrapper<System>> systems, const bool removeFromScene)
     {
@@ -75,89 +87,49 @@ namespace Gleam
             RemoveSystem(system, removeFromScene);
     }
 
-    void World::AddComponents(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
+    Archetype& World::ComputeArchetype(
+        const Entity entity,
+        const std::initializer_list<std::reference_wrapper<const Type>> removingComponents,
+        const std::initializer_list<std::reference_wrapper<const Type>> addingComponents)
     {
         static std::vector<std::reference_wrapper<const Type>> currentComponents = {};
 
+        //获取已有组件
         entityInfoAllocator.GetEntityInfo(entity).archetype->GetComponentTypes(currentComponents);
-        currentComponents.insert(currentComponents.end(), componentTypes.begin(), componentTypes.end());
-
-        Archetype& archetype = Archetype::CreateOrGet(currentComponents);
-        MoveEntity(entity, archetype);
-    }
-    void World::RemoveComponents(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
-    {
-        static std::vector<std::reference_wrapper<const Type>> currentComponents = {};
-
-        entityInfoAllocator.GetEntityInfo(entity).archetype->GetComponentTypes(currentComponents);
-        for (std::reference_wrapper<const Type> component : componentTypes)
+        //移除目标组件
+        for (std::reference_wrapper<const Type> component : removingComponents)
             std::erase_if(currentComponents, [component](auto a) { return a.get() == component.get(); });
+        //添加目标组件
+        currentComponents.insert(currentComponents.end(), addingComponents.begin(), addingComponents.end());
 
-        Archetype& archetype = Archetype::CreateOrGet(currentComponents);
-        MoveEntity(entity, archetype);
+        return Archetype::CreateOrGet(currentComponents);
     }
 
     void World::Update()
     {
-        FlushSystemQueue(); //应用上一帧对系统的结构性更改
-        systems.FlushStopQueue(); //当前帧停止的事件对当前帧销毁的实体可见，以便进行回收工作，因此先于实体销毁前执行。
-        FlushEntityQueue(); //应用上一帧对实体的结构性更改
-        //当前帧的开始和更新事件无法处理当前帧被销毁的实体。
-        systems.FlushStartQueue();
         systems.Update();
+        FlushEntityQueue();
     }
     void World::Clear()
     {
+        for (auto& [system,count] : systemUsageCount)
+            count++; //抑制用户回收方法，防止重复回收
         systems.Stop();
-        addingSystems.clear();
-        removingSystems.clear();
         systemUsageCount.clear();
 
         entities.Clear();
-        addingEntities.Clear();
         removingEntities.clear();
         entityInfoAllocator.Clear();
     }
 
-    void World::FlushSystemQueue()
-    {
-        for (System* system : addingSystems)
-        {
-            const int count = ++systemUsageCount[system];
-            if (count == 1) //首次添加，需实际注册到系统组接收事件。
-                system->GetGroup().value_or(systems).get().AddSubSystem(*system);
-        }
-        addingSystems.clear();
-        for (System* system : removingSystems)
-        {
-            const int count = --systemUsageCount[system];
-            if (count == 0) //首次添加，需实际注册到系统组接收事件。
-                system->GetGroup().value_or(systems).get().RemoveSubSystem(*system);
-            assert(count >= 0 && "重复移除系统！");
-        }
-        removingSystems.clear();
-    }
     void World::FlushEntityQueue()
     {
-        for (auto entity : removingEntities)
-            entities.RemoveEntity(entity);
-        removingEntities.clear();
+        for (const auto& [entity,archetype] : movingEntities)
+            MoveEntity(entity, *archetype);
+        movingEntities.clear();
 
-        for (auto& [archetype, heap] : addingEntities.GetEntityHeaps())
-        {
-            heap.ForeachElements([archetype](std::byte* address)
-            {
-                Entity entity = *reinterpret_cast<Entity*>(address);
-                //分配新内存
-                Heap& newHeap = entities.GetEntityHeap(*archetype);
-                std::byte* newAddress = newHeap.AddElement();
-                //将旧数据移动到新内存
-                archetype->MoveConstruct(newAddress, address);
-                //设置新实体信息
-                EntityInfo entityInfo = {*archetype, entities, newHeap.GetCount() - 1, newAddress};
-                entityInfoAllocator.SetEntityInfo(entity, entityInfo);
-            });
-        }
-        addingEntities.GetEntityHeaps().clear();
+        for (auto [entity,removeFromScene] : removingEntities)
+            RemoveEntity(entity, removeFromScene);
+        removingEntities.clear();
     }
 }

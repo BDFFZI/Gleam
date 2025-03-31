@@ -163,7 +163,7 @@ namespace Gleam
         World::AddSystem(preProcessSystem);
         World::AddSystem(inputSystem);
 
-        sceneCamera = World::AddEntityAsync(SceneCameraArchetype);
+        sceneCamera = World::AddEntity(SceneCameraArchetype);
         World::SetComponents(sceneCamera, cameraTransformSaving);
         World::SetComponents(sceneCamera, cameraSaving);
     }

@@ -25,9 +25,9 @@ namespace Gleam
     void Editor_PlayOrStopEngine();
 
 #define Gleam_AddEditorSystems(...) Gleam_MakeInitEvent(){\
-Editor::AddEditorSystems({__VA_ARGS__});\
+::Gleam::Editor::AddEditorSystems({__VA_ARGS__});\
 }
 #define Gleam_AddEditorOnlySystems(...) Gleam_MakeInitEvent(){\
-Editor::AddEditorOnlySystems({__VA_ARGS__});\
+::Gleam::Editor::AddEditorOnlySystems({__VA_ARGS__});\
 }
 }

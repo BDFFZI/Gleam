@@ -14,6 +14,10 @@ namespace Gleam
         {
         }
 
+        EntityInfoAllocator& GetEntityInfoAllocator() const
+        {
+            return *entityInfoAllocator;
+        }
         std::unordered_map<const Archetype*, Heap>& GetEntityHeaps();
         Heap& GetEntityHeap(const Archetype& archetype);
 

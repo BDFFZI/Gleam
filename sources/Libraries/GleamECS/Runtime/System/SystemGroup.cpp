@@ -1,5 +1,4 @@
 ﻿#include "SystemGroup.h"
-#include <ranges>
 
 namespace Gleam
 {
@@ -32,7 +31,7 @@ namespace Gleam
                     subSystemGroups.push_back(subSystemGroup);
             }
 
-            for (auto* subSystem : systemGroup->subSystems)
+            for (auto* subSystem : systemGroup->updatingSystems)
             {
                 outSubSystems.emplace_back(*subSystem);
                 if (SystemGroup* subSystemGroup = dynamic_cast<SystemGroup*>(subSystem))
@@ -45,67 +44,55 @@ namespace Gleam
     {
         assert(!addingSystems.contains(&system) && "重复添加系统！");
         assert(!removingSystems.contains(&system) && "同时添加移除系统！");
-        assert(!subSystems.contains(&system) && "添加已存在的系统！");
+        assert(!updatingSystems.contains(&system) && "添加已存在的系统！");
 
         addingSystems.insert(&system);
+        updatingSystems.insert(&system);
     }
     void SystemGroup::RemoveSubSystem(System& system)
     {
         assert(!removingSystems.contains(&system) && "重复移除系统！");
-        assert(!addingSystems.contains(&system) && "同时添加移除系统！");
-        assert(subSystems.contains(&system) && "移除不存在的系统！");
+        assert(updatingSystems.contains(&system) && "移除不存在的系统！");
+
+        //允许撤回添加的系统，以支持编辑器下的运行时系统替换
+        if (addingSystems.contains(&system))
+        {
+            addingSystems.erase(&system);
+            updatingSystems.erase(&system);
+            return;
+        }
 
         removingSystems.insert(&system);
+        updatingSystems.erase(&system);
     }
 
     void SystemGroup::Start()
     {
-        for (System* system : addingSystems)
-            system->Start();
-
-        subSystems.insert(addingSystems.begin(), addingSystems.end());
-        addingSystems.clear();
+        FlushAddingSystems();
     }
     void SystemGroup::Stop()
     {
-        for (System* system : std::ranges::reverse_view(subSystems))
-            system->Stop();
+        removingSystems.insert(updatingSystems.begin(), updatingSystems.end());
+        FlushRemovingSystems();
 
-        subSystems.clear();
         addingSystems.clear();
+        updatingSystems.clear();
         removingSystems.clear();
     }
-
-    void SystemGroup::FlushStartQueue()
+    void SystemGroup::FlushAddingSystems()
     {
-        for (System* system : addingSystems)
-        {
-            auto result = subSystems.emplace(system);
-            assert(result.second && "添加子系统失败！");
-        }
-        for (System* system : subSystems)
-        {
-            if (addingSystems.contains(system))
-                system->Start();
-            else if (SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(system))
-                systemGroup->FlushStartQueue();
-        }
+        systemsBuffer.insert(systemsBuffer.end(), addingSystems.begin(), addingSystems.end());
+        for (System* system : systemsBuffer)
+            system->Start();
+        systemsBuffer.clear();
         addingSystems.clear();
     }
-    void SystemGroup::FlushStopQueue()
+    void SystemGroup::FlushRemovingSystems()
     {
-        for (System* system : std::ranges::reverse_view(subSystems))
-        {
-            if (removingSystems.contains(system))
-                system->Stop();
-            else if (SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(system))
-                systemGroup->FlushStopQueue();
-        }
-        for (System* system : removingSystems)
-        {
-            auto result = subSystems.erase(system);
-            assert(result == 1 && "移除子系统失败！"); //你是否在Stop中销毁了系统自身？
-        }
+        systemsBuffer.insert(systemsBuffer.end(), removingSystems.rbegin(), removingSystems.rend());
+        for (System* system : systemsBuffer)
+            system->Stop();
+        systemsBuffer.clear();
         removingSystems.clear();
     }
 }

@@ -70,7 +70,7 @@ namespace Gleam
                 }
 
                 archetype = &Archetype::CreateOrGet(componentTypes);
-                value = {World::AddEntityAsync(*archetype), true};
+                value = {World::AddEntity(*archetype), true};
                 components = World::GetEntityInfoAllocator().GetEntityInfo(value.GetEntity()).memoryAddress;
             }
 

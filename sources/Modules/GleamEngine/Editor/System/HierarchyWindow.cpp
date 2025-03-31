@@ -20,7 +20,7 @@ namespace Gleam
         //下拉框
         bool collapsing = ImGui::CollapsingHeader(
             std::format("##{}", system.GetName()).c_str(),
-            (systemGroup == nullptr || systemGroup->subSystems.empty()
+            (systemGroup == nullptr || systemGroup->updatingSystems.empty()
                  ? ImGuiTreeNodeFlags_Leaf : 0) //无子系统时不显示箭头
             | ImGuiTreeNodeFlags_AllowItemOverlap //支持叠加按钮
         );
@@ -61,7 +61,7 @@ namespace Gleam
             DrawSystem(*subSystem);
         ImGui::PopStyleColor();
 
-        for (const auto subSystem : systemGroup.subSystems)
+        for (const auto subSystem : systemGroup.updatingSystems)
             DrawSystem(*subSystem);
     }
 
@@ -106,7 +106,7 @@ namespace Gleam
         {
             if (ImGui::Button("AddEntity"))
             {
-                World::AddEntityAsync();
+                World::AddEntity();
                 ImGui::CloseCurrentPopup();
             }
 

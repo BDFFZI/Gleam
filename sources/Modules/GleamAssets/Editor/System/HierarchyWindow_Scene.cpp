@@ -93,7 +93,7 @@ namespace Gleam
         {
             if (ImGui::Button("AddEntity"))
             {
-                scene.AddEntity(World::AddEntityAsync());
+                scene.AddEntity(World::AddEntity());
                 ImGui::CloseCurrentPopup();
             }
 

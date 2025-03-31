@@ -44,7 +44,34 @@ namespace Gleam
         void Stop() override;
         void Update() override
         {
-            for (System* system : subSystems)
+            FlushAddingSystems();
+            FlushUpdatingSystems();
+            FlushRemovingSystems();
+        }
+
+    private:
+        friend class HierarchyWindow;
+
+        ///
+        /// 系统增删为什么要延迟执行？
+        /// 添加或删除系统必须先缓存然后再实际执行，因为在遍历系统的时候是不能修改容器结构的，
+        /// 但提供的游戏事件都是遍历容器的时候运行的，所以为了实现在系统事件中增删系统，必须先缓存
+        /// 
+        /// 虽然子系统的添加删除是延迟的，但并不支持遍历时的结构化更改。
+        /// 例如Start时addingSystems被占用，但用户依然可能执行AddSubSystem函数，于是就会导致遍历异常。
+        /// 此处延迟触发的真实原因是因为插入系统和删除系统是无序的，但系统本身是有序的，
+        /// 为了满足系统的顺序安排，只有先缓存再汇总后才可知正确的执行顺序。
+        std::vector<System*> systemsBuffer = {};
+        std::set<System*, SystemPtrComparer> addingSystems = {};
+        std::set<System*, SystemPtrComparer> updatingSystems = {};
+        std::set<System*, SystemPtrComparer> removingSystems = {};
+
+        void FlushAddingSystems();
+        void FlushRemovingSystems();
+        void FlushUpdatingSystems()
+        {
+            systemsBuffer.insert(systemsBuffer.end(), updatingSystems.begin(), updatingSystems.end());
+            for (System* system : systemsBuffer)
             {
 #ifdef GleamEngineEditor
                 auto& name = system->GetName();
@@ -52,20 +79,7 @@ namespace Gleam
 #endif
                 system->Update();
             }
+            systemsBuffer.clear();
         }
-
-        void FlushStartQueue();
-        void FlushStopQueue();
-
-    private:
-        friend class HierarchyWindow;
-
-        std::set<System*, SystemPtrComparer> subSystems = {};
-        /// 虽然子系统的添加删除是延迟的，但并不支持遍历时的结构化更改。
-        /// 例如Start时addingSystems被占用，但用户依然可能执行AddSubSystem函数，于是就会导致遍历异常。
-        /// 此处延迟触发的真实原因是因为插入系统和删除系统是无序的，但系统本身是有序的，
-        /// 为了满足系统的顺序安排，只有先缓存再汇总后才可知正确的执行顺序。
-        std::set<System*, SystemPtrComparer> addingSystems = {};
-        std::set<System*, SystemPtrComparer> removingSystems = {};
     };
 }
