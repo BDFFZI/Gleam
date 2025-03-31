@@ -106,7 +106,7 @@ namespace Gleam
         {
             if (ImGui::Button("AddEntity"))
             {
-                World::AddEntity();
+                World::AddEntityAsync();
                 ImGui::CloseCurrentPopup();
             }
 
@@ -140,7 +140,7 @@ namespace Gleam
         {
             if (ImGui::Button("RemoveEntity"))
             {
-                World::RemoveEntity(entity);
+                World::RemoveEntityAsync(entity);
                 ImGui::CloseCurrentPopup();
                 result = false;
             }

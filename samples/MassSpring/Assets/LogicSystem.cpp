@@ -63,8 +63,8 @@ void LogicSystem::OnDeleteParticle()
                 lines.push_back(entity);
         });
         for (Entity entity : lines)
-            World::RemoveEntity(entity);
-        World::RemoveEntity(coveringParticle);
+            World::RemoveEntityAsync(entity);
+        World::RemoveEntityAsync(coveringParticle);
     }
 }
 void LogicSystem::OnCreateSpring()
@@ -76,7 +76,7 @@ void LogicSystem::OnCreateSpring()
             if (coveringParticle != Entity::Null)
             {
                 springParticleA = coveringParticle;
-                tempLine = World::AddEntity(LineRendererArchetype);
+                tempLine = World::AddEntityAsync(LineRendererArchetype);
             }
         }
     }
@@ -88,7 +88,7 @@ void LogicSystem::OnCreateSpring()
                 PhysicsSystem::AddSpring(springParticleA, coveringParticle, elasticity);
 
             springParticleA = Entity::Null;
-            World::RemoveEntity(tempLine);
+            World::RemoveEntityAsync(tempLine);
         }
     }
 

@@ -5,15 +5,7 @@
 
 namespace Gleam
 {
-    bool World::HasEntity(const Entity entity)
-    {
-        return entityInfoAllocator.HasEntity(entity);
-    }
-    Entity World::AddEntity(const Archetype& archetype)
-    {
-        return addingEntities.AddEntity(archetype);
-    }
-    void World::RemoveEntity(Entity& entity, const bool removeFromScene)
+    void World::RemoveEntityAsync(Entity& entity, const bool removeFromScene)
     {
         if (removeFromScene)
         {
@@ -30,19 +22,6 @@ namespace Gleam
 
         removingEntities.emplace_back(entity);
         entity = Entity::Null; //避免野指针
-    }
-    void World::MoveEntity(const Entity entity, const Archetype& newArchetype)
-    {
-        const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
-        entityInfo.allocator->MoveEntity(entity, newArchetype);
-    }
-    void World::CopyEntity(const Entity destination, const Entity source)
-    {
-        entities.CopyEntity(destination, source);
-    }
-    Entity World::CloneEntity(const Entity entity)
-    {
-        return entities.CloneEntity(entity);
     }
 
     bool World::HasSystem(System& system)

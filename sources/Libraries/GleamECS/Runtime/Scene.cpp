@@ -49,7 +49,7 @@ namespace Gleam
             if (scene.isRunning)
                 scene.Stop();
             for (Entity entity : scene.entities)
-                World::RemoveEntity(entity, false);
+                World::RemoveEntityAsync(entity, false);
         }
         //移除索引信息
         for (System* system : scene.systems)

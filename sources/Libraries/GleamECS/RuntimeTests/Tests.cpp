@@ -167,10 +167,10 @@ struct RigidBody
 TEST(ECS, World)
 {
     Entity entities[2] = {
-        World::AddEntity(physicsArchetype),
-        World::AddEntity(physicsArchetype),
+        World::AddEntityAsync(physicsArchetype),
+        World::AddEntityAsync(physicsArchetype),
     };
-    World::RemoveEntity(entities[0]);
+    World::RemoveEntityAsync(entities[0]);
     World::MoveEntity(entities[1], physicsWithSpringArchetype);
 
     View<Transform, RigidBody, SpringPhysics>::Each([entities](auto& entity, auto& transform, auto& rigidBody, auto& spring)
@@ -190,12 +190,12 @@ TEST(ECS, World)
     ASSERT_EQ(outRigidBody, inRigidBody);
     ASSERT_EQ(outSpring, inSpring);
 
-    entities[0] = World::AddEntity(physicsArchetype);
+    entities[0] = World::AddEntityAsync(physicsArchetype);
     World::SetComponents(entities[0], Transform{3});
     ASSERT_EQ(World::GetComponent<Transform>(entities[0]), Transform{3});
 
-    World::RemoveEntity(entities[0]);
-    World::RemoveEntity(entities[1]);
+    World::RemoveEntityAsync(entities[0]);
+    World::RemoveEntityAsync(entities[1]);
     World::Update();
 }
 
@@ -350,7 +350,7 @@ TEST(ECS, System)
 {
     PhysicsSystem physicsSystem{};
     for (int i = 0; i < 10; i++)
-        World::AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
+        World::AddEntityAsync(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
     World::AddSystem(physicsSystem);
 
     for (int i = 0; i < 200; i++)
@@ -371,8 +371,8 @@ TEST(ECS, System)
 
 TEST(ECS, View)
 {
-    Entity physicsEntity = World::AddEntity(physicsArchetype);
-    Entity physicsWithSpring = World::AddEntity(physicsWithSpringArchetype);
+    Entity physicsEntity = World::AddEntityAsync(physicsArchetype);
+    Entity physicsWithSpring = World::AddEntityAsync(physicsWithSpringArchetype);
     World::Update();
     View<Transform, RigidBody>::Each([](auto& transform, auto&)
     {
@@ -388,13 +388,13 @@ TEST(ECS, View)
     ASSERT_EQ(World::GetComponent<Transform>(physicsEntity).position, 2);
     ASSERT_EQ(World::GetComponent<Transform>(physicsWithSpring).position, 1);
 
-    World::RemoveEntity(physicsEntity);
-    World::RemoveEntity(physicsWithSpring);
+    World::RemoveEntityAsync(physicsEntity);
+    World::RemoveEntityAsync(physicsWithSpring);
 }
 
 TEST(ECS, Scene)
 {
-    Entity entity = World::AddEntity(Transform{});
+    Entity entity = World::AddEntityAsync(Transform{});
 
     SystemEvent system = SystemEvent("TestSystem", std::nullopt);
     system.OnStart() = []

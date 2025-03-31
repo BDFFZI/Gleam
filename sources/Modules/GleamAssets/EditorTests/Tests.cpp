@@ -59,7 +59,7 @@ Gleam_MakeEngineStartEvent(Init, 0)
 {
     {
         Scene& scene = Scene::Create("TestScene");
-        scene.AddEntity(World::AddEntity(MyComponent{123}));
+        scene.AddEntity(World::AddEntityAsync(MyComponent{123}));
         scene.AddSystem(GlobalMySystem);
         {
             AssetBundle& assetBundle = AssetBundle::Create(MD5("TestScene").toArray());

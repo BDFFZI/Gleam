@@ -9,7 +9,7 @@ namespace Gleam
 {
     Entity PhysicsSystem::AddParticle(const float3 position, const float drag, const float mass)
     {
-        const Entity entity = World::AddEntity(ParticleArchetype);
+        const Entity entity = World::AddEntityAsync(ParticleArchetype);
         World::SetComponents(entity, Particle{position, position, mass, drag});
         return entity;
     }
@@ -19,7 +19,7 @@ namespace Gleam
         Particle& pointB = World::GetComponent<Particle>(particleB);
         float length = distance(pointA.position, pointB.position);
 
-        Entity entity = World::AddEntity(SpringArchetype);
+        Entity entity = World::AddEntityAsync(SpringArchetype);
         World::SetComponents(entity, Spring{particleA, particleB, length, elasticity});
         return entity;
     }

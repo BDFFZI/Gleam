@@ -30,20 +30,40 @@ namespace Gleam
             return systems;
         }
 
-        static bool HasEntity(Entity entity);
-        static Entity AddEntity(const Archetype& archetype);
-        static void RemoveEntity(Entity& entity, bool removeFromScene = true);
-        static void MoveEntity(Entity entity, const Archetype& newArchetype);
-        static void CopyEntity(Entity destination, Entity source);
-        static Entity CloneEntity(Entity entity);
+        static bool HasEntity(const Entity entity)
+        {
+            return entityInfoAllocator.HasEntity(entity);
+        }
 
+        static Entity AddEntityAsync(const Archetype& archetype)
+        {
+            return addingEntities.AddEntity(archetype);
+        }
         template <Component... TComponents>
-        static Entity AddEntity(const TComponents&... components)
+        static Entity AddEntityAsync(const TComponents&... components)
         {
             Archetype& archetype = Archetype::CreateOrGet({Type::CreateOrGet<TComponents>()...});
-            Entity entity = AddEntity(archetype);
+            Entity entity = AddEntityAsync(archetype);
             SetComponents(entity, components...);
             return entity;
+        }
+        static void RemoveEntityAsync(Entity& entity, bool removeFromScene = true);
+        static void MoveEntity(const Entity entity, const Archetype& newArchetype)
+        {
+            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
+            entityInfo.allocator->MoveEntity(entity, newArchetype);
+        }
+        static void MoveEntityAsync(const Entity entity, const Archetype& newArchetype)
+        {
+            movingEntities.emplace_back(entity, &newArchetype);
+        }
+        static void CopyEntity(const Entity destination, const Entity source)
+        {
+            entities.CopyEntity(destination, source);
+        }
+        static Entity CloneEntity(const Entity entity)
+        {
+            return entities.CloneEntity(entity);
         }
 
         static bool HasSystem(System& system);
@@ -154,21 +174,26 @@ namespace Gleam
 
         inline static EntityInfoAllocator entityInfoAllocator;
         inline static EntityAllocator entities = EntityAllocator{entityInfoAllocator};
+        inline static std::unordered_map<System*, int> systemUsageCount = {}; //系统使用计数，实现按需自动加载和卸载系统
+        inline static SystemGroup systems = {std::nullopt}; //场景内所有系统的根系统
+
+
         /// 实体增删为什么要延迟执行？
         /// 1. 最佳的实体生命周期应大于系统范围，以便能全程被系统处理。例如一段场景结束时，实体需在系统之后销毁，以便系统进行回收工作，但因为系统是延迟修改，所以实体也因此需要延迟。
         /// 2. 保证了销毁前后的实体视图对称，例如对实体的某种操作同时需要两个不同时间段的系统执行，如果实体在期间被删除，则其中一个系统将丢失目标。
         /// 3. 实体的结构性变更无法在遍历时立即修改，若想实现该功能，则必须先缓存。
         /// 4. 部分实体无法被立即销毁，例如渲染资源被异步的图形功能占用，因此必须等待相关功能（即系统的一次调用）完成后，才可处理。
         /// 实际上最主要的原因是第1、4点，由于相关需求较为常用，故使用ECS实现。另外这些需求实际只要实现销毁延迟即可，但出于一致性原则，创建也采用了相同的流程。
-        inline static EntityAllocator addingEntities = EntityAllocator{entityInfoAllocator};
-        inline static std::vector<Entity> removingEntities = {};
-
-        inline static std::unordered_map<System*, int> systemUsageCount = {}; //系统使用计数，实现按需自动加载和卸载系统
-        inline static SystemGroup systems = {std::nullopt}; //场景内所有系统的根系统
+        /// 
+        /// 系统增删为什么要延迟执行？
         /// 添加或删除系统必须先缓存然后再实际执行，因为在遍历系统的时候是不能修改容器结构的，
         /// 但提供的游戏事件都是遍历容器的时候运行的，所以为了实现在系统事件中增删系统，必须先缓存
-        inline static std::unordered_multiset<System*> removingSystems = {};
+
         inline static std::unordered_multiset<System*> addingSystems = {};
+        inline static std::unordered_multiset<System*> removingSystems = {};
+        inline static EntityAllocator addingEntities = EntityAllocator{entityInfoAllocator};
+        inline static std::vector<Entity> removingEntities = {};
+        inline static std::vector<std::tuple<Entity, const Archetype*>> movingEntities = {};
 
         /**
          * 将缓存的添加或卸载中的System通过引用计算后，修改到实际的系统容器中，

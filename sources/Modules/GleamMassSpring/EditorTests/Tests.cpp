@@ -27,7 +27,7 @@ class TestSystem : public System
         //碰撞弹性系数
         {
             PhysicsSystem::AddParticle(float3{-10, 0, 0}, 0);
-            Entity collider = World::AddEntity(CuboidCollider);
+            Entity collider = World::AddEntityAsync(CuboidCollider);
             World::SetComponents(
                 collider,
                 LocalTransform{float3{-10, -10, 0}, Quaternion::Euler(float3{0, 0, 0})},
@@ -39,7 +39,7 @@ class TestSystem : public System
         //碰撞摩擦系数
         {
             PhysicsSystem::AddParticle(float3{-10, 0, 10}, 0);
-            Entity collider = World::AddEntity(CuboidCollider);
+            Entity collider = World::AddEntityAsync(CuboidCollider);
             World::SetComponents(
                 collider,
                 LocalTransform{float3{-10, -10, 10}, Quaternion::Euler(float3{40, 0, 0})},
@@ -106,7 +106,7 @@ class TestSystem : public System
         //碰撞
         for (int i = 0; i < 2; i++)
         {
-            Entity collider = World::AddEntity(SphereCollider);
+            Entity collider = World::AddEntityAsync(SphereCollider);
             World::SetComponents(collider, LocalTransform{float3{10, -10, i * 10.0f}}, Sphere{0, 5});
         }
     }

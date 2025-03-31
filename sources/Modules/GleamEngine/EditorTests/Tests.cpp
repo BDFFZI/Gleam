@@ -12,7 +12,7 @@ class MySystem : public System
 {
     void Start() override
     {
-        World::AddEntity(data);
+        World::AddEntityAsync(data);
     }
 };
 Gleam_MakeGlobalSystem(MySystem)

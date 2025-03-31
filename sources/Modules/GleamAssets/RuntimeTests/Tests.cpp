@@ -48,10 +48,10 @@ TEST(Assets, Scene)
     {
         Scene& scene = Scene::Create("TestScene");
         //添加实体
-        Entity entity = World::AddEntity(Transform{999}, RigidBody{}, SpringPhysics{});
+        Entity entity = World::AddEntityAsync(Transform{999}, RigidBody{}, SpringPhysics{});
         scene.AddEntity(entity);
-        scene.AddEntity(World::AddEntity(Transform{2}, RigidBody{}));
-        scene.AddEntity(World::AddEntity(MyComponent{3, entity}));
+        scene.AddEntity(World::AddEntityAsync(Transform{2}, RigidBody{}));
+        scene.AddEntity(World::AddEntityAsync(MyComponent{3, entity}));
         //添加系统
         scene.AddSystem(mySystem1);
         World::Update(); //应用世界更改
@@ -160,7 +160,7 @@ TEST(Assets, Runtime)
     //持久化一个场景
     {
         Scene& scene = Scene::Create("TestScene2");
-        scene.AddEntity(World::AddEntity(MyComponent{123}));
+        scene.AddEntity(World::AddEntityAsync(MyComponent{123}));
         scene.AddSystem(GlobalMySystem);
         scene.AddSystem(GlobalMySystem2);
         AssetBundle& assetBundle = AssetBundle::Create(id);

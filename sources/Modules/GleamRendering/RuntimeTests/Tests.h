@@ -30,7 +30,7 @@ Gleam_MakeInitEvent()
     Camera camera;
     camera.orthographic = true;
     camera.background = float4{0.2f, 0.2f, 0.5f, 1};
-    Entity cameraEntity = World::AddEntity(TestCameraArchetype);
+    Entity cameraEntity = World::AddEntityAsync(TestCameraArchetype);
     World::SetComponents(cameraEntity, camera);
     //创建点渲染器
     std::vector points = {
@@ -38,7 +38,7 @@ Gleam_MakeInitEvent()
         Point{{0, 0, 1}},
         Point{{2, 0, 1}}
     };
-    Entity pointsRendererEntity = World::AddEntity(PointRendererArchetype);
+    Entity pointsRendererEntity = World::AddEntityAsync(PointRendererArchetype);
     World::GetComponent<PointsMesh>(pointsRendererEntity).points = points;
     //创建线渲染器
     std::vector lines = {
@@ -46,7 +46,7 @@ Gleam_MakeInitEvent()
         Segment{{0, 0, 1}, {2, 0, 1}},
         Segment{{0, 1, 1}, {2, 0, 1}},
     };
-    Entity linesRendererEntity = World::AddEntity(LineRendererArchetype);
+    Entity linesRendererEntity = World::AddEntityAsync(LineRendererArchetype);
     World::GetComponent<LinesMesh>(linesRendererEntity).lines = lines;
 }
 
