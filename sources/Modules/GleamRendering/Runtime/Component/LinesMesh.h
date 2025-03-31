@@ -22,6 +22,7 @@ namespace Gleam
     Gleam_MakeType(LinesMesh, "253F9DB5-B894-43FD-A319-A69717536850")
     {
         Gleam_MakeType_AddField(lines);
-        Gleam_MakeType_AddField(linesMesh);
+        std::weak_ptr linesMesh = value.linesMesh;
+        transferrer.TransferField("linesMesh", linesMesh);
     }
 }

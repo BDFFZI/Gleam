@@ -1,8 +1,6 @@
 #pragma once
 #include "GleamUI/Runtime/UI.h"
 #include "EditorUISystem.h"
-#include "GleamECS/Runtime/System/SystemGroup.h"
-#include "GleamEngine/Editor/Editor.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 
 namespace Gleam

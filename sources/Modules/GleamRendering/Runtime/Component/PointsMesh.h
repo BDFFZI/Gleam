@@ -22,5 +22,7 @@ namespace Gleam
     Gleam_MakeType(PointsMesh, "B063D6E1-C2DE-4E37-AE7F-0F47502C8A0B")
     {
         Gleam_MakeType_AddField(points);
+        std::weak_ptr pointsMesh = value.pointsMesh;
+        transferrer.TransferField("pointsMesh", pointsMesh);
     }
 }

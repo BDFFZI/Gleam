@@ -11,6 +11,7 @@ namespace Gleam
     {
         std::weak_ptr<void> objectPtr = {};
         std::type_index objectTypeIndex = typeid(void);
+        std::shared_ptr<void> ownedObject = nullptr; //由InspectorTarget托管的资源
 
         InspectorTarget() = default;
         InspectorTarget(nullptr_t)
@@ -27,13 +28,19 @@ namespace Gleam
             this->objectPtr = objectPtr;
             objectTypeIndex = typeid(*objectPtr.get());
         }
-        InspectorTarget(Entity entity)
-        {
-            static std::shared_ptr<Entity> inspecting = nullptr;
-            inspecting = std::make_shared<Entity>(entity);
 
-            this->objectPtr = inspecting;
-            this->objectTypeIndex = typeid(Entity);
+        /**
+         * 设置一个平凡的可复制类型对象
+         * @param object 
+         */
+        template <class T> requires
+            !std::is_reference_v<T> && !std::is_pointer_v<T> && !std::is_same_v<T, InspectorTarget> && std::is_trivial_v<T>
+        InspectorTarget(T object)
+        {
+            ownedObject = std::make_shared<T>(object);
+
+            this->objectPtr = ownedObject;
+            this->objectTypeIndex = typeid(T);
         }
         /**
          * 设置一个完全由用户负责控制生命周期的对象，用户应能确保该对象不会变成野指针！
@@ -44,14 +51,13 @@ namespace Gleam
             !std::is_reference_v<T> && !std::is_pointer_v<T> && !std::is_same_v<T, InspectorTarget> && !std::is_same_v<T, std::shared_ptr<T>>
         explicit InspectorTarget(T& object)
         {
-            static std::shared_ptr<T> cachePtr;
-            cachePtr = std::shared_ptr<T>(&object, [](T*)
+            ownedObject = std::shared_ptr<T>(&object, [](T*)
             {
                 //一个不会销毁的假共享指针
             });
 
-            this->objectPtr = cachePtr;
-            objectTypeIndex = typeid(object);
+            this->objectPtr = ownedObject;
+            this->objectTypeIndex = typeid(T);
         }
     };
 

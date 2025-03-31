@@ -151,20 +151,24 @@ namespace Gleam
     }
     void EditorUISerializer::FallbackTransferPtr(std::weak_ptr<void>& value, const std::type_index objectTypeIndex)
     {
-        //内容和检视
-        if (ImGui::Button(std::format("Ptr:{}", reinterpret_cast<uintptr_t>(value.lock().get())).c_str()))
-            GlobalInspectorWindow.SetTarget(InspectorTarget{value.lock(), objectTypeIndex});
-        //拖拽
-        EditorUI::SetDragDropObject(value.lock(), objectTypeIndex);
-        if (std::shared_ptr<void> dragging = EditorUI::GetDragDropObject(objectTypeIndex))
-            value = dragging;
-        //清空按钮
-        ImGui::SameLine();
-        if (ImGui::Button("Reset"))
-            value.reset();
-        //名称
-        ImGui::SameLine();
-        ImGui::Text(GetNodeName().c_str());
+        ImGui::PushID(&value);
+        {
+            //内容和检视
+            if (ImGui::Button(std::format("Ptr:{}", reinterpret_cast<uintptr_t>(value.lock().get())).c_str()))
+                GlobalInspectorWindow.SetTarget(InspectorTarget{value.lock(), objectTypeIndex});
+            //拖拽
+            EditorUI::SetDragDropObject(value.lock(), objectTypeIndex);
+            if (std::shared_ptr<void> dragging = EditorUI::GetDragDropObject(objectTypeIndex))
+                value = dragging;
+            //清空按钮
+            ImGui::SameLine();
+            if (ImGui::Button("Reset"))
+                value.reset();
+            //名称
+            ImGui::SameLine();
+            ImGui::Text(GetNodeName().c_str());
+        }
+        ImGui::PopID();
     }
 
     std::string EditorUISerializer::GetElementName(size_t index)

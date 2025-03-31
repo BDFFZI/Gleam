@@ -70,11 +70,10 @@ namespace Gleam
         //绘制目标
         if (!inspectorTarget.objectPtr.expired())
         {
-            auto [objectPtr, objectTypeIndex] = inspectorTarget;
-            if (inspectorGUIs.contains(objectTypeIndex))
-                inspectorGUIs[objectTypeIndex](objectPtr.lock().get());
+            if (inspectorGUIs.contains(inspectorTarget.objectTypeIndex))
+                inspectorGUIs[inspectorTarget.objectTypeIndex](inspectorTarget.objectPtr.lock().get());
             else
-                EditorUI::DrawSerializedContent(objectPtr.lock().get(), objectTypeIndex);
+                EditorUI::DrawSerializedContent(inspectorTarget.objectPtr.lock().get(), inspectorTarget.objectTypeIndex);
         }
         else
             ImGui::Text("Target has expired");
