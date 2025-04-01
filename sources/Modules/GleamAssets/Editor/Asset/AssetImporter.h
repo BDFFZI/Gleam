@@ -18,9 +18,10 @@ namespace Gleam
 
         virtual ~AssetImporter() = default;
 
-        uuids::uuid GetAssetBundleID() const { return assetBundleID; }
         const std::filesystem::path& GetAssetPath() const { return assetPath; }
+        uuids::uuid GetAssetBundleID() const { return assetBundleID; }
 
+        void Save();
         uuids::uuid SaveAndReloadAsset();
 
     protected:
@@ -31,16 +32,22 @@ namespace Gleam
 
     private:
         Gleam_MakeType_Friend;
+        friend class AssetDatabase;
+
         inline static std::unordered_map<std::string, const Type*> customImporters = {};
         inline static std::unordered_map<std::filesystem::path, std::unique_ptr<AssetImporter>> cacheImporters = {};
 
-        uuids::uuid assetBundleID;
         std::filesystem::path assetPath;
+        uuids::uuid assetBundleID;
+        int64_t assetTimeStamp;
+        uuids::uuid assetContentHash;
     };
 
     Gleam_MakeTypeWithID(AssetImporter, "D59FAA1C-781F-4917-B2E3-AD07A38A9467")
     {
         Gleam_MakeType_AddField(assetBundleID);
+        Gleam_MakeType_AddField(assetTimeStamp);
+        Gleam_MakeType_AddField(assetContentHash);
     }
 
 #define Gleam_MakeAssetImporter(extension,type) \

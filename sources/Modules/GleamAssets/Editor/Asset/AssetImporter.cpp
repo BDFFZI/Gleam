@@ -39,12 +39,17 @@ namespace Gleam
 
         return *cacheImporters.emplace(assetPath, std::move(assetMeta)).first->second;
     }
+    void AssetImporter::Save()
+    {
+        //保存元信息
+        File::WriteAllText(assetPath.string() + ".meta", JsonUtility::ToJson(this, AssetImporterType, true));
+    }
     uuids::uuid AssetImporter::SaveAndReloadAsset()
     {
         //重新载入资源
         LoadAsset(assetPath, assetBundleID);
         //保存元信息
-        File::WriteAllText(assetPath.string() + ".meta", JsonUtility::ToJson(this, AssetImporterType, true));
+        Save();
 
         return assetBundleID;
     }

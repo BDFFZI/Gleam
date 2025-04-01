@@ -55,7 +55,7 @@ private:
         static char buffer2[10] = {};
         ImGui::InputText("a", buffer, sizeof(buffer));
         ImGui::InputText("b", buffer2, sizeof(buffer2));
-        
+
         ImGui::ArrowButton("ArrowButton", ImGuiDir_Right);
 
         UI::DragFloat4x4("matrix", &matrix);
@@ -65,6 +65,9 @@ private:
             {"Test1", 1},
             {"Test2", 3},
         };
+
+        float floatValues[] = {1, 2, 3};
+        ImGui::DragScalarN("DragScalarN", ImGuiDataType_Float, floatValues, std::size(floatValues));
 
         //逻辑处理
         if (GlobalInputSystem.GetKeyDown(KeyCode::Esc))

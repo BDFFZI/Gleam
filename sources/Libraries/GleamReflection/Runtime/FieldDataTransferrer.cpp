@@ -40,13 +40,13 @@ namespace Gleam
     {
         int64_t wrap = static_cast<int64_t>(value);
         Transfer(wrap);
-        value = static_cast<uint64_t>(std::max(0ll, wrap));
+        value = static_cast<uint64_t>(wrap);
     }
     void FieldDataTransferrer::Transfer(uint32_t& value)
     {
         int32_t wrap = static_cast<int32_t>(value);
         Transfer(wrap);
-        value = static_cast<uint32_t>(std::max(0, wrap));
+        value = static_cast<uint32_t>(wrap);
     }
     void FieldDataTransferrer::Transfer(bool& value)
     {

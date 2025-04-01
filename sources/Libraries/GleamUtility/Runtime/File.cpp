@@ -35,4 +35,23 @@ namespace Gleam
 
         return content;
     }
+    void File::OpenInExplorer(const std::filesystem::path& filePath)
+    {
+        std::filesystem::path platformPath(filePath);
+        platformPath.make_preferred();
+#ifdef GleamPlatformWindows
+        std::system(std::format("explorer.exe /select,{}", platformPath.string()).c_str());
+#endif
+    }
+    void File::OpenInAssociatedApp(const std::filesystem::path& filePath)
+    {
+        std::filesystem::path platformPath(filePath);
+        platformPath.make_preferred();
+#ifdef GleamPlatformWindows
+        if (is_directory(filePath))
+            std::system(std::format("explorer.exe {}", platformPath.string()).c_str());
+        else
+            std::system(std::format("start {}", platformPath.string()).c_str());
+#endif
+    }
 }

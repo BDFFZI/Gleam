@@ -2,8 +2,6 @@
 
 #include "EditorUI.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
-#include "GleamMath/Runtime/LinearAlgebra/Matrix.h"
-#include "GleamUI/Runtime/UI.h"
 
 namespace Gleam
 {
@@ -30,9 +28,10 @@ namespace Gleam
     {
         if (nodeTypes.back() == DataType::Array)
         {
-            TransferBufferedArray(); //根据缓存的数组元素信息构建数组UI（为了实现将基于数组的float3等类型改为字段显示方式）
-            arrayBuffer.clear();
-            arrayType = 0;
+            //尝试根据缓存的数组元素信息构建数组UI（用于实现将基于数组的float3等类型改为字段显示方式）
+            TransferBufferedVector();
+            bufferedVectorItem.clear();
+            bufferedVectorItemType = -1;
         }
         if (nodeTypes.back() == DataType::Class)
         {
@@ -46,7 +45,7 @@ namespace Gleam
         nodeIndices.pop_back();
     }
 
-    void EditorUISerializer::Transfer(int32_t& value)
+    void EditorUISerializer::TransferNumber(void* address, const int size, const ImGuiDataType dataType)
     {
         if (nodeFolds.back() == false)
             return;
@@ -54,52 +53,21 @@ namespace Gleam
         if (nodeTypes.back() == DataType::Array)
         {
             //基元数组内的元素改用缓存实现
-            arrayBuffer.push_back(&value);
-            arrayType = 2;
+            PushBufferedVectorItem(address, size, dataType);
             return;
         }
 
         PreTransferNode();
-        if (GetNodeName() == "value")
-            printf("");
-        if (ImGui::DragInt(GetNodeName().c_str(), &value, dragSpeed))
-            printf("");
+        ImGui::DragScalar(GetNodeName().c_str(), dataType, address, dragSpeed);
     }
-    void EditorUISerializer::Transfer(int64_t& value)
+
+    void EditorUISerializer::Transfer(bool& value)
     {
         if (nodeFolds.back() == false)
             return;
 
         PreTransferNode();
-        int intValue = static_cast<int>(value);
-        ImGui::DragInt(GetNodeName().c_str(), &intValue, dragSpeed);
-        value = intValue;
-    }
-    void EditorUISerializer::Transfer(float& value)
-    {
-        if (nodeFolds.back() == false)
-            return;
-
-        if (nodeTypes.back() == DataType::Array)
-        {
-            //基元数组内的元素改用缓存实现
-            arrayBuffer.push_back(&value);
-            arrayType = 1;
-            return;
-        }
-
-        PreTransferNode();
-        ImGui::DragFloat(GetNodeName().c_str(), &value, dragSpeed);
-    }
-    void EditorUISerializer::Transfer(double& value)
-    {
-        if (nodeFolds.back() == false)
-            return;
-
-        PreTransferNode();
-        float floatValue = static_cast<float>(value);
-        ImGui::DragFloat(GetNodeName().c_str(), &floatValue, dragSpeed);
-        value = floatValue;
+        ImGui::Checkbox(GetNodeName().c_str(), &value);
     }
     void EditorUISerializer::Transfer(std::string& value)
     {
@@ -194,55 +162,49 @@ namespace Gleam
         nodeIndices.back()++;
     }
 
-    void EditorUISerializer::TransferBufferedArray()
+    void EditorUISerializer::PushBufferedVectorItem(void* itemAddress, const int itemSize, const ImGuiDataType itemType)
+    {
+        bufferedVectorItem.emplace_back(itemAddress);
+        bufferedVectorItemType = itemType;
+    }
+    void EditorUISerializer::TransferBufferedVector()
     {
         if (nodeFolds.back() == false)
             return;
-        if (arrayType == 0)
+        if (bufferedVectorItemType == -1)
             return; //未采用缓冲数组功能，元素已各自绘制，跳过
 
         PreTransferNode();
-        if (arrayType == 1)
-        {
-            if (arrayBuffer.size() == 1)
-                ImGui::DragFloat(GetNodeName(-1).c_str(), static_cast<float*>(arrayBuffer[0]), dragSpeed);
-            else if (arrayBuffer.size() == 2)
-                ImGui::DragFloat2(GetNodeName(-1).c_str(), static_cast<float*>(arrayBuffer[0]), dragSpeed);
-            else if (arrayBuffer.size() == 3)
-                ImGui::DragFloat3(GetNodeName(-1).c_str(), static_cast<float*>(arrayBuffer[0]), dragSpeed);
-            else if (arrayBuffer.size() == 4)
-                ImGui::DragFloat4(GetNodeName(-1).c_str(), static_cast<float*>(arrayBuffer[0]), dragSpeed);
-            else if (arrayBuffer.size() == 16)
-                UI::DragFloat4x4(GetNodeName(-1).c_str(), static_cast<float4x4*>(arrayBuffer[0]), dragSpeed);
-            else
-            {
-                if (ImGui::TreeNode(GetNodeName(-1).c_str()))
-                {
-                    for (size_t i = 0; i < arrayBuffer.size(); i++)
-                        ImGui::DragFloat(GetElementName(i).c_str(), static_cast<float*>(arrayBuffer[i]), dragSpeed);
-                    ImGui::TreePop();
-                }
-            }
-        }
 
-        if (arrayType == 2)
+        int elementCount = static_cast<int>(bufferedVectorItem.size());
+        size_t elementSize = ImGui::DataTypeGetInfo(bufferedVectorItemType)->Size;
+
+        if (elementCount <= 4 || elementCount == 9 || elementCount == 16)
         {
-            if (arrayBuffer.size() == 1)
-                ImGui::DragInt(GetNodeName(-1).c_str(), static_cast<int*>(arrayBuffer[0]), dragSpeed);
-            else if (arrayBuffer.size() == 2)
-                ImGui::DragInt2(GetNodeName(-1).c_str(), static_cast<int*>(arrayBuffer[0]), dragSpeed);
-            else if (arrayBuffer.size() == 3)
-                ImGui::DragInt3(GetNodeName(-1).c_str(), static_cast<int*>(arrayBuffer[0]), dragSpeed);
-            else if (arrayBuffer.size() == 4)
-                ImGui::DragInt4(GetNodeName(-1).c_str(), static_cast<int*>(arrayBuffer[0]), dragSpeed);
-            else
+            static std::vector<std::byte> vectorBuffer = {};
+            //将缓存的向量元素拼成真正的向量
+            vectorBuffer.resize(elementCount * elementSize);
+            for (int i = 0; i < elementCount; ++i)
+                memcpy(vectorBuffer.data() + i * elementSize, bufferedVectorItem[i], elementSize);
+            //绘制
+            if (elementCount <= 4) //向量
+                ImGui::DragScalarN(GetNodeName(-1).c_str(), bufferedVectorItemType, vectorBuffer.data(), elementCount, dragSpeed);
+            else if (elementCount == 9) //3x3矩阵
+                UI::DragScalarMatrix(GetNodeName(-1).c_str(), bufferedVectorItemType, vectorBuffer.data(), 3, 3, dragSpeed);
+            else if (elementCount == 16) //4x4矩阵
+                UI::DragScalarMatrix(GetNodeName(-1).c_str(), bufferedVectorItemType, vectorBuffer.data(), 4, 4, dragSpeed);
+            //将向量写回到各个元素原位置
+            for (int i = 0; i < elementCount; ++i)
+                memcpy(bufferedVectorItem[i], vectorBuffer.data() + i * elementSize, elementSize);
+        }
+        else
+        {
+            //按正常数组绘制
+            if (ImGui::TreeNode(GetNodeName(-1).c_str()))
             {
-                if (ImGui::TreeNode(GetNodeName(-1).c_str()))
-                {
-                    for (size_t i = 0; i < arrayBuffer.size(); i++)
-                        ImGui::DragInt(GetElementName(i).c_str(), static_cast<int*>(arrayBuffer[i]), dragSpeed);
-                    ImGui::TreePop();
-                }
+                for (size_t i = 0; i < bufferedVectorItem.size(); i++)
+                    ImGui::DragScalar(GetElementName(i).c_str(), bufferedVectorItemType, bufferedVectorItem[i], dragSpeed);
+                ImGui::TreePop();
             }
         }
     }

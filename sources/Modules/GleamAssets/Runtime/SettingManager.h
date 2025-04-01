@@ -11,7 +11,7 @@
 namespace Gleam
 {
     /**
-     * 设置是一种针对全局数据的持久化文件，被注册为设置的静态类，将在引擎启动和关闭时自动加载（或创建）、保存数据。
+     * 设置是一种针对全局数据的持久化文件，被注册为设置的静态类，将在引擎启动时自动加载或创建序列化文件。
      */
     class SettingManager
     {
@@ -67,7 +67,7 @@ namespace Gleam
         }
         static void UnloadSetting(const std::string_view name)
         {
-            SaveSetting(name);
+            // SaveSetting(name); //不支持自动保存
 
 #ifdef GleamEngineEditor
             std::string filePath = std::string("ProjectSettings/") + name.data();

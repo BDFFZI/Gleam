@@ -40,6 +40,7 @@ namespace Gleam
         void DragDropMovePath(const std::filesystem::path& path);
         ImGuiID DrawRenamePopup(const std::filesystem::path& path);
         ImGuiID DrawDeletePopup(const std::filesystem::path& path);
+        void DrawUniversalMenu(const std::filesystem::path& path);
         void ShowFile(const std::filesystem::path& path);
         void ShowDirectory(const std::filesystem::path& path);
 

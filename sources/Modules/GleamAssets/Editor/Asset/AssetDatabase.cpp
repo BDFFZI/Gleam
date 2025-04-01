@@ -2,6 +2,7 @@
 
 #include "AssetImporter.h"
 #include "GleamPersistence/Runtime/Resources.h"
+#include "GleamUtility/Runtime/File.h"
 
 namespace Gleam
 {
@@ -93,8 +94,33 @@ namespace Gleam
             else if (AssetImporter::CanImport(child))
             {
                 auto& assetImporter = AssetImporter::GetImporter(child);
+
+                bool needReimport = false;
+                //验证导入器或导入缓存是否存在
                 auto assetBundleID = assetImporter.GetAssetBundleID();
                 if (assetBundleID.is_nil() || Resources::Has(assetBundleID) == false)
+                    needReimport = true;
+                else
+                {
+                    //验证文件写入时间戳是否一致
+                    int64_t currentTimeStamp = last_write_time(child).time_since_epoch().count();
+                    if (currentTimeStamp != assetImporter.assetTimeStamp)
+                    {
+                        assetImporter.assetTimeStamp = currentTimeStamp;
+                        //验证文件内容是否一致
+                        std::string content = File::ReadAllText(child);
+                        uuids::uuid contentHash = MD5(content).toArray();
+                        if (contentHash != assetImporter.assetContentHash)
+                        {
+                            assetImporter.assetContentHash = contentHash;
+                            needReimport = true;
+                        }
+                        else
+                            assetImporter.Save();
+                    }
+                }
+
+                if (needReimport)
                 {
                     assetBundleID = assetImporter.SaveAndReloadAsset();
                     AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetBundleID);

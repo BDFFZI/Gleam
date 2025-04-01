@@ -5,6 +5,7 @@ project(Gleam)
 set(CMAKE_CXX_STANDARD 20) # 使用C++20
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 add_compile_options("/utf-8") # 代码文件使用utf-8
+add_compile_definitions("GleamPlatformWindows") # Windows平台
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/output") # 自定义输出目录
 
 file(GLOB Sources "${CMAKE_SOURCE_DIR}/sources/*")

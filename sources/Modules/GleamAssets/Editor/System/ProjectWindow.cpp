@@ -8,6 +8,7 @@
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamPersistence/Runtime/Resources.h"
 #include "GleamUI/Runtime/UI.h"
+#include "GleamUtility/Runtime/File.h"
 #include "GleamWindow/Runtime/Window.h"
 
 namespace Gleam
@@ -91,6 +92,17 @@ namespace Gleam
         }
         return ImGui::GetID(id.c_str());
     }
+    void ProjectWindow::DrawUniversalMenu(const std::filesystem::path& path)
+    {
+        if (ImGui::MenuItem("OpenInExplorer"))
+        {
+            File::OpenInExplorer(path);
+        }
+        if (ImGui::MenuItem("OpenInAssociatedApp"))
+        {
+            File::OpenInAssociatedApp(path);
+        }
+    }
 
     void ProjectWindow::ShowFile(const std::filesystem::path& path)
     {
@@ -135,6 +147,8 @@ namespace Gleam
                 UI::Menu(menu);
             }
 
+            ImGui::Separator();
+
             if (ImGui::MenuItem("Delete"))
             {
                 ImGui::OpenPopup(deletePopup);
@@ -150,6 +164,10 @@ namespace Gleam
                 if (ImGui::MenuItem("Save"))
                     AssetDatabase::Save(path);
             }
+
+            ImGui::Separator();
+
+            DrawUniversalMenu(path);
 
             ImGui::EndPopup();
         }
@@ -217,6 +235,9 @@ namespace Gleam
                     AssetDatabase::CreateFolder(path / "NewFolder");
                 ImGui::EndMenu();
             }
+
+            ImGui::Separator();
+
             if (ImGui::MenuItem("Delete"))
             {
                 ImGui::OpenPopup(deletePopup);
@@ -225,6 +246,10 @@ namespace Gleam
             {
                 ImGui::OpenPopup(renamePopup);
             }
+
+            ImGui::Separator();
+
+            DrawUniversalMenu(path);
 
             ImGui::EndPopup();
         }

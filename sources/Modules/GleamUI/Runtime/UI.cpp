@@ -111,23 +111,26 @@ namespace Gleam
         const float2 windowMax = ImGui::GetWindowContentRegionMax();
         return windowMax - windowMin;
     }
-    bool UI::DragFloat4x4(const char* label, float4x4* v, const float v_speed)
+    bool UI::DragScalarMatrix(const char* label, const ImGuiDataType data_type, void* p_data, const int width, const int height, const float v_speed)
     {
-        bool4x4 result = false;
+        bool isModified = false;
 
         if (ImGui::TreeNode(label)) //使用树部件显示矩阵名称并提供隐藏功能
         {
-            if (ImGui::BeginTable("", 4)) //使用表格布局按行列绘制矩阵
+            if (ImGui::BeginTable("", width)) //使用表格布局按行列绘制矩阵
             {
-                for (int row = 0; row < 4; ++row)
+                for (int row = 0; row < height; ++row)
                 {
                     ImGui::TableNextRow();
-                    for (int col = 0; col < 4; ++col)
+                    for (int col = 0; col < width; ++col)
                     {
                         ImGui::TableNextColumn();
 
+                        int index = col * height + row;
+                        std::byte* address = &static_cast<std::byte*>(p_data)[index * ImGui::DataTypeGetInfo(data_type)->Size];
+
                         ImGui::PushItemWidth(-FLT_MIN); //隐藏标签显示
-                        result[row][col] = ImGui::DragFloat(std::format("##{}{}", row, col).c_str(), &(*v)[row][col], v_speed);
+                        isModified |= ImGui::DragScalar(std::format("##{}{}", row, col).c_str(), data_type, address, v_speed);
                         ImGui::PopItemWidth();
                     }
                 }
@@ -138,8 +141,9 @@ namespace Gleam
             ImGui::TreePop();
         }
 
-        return any(result);
+        return isModified;
     }
+
     void UI::MenuItem(const std::vector<std::string>& path, const std::function<void()>& func, const size_t layer)
     {
         if (layer > path.size())
