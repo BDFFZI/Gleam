@@ -18,7 +18,7 @@ struct MyAsset
     SceneAsset* sceneAsset;
     int value;
 };
-Gleam_MakeType(MyAsset, "")
+Gleam_MakeTypeWithID(MyAsset, "")
 {
     Gleam_MakeType_AddField(sceneAsset);
     Gleam_MakeType_AddField(value);
@@ -63,7 +63,7 @@ Gleam_MakeEngineStartEvent(Init, 0)
         scene.AddSystem(GlobalMySystem);
         {
             AssetBundle& assetBundle = AssetBundle::Create(MD5("TestScene").toArray());
-            SceneAsset::ToAssetBundle(scene, assetBundle);
+            SceneAsset::SaveToAssetBundle(scene, assetBundle);
             std::filesystem::create_directories("./Assets/Scenes");
             AssetDatabase::Create("Assets/Scenes/TestScene.scene", assetBundle);
             AssetBundle::Unload(assetBundle);

@@ -52,7 +52,7 @@ namespace Gleam
         const Type* objectType;
     };
 
-    Gleam_MakeType(Asset, "E21E1632-F550-4A06-AC51-08221E4A6E9D")
+    Gleam_MakeTypeWithID(Asset, "E21E1632-F550-4A06-AC51-08221E4A6E9D")
     {
         if constexpr (std::derived_from<TFieldTransferrer, FieldDataTransferrer>)
         {

@@ -17,7 +17,7 @@ struct TestCameraData
     float4 mousePositionCS;
 };
 
-Gleam_MakeType(TestCameraData, "")
+Gleam_MakeTypeWithID(TestCameraData, "")
 {
     Gleam_MakeType_AddField(mousePositionCS);
 }

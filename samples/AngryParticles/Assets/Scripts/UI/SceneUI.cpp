@@ -1,8 +1,19 @@
-﻿#include "MenuSceneUI.h"
-
-#include <imgui.h>
+﻿#include "SceneUI.h"
 
 #include "GleamAssets/Runtime/SceneManager.h"
+#include "GleamUI/Runtime/UI.h"
+
+void StartSceneUI::Update()
+{
+    if (ImGui::Button("Start Game"))
+    {
+        Gleam::SceneManager::LoadScene("Menu");
+    }
+    if (ImGui::Button("Exit Game"))
+    {
+        Gleam::Engine::Stop();
+    }
+}
 
 void MenuSceneUI::Update()
 {
@@ -21,5 +32,13 @@ void MenuSceneUI::Update()
     if (ImGui::Button("Back"))
     {
         Gleam::SceneManager::LoadScene("Start");
+    }
+}
+
+void LevelSceneUI::Update()
+{
+    if (ImGui::Button("Back"))
+    {
+        Gleam::SceneManager::LoadScene("Menu");
     }
 }

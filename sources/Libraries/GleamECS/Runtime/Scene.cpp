@@ -28,21 +28,12 @@ namespace Gleam
     {
         assert(GetScene(name) == std::nullopt && "同名场景已存在！");
         std::unique_ptr<Scene>& scene = allScenes.emplace_back(std::make_unique<Scene>());
-        scene->name = name;
+        scene->name = name.empty() ? std::to_string(reinterpret_cast<uintptr_t>(scene.get())) : name;
         scene->isRunning = isRunning;
         return *scene;
     }
-    void Scene::Destroy(std::string_view name, const bool onlyRelease)
+    void Scene::Destroy(Scene& scene, const bool onlyRelease)
     {
-        auto it = std::ranges::find_if(allScenes, [&name](std::unique_ptr<Scene>& scenePtr)
-        {
-            return scenePtr->name == name;
-        });
-        if (it == allScenes.end())
-            throw std::runtime_error("目标场景不存在！");
-
-        Scene& scene = **it;
-
         if (!onlyRelease)
         {
             //从世界中移除托管的资源
@@ -59,21 +50,27 @@ namespace Gleam
         scene.systems.clear();
         scene.entities.clear();
 
-        allScenes.erase(it);
-    }
-    void Scene::Destroy(Scene& scene, const bool onlyRelease)
-    {
-        Destroy(scene.name, onlyRelease);
+        //销毁必须在Stop子场景之后，因为销毁后无法再调用子场景的函数
+        for (Scene* subScene : scene.subScenes)
+            Destroy(*subScene, onlyRelease);
+
+        erase_if(allScenes, [&scene](auto& scenePtr) { return scenePtr.get() == &scene; });
     }
 
     void Scene::Start()
     {
+        for (Scene* scene : subScenes)
+            scene->Start();
+
         for (System* system : systems)
             World::AddSystem(*system);
         isRunning = true;
     }
     void Scene::Stop()
     {
+        for (Scene* scene : subScenes)
+            scene->Stop();
+
         for (System* system : systems)
             World::RemoveSystem(*system, false);
         isRunning = false;

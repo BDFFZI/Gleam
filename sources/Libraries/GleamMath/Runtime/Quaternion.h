@@ -56,7 +56,7 @@ namespace Gleam
     };
 
 #ifdef GleamReflectionRuntime
-    Gleam_MakeType(Quaternion, "DBBF47A3-169D-464C-9664-D403454B2480")
+    Gleam_MakeTypeWithID(Quaternion, "DBBF47A3-169D-464C-9664-D403454B2480")
     {
         Gleam_MakeType_AddField(x);
         Gleam_MakeType_AddField(y);

@@ -27,14 +27,7 @@ namespace Gleam
     }
     void World::RemoveEntity(Entity& entity, const bool removeFromScene)
     {
-        if (removeFromScene)
-        {
-            auto optionalScene = Scene::GetScene(entity);
-            if (optionalScene.has_value())
-                optionalScene->get().RemoveEntity(entity);
-        }
-
-        entities.RemoveEntity(entity);
+        entities.RemoveEntity(entity, removeFromScene);
         entity = Entity::Null; //避免野指针
     }
     void World::RemoveEntityAsync(Entity& entity, const bool removeFromScene)
@@ -112,7 +105,7 @@ namespace Gleam
     }
     void World::Clear()
     {
-        for (auto& [system,count] : systemUsageCount)
+        for (auto& count : systemUsageCount | std::views::values)
             count++; //抑制用户回收方法，防止重复回收
         systems.Stop();
         systemUsageCount.clear();

@@ -23,6 +23,17 @@ namespace Gleam
         }
     };
     Gleam_MakeGlobalSystem(UISystem)
+
+    /**
+     * UI子系统模板，便于快速编写自定义UI
+     */
+    class UISubSystem : public System
+    {
+    public:
+        UISubSystem(): System(GlobalUISystem)
+        {
+        }
+    };
 }
 
 #undef Order

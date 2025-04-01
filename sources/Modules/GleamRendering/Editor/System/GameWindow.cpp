@@ -15,7 +15,6 @@ namespace Gleam
 {
     void GameWindow::Start()
     {
-        lastImageSize = 0; //以便重启时能触发纹理重建
         preProcessSystem.OnUpdate() = [this]
         {
             //重建渲染目标和纹理
@@ -25,7 +24,7 @@ namespace Gleam
                 SwapChain::WaitPresent();
                 if (renderTextureID != nullptr)
                     UI::DeleteTexture(renderTextureID);
-                renderTexture = std::make_unique<GRenderTexture>(static_cast<int2>(lastImageSize));
+                renderTexture = std::make_shared<GRenderTexture>(static_cast<int2>(lastImageSize));
                 renderTextureID = UI::CreateTexture(*renderTexture);
                 GlobalRenderingSystem.SetDefaultRenderTarget(*renderTexture);
             }
@@ -37,6 +36,9 @@ namespace Gleam
     void GameWindow::Stop()
     {
         World::RemoveSystem(preProcessSystem);
+
+        //以便重启时能触发纹理重建
+        lastImageSize = 0;
         renderTexture.reset();
         UI::DeleteTexture(renderTextureID);
     }
@@ -73,7 +75,7 @@ namespace Gleam
                 }
                 ImGui::EndMenuBar();
             }
-            //显示游戏画面
+            //显示游戏画面（必须保证在相机渲染后才可显示游戏画面。例如，假设ProjectWindow在GameWindow前执行，由于其加载场景是立即的，导致相机未渲染时被GameWindow窗口捕获，于是就会触发vk验证错误）
             int cameraCount = 0;
             View<Camera>::Each([&cameraCount](Camera& camera)
             {

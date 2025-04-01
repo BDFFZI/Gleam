@@ -35,7 +35,7 @@ namespace Gleam
     };
 
 #ifdef GleamReflectionRuntime
-    Gleam_MakeType(Rectangle, "")
+    Gleam_MakeTypeWithID(Rectangle, "")
     {
         Gleam_MakeType_AddField(min);
         Gleam_MakeType_AddField(max);

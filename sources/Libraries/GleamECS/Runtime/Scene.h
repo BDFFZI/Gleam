@@ -29,16 +29,15 @@ namespace Gleam
          * @param isRunning 
          * @return 
          */
-        static Scene& Create(std::string_view name, bool isRunning = false);
+        static Scene& Create(std::string_view name = "", bool isRunning = false);
         /**
          * 移除Scene并销毁或释放其托管的相关资源
          *
          * 释放即让场景放弃其对托管资源的所有权，原本其托管的所有System和Entity将完全交由World管理。
          * 因为除了Scene，World也有回收Entity和System的权力，当由World回收时，Scene应当释放所有权。
-         * @param name
+         * @param scene
          * @param onlyRelease 
          */
-        static void Destroy(std::string_view name, bool onlyRelease = false);
         static void Destroy(Scene& scene, bool onlyRelease = false);
 
         Scene() = default;
@@ -83,6 +82,14 @@ namespace Gleam
         void RemoveSystem(System& system);
         void AddEntity(Entity entity);
         void RemoveEntity(Entity entity);
+        void AddSubScene(Scene& scene)
+        {
+            subScenes.insert(&scene);
+        }
+        void RemoveSubScene(Scene& scene)
+        {
+            subScenes.erase(&scene);
+        }
 
     private:
         friend class SceneAsset;
@@ -93,7 +100,7 @@ namespace Gleam
         std::string name;
         std::unordered_set<System*> systems;
         std::unordered_set<Entity> entities;
+        std::unordered_set<Scene*> subScenes;
         bool isRunning = false;
-        // std::vector<Scene*> subScenes;
     };
 }

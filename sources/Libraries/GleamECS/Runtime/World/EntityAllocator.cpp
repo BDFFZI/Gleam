@@ -1,5 +1,7 @@
 ﻿#include "EntityAllocator.h"
 
+#include "GleamECS/Runtime/Scene.h"
+
 namespace Gleam
 {
     std::unordered_map<const Archetype*, Heap>& EntityAllocator::GetEntityHeaps()
@@ -44,10 +46,17 @@ namespace Gleam
                 outEntities[itemIndex] = entity;
         });
     }
-    void EntityAllocator::RemoveEntity(Entity& entity)
+    void EntityAllocator::RemoveEntity(Entity& entity, const bool removeFromScene)
     {
         assert(entity != Entity::Null && "实体为空！");
         assert(entityInfoAllocator->HasEntity(entity) && "实体不存在！");
+
+        if (removeFromScene)
+        {
+            auto optionalScene = Scene::GetScene(entity);
+            if (optionalScene.has_value())
+                optionalScene->get().RemoveEntity(entity);
+        }
 
         const EntityInfo entityInfo = entityInfoAllocator->GetEntityInfo(entity);
         //去除实体信息
@@ -131,16 +140,24 @@ namespace Gleam
         std::byte* destinationAddress = entityInfoAllocator->GetEntityInfo(destination).memoryAddress;
         sourceArchetype.Copy(destinationAddress, sourceAddress);
     }
-    Entity EntityAllocator::CloneEntity(const Entity source)
+    Entity EntityAllocator::CloneEntity(const Entity source, const bool addToScene)
     {
-        EntityInfo sourceInfo = entityInfoAllocator->GetEntityInfo(source);
+        EntityInfo sourceEntityInfo = entityInfoAllocator->GetEntityInfo(source);
 
-        Entity entity;
-        EntityInfo entityInfo;
-        AddEntityUninitialized(*sourceInfo.archetype, entity, entityInfo);
-        sourceInfo.archetype->CopyConstruct(entityInfo.memoryAddress, sourceInfo.memoryAddress);
+        Entity newEntity;
+        EntityInfo newEntityInfo;
+        AddEntityUninitialized(*sourceEntityInfo.archetype, newEntity, newEntityInfo);
+        sourceEntityInfo.archetype->CopyConstruct(newEntityInfo.memoryAddress, sourceEntityInfo.memoryAddress);
+        *reinterpret_cast<Entity*>(newEntityInfo.memoryAddress) = newEntity;
 
-        return entity;
+        if (addToScene)
+        {
+            auto optionalScene = Scene::GetScene(source);
+            if (optionalScene.has_value())
+                optionalScene->get().AddEntity(newEntity);
+        }
+
+        return newEntity;
     }
 
     void EntityAllocator::Clear()

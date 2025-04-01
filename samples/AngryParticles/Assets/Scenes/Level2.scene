@@ -1,7 +1,7 @@
 {
     "id": "0a51c259-0801-43b2-9d80-fdb40567b333",
     "assetSlots": {
-        "size": 1,
+        "size": 2,
         "data": [
             {
                 "id": 1081217092,
@@ -11,6 +11,24 @@
                     "systems": {
                         "size": 0,
                         "data": []
+                    }
+                }
+            },
+            {
+                "id": 1336752085,
+                "typeID": "112887c5-1b8d-42df-801d-4360da6f8a15",
+                "data": {
+                    "componentTypes": {
+                        "size": 1,
+                        "data": [
+                            "08a2f957-eb6b-47f7-9071-b6cb83e654dc"
+                        ]
+                    },
+                    "component_0": {
+                        "sourceScene": {
+                            "assetBundleID": "44c75532-b305-4dbe-8d28-d4a159f97fd5",
+                            "assetID": 83098212
+                        }
                     }
                 }
             }

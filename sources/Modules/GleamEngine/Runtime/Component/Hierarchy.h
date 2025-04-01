@@ -17,7 +17,7 @@ namespace Gleam
         std::unordered_set<Entity> value;
     };
 
-    Gleam_MakeType(Parent, "5814D8DB-67FC-454F-8527-32DE6816A98D")
+    Gleam_MakeTypeWithID(Parent, "5814D8DB-67FC-454F-8527-32DE6816A98D")
     {
         Gleam_MakeType_AddField(current);
     }

@@ -25,7 +25,7 @@ namespace Gleam
         Entity AddEntity(const Archetype& archetype);
         void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
         //移除实体
-        void RemoveEntity(Entity& entity);
+        void RemoveEntity(Entity& entity, bool removeFromScene = true);
         //移动实体
         void MoveEntity(Entity entity, const Archetype& newArchetype);
         /**
@@ -36,7 +36,7 @@ namespace Gleam
         void MoveEntitySimply(Entity entity, const Archetype& newArchetype);
         //复制实体
         void CopyEntity(Entity destination, Entity source);
-        Entity CloneEntity(Entity source);
+        Entity CloneEntity(Entity source, bool addToScene = true);
 
         void Clear();
 

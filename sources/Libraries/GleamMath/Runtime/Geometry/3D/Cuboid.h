@@ -31,7 +31,7 @@ namespace Gleam
     };
 
 #ifdef GleamReflectionRuntime
-    Gleam_MakeType(Cuboid,"")
+    Gleam_MakeTypeWithID(Cuboid,"")
     {
         Gleam_MakeType_AddField(min);
         Gleam_MakeType_AddField(max);

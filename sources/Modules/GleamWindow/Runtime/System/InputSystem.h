@@ -42,7 +42,7 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeType(InputSystem, "")
+    Gleam_MakeTypeWithID(InputSystem, "")
     {
         Gleam_MakeType_AddField(focusArea);
         Gleam_MakeType_AddField(isFocus);

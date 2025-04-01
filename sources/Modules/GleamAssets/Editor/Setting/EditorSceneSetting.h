@@ -10,7 +10,7 @@ namespace Gleam
     {
         inline static std::string lastScenePath = "";
     };
-    Gleam_MakeType(EditorSceneSetting, "28BC4368-5EF1-4C14-8AC7-E942F986F327")
+    Gleam_MakeTypeWithID(EditorSceneSetting, "28BC4368-5EF1-4C14-8AC7-E942F986F327")
     {
         Gleam_MakeType_AddField(lastScenePath);
     }

@@ -13,7 +13,7 @@ namespace Gleam
         inline static std::string startSceneName = {};
         inline static std::unordered_map<std::string, uuids::uuid> sceneNameMapping = {};
     };
-    Gleam_MakeType(SceneSetting, "056C22B3-4CF6-4771-818B-30F67FE75DDD")
+    Gleam_MakeTypeWithID(SceneSetting, "056C22B3-4CF6-4771-818B-30F67FE75DDD")
     {
         Gleam_MakeType_AddField(startSceneName);
         Gleam_MakeType_AddField(sceneNameMapping);

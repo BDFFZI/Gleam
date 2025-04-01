@@ -19,7 +19,7 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeType(MassSpringRenderingSystem, "")
+    Gleam_MakeTypeWithID(MassSpringRenderingSystem, "")
     {
         Gleam_MakeType_AddField(isEnabled);
     }

@@ -53,7 +53,7 @@ namespace Gleam
     {
         void LoadAsset(const std::filesystem::path& path, uuids::uuid& assetBundleID) override;
     };
-    Gleam_MakeChildType(JsonObjectImporter, "", AssetImporterType)
+    Gleam_MakeTypeWithIDParent(JsonObjectImporter, "", AssetImporterType)
     {
     }
 

@@ -27,19 +27,19 @@ namespace Gleam
         float4x4 value;
     };
 
-    Gleam_MakeType(LocalTransform, "10122F01-1004-4250-B5B0-B5E0F6B271F1")
+    Gleam_MakeTypeWithID(LocalTransform, "10122F01-1004-4250-B5B0-B5E0F6B271F1")
     {
         Gleam_MakeType_AddField(position);
         Gleam_MakeType_AddField(rotation);
         Gleam_MakeType_AddField(scale);
     }
 
-    Gleam_MakeType(LocalToWorld, "")
+    Gleam_MakeTypeWithID(LocalToWorld, "")
     {
         Gleam_MakeType_AddField(value);
     }
 
-    Gleam_MakeType(WorldToLocal, "")
+    Gleam_MakeTypeWithID(WorldToLocal, "")
     {
         Gleam_MakeType_AddField(value);
     }

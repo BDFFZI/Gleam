@@ -38,7 +38,7 @@ namespace Gleam
         std::filesystem::path assetPath;
     };
 
-    Gleam_MakeType(AssetImporter, "D59FAA1C-781F-4917-B2E3-AD07A38A9467")
+    Gleam_MakeTypeWithID(AssetImporter, "D59FAA1C-781F-4917-B2E3-AD07A38A9467")
     {
         Gleam_MakeType_AddField(assetBundleID);
     }

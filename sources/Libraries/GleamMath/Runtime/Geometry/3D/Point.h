@@ -13,7 +13,7 @@ namespace Gleam
     };
 
 #ifdef GleamReflectionRuntime
-    Gleam_MakeType(Point, "AEC4F0BA-039D-4FF4-8B26-A76DCA7B7889")
+    Gleam_MakeTypeWithID(Point, "AEC4F0BA-039D-4FF4-8B26-A76DCA7B7889")
     {
         Gleam_MakeType_AddField(position);
     }

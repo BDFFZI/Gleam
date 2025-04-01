@@ -27,7 +27,7 @@ struct TestAsset
     }
 };
 
-Gleam_MakeType(TestAsset, "A409ACFC-E52F-475F-A34F-B4361C59EF06")
+Gleam_MakeTypeWithID(TestAsset, "A409ACFC-E52F-475F-A34F-B4361C59EF06")
 {
     Gleam_MakeType_AddField(name);
     Gleam_MakeType_AddField(dependency);

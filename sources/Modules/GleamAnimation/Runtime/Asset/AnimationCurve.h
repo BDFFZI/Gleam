@@ -20,7 +20,7 @@ namespace Gleam
         std::vector<float> values;
     };
 
-    Gleam_MakeType(AnimationCurve, "25C73BFA-3356-4334-82CF-B2E22F24CE15")
+    Gleam_MakeTypeWithID(AnimationCurve, "25C73BFA-3356-4334-82CF-B2E22F24CE15")
     {
         Gleam_MakeType_AddField(times);
         Gleam_MakeType_AddField(values);

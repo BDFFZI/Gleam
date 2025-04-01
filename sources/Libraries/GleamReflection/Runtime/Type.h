@@ -215,5 +215,6 @@ void ::Gleam::TransferObjectField<TFieldTransferrer,type>::Invoke(TFieldTransfer
 #define Gleam_MakeType_AddField(field)\
 transferrer.TransferField(#field, value.field)
 
-#define Gleam_MakeType(type,uuidStr) Gleam_MakeType_Inner(type,uuidStr,std::nullopt)
-#define Gleam_MakeChildType(type,uuidStr,parent) Gleam_MakeType_Inner(type,uuidStr,parent)
+#define Gleam_MakeType(type) Gleam_MakeType_Inner(type,"",std::nullopt)
+#define Gleam_MakeTypeWithID(type,uuidStr) Gleam_MakeType_Inner(type,uuidStr,std::nullopt)
+#define Gleam_MakeTypeWithIDParent(type,uuidStr,parent) Gleam_MakeType_Inner(type,uuidStr,parent)

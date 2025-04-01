@@ -18,7 +18,7 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeType(CollisionSystem, "")
+    Gleam_MakeTypeWithID(CollisionSystem, "")
     {
         Gleam_MakeType_AddField(ccdMaxCount);
     }

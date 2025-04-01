@@ -18,7 +18,7 @@ namespace Gleam
         float4 background = 0;
     };
 
-    Gleam_MakeType(Camera, "AE2D3669-EC8B-4E5C-99AE-460E7253BD59")
+    Gleam_MakeTypeWithID(Camera, "AE2D3669-EC8B-4E5C-99AE-460E7253BD59")
     {
         Gleam_MakeType_AddField(orthographic);
         Gleam_MakeType_AddField(nearClipPlane);
@@ -34,7 +34,7 @@ namespace Gleam
         float4x4 value;
     };
 
-    Gleam_MakeType(ViewToClip, "")
+    Gleam_MakeTypeWithID(ViewToClip, "")
     {
         Gleam_MakeType_AddField(value);
     }
@@ -44,7 +44,7 @@ namespace Gleam
         float4x4 value;
     };
 
-    Gleam_MakeType(WorldToClip, "")
+    Gleam_MakeTypeWithID(WorldToClip, "")
     {
         Gleam_MakeType_AddField(value);
     }
@@ -54,7 +54,7 @@ namespace Gleam
         float4x4 value;
     };
 
-    Gleam_MakeType(ScreenToClip, "")
+    Gleam_MakeTypeWithID(ScreenToClip, "")
     {
         Gleam_MakeType_AddField(value);
     }
@@ -64,7 +64,7 @@ namespace Gleam
         float4x4 value;
     };
 
-    Gleam_MakeType(ScreenToWorld, "")
+    Gleam_MakeTypeWithID(ScreenToWorld, "")
     {
         Gleam_MakeType_AddField(value);
     }

@@ -12,7 +12,7 @@ namespace Gleam
         float drag = 0.01f; //避免因能量守恒导致的始终匀速运动
     };
 
-    Gleam_MakeType(Particle, "3BF4A03E-EF37-4003-871A-6A5A03CCBCCF")
+    Gleam_MakeTypeWithID(Particle, "3BF4A03E-EF37-4003-871A-6A5A03CCBCCF")
     {
         Gleam_MakeType_AddField(lastPosition);
         Gleam_MakeType_AddField(position);

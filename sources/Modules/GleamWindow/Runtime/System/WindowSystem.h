@@ -17,7 +17,7 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeType(WindowSystem, "")
+    Gleam_MakeTypeWithID(WindowSystem, "")
     {
         transferrer.TransferField("mousePosition", Window::mousePosition);
         transferrer.TransferField("mouseScrollDelta", Window::mouseScrollDelta);

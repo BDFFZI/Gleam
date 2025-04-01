@@ -12,7 +12,7 @@ namespace Gleam
         float elasticity = 0.5;
     };
 
-    Gleam_MakeType(Spring, "F08A937F-7E67-47F9-AFE2-8C2A55AF204E")
+    Gleam_MakeTypeWithID(Spring, "F08A937F-7E67-47F9-AFE2-8C2A55AF204E")
     {
         Gleam_MakeType_AddField(particleA);
         Gleam_MakeType_AddField(particleB);

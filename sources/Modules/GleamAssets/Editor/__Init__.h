@@ -1,6 +1,7 @@
 #pragma once
 #include "CustomUI.h"
 #include "EditorSceneManager.h"
+#include "GleamAssets/Runtime/__Init__.h"
 #include "System/AssetBundleWindow.h"
 #include "System/HierarchyWindow_Scene.h"
 #include "System/ProjectWindow.h"

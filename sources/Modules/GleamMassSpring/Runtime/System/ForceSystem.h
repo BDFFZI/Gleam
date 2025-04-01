@@ -21,7 +21,7 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeType(ForceSystem, "")
+    Gleam_MakeTypeWithID(ForceSystem, "")
     {
         Gleam_MakeType_AddField(gravity);
     }

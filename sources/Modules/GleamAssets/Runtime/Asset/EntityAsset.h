@@ -34,7 +34,7 @@ namespace Gleam
         bool ownership;
     };
     //Entity持久化函数
-    Gleam_MakeType(EntityAsset, "112887C5-1B8D-42DF-801D-4360DA6F8A15")
+    Gleam_MakeTypeWithID(EntityAsset, "112887C5-1B8D-42DF-801D-4360DA6F8A15")
     {
         if constexpr (std::derived_from<TFieldTransferrer, FieldDataTransferrer>)
         {

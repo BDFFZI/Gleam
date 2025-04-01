@@ -207,20 +207,20 @@ namespace Gleam
 
     //TODO 改用模板实现
 #ifdef GleamReflectionRuntime
-    Gleam_MakeType(float2, "E77257A0-8A7A-485D-A2AE-CB03EE6B7A4B")
+    Gleam_MakeTypeWithID(float2, "E77257A0-8A7A-485D-A2AE-CB03EE6B7A4B")
     {
         Gleam_MakeType_AddField(x);
         Gleam_MakeType_AddField(y);
     }
     
-    Gleam_MakeType(float3, "487D217A-18EB-41C0-A23A-17B6863DF935")
+    Gleam_MakeTypeWithID(float3, "487D217A-18EB-41C0-A23A-17B6863DF935")
     {
         Gleam_MakeType_AddField(x);
         Gleam_MakeType_AddField(y);
         Gleam_MakeType_AddField(z);
     }
 
-    Gleam_MakeType(float4, "FAC218AA-6214-4FA2-BF63-FF8E19B65701")
+    Gleam_MakeTypeWithID(float4, "FAC218AA-6214-4FA2-BF63-FF8E19B65701")
     {
         Gleam_MakeType_AddField(x);
         Gleam_MakeType_AddField(y);

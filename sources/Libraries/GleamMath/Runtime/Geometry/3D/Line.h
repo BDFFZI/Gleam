@@ -15,7 +15,7 @@ namespace Gleam
     };
 
 #ifdef GleamReflectionRuntime
-    Gleam_MakeType(Line, "")
+    Gleam_MakeTypeWithID(Line, "")
     {
         Gleam_MakeType_AddField(position);
         Gleam_MakeType_AddField(direction);
@@ -29,7 +29,7 @@ namespace Gleam
     };
 
 #ifdef GleamReflectionRuntime
-    Gleam_MakeType(Ray, "")
+    Gleam_MakeTypeWithID(Ray, "")
     {
         Gleam_MakeType_AddField(position);
         Gleam_MakeType_AddField(direction);
@@ -48,7 +48,7 @@ namespace Gleam
     };
 
 #ifdef GleamReflectionRuntime
-    Gleam_MakeType(Segment, "")
+    Gleam_MakeTypeWithID(Segment, "")
     {
         Gleam_MakeType_AddField(pointA);
         Gleam_MakeType_AddField(pointB);

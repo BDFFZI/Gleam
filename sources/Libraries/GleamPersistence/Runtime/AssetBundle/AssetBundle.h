@@ -17,7 +17,7 @@ namespace Gleam
     {
         std::vector<uuids::uuid> dependencies;
     };
-    Gleam_MakeType(AssetBundleMeta, "")
+    Gleam_MakeTypeWithID(AssetBundleMeta, "")
     {
         Gleam_MakeType_AddField(dependencies);
     }
@@ -123,7 +123,7 @@ namespace Gleam
         ///解决方法是必须显式写出移动函数，隐式生成的有问题。
     };
 
-    Gleam_MakeType(AssetBundle, "4139AE7B-E48E-4A20-8CB3-FA814D8942EF")
+    Gleam_MakeTypeWithID(AssetBundle, "4139AE7B-E48E-4A20-8CB3-FA814D8942EF")
     {
         Gleam_MakeType_AddField(id);
         Gleam_MakeType_AddField(assetSlots);
@@ -152,7 +152,7 @@ namespace Gleam
     };
 
     /**
-     * 统计资源包中对象的指针引用的未托管对象，可以此计算要额外自动添加到资源包中的对象。
+     * 统计资源包中对象的指针引用的未托管对象，可以以此计算要额外自动添加到资源包中的对象。
      *
      * 具体的统计函数由FieldDataTransferrer_Transfer实现
      */
@@ -190,8 +190,8 @@ namespace Gleam
                 {
                     //优先获取目标对象的资源地址（序列化时保存），否则使用指针映射表存储的资源地址
                     assetRef = AssetBundle::GetAssetRef(value).value_or(assetRef);
-                    assert(value.expired() || !assetRef.assetBundleID.is_nil() && "指针引用的物体未被持久化！");
                     serializer.Transfer(assetRef); //序列化时写入或首次反序列化时从文件读取（PointerSerializer不执行传输）
+                    // assert(value.expired() || !assetRef.assetBundleID.is_nil() && "指针引用的物体未被持久化！"); //获取assetRef再检测，以避免受构造函数导致的资源默认值
                     //根据资源依赖获取数据
                     std::shared_ptr<void> object = AssetBundle::GetObject(assetRef).value_or(std::shared_ptr<void>{});
                     value = std::shared_ptr<TValue>(object, static_cast<TValue*>(object.get()));

@@ -11,15 +11,15 @@ namespace Gleam
     }
     Scene& SceneManager::LoadScene(const uuids::uuid assetBundleID, const bool isRunning)
     {
-        AssetBundle& assetBundle = Resources::Load(assetBundleID);
-
-        //卸载已有场景
+        //卸载已有场景（目前不能先加载再卸载，虽然这理论可以减少回收工作，但由于资源包的所有权已被场景剥夺，绕过了引用计数判断，因此先加载后，相关资源最终还是会被卸载）
         std::vector<uuids::uuid> oldScenes = {};
         std::ranges::copy(allScenes | std::views::keys, std::back_inserter(oldScenes));
         for (uuids::uuid id : oldScenes)
             UnloadScene(id);
 
-        Scene& scene = SceneAsset::FromAssetBundle(assetBundle, isRunning);
+        AssetBundle& assetBundle = Resources::Load(assetBundleID);
+        
+        Scene& scene = SceneAsset::MoveFromAssetBundle(assetBundle, isRunning);
         allScenes.emplace(assetBundle.GetID(), &scene);
 
         return scene;

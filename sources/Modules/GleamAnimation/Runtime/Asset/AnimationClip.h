@@ -34,7 +34,7 @@ namespace Gleam
         std::vector<std::tuple<int, std::type_index, int, std::type_index>> runtimeData;
     };
 
-    Gleam_MakeType(AnimationClip, "DBBDA60F-07AA-4C3A-A9F0-7D37DAD679FA")
+    Gleam_MakeTypeWithID(AnimationClip, "DBBDA60F-07AA-4C3A-A9F0-7D37DAD679FA")
     {
         Gleam_MakeType_AddField(components);
         Gleam_MakeType_AddField(properties);

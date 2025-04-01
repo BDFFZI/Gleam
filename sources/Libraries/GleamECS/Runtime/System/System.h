@@ -109,7 +109,7 @@ namespace Gleam
         int order;
     };
 
-    Gleam_MakeType(System, "")
+    Gleam_MakeTypeWithID(System, "")
     {
         Gleam_MakeType_AddField(name);
         Gleam_MakeType_AddField(id);
@@ -121,4 +121,6 @@ namespace Gleam
 
 #define Gleam_MakeGlobalSystem(systemClass) \
 inline systemClass& Global##systemClass = ::Gleam::System::CreateGlobal<systemClass>("",::Gleam::Type::CreateOrGet<systemClass>().GetID());
+#define Gleam_MakeGlobalSystemWithID(systemClass,uuidStr) \
+inline systemClass& Global##systemClass = ::Gleam::System::CreateGlobal<systemClass>("",uuids::uuid::from_string(uuidStr).value());
 }

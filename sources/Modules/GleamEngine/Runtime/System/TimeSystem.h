@@ -52,7 +52,7 @@ namespace Gleam
         void Update() override;
     };
 
-    Gleam_MakeType(TimeSystem, "")
+    Gleam_MakeTypeWithID(TimeSystem, "")
     {
         Gleam_MakeType_AddField(maxDeltaTime);
         Gleam_MakeType_AddField(fixedDeltaTime);

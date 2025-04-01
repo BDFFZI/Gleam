@@ -28,7 +28,7 @@ namespace Gleam
         Asset asset;
     };
 
-    Gleam_MakeType(AssetSlot, "1CEF16B4-DF11-41B0-A848-9221ABE9803B")
+    Gleam_MakeTypeWithID(AssetSlot, "1CEF16B4-DF11-41B0-A848-9221ABE9803B")
     {
         Gleam_MakeType_AddField(id);
 

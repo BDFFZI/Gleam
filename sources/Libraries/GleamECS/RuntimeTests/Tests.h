@@ -12,7 +12,7 @@ struct Transform
     }
 };
 
-Gleam_MakeType(Transform, "00000000-0001-435E-AE61-D12757C441AE")
+Gleam_MakeTypeWithID(Transform, "00000000-0001-435E-AE61-D12757C441AE")
 {
     Gleam_MakeType_AddField(position);
 }
@@ -31,7 +31,7 @@ struct RigidBody
     }
 };
 
-Gleam_MakeType(RigidBody, "00000000-0002-435E-AE61-D12757C441AE")
+Gleam_MakeTypeWithID(RigidBody, "00000000-0002-435E-AE61-D12757C441AE")
 {
     Gleam_MakeType_AddField(force);
     Gleam_MakeType_AddField(mass);
@@ -52,7 +52,7 @@ struct SpringPhysics
     }
 };
 
-Gleam_MakeType(SpringPhysics, "00000000-0003-435E-AE61-D12757C441AE")
+Gleam_MakeTypeWithID(SpringPhysics, "00000000-0003-435E-AE61-D12757C441AE")
 {
     Gleam_MakeType_AddField(pinPosition);
     Gleam_MakeType_AddField(length);

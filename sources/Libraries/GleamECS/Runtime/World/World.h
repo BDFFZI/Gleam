@@ -58,9 +58,9 @@ namespace Gleam
         {
             entities.CopyEntity(destination, source);
         }
-        static Entity CloneEntity(const Entity entity)
+        static Entity CloneEntity(const Entity entity, const bool addToScene = true)
         {
-            return entities.CloneEntity(entity);
+            return entities.CloneEntity(entity, addToScene);
         }
 
         static void RemoveEntityAsync(Entity& entity, bool removeFromScene = true);

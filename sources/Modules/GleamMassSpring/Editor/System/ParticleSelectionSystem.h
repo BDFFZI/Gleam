@@ -21,7 +21,7 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeType(ParticleSelectionSystem, "")
+    Gleam_MakeTypeWithID(ParticleSelectionSystem, "")
     {
         Gleam_MakeType_AddField(optionalEntity);
     }

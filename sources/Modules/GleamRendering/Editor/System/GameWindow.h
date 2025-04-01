@@ -8,7 +8,7 @@ namespace Gleam
     class GameWindow : public System
     {
     public:
-        GameWindow(): System(GlobalEditorUISystem)
+        GameWindow(): System(GlobalEditorUISystem, MinOrder, DefaultOrder)
         {
         }
 
@@ -16,7 +16,7 @@ namespace Gleam
         float2 imagePosition = 0;
         float2 lastImageSize = 0;
         float aspect = 1920.0f / 1080.0f;
-        std::unique_ptr<GRenderTexture> renderTexture;
+        std::shared_ptr<GRenderTexture> renderTexture;
         ImTextureID renderTextureID = {};
         bool isDirty = false;
         SystemEvent preProcessSystem = SystemEvent("GameWindow_PreProcess", GlobalPostUpdateSystem);

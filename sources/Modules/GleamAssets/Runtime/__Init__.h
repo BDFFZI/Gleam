@@ -1,6 +1,7 @@
 #pragma once
 #include "SceneManager.h"
 #include "SettingManager.h"
+#include "System/ScenePrefabSystem.h"
 
 #ifdef GleamEngineEditor
 #include "GleamEngine/Editor/Editor.h"
@@ -8,11 +9,19 @@
 
 namespace Gleam
 {
-    Gleam_AddRuntimeSystems(SceneManager_ReleaseScenesSystem)
-
+    Gleam_MakeInitEvent()
+    {
+        Engine::AddRuntimeSystems({
+            SceneManager_ReleaseScenesSystem,
+            GlobalScenePrefabSystem
+        });
 #ifdef GleamEngineEditor
-    Gleam_AddEditorSystems(SceneManager_ReleaseScenesSystem)
+        Editor::AddEditorSystems({
+            SceneManager_ReleaseScenesSystem,
+            GlobalScenePrefabSystem
+        });
 #endif
+    }
 
     Gleam_AddEngineStartEvent(SettingManager_LoadSettings, 0);
     Gleam_AddEngineStopEvent(SettingManager_UnloadSettings, 0);
