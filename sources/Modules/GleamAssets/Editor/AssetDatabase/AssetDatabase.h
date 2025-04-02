@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <filesystem>
 
+#include "GleamAssets/Runtime/Configuration.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 
 namespace Gleam
@@ -28,13 +29,5 @@ namespace Gleam
          * @param directory 
          */
         static void Refresh(const std::filesystem::path& directory);
-
-    private:
     };
-
-    struct AssetInfo
-    {
-        std::unordered_map<std::string, std::tuple<int64_t, uuids::uuid>> assetModificationInfos;
-    };
-    Gleam_MakeType(Ass)
 }

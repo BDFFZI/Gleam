@@ -5,8 +5,8 @@
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Editor/System/EditorUISystem.h"
 
-#include "GleamAssets/Editor/Asset/AssetImporter.h"
-#include "GleamAssets/Editor/Asset/AssetDatabase.h"
+#include "GleamAssets/Editor/AssetDatabase/AssetImporter.h"
+#include "GleamAssets/Editor/AssetDatabase/AssetDatabase.h"
 
 namespace Gleam
 {

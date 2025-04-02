@@ -2,7 +2,7 @@
 
 #include "SceneAssetBundle.h"
 #include "GleamPersistence/Runtime/Resources.h"
-#include "Setting/SceneSetting.h"
+#include "Configuration/SceneSetting.h"
 
 namespace Gleam
 {

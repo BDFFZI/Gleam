@@ -2,7 +2,7 @@
 #include "GleamEngine/Editor/CustomUI.h"
 
 #include "EditorSceneManager.h"
-#include "Asset/AssetDatabase.h"
+#include "AssetDatabase/AssetDatabase.h"
 #include "GleamAssets/Runtime/SceneAssetBundle.h"
 #include "GleamAssets/Runtime/Asset/BasicSceneInfo.h"
 #include "System/ProjectWindow.h"

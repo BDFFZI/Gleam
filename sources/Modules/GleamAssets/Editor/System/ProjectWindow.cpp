@@ -3,8 +3,8 @@
 #include <filesystem>
 #include <imgui.h>
 
-#include "GleamAssets/Editor/Asset/AssetDatabase.h"
-#include "GleamAssets/Editor/Asset/AssetImporter.h"
+#include "GleamAssets/Editor/AssetDatabase/AssetDatabase.h"
+#include "GleamAssets/Editor/AssetDatabase/AssetImporter.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamPersistence/Runtime/Resources.h"
 #include "GleamUI/Runtime/UI.h"
@@ -60,10 +60,17 @@ namespace Gleam
     }
     ImGuiID ProjectWindow::DrawRenamePopup(const std::filesystem::path& path)
     {
+        static char buffer[64];
+
         std::string id = path.string() + "Rename";
         if (ImGui::BeginPopup(id.c_str()))
         {
-            static char buffer[64];
+            if (buffer[0] == 0)
+            {
+                std::string oldName = path.stem().string();
+                std::memcpy(buffer, oldName.data(), oldName.size());
+            }
+
             ImGui::InputText("##NewName", buffer, sizeof(buffer));
             if (ImGui::Button("Confirm") && std::strlen(buffer) != 0)
             {
@@ -109,29 +116,41 @@ namespace Gleam
         //获取路径信息
         const std::string fileName = path.filename().string();
         const std::string extension = path.extension().string();
+        const bool canLoad = AssetDatabase::CanLoad(path);
 
         //导入器文件不显示
         if (path.extension() == ".meta")
             return;
 
-        //不支持的文件类型，仅显示名称
-        if (AssetDatabase::CanLoad(path) == false)
-        {
-            ImGui::Text(fileName.c_str());
-            return;
-        }
-
         //名称显示
-        const bool isUnfolding = ImGui::TreeNodeEx(
-            path.filename().string().c_str(),
-            ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth
-        );
-
-        if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) //检视功能
+        bool isUnfolding;
+        if (canLoad)
         {
-            AssetImporter& assetImporter = AssetImporter::GetImporter(path);
-            GlobalInspectorWindow.SetTarget(InspectorTarget{assetImporter});
+            isUnfolding = ImGui::TreeNodeEx(
+                path.filename().string().c_str(),
+                ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth);
         }
+        else
+        {
+            isUnfolding = false;
+            ImGui::Selectable(path.filename().string().c_str());
+        }
+
+        //检视功能
+        if (canLoad)
+        {
+            if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+            {
+                AssetImporter& assetImporter = AssetImporter::GetImporter(path);
+                GlobalInspectorWindow.SetTarget(InspectorTarget{assetImporter});
+            }
+        }
+        else
+        {
+            if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                File::OpenInAssociatedApp(path);
+        }
+
         DragDropMovePath(path); //拖拽移动功能
         ImGuiID renamePopup = DrawRenamePopup(path);
         ImGuiID deletePopup = DrawDeletePopup(path);
@@ -157,12 +176,15 @@ namespace Gleam
             {
                 ImGui::OpenPopup(renamePopup);
             }
-            if (AssetDatabase::HasLoaded(path))
+            if (canLoad)
             {
-                if (ImGui::MenuItem("ReLoad"))
-                    AssetDatabase::Reload(path);
-                if (ImGui::MenuItem("Save"))
-                    AssetDatabase::Save(path);
+                if (AssetDatabase::HasLoaded(path))
+                {
+                    if (ImGui::MenuItem("ReLoad"))
+                        AssetDatabase::Reload(path);
+                    if (ImGui::MenuItem("Save"))
+                        AssetDatabase::Save(path);
+                }
             }
 
             ImGui::Separator();
@@ -173,44 +195,50 @@ namespace Gleam
         }
 
         //显示资源信息
-        uuids::uuid assetBundleID = AssetDatabase::GetAssetBundleID(path);
-        if (isUnfolding)
+        if (canLoad)
         {
-            //首次展开，需加载资源包到内存
-            if (!assetBundlesLoading.contains(assetBundleID))
+            uuids::uuid assetBundleID = AssetDatabase::GetAssetBundleID(path);
+            if (isUnfolding)
             {
-                Resources::Load(assetBundleID);
-                assetBundlesLoading.insert(assetBundleID);
-            }
-
-            //显示资源包内容
-            AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetBundleID);
-            for (AssetSlot& assetSlot : assetBundle.GetAssetSlots())
-            {
-                if (ImGui::Button(std::to_string(assetSlot.GetID()).c_str()))
+                //首次展开，需加载资源包到内存
+                if (!assetBundlesLoading.contains(assetBundleID))
                 {
-                    GlobalInspectorWindow.SetTarget(InspectorTarget{
+                    Resources::Load(assetBundleID);
+                    assetBundlesLoading.insert(assetBundleID);
+                }
+
+                //显示资源包内容
+                AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetBundleID);
+                for (AssetSlot& assetSlot : assetBundle.GetAssetSlots())
+                {
+                    if (ImGui::Button(std::to_string(assetSlot.GetID()).c_str()))
+                    {
+                        GlobalInspectorWindow.SetTarget(InspectorTarget{
+                            assetSlot.GetAsset().GetObjectPtr(),
+                            assetSlot.GetAsset().GetObjectType().GetIndex()
+                        });
+                    }
+                    EditorUI::SetDragDropObject(
                         assetSlot.GetAsset().GetObjectPtr(),
                         assetSlot.GetAsset().GetObjectType().GetIndex()
-                    });
+                    );
                 }
-                EditorUI::SetDragDropObject(
-                    assetSlot.GetAsset().GetObjectPtr(),
-                    assetSlot.GetAsset().GetObjectType().GetIndex()
-                );
-            }
 
-            ImGui::TreePop();
-        }
-        else if (assetBundlesLoading.contains(assetBundleID))
-        {
-            //首次关闭，卸载资源包
-            Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
-            assetBundlesLoading.erase(assetBundleID);
+                ImGui::TreePop();
+            }
+            else if (assetBundlesLoading.contains(assetBundleID))
+            {
+                //首次关闭，卸载资源包
+                Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
+                assetBundlesLoading.erase(assetBundleID);
+            }
         }
     }
     void ProjectWindow::ShowDirectory(const std::filesystem::path& path)
     {
+        if (!exists(path))
+            return;
+
         //名称显示
         const bool isUnfolding = ImGui::TreeNodeEx(
             path.filename().string().c_str(),
@@ -307,11 +335,11 @@ namespace Gleam
             }
 
             //绘制文件夹
-            ShowDirectory("Assets");
-            if (std::filesystem::exists("ProjectSettings"))
-                ShowDirectory("ProjectSettings");
-            if (std::filesystem::exists("StreamingAssets"))
-                ShowDirectory("StreamingAssets");
+            ShowDirectory("Assets"); //默认资源文件
+            ShowDirectory("ProjectSettings"); //部分功能依赖的配置文件
+            ImGui::Separator();
+            ShowDirectory("Library"); //项目缓存文件
+            ShowDirectory("StreamingAssets"); //来自库的原始资源文件
         }
         ImGui::End();
 

@@ -1,11 +1,11 @@
 ﻿#include "EditorSceneManager.h"
 
-#include "Asset/AssetDatabase.h"
-#include "Asset/AssetImporter.h"
+#include "AssetDatabase/AssetDatabase.h"
+#include "AssetDatabase/AssetImporter.h"
 #include "GleamAssets/Runtime/SceneAssetBundle.h"
 #include "GleamAssets/Runtime/SceneManager.h"
 #include "GleamUtility/Runtime/Ranges.h"
-#include "Setting/EditorSceneSetting.h"
+#include "Configuration/EditorSceneState.h"
 
 namespace Gleam
 {
@@ -17,7 +17,7 @@ namespace Gleam
 
         Scene& scene = SceneManager::LoadScene(assetBundleID, false);
         scenePaths[&scene] = path;
-        EditorSceneSetting::lastScenePath = path.string();
+        EditorSceneState::lastScenePath = path.string();
     }
     void EditorSceneManager::CloseScene(Scene& scene)
     {
@@ -25,8 +25,8 @@ namespace Gleam
         {
             std::filesystem::path scenePath = scenePaths.at(&scene);
             SceneManager::UnloadScene(AssetDatabase::GetAssetBundleID(scenePath));
-            if (scenePath == EditorSceneSetting::lastScenePath)
-                EditorSceneSetting::lastScenePath = "";
+            if (scenePath == EditorSceneState::lastScenePath)
+                EditorSceneState::lastScenePath = "";
         }
         else //非基于序列化的运行时场景
         {
@@ -50,7 +50,7 @@ namespace Gleam
     void EditorSceneManager_OpenLastScene()
     {
         EditorSceneManager::scenePaths.clear();
-        if (std::filesystem::exists(EditorSceneSetting::lastScenePath))
-            EditorSceneManager::OpenScene(EditorSceneSetting::lastScenePath);
+        if (std::filesystem::exists(EditorSceneState::lastScenePath))
+            EditorSceneManager::OpenScene(EditorSceneState::lastScenePath);
     }
 }

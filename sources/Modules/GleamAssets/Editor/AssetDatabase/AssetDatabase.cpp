@@ -1,6 +1,7 @@
 ﻿#include "AssetDatabase.h"
 
 #include "AssetImporter.h"
+#include "GleamAssets/Editor/Configuration/SourceAssetDB.h"
 #include "GleamPersistence/Runtime/Resources.h"
 #include "GleamUtility/Runtime/File.h"
 
@@ -73,7 +74,10 @@ namespace Gleam
     void AssetDatabase::Move(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
     {
         if (!is_directory(oldPath))
-            std::filesystem::rename(oldPath.string() + ".meta", newPath.string() + ".meta");
+        {
+            std::filesystem::path importer = oldPath.string() + ".meta";
+            if (exists(importer)) std::filesystem::rename(importer, newPath.string() + ".meta");
+        }
         std::filesystem::rename(oldPath, newPath);
     }
     void AssetDatabase::Delete(const std::filesystem::path& path)
@@ -85,7 +89,8 @@ namespace Gleam
         else
         {
             std::filesystem::remove(path);
-            std::filesystem::remove(path.string() + ".meta");
+            std::filesystem::path importer = path.string() + ".meta";
+            if (exists(importer)) std::filesystem::remove(path.string() + ".meta");
         }
     }
 
@@ -106,31 +111,15 @@ namespace Gleam
             else if (AssetImporter::CanImport(child))
             {
                 auto& assetImporter = AssetImporter::GetImporter(child);
-
-                //验证导入器或导入缓存是否存在
+                //获取资源信息
                 auto assetBundleID = assetImporter.GetAssetBundleID();
-                if (assetBundleID.is_nil() || Resources::Has(assetBundleID) == false)
-                    Reload(child.path());
-                else
+                auto& [timeStamp,contentHash] = SourceAssetDB::assetModificationInfos[child];
+                //当导入器无效、资源缓存不存在、资源被修改时重新导入和更新资源信息
+                if (Resources::Has(assetBundleID) == false || timeStamp != last_write_time(child).time_since_epoch().count())
                 {
-                    //验证文件写入时间戳是否一致
-                    int64_t currentTimeStamp = last_write_time(child).time_since_epoch().count();
-                    if (currentTimeStamp != assetImporter.assetTimeStamp)
-                    {
-                        assetImporter.assetTimeStamp = currentTimeStamp;
-                        //验证文件内容是否一致
-                        std::string content = File::ReadAllText(child);
-                        uuids::uuid contentHash = MD5(content).toArray();
-                        if (contentHash != assetImporter.assetContentHash)
-                        {
-                            assetImporter.assetContentHash = contentHash;
-                            Reload(child.path());
-                        }
-                        else
-                        {
-                            assetImporter.Save();
-                        }
-                    }
+                    timeStamp = last_write_time(child).time_since_epoch().count();
+                    contentHash = MD5(File::ReadAllText(child)).toArray();
+                    Reload(child.path());
                 }
             }
         }

@@ -3,6 +3,7 @@
 #include <string>
 #include <typeindex>
 #include <stduuid/uuid.h>
+#include <filesystem>
 
 #include "FieldTransferrer.h"
 
@@ -214,6 +215,7 @@ namespace Gleam
         {
         }
         virtual void Transfer(uuids::uuid& value);
+        virtual void Transfer(std::filesystem::path& path);
         /**
          * 最终失败回退，基于RTTI处理
          * @param value 

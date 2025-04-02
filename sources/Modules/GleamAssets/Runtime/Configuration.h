@@ -1,12 +1,8 @@
-﻿#pragma once
-#include "GleamPersistence/Runtime/Resources.h"
-#include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
+#pragma once
+#include "GleamPersistence/Runtime/JsonUtility.h"
 #include "GleamReflection/Runtime/Type.h"
+#include "GleamUtility/Runtime/File.h"
 #include "GleamUtility/Runtime/Macro.h"
-
-#ifdef GleamEngineEditor
-#include "GleamAssets/Editor/Asset/AssetDatabase.h"
-#endif
 
 namespace Gleam
 {
@@ -18,79 +14,48 @@ namespace Gleam
     class Configuration
     {
     public:
-        static void MakeConfiguration(std::string_view name, const Type& type);
+        static void MakeConfiguration(std::string_view path, const Type& type, bool isAutoSave = false)
+        {
+            configurations.emplace(path, std::make_tuple(&type, isAutoSave));
+        }
+
+        static bool Has(const std::filesystem::path& path)
+        {
+            return exists(path);
+        }
+        static void Load(const std::filesystem::path& path)
+        {
+            const Type& type = *std::get<0>(configurations.at(path));
+            void* instance = type.Create();
+            JsonUtility::FromJson(File::ReadAllText(path), type, instance);
+            type.Destroy(instance);
+        }
+        static void Save(const std::filesystem::path& path)
+        {
+            const Type& type = *std::get<0>(configurations.at(path));
+            void* instance = type.Create();
+            File::WriteAllText(path, JsonUtility::ToJson(instance, type, true));
+            type.Destroy(instance);
+        }
 
     private:
         friend void Configuration_LoadSettings();
         friend void Configuration_UnloadSettings();
 
-        static bool HasSetting(const std::string_view name)
-        {
-#ifdef GleamEngineEditor
-            std::string filePath = std::string("ProjectSettings/") + name.data();
-            return std::filesystem::exists(filePath);
-#else
-            return Resources::Has(MD5(name.data()).toArray());
-#endif
-        }
-        static void CreateSetting(const std::string_view name)
-        {
-            AssetBundle& assetBundle = AssetBundle::Create(MD5(name.data()).toArray());
-            const Type& type = *settings.at(std::string(name));
-            assetBundle.AddAsset(Asset{type.MakeShared(type.Create()), type});
-#ifdef GleamEngineEditor
-            std::string filePath = std::string("ProjectSettings/") + name.data();
-            AssetDatabase::Create(filePath, assetBundle);
-#else
-            Resources::Create(assetBundle);
-#endif
-            AssetBundle::Unload(assetBundle);
-        }
-        static void LoadSetting(const std::string_view name)
-        {
-            if (!HasSetting(name))
-                CreateSetting(name);
-
-#ifdef GleamEngineEditor
-            std::string filePath = std::string("ProjectSettings/") + name.data();
-            AssetDatabase::Load(filePath);
-#else
-            Resources::Load(MD5(name.data()).toArray());
-#endif
-        }
-        static void SaveSetting(std::string_view name)
-        {
-#ifdef GleamEngineEditor
-            std::string filePath = std::string("ProjectSettings/") + name.data();
-            AssetDatabase::Save(filePath);
-#else
-            Resources::Save(AssetBundle::GetAssetBundle(MD5(name.data()).toArray()));
-#endif
-        }
-        static void UnloadSetting(const std::string_view name)
-        {
-            // SaveSetting(name); //不支持自动保存
-
-#ifdef GleamEngineEditor
-            std::string filePath = std::string("ProjectSettings/") + name.data();
-            AssetDatabase::Unload(filePath);
-#else
-            Resources::Unload(AssetBundle::GetAssetBundle(MD5(name.data()).toArray()));
-#endif
-        }
-
-        inline static std::unordered_map<std::string, const Type*> settings = {};
+        inline static std::unordered_map<std::filesystem::path, std::tuple<const Type*, bool>> configurations = {};
     };
-#define Gleam_MakeSetting(name,type) Gleam_MakeInitEvent(){::Gleam::SettingManager::MakeSetting(name, type##Type);}
+#define Gleam_MakeConfiguration(path,type) Gleam_MakeInitEvent(){::Gleam::Configuration::MakeConfiguration(path,Type::CreateOrGet<type>());}
+#define Gleam_MakeConfigurationWithAutoSave(path,type) Gleam_MakeInitEvent(){::Gleam::Configuration::MakeConfiguration(path,Type::CreateOrGet<type>(),true);}
 
     inline void Configuration_LoadSettings()
     {
-        for (const auto& name : Configuration::settings | std::views::keys)
-            Configuration::LoadSetting(name);
+        for (const auto& path : Configuration::configurations | std::views::keys)
+            if (Configuration::Has(path)) Configuration::Load(path);
+            else Configuration::Save(path); //新建
     }
     inline void Configuration_UnloadSettings()
     {
-        for (const auto& name : Configuration::settings | std::views::keys)
-            Configuration::UnloadSetting(name);
+        for (const auto& [path,properties] : Configuration::configurations)
+            if (std::get<1>(properties) == true) Configuration::Save(path);
     }
 }

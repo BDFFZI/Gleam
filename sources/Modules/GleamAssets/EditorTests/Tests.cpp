@@ -2,8 +2,8 @@
 
 #include "GleamAssets/Editor/EditorSceneManager.h"
 #include "GleamMath/Runtime/Geometry/3D/Sphere.h"
-#include "GleamAssets/Editor/Asset/AssetDatabase.h"
-#include "GleamAssets/Editor/Asset/AssetImporter.h"
+#include "GleamAssets/Editor/AssetDatabase/AssetDatabase.h"
+#include "GleamAssets/Editor/AssetDatabase/AssetImporter.h"
 #include "GleamAssets/Editor/System/ProjectWindow.h"
 #include "GleamAssets/Runtime/Asset/BasicSceneInfo.h"
 #include "GleamECS/Runtime/Scene.h"

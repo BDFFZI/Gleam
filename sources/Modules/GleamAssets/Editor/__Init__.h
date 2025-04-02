@@ -37,6 +37,6 @@ namespace Gleam
             if (!std::filesystem::exists("ProjectSettings"))
                 std::filesystem::create_directory("ProjectSettings");
             AssetDatabase::Refresh("ProjectSettings");
-        }, SettingManager_LoadSettingsOrder - 1);
+        }, std::numeric_limits<int>().lowest());
     }
 }

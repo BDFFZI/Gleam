@@ -1,6 +1,6 @@
 #pragma once
-#include "SceneManager.h"
 #include "Configuration.h"
+#include "SceneManager.h"
 #include "System/ScenePrefabSystem.h"
 
 #ifdef GleamEngineEditor
@@ -21,8 +21,7 @@ namespace Gleam
             GlobalScenePrefabSystem
         });
 #endif
+        Engine::AddStartEvent(Configuration_LoadSettings, std::numeric_limits<int>::lowest());
+        Engine::AddStopEvent(Configuration_UnloadSettings, std::numeric_limits<int>::max());
     }
-
-    Gleam_AddEngineStartEvent(Configuration_LoadSettings, 0);
-    Gleam_AddEngineStopEvent(Configuration_UnloadSettings, 0);
 }

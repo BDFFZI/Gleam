@@ -10,7 +10,7 @@ namespace Gleam
     {
         auto rootDirectory = std::filesystem::path(filePath).parent_path();
         if (!rootDirectory.empty() && !exists(rootDirectory))
-            create_directory(rootDirectory);
+            create_directories(rootDirectory);
 
         std::ofstream file(filePath, std::ios::binary);
         file.write(content.data(), static_cast<std::streamsize>(content.size()));

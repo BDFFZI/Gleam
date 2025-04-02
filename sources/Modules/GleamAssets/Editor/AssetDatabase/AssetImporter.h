@@ -39,15 +39,11 @@ namespace Gleam
 
         std::filesystem::path assetPath;
         uuids::uuid assetBundleID;
-        int64_t assetTimeStamp;
-        uuids::uuid assetContentHash;
     };
 
     Gleam_MakeTypeWithID(AssetImporter, "D59FAA1C-781F-4917-B2E3-AD07A38A9467")
     {
         Gleam_MakeType_AddField(assetBundleID);
-        Gleam_MakeType_AddField(assetTimeStamp);
-        Gleam_MakeType_AddField(assetContentHash);
     }
 
     class JsonObjectImporter : public AssetImporter
