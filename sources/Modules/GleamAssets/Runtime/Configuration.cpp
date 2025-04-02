@@ -1,4 +1,4 @@
-﻿#include "SettingManager.h"
+﻿#include "Configuration.h"
 
 #include "GleamAssets/Editor/Asset/AssetDatabase.h"
 #include "GleamPersistence/Runtime/Resources.h"
@@ -6,7 +6,7 @@
 
 namespace Gleam
 {
-    void SettingManager::MakeSetting(std::string_view name, const Type& type)
+    void Configuration::MakeConfiguration(std::string_view name, const Type& type)
     {
         settings.emplace(name, &type);
     }

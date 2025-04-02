@@ -1,23 +1,23 @@
-#include "EntityAsset.h"
+#include "PersistentEntity.h"
 
 namespace Gleam
 {
-    std::optional<std::reference_wrapper<EntityAsset>> EntityAsset::GetEntityAsset(const Entity entity)
+    std::optional<std::reference_wrapper<PersistentEntity>> PersistentEntity::GetEntityAsset(const Entity entity)
     {
         return entityToAsset.contains(entity)
-                   ? std::optional<std::reference_wrapper<EntityAsset>>{*entityToAsset.at(entity)}
+                   ? std::optional<std::reference_wrapper<PersistentEntity>>{*entityToAsset.at(entity)}
                    : std::nullopt;
     }
 
-    EntityAsset::EntityAsset(): entity(Entity::Null), ownership(false)
+    PersistentEntity::PersistentEntity(): entity(Entity::Null), ownership(false)
     {
     }
-    EntityAsset::EntityAsset(const Entity entity, const bool ownership): entity(entity), ownership(ownership)
+    PersistentEntity::PersistentEntity(const Entity entity, const bool ownership): entity(entity), ownership(ownership)
     {
         if (entity != Entity::Null)
             entityToAsset[entity] = this;
     }
-    EntityAsset::EntityAsset(EntityAsset&& other) noexcept
+    PersistentEntity::PersistentEntity(PersistentEntity&& other) noexcept
     {
         entity = other.entity;
         ownership = other.ownership;
@@ -28,7 +28,7 @@ namespace Gleam
         if (entity != Entity::Null)
             entityToAsset[entity] = this;
     }
-    EntityAsset& EntityAsset::operator=(EntityAsset&& other) noexcept
+    PersistentEntity& PersistentEntity::operator=(PersistentEntity&& other) noexcept
     {
         assert(entity != other.entity && "不能用自身移动赋值！");
         assert(other.entity != Entity::Null && "用于赋值的实体是空的！");
@@ -55,7 +55,7 @@ namespace Gleam
 
         return *this;
     }
-    EntityAsset::~EntityAsset()
+    PersistentEntity::~PersistentEntity()
     {
         if (entity != Entity::Null)
         {
@@ -65,15 +65,15 @@ namespace Gleam
         }
     }
 
-    Entity EntityAsset::GetEntity() const
+    Entity PersistentEntity::GetEntity() const
     {
         return entity;
     }
-    bool EntityAsset::GetOwnership() const
+    bool PersistentEntity::GetOwnership() const
     {
         return ownership;
     }
-    void EntityAsset::SetEntity(const Entity entity)
+    void PersistentEntity::SetEntity(const Entity entity)
     {
         if (this->entity != Entity::Null)
             entityToAsset.erase(this->entity);
@@ -83,7 +83,7 @@ namespace Gleam
         if (this->entity != Entity::Null)
             entityToAsset[this->entity] = this;
     }
-    void EntityAsset::SetOwnership(const bool ownership)
+    void PersistentEntity::SetOwnership(const bool ownership)
     {
         this->ownership = ownership;
     }

@@ -34,15 +34,20 @@ namespace Gleam
         {
             return assetBundles | std::views::values;
         }
+        static void SetAutoClearPtrBuffer(const bool state)
+        {
+            autoClearPtrBuffer = state;
+            pointerToAssetRef.clear();
+        }
 
         static AssetBundle& Create(uuids::uuid assetBundleID = {});
-        static void Unload(AssetBundle& assetBundle, bool releaseOwnership = false);
-
         static AssetBundle& Load(AssetBundle& newAssetBundle, bool reload = false);
         static AssetBundle& LoadBinary(const std::filesystem::path& assetBundlePath, bool reload = false);
         static AssetBundle& LoadJson(const std::filesystem::path& assetBundlePath, bool reload = false);
         static AssetBundleMeta LoadMeta(const std::filesystem::path& assetBundlePath);
+        static void Unload(AssetBundle& assetBundle, bool releaseOwnership = false);
 
+        static AssetBundle ReadJson(const std::filesystem::path& path);
         static void SaveBinary(const std::filesystem::path& assetBundlePath, AssetBundle& assetBundle);
         static void SaveJson(const std::filesystem::path& assetBundlePath, AssetBundle& assetBundle);
         static void SaveMeta(const std::filesystem::path& assetBundlePath, AssetBundle& assetBundle);
@@ -108,6 +113,7 @@ namespace Gleam
          * 2. 指针为空除了因为引用丢失，也可能是用户有意设置，但因为无法区分，用户将始终无法使指针在持久化时置空。
          */
         inline static std::unordered_map<void*, AssetRef> pointerToAssetRef = {};
+        inline static bool autoClearPtrBuffer = true;
 
         uuids::uuid id;
         std::vector<AssetSlot> assetSlots;
@@ -186,6 +192,7 @@ namespace Gleam
                 dynamic_cast<AssetRefStatistician*>(&serializer)
             )
             {
+                std::uintptr_t address = reinterpret_cast<uintptr_t>(&value);
                 AssetRef assetRef = AssetBundle::pointerToAssetRef[&value]; //读取来自首次反序列化时保存的值或默认空值
                 {
                     //优先获取目标对象的资源地址（序列化时保存），否则使用指针映射表存储的资源地址

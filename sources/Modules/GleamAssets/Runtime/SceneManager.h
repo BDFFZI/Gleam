@@ -3,7 +3,7 @@
 #include "GleamEngine/Runtime/System/UpdateSystem.h"
 #include "GleamPersistence/Runtime/Resources.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
-#include "Asset/SceneAsset.h"
+#include "Asset/BasicSceneInfo.h"
 
 namespace Gleam
 {

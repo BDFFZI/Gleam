@@ -1,6 +1,7 @@
 #include "SceneManager.h"
+
+#include "SceneAssetBundle.h"
 #include "GleamPersistence/Runtime/Resources.h"
-#include "Asset/SceneAsset.h"
 #include "Setting/SceneSetting.h"
 
 namespace Gleam
@@ -19,7 +20,7 @@ namespace Gleam
 
         AssetBundle& assetBundle = Resources::Load(assetBundleID);
         
-        Scene& scene = SceneAsset::MoveFromAssetBundle(assetBundle, isRunning);
+        Scene& scene = SceneAssetBundle::MoveFromAssetBundle(assetBundle, isRunning);
         allScenes.emplace(assetBundle.GetID(), &scene);
 
         return scene;

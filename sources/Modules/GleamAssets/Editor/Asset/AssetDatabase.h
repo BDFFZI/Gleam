@@ -28,5 +28,13 @@ namespace Gleam
          * @param directory 
          */
         static void Refresh(const std::filesystem::path& directory);
+
+    private:
     };
+
+    struct AssetInfo
+    {
+        std::unordered_map<std::string, std::tuple<int64_t, uuids::uuid>> assetModificationInfos;
+    };
+    Gleam_MakeType(Ass)
 }

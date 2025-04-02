@@ -49,15 +49,6 @@ namespace Gleam
     };
     Gleam_MakeGlobalSystem(ProjectWindow)
 
-
-    class JsonObjectImporter : public AssetImporter
-    {
-        void LoadAsset(const std::filesystem::path& path, uuids::uuid& assetBundleID) override;
-    };
-    Gleam_MakeTypeWithIDParent(JsonObjectImporter, "", AssetImporterType)
-    {
-    }
-
 #define Gleam_MakeProjectWindowDirectoryMenu(name,action) \
 Gleam_MakeInitEvent(){::Gleam::ProjectWindow::MakeDirectoryMenu(name,action);}
 

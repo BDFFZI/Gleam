@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <uuid.h>
 
-#include "GleamAssets/Runtime/SettingManager.h"
+#include "GleamAssets/Runtime/Configuration.h"
 #include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam

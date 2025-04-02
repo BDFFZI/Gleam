@@ -5,7 +5,7 @@
 #include "GleamAssets/Editor/Asset/AssetDatabase.h"
 #include "GleamAssets/Editor/Asset/AssetImporter.h"
 #include "GleamAssets/Editor/System/ProjectWindow.h"
-#include "GleamAssets/Runtime/Asset/SceneAsset.h"
+#include "GleamAssets/Runtime/Asset/BasicSceneInfo.h"
 #include "GleamECS/Runtime/Scene.h"
 #include "GleamECS/Runtime/View.h"
 
@@ -15,7 +15,7 @@ using namespace Gleam;
 
 struct MyAsset
 {
-    SceneAsset* sceneAsset;
+    BasicSceneInfo* sceneAsset;
     int value;
 };
 Gleam_MakeTypeWithID(MyAsset, "")
@@ -63,7 +63,7 @@ Gleam_MakeEngineStartEvent(Init, 0)
         scene.AddSystem(GlobalMySystem);
         {
             AssetBundle& assetBundle = AssetBundle::Create(MD5("TestScene").toArray());
-            SceneAsset::SaveToAssetBundle(scene, assetBundle);
+            SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
             std::filesystem::create_directories("./Assets/Scenes");
             AssetDatabase::Create("Assets/Scenes/TestScene.scene", assetBundle);
             AssetBundle::Unload(assetBundle);

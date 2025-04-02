@@ -21,7 +21,7 @@ namespace Gleam
             EditorSceneManager_OpenLastSceneSystem
         });
 
-        InspectorWindow::MakeCustomUI<EntityAsset>(InspectorWindowUI_EntityAsset);
+        InspectorWindow::MakeCustomUI<PersistentEntity>(InspectorWindowUI_EntityAsset);
         ProjectWindow::MakeDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene);
         ProjectWindow::MakeFileMenu(".scene", "Open", ProjectWindowMenu_OpenScene);
         ProjectWindow::MakeFileRenameEvent(".scene", ProjectWindowEvent_RenameScene);

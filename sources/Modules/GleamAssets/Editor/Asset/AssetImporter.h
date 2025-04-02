@@ -14,7 +14,7 @@ namespace Gleam
         static void MakeAssetImporter(std::string_view extension, Type& type);
         static void MakeAssetImporter(std::string_view extension, const Type& type);
         static bool CanImport(const std::filesystem::path& assetPath);
-        static AssetImporter& GetImporter(const std::filesystem::path& assetPath);
+        static AssetImporter& GetImporter(const std::filesystem::path& assetPath, bool reload = false);
 
         virtual ~AssetImporter() = default;
 
@@ -22,10 +22,10 @@ namespace Gleam
         uuids::uuid GetAssetBundleID() const { return assetBundleID; }
 
         void Save();
-        uuids::uuid SaveAndReloadAsset();
+        AssetBundle SaveAndReadAsset();
 
     protected:
-        virtual void LoadAsset(const std::filesystem::path& path, uuids::uuid& assetBundleID)
+        virtual AssetBundle ReadAsset(const std::filesystem::path& path, uuids::uuid lastAssetBundleID)
         {
             throw std::runtime_error("导入功能未实现！");
         }
@@ -48,6 +48,17 @@ namespace Gleam
         Gleam_MakeType_AddField(assetBundleID);
         Gleam_MakeType_AddField(assetTimeStamp);
         Gleam_MakeType_AddField(assetContentHash);
+    }
+
+    class JsonObjectImporter : public AssetImporter
+    {
+        AssetBundle ReadAsset(const std::filesystem::path& path, uuids::uuid lastAssetBundleID) override
+        {
+            return AssetBundle::ReadJson(path);
+        }
+    };
+    Gleam_MakeTypeWithIDParent(JsonObjectImporter, "", AssetImporterType)
+    {
     }
 
 #define Gleam_MakeAssetImporter(extension,type) \

@@ -1,6 +1,6 @@
 #pragma once
 #include "SceneManager.h"
-#include "SettingManager.h"
+#include "Configuration.h"
 #include "System/ScenePrefabSystem.h"
 
 #ifdef GleamEngineEditor
@@ -23,6 +23,6 @@ namespace Gleam
 #endif
     }
 
-    Gleam_AddEngineStartEvent(SettingManager_LoadSettings, 0);
-    Gleam_AddEngineStopEvent(SettingManager_UnloadSettings, 0);
+    Gleam_AddEngineStartEvent(Configuration_LoadSettings, 0);
+    Gleam_AddEngineStopEvent(Configuration_UnloadSettings, 0);
 }

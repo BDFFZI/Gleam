@@ -4,9 +4,9 @@
 #include <stduuid/uuid.h>
 
 #include "GleamAssets/Runtime/SceneManager.h"
-#include "GleamAssets/Runtime/Asset/EntityAsset.h"
+#include "GleamAssets/Runtime/Asset/PersistentEntity.h"
 #include "GleamECS/Runtime/Scene.h"
-#include "GleamAssets/Runtime/Asset/SceneAsset.h"
+#include "GleamAssets/Runtime/Asset/BasicSceneInfo.h"
 #include "GleamECS/Runtime/Archetype.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamECS/Runtime/View.h"
@@ -57,7 +57,7 @@ TEST(Assets, Scene)
         World::Update(); //应用世界更改
         //持久化
         AssetBundle& assetBundle = AssetBundle::Create();
-        SceneAsset::SaveToAssetBundle(scene, assetBundle);
+        SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
         AssetBundle::SaveJson("TestScene.json", assetBundle);
         AssetBundle::Unload(assetBundle); //卸载资源包不影响，场景内实体
         ASSERT_EQ(View<Transform>::Count(), 2);
@@ -74,7 +74,7 @@ TEST(Assets, Scene)
         World::Update(); //应用世界更改
         ASSERT_EQ(View<Transform>::Count(), 2);
         //场景通过读取资源包恢复数据
-        Scene& scene = SceneAsset::MoveFromAssetBundle(assetBundle);
+        Scene& scene = SceneAssetBundle::MoveFromAssetBundle(assetBundle);
         AssetBundle::Unload(assetBundle); //从资源包内恢复场景后资源包就可以直接删除了（如果不需要再次存储的话）。
         ASSERT_EQ(scene.GetEntities().size(), 3);
         ASSERT_TRUE(scene.HasSystem(mySystem1));
@@ -94,7 +94,7 @@ TEST(Assets, Scene)
     {
         //中途添加系统
         AssetBundle& assetBundle = AssetBundle::LoadJson("TestScene.json");
-        Scene& scene = SceneAsset::MoveFromAssetBundle(assetBundle);
+        Scene& scene = SceneAssetBundle::MoveFromAssetBundle(assetBundle);
         scene.AddSystem(mySystem2);
         ASSERT_EQ(scene.GetSystems().size(), 2);
         //启动场景
@@ -107,9 +107,9 @@ TEST(Assets, Scene)
         World::Update();
         ASSERT_EQ(World::GetRootSystemGroup().GetSubSystems().size(), 0);
         //实体被更新
-        ASSERT_EQ(World::GetComponent<MyComponent>(assetBundle.GetObject<EntityAsset>(3).GetEntity()).value, 5);
+        ASSERT_EQ(World::GetComponent<MyComponent>(assetBundle.GetObject<PersistentEntity>(3).GetEntity()).value, 5);
         //写回资源包并卸载场景
-        SceneAsset::SaveToAssetBundle(scene, assetBundle);
+        SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
         AssetBundle::SaveJson("TestScene.json", assetBundle);
         AssetBundle::Unload(assetBundle);
         Scene::Destroy(scene);
@@ -119,7 +119,7 @@ TEST(Assets, Scene)
     {
         //重新加载
         AssetBundle& assetBundle = AssetBundle::LoadJson("TestScene.json");
-        Scene& scene = SceneAsset::MoveFromAssetBundle(assetBundle);
+        Scene& scene = SceneAssetBundle::MoveFromAssetBundle(assetBundle);
         AssetBundle::Unload(assetBundle);
 
         ASSERT_EQ(scene.GetEntities().size(), 3);
@@ -164,7 +164,7 @@ TEST(Assets, Runtime)
         scene.AddSystem(GlobalMySystem);
         scene.AddSystem(GlobalMySystem2);
         AssetBundle& assetBundle = AssetBundle::Create(id);
-        SceneAsset::SaveToAssetBundle(scene, assetBundle);
+        SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
         Resources::Create(assetBundle);
         assetBundle.Unload(assetBundle);
         Scene::Destroy(scene);

@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "GleamAssets/Runtime/Asset/EntityAsset.h"
+#include "GleamAssets/Runtime/Asset/PersistentEntity.h"
 
 namespace Gleam
 {
@@ -7,5 +7,5 @@ namespace Gleam
     void ProjectWindowMenu_OpenScene();
     void ProjectWindowEvent_RenameScene(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
 
-    void InspectorWindowUI_EntityAsset(EntityAsset& entityAsset);
+    void InspectorWindowUI_EntityAsset(PersistentEntity& entityAsset);
 }

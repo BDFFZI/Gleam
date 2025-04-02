@@ -26,16 +26,15 @@ namespace Gleam
         assetBundle.id = assetBundleID;
         return assetBundles.insert({assetBundleID, std::move(assetBundle)}).first->second;
     }
-    void AssetBundle::Unload(AssetBundle& assetBundle, const bool releaseOwnership)
-    {
-        assert(HasInMemory(assetBundle.GetID()) && "内存中没有目标资源包！");
-
-        assetBundle.ClearAssets(releaseOwnership);
-        assetBundles.erase(assetBundle.id);
-    }
-
     AssetBundle& AssetBundle::Load(AssetBundle& newAssetBundle, const bool reload)
     {
+        //依赖同资源包资源的指针，可能在依赖对象反持久化前被处理，导致无法获取依赖项的数据。
+        //因此要在所有资源对象反序列化后重新序列化一次指针，利用上一次保存的指针与资源依赖的关系，重新连接资源。
+        PointerSerializer pointerSerializer;
+        AssetBundleType.Serialize(pointerSerializer, &newAssetBundle);
+        if (autoClearPtrBuffer) //清除临时保存的指针资源引用信息
+            pointerToAssetRef.clear();
+
         assert(reload || (!HasInMemory(newAssetBundle.id) && "内存中已有目标资源包！"));
 
         AssetBundle* result;
@@ -74,14 +73,6 @@ namespace Gleam
             result = &assetBundles.emplace(newAssetBundle.id, std::move(newAssetBundle)).first->second;
         }
 
-        //依赖同资源包资源的指针，可能在依赖对象反持久化前被处理，导致无法获取依赖项的数据。
-        //因此要在所有资源对象反序列化后重新序列化一次指针，利用上一次保存的指针与资源依赖的关系，重新连接资源。
-        PointerSerializer pointerSerializer;
-        AssetBundleType.Serialize(pointerSerializer, result);
-
-        //清除临时保存的指针资源引用信息
-        pointerToAssetRef.clear();
-
         return *result;
     }
     AssetBundle& AssetBundle::LoadBinary(const std::filesystem::path& assetBundlePath, const bool reload)
@@ -113,7 +104,21 @@ namespace Gleam
         JsonUtility::FromJson(json, AssetBundleMetaType, &assetBundleMeta);
         return assetBundleMeta;
     }
+    void AssetBundle::Unload(AssetBundle& assetBundle, const bool releaseOwnership)
+    {
+        assert(HasInMemory(assetBundle.GetID()) && "内存中没有目标资源包！");
 
+        assetBundle.ClearAssets(releaseOwnership);
+        assetBundles.erase(assetBundle.id);
+    }
+
+    AssetBundle AssetBundle::ReadJson(const std::filesystem::path& path)
+    {
+        //反序列化得到json中的资源包数据
+        AssetBundle newAssetBundle = {};
+        JsonUtility::FromJson(File::ReadAllText(path), AssetBundleType, &newAssetBundle);
+        return newAssetBundle;
+    }
     void AssetBundle::SaveBinary(const std::filesystem::path& assetBundlePath, AssetBundle& assetBundle)
     {
         assetBundle.AddAssetDependency();
@@ -148,14 +153,10 @@ namespace Gleam
     }
     void AssetBundle::DumpJsonToBinary(const std::filesystem::path& jsonAssetBundlePath, const std::filesystem::path& binaryAssetBundlePath, const bool saveMeta)
     {
-        //反序列化得到json中的资源包数据
-        AssetBundle newAssetBundle = {};
-        JsonUtility::FromJson(File::ReadAllText(jsonAssetBundlePath), AssetBundleType, &newAssetBundle);
-        //转存为二进制文件
-        SaveBinary(binaryAssetBundlePath, newAssetBundle);
-        //保存meta信息
+        AssetBundle assetBundle = ReadJson(jsonAssetBundlePath); //读取json文件
+        SaveBinary(binaryAssetBundlePath, assetBundle); //转存为二进制文件
         if (saveMeta)
-            SaveMeta(binaryAssetBundlePath, newAssetBundle);
+            SaveMeta(binaryAssetBundlePath, assetBundle); //保存meta信息
     }
 
     bool AssetBundle::HasMeta(const std::filesystem::path& assetBundlePath)

@@ -3,7 +3,8 @@
 
 #include "EditorSceneManager.h"
 #include "Asset/AssetDatabase.h"
-#include "GleamAssets/Runtime/Asset/SceneAsset.h"
+#include "GleamAssets/Runtime/SceneAssetBundle.h"
+#include "GleamAssets/Runtime/Asset/BasicSceneInfo.h"
 #include "System/ProjectWindow.h"
 
 namespace Gleam
@@ -14,7 +15,7 @@ namespace Gleam
 
         Scene& scene = Scene::Create("NewScene");
         AssetBundle& assetBundle = AssetBundle::Create();
-        SceneAsset::SaveToAssetBundle(scene, assetBundle);
+        SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
         AssetDatabase::Create(path, assetBundle);
         AssetBundle::Unload(assetBundle);
         Scene::Destroy(scene);
@@ -28,12 +29,12 @@ namespace Gleam
     void ProjectWindowEvent_RenameScene(const std::filesystem::path& oldPath, const std::filesystem::path& newPath)
     {
         AssetBundle& assetBundle = AssetDatabase::Load(oldPath);
-        assetBundle.GetObject<SceneAsset>(0).SetName(newPath.stem().string());
+        assetBundle.GetObject<BasicSceneInfo>(0).name = newPath.stem().string();
         AssetDatabase::Save(oldPath);
         AssetDatabase::Unload(oldPath);
     }
 
-    void InspectorWindowUI_EntityAsset(EntityAsset& entityAsset)
+    void InspectorWindowUI_EntityAsset(PersistentEntity& entityAsset)
     {
         InspectorWindowUI_Entity(entityAsset.GetEntity());
     }

@@ -2,6 +2,7 @@
 
 #include "Asset/AssetDatabase.h"
 #include "Asset/AssetImporter.h"
+#include "GleamAssets/Runtime/SceneAssetBundle.h"
 #include "GleamAssets/Runtime/SceneManager.h"
 #include "GleamUtility/Runtime/Ranges.h"
 #include "Setting/EditorSceneSetting.h"
@@ -37,7 +38,7 @@ namespace Gleam
         auto& path = scenePaths.at(&scene);
         AssetBundle& assetBundle = AssetDatabase::GetAssetBundle(path);
 
-        SceneAsset::SaveToAssetBundle(scene, assetBundle);
+        SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
         AssetDatabase::Save(path);
     }
 

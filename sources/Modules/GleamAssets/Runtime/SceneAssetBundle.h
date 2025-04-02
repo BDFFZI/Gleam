@@ -1,21 +1,17 @@
-#pragma once
-#include "EntityAsset.h"
+﻿#pragma once
+#include "Asset/PersistentEntity.h"
 #include "GleamECS/Runtime/Scene.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
-#include "GleamReflection/Runtime/Type.h"
-
 
 namespace Gleam
 {
     /**
-     * 场景资源包装器，是场景的部分数据在资源包中的替身，使得场景可以被持久化
-     *
-     * 注意！该包装器仅包装场景的部分数据，实体数据由EntityAsset包装。
+     * 场景资源包用于实现运行时场景与持久化资源包之间的相互转换，能自动处理场景间依赖以及实例化等需求，等价于Unity中的普通场景和预制体功能。
      */
-    class SceneAsset
+    class SceneAssetBundle
     {
     public:
-        static void GetSceneAssets(AssetBundle& assetBundle, std::string& outName, std::vector<System*>& outSystems, std::vector<EntityAsset*>& outEntities);
+        static void GetSceneAssets(AssetBundle& assetBundle, std::string& outName, std::vector<System*>& outSystems, std::vector<PersistentEntity*>& outEntities);
         /**
          * 将Scene数据拷贝到AssetBundle，以便用其持久化保存Scene。
          * @param scene 
@@ -36,25 +32,5 @@ namespace Gleam
          * @return 
          */
         static Scene& CopyFromAssetBundle(AssetBundle& assetBundle, bool isRunning = false);
-
-        const std::string& GetName() const
-        {
-            return name;
-        }
-        void SetName(const std::string& name)
-        {
-            this->name = name;
-        }
-
-    private:
-        Gleam_MakeType_Friend
-
-        std::string name;
-        std::vector<uuids::uuid> systems;
     };
-    Gleam_MakeTypeWithID(SceneAsset, "3CA95E07-FCD9-4DCE-ABE3-6115152EA9D7")
-    {
-        Gleam_MakeType_AddField(name);
-        Gleam_MakeType_AddField(systems);
-    }
 }

@@ -22,9 +22,9 @@ namespace Gleam
         std::string extension = assetPath.extension().string();
         return customImporters.contains(extension);
     }
-    AssetImporter& AssetImporter::GetImporter(const std::filesystem::path& assetPath)
+    AssetImporter& AssetImporter::GetImporter(const std::filesystem::path& assetPath, const bool reload)
     {
-        if (cacheImporters.contains(assetPath))
+        if (reload == false && cacheImporters.contains(assetPath))
             return *cacheImporters.at(assetPath);
 
         //获取资源导入器基本信息
@@ -44,13 +44,14 @@ namespace Gleam
         //保存元信息
         File::WriteAllText(assetPath.string() + ".meta", JsonUtility::ToJson(this, AssetImporterType, true));
     }
-    uuids::uuid AssetImporter::SaveAndReloadAsset()
+    AssetBundle AssetImporter::SaveAndReadAsset()
     {
-        //重新载入资源
-        LoadAsset(assetPath, assetBundleID);
+        //重新读取资源内容
+        AssetBundle assetBundle = ReadAsset(assetPath, assetBundleID);
+        assetBundleID = assetBundle.GetID();
         //保存元信息
         Save();
 
-        return assetBundleID;
+        return assetBundle;
     }
 }

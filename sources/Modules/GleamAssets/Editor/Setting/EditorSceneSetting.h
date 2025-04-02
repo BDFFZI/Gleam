@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <filesystem>
 
-#include "GleamAssets/Runtime/SettingManager.h"
+#include "GleamAssets/Runtime/Configuration.h"
 #include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam

@@ -92,7 +92,6 @@ namespace Gleam
         }
 
     private:
-        friend class SceneAsset;
         inline static std::vector<std::unique_ptr<Scene>> allScenes = {};
         inline static std::unordered_map<System*, Scene*> systemToWorld = {};
         inline static std::unordered_map<Entity, Scene*> entityToWorld = {};

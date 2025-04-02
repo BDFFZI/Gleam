@@ -1,5 +1,6 @@
 ﻿#include "ScenePrefabSystem.h"
 
+#include "GleamAssets/Runtime/SceneAssetBundle.h"
 #include "GleamAssets/Runtime/Component/ScenePrefab.h"
 #include "GleamECS/Runtime/View.h"
 
@@ -17,7 +18,7 @@ void Gleam::ScenePrefabSystem::Update()
 
         AssetRef assetRef = AssetBundle::GetAssetRef(scenePrefab.sourceScene).value();
         AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetRef.assetBundleID);
-        scenePrefab.instanceScene = &SceneAsset::CopyFromAssetBundle(assetBundle, rootScene->get().GetIsRunning());
+        scenePrefab.instanceScene = &SceneAssetBundle::CopyFromAssetBundle(assetBundle, rootScene->get().GetIsRunning());
         rootScene->get().AddSubScene(*scenePrefab.instanceScene);
     });
 }

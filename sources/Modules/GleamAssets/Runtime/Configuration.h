@@ -11,16 +11,18 @@
 namespace Gleam
 {
     /**
-     * 设置是一种针对全局数据的持久化文件，被注册为设置的静态类，将在引擎启动时自动加载或创建序列化文件。
+     * 配置是一种针对全局数据的持久化文件
+     *
+     * 被注册为配置的静态类，将在引擎启动时自动加载或创建序列化文件。此外根据设置，还可以在引擎停止时自动保存。
      */
-    class SettingManager
+    class Configuration
     {
     public:
-        static void MakeSetting(std::string_view name, const Type& type);
+        static void MakeConfiguration(std::string_view name, const Type& type);
 
     private:
-        friend void SettingManager_LoadSettings();
-        friend void SettingManager_UnloadSettings();
+        friend void Configuration_LoadSettings();
+        friend void Configuration_UnloadSettings();
 
         static bool HasSetting(const std::string_view name)
         {
@@ -81,14 +83,14 @@ namespace Gleam
     };
 #define Gleam_MakeSetting(name,type) Gleam_MakeInitEvent(){::Gleam::SettingManager::MakeSetting(name, type##Type);}
 
-    inline void SettingManager_LoadSettings()
+    inline void Configuration_LoadSettings()
     {
-        for (const auto& name : SettingManager::settings | std::views::keys)
-            SettingManager::LoadSetting(name);
+        for (const auto& name : Configuration::settings | std::views::keys)
+            Configuration::LoadSetting(name);
     }
-    inline void SettingManager_UnloadSettings()
+    inline void Configuration_UnloadSettings()
     {
-        for (const auto& name : SettingManager::settings | std::views::keys)
-            SettingManager::UnloadSetting(name);
+        for (const auto& name : Configuration::settings | std::views::keys)
+            Configuration::UnloadSetting(name);
     }
 }

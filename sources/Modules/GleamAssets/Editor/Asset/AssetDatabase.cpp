@@ -25,10 +25,22 @@ namespace Gleam
     void AssetDatabase::Reload(const std::filesystem::path& path)
     {
         AssetImporter& assetMeta = AssetImporter::GetImporter(path);
-        AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetMeta.GetAssetBundleID());
 
-        assetMeta.SaveAndReloadAsset();
-        Resources::Save(assetBundle);
+        AssetBundle::SetAutoClearPtrBuffer(false);
+
+        if (AssetBundle::HasInMemory(assetMeta.GetAssetBundleID()))
+        {
+            AssetBundle assetBundle = assetMeta.SaveAndReadAsset();
+            Resources::Save(assetBundle);
+            Resources::Reload(assetBundle.GetID());
+        }
+        else
+        {
+            AssetBundle assetBundle = assetMeta.SaveAndReadAsset();
+            Resources::Create(assetBundle);
+        }
+
+        AssetBundle::SetAutoClearPtrBuffer(true);
     }
     void AssetDatabase::Unload(const std::filesystem::path& path)
     {
@@ -47,7 +59,7 @@ namespace Gleam
         //保存到缓存文件夹
         Resources::Create(assetBundle);
         //保存导入器
-        AssetImporter::GetImporter(filePath).SaveAndReloadAsset();
+        AssetImporter::GetImporter(filePath).SaveAndReadAsset();
     }
     void AssetDatabase::Save(const std::filesystem::path& filePath)
     {
@@ -95,11 +107,10 @@ namespace Gleam
             {
                 auto& assetImporter = AssetImporter::GetImporter(child);
 
-                bool needReimport = false;
                 //验证导入器或导入缓存是否存在
                 auto assetBundleID = assetImporter.GetAssetBundleID();
                 if (assetBundleID.is_nil() || Resources::Has(assetBundleID) == false)
-                    needReimport = true;
+                    Reload(child.path());
                 else
                 {
                     //验证文件写入时间戳是否一致
@@ -113,19 +124,13 @@ namespace Gleam
                         if (contentHash != assetImporter.assetContentHash)
                         {
                             assetImporter.assetContentHash = contentHash;
-                            needReimport = true;
+                            Reload(child.path());
                         }
                         else
+                        {
                             assetImporter.Save();
+                        }
                     }
-                }
-
-                if (needReimport)
-                {
-                    assetBundleID = assetImporter.SaveAndReloadAsset();
-                    AssetBundle& assetBundle = AssetBundle::GetAssetBundle(assetBundleID);
-                    Resources::Create(assetBundle);
-                    AssetBundle::Unload(assetBundle);
                 }
             }
         }
