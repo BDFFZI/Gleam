@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "GleamECS/Runtime/Archetype.h"
+#include "Archetype.h"
 
 namespace Gleam
 {

@@ -11,24 +11,15 @@
 
 namespace Gleam
 {
-    struct SystemPtrComparer
-    {
-        bool operator()(const System* left, const System* right) const
-        {
-            if (left->GetOrder() == right->GetOrder())
-                return left < right; //确保顺序相同时依然有大小之分，从而避免不同系统实例被误认为相等
-            return left->GetOrder() < right->GetOrder();
-        }
-    };
-
+    /**
+     * 一种支持子系统的系统，可以实现系统的分类和更新方式的控制
+     */
     class SystemGroup : public System
     {
     public:
-        SystemGroup(const std::optional<std::reference_wrapper<SystemGroup>>& group, int minOrder = MinOrder, int maxOrder = MaxOrder, const std::string_view& name = "");
-        SystemGroup(System& system, OrderRelation orderRelation, const std::string_view& name = "");
-        explicit SystemGroup(SystemGroup& group);
-        SystemGroup(SystemGroup&&) noexcept = default;
-        SystemGroup& operator=(SystemGroup&&) = default;
+        SystemGroup(const std::optional<std::type_index> group, const int order) : System(group, order)
+        {
+        }
 
         /**
          * 统计所有子系统，包括递归，但不包含正在卸载的子系统。
@@ -42,15 +33,20 @@ namespace Gleam
 
         void Start() override;
         void Stop() override;
-        void Update() override
-        {
-            FlushAddingSystems();
-            FlushUpdatingSystems();
-            FlushRemovingSystems();
-        }
+        void Update() override;
 
     private:
         friend class HierarchyWindow;
+
+        struct SystemPtrComparer
+        {
+            bool operator()(const System* left, const System* right) const
+            {
+                if (left->GetOrder() == right->GetOrder())
+                    return left < right; //确保顺序相同时依然有大小之分，从而避免不同系统实例被误认为相等
+                return left->GetOrder() < right->GetOrder();
+            }
+        };
 
         ///
         /// 系统增删为什么要延迟执行？
@@ -81,5 +77,20 @@ namespace Gleam
             }
             systemsBuffer.clear();
         }
+    };
+
+    template <class TGroup = void, int TMinOrder = SystemMinOrder, int TMaxOrder = SystemMaxOrder>
+    class SystemGroupT : SystemBaseT<SystemGroup, TGroup, TMinOrder, TMaxOrder>
+    {
+    };
+
+    template <class TParentSystem, int Order>
+    class AbsoluteSystemGroupT : AbsoluteSystemBaseT<SystemGroup, TParentSystem, Order>
+    {
+    };
+
+    template <class TBrotherSystem, OrderRelation Relation>
+    class RelativeSystemGroupT : RelativeSystemBaseT<SystemGroup, TBrotherSystem, Relation>
+    {
     };
 }

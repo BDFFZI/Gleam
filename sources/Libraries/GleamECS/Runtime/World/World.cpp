@@ -47,7 +47,7 @@ namespace Gleam
 
         const int count = ++systemUsageCount[&system];
         if (count == 1) //首次添加，需实际注册到系统组接收事件。
-            system.GetGroup().value_or(systems).get().AddSubSystem(system);
+            system.GetGroup().value_or(rootSystem).get().AddSubSystem(system);
     }
     void World::AddSystems(std::initializer_list<std::reference_wrapper<System>> systems)
     {
@@ -71,7 +71,7 @@ namespace Gleam
 
         const int count = --systemUsageCount[&system];
         if (count == 0) //首次移除，需实际从系统组中移除。
-            system.GetGroup().value_or(systems).get().RemoveSubSystem(system);
+            system.GetGroup().value_or(rootSystem).get().RemoveSubSystem(system);
         assert(count >= 0 && "重复移除系统！");
     }
     void World::RemoveSystems(std::initializer_list<std::reference_wrapper<System>> systems, const bool removeFromScene)
@@ -80,34 +80,19 @@ namespace Gleam
             RemoveSystem(system, removeFromScene);
     }
 
-    Archetype& World::ComputeArchetype(
-        const Entity entity,
-        const std::initializer_list<std::reference_wrapper<const Type>> removingComponents,
-        const std::initializer_list<std::reference_wrapper<const Type>> addingComponents)
-    {
-        static std::vector<std::reference_wrapper<const Type>> currentComponents = {};
 
-        //获取已有组件
-        entityInfoAllocator.GetEntityInfo(entity).archetype->GetComponentTypes(currentComponents);
-        //移除目标组件
-        for (std::reference_wrapper<const Type> component : removingComponents)
-            std::erase_if(currentComponents, [component](auto a) { return a.get() == component.get(); });
-        //添加目标组件
-        currentComponents.insert(currentComponents.end(), addingComponents.begin(), addingComponents.end());
-
-        return Archetype::CreateOrGet(currentComponents);
-    }
 
     void World::Update()
     {
-        systems.Update();
+        rootSystem.Update();
+        FlushSystemQueue();
         FlushEntityQueue();
     }
     void World::Clear()
     {
         for (auto& count : systemUsageCount | std::views::values)
             count++; //抑制用户回收方法，防止重复回收
-        systems.Stop();
+        rootSystem.Stop();
         systemUsageCount.clear();
 
         entities.Clear();
@@ -124,5 +109,14 @@ namespace Gleam
         for (auto [entity,removeFromScene] : removingEntities)
             RemoveEntity(entity, removeFromScene);
         removingEntities.clear();
+    }
+    void World::FlushSystemQueue()
+    {
+        for (auto it = systems.begin(); it != systems.end();)
+        {
+            int count = std::get<1>(it->second);
+            if (count == 0)
+                it = systems.erase(it);
+        }
     }
 }

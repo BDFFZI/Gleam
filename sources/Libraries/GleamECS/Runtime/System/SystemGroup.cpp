@@ -2,18 +2,6 @@
 
 namespace Gleam
 {
-    SystemGroup::SystemGroup(const std::optional<std::reference_wrapper<SystemGroup>>& group, const int minOrder, const int maxOrder, const std::string_view& name)
-        : System(group, minOrder, maxOrder, name)
-    {
-    }
-    SystemGroup::SystemGroup(System& system, const OrderRelation orderRelation, const std::string_view& name)
-        : System(system, orderRelation, name)
-    {
-    }
-    SystemGroup::SystemGroup(SystemGroup& group): System(group)
-    {
-    }
-
     std::vector<std::reference_wrapper<System>> SystemGroup::GetSubSystems()
     {
         std::vector<std::reference_wrapper<System>> outSubSystems;
@@ -78,6 +66,12 @@ namespace Gleam
         addingSystems.clear();
         updatingSystems.clear();
         removingSystems.clear();
+    }
+    void SystemGroup::Update()
+    {
+        FlushAddingSystems();
+        FlushUpdatingSystems();
+        FlushRemovingSystems();
     }
     void SystemGroup::FlushAddingSystems()
     {

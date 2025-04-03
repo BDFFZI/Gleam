@@ -1,13 +1,17 @@
 ﻿#include "Archetype.h"
-
 #include <cassert>
-
-#include "Query.h"
-#include "View.h"
 #include "GleamUtility/Runtime/md5.h"
 
 namespace Gleam
 {
+    uuids::uuid Archetype::ComputeID(const std::vector<std::reference_wrapper<const Type>>& componentTypes)
+    {
+        std::string componentIDs = {};
+        for (const auto& componentType : componentTypes)
+            componentIDs += to_string(componentType.get().GetID());
+        return MD5(componentIDs).toArray();
+    }
+
     Archetype& Archetype::Create(const std::vector<std::reference_wrapper<const Type>>& componentTypes, const std::string_view name)
     {
         std::vector<const Type*> types;
@@ -18,32 +22,16 @@ namespace Gleam
         Archetype tempArchetype = Archetype{name, types};
         Archetype& archetype = allArchetypes.emplace(tempArchetype.id, std::move(tempArchetype)).first->second;
 
-        //通知查询更新
-        for (auto type : componentTypes)
-        {
-            std::unordered_set<Query*> queries; //多个组件可能关联同一个查询，故需要做并集处理
-            for (Query* query : Query::componentToQueries[type.get().GetIndex()])
-                queries.insert(query);
-            for (Query* query : queries)
-                query->addArchetypes(archetype);
-        }
-
         return archetype;
     }
-    Archetype& Archetype::CreateOrGet(const std::vector<std::reference_wrapper<const Type>>& componentTypes)
+    std::optional<std::reference_wrapper<Archetype>> Archetype::GetArchetype(const std::vector<std::reference_wrapper<const Type>>& componentTypes)
     {
-        uuids::uuid id = GetID(componentTypes);
+        uuids::uuid id = ComputeID(componentTypes);
         if (allArchetypes.contains(id))
             return allArchetypes.at(id);
-        return Create(componentTypes);
+        return std::nullopt;
     }
-    uuids::uuid Archetype::GetID(const std::vector<std::reference_wrapper<const Type>>& componentTypes)
-    {
-        std::string componentIDs = {};
-        for (const auto& componentType : componentTypes)
-            componentIDs += to_string(componentType.get().GetID());
-        return MD5(componentIDs).toArray();
-    }
+
 
     const std::string& Archetype::GetName() const
     {

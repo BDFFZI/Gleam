@@ -1,7 +1,5 @@
 ﻿#include "EntityAllocator.h"
 
-#include "GleamECS/Runtime/Scene.h"
-
 namespace Gleam
 {
     std::unordered_map<const Archetype*, Heap>& EntityAllocator::GetEntityHeaps()
@@ -46,17 +44,13 @@ namespace Gleam
                 outEntities[itemIndex] = entity;
         });
     }
-    void EntityAllocator::RemoveEntity(Entity& entity, const bool removeFromScene)
+    void EntityAllocator::RemoveEntity(Entity& entity)
     {
         assert(entity != Entity::Null && "实体为空！");
         assert(entityInfoAllocator->HasEntity(entity) && "实体不存在！");
 
-        if (removeFromScene)
-        {
-            auto optionalScene = Scene::GetScene(entity);
-            if (optionalScene.has_value())
-                optionalScene->get().RemoveEntity(entity);
-        }
+        if (removeEntityEvent != nullptr)
+            removeEntityEvent(entity);
 
         const EntityInfo entityInfo = entityInfoAllocator->GetEntityInfo(entity);
         //去除实体信息
@@ -140,7 +134,7 @@ namespace Gleam
         std::byte* destinationAddress = entityInfoAllocator->GetEntityInfo(destination).memoryAddress;
         sourceArchetype.Copy(destinationAddress, sourceAddress);
     }
-    Entity EntityAllocator::CloneEntity(const Entity source, const bool addToScene)
+    Entity EntityAllocator::CloneEntity(const Entity source)
     {
         EntityInfo sourceEntityInfo = entityInfoAllocator->GetEntityInfo(source);
 
@@ -150,14 +144,31 @@ namespace Gleam
         sourceEntityInfo.archetype->CopyConstruct(newEntityInfo.memoryAddress, sourceEntityInfo.memoryAddress);
         *reinterpret_cast<Entity*>(newEntityInfo.memoryAddress) = newEntity;
 
-        if (addToScene)
-        {
-            auto optionalScene = Scene::GetScene(source);
-            if (optionalScene.has_value())
-                optionalScene->get().AddEntity(newEntity);
-        }
+        if (addEntityEvent != nullptr)
+            addEntityEvent(newEntity);
 
         return newEntity;
+    }
+
+    Archetype& EntityAllocator::CreateOrGetArchetype(
+        const Entity entity,
+        const std::initializer_list<std::reference_wrapper<const Type>> removingComponents,
+        const std::initializer_list<std::reference_wrapper<const Type>> addingComponents) const
+    {
+        static std::vector<std::reference_wrapper<const Type>> currentComponents = {};
+
+        //获取已有组件
+        entityInfoAllocator->GetEntityInfo(entity).archetype->GetComponentTypes(currentComponents);
+        //移除目标组件
+        for (std::reference_wrapper<const Type> component : removingComponents)
+            std::erase_if(currentComponents, [component](auto a) { return a.get() == component.get(); });
+        //添加目标组件
+        currentComponents.insert(currentComponents.end(), addingComponents.begin(), addingComponents.end());
+
+        auto optionalArchetype = Archetype::GetArchetype(currentComponents);
+        if (!optionalArchetype.has_value())
+            optionalArchetype = Archetype::Create(currentComponents);
+        return optionalArchetype.value();
     }
 
     void EntityAllocator::Clear()

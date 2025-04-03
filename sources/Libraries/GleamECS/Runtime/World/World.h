@@ -17,59 +17,104 @@ namespace Gleam
     {
     public:
         //世界内容
-        static EntityInfoAllocator& GetEntityInfoAllocator()
+        EntityInfoAllocator& GetEntityInfoAllocator()
         {
             return entityInfoAllocator;
         }
-        static EntityAllocator& GetEntityAllocator()
+        EntityAllocator& GetEntityAllocator()
         {
             return entities;
         }
-        static SystemGroup& GetRootSystemGroup()
+        SystemGroup& GetRootSystemGroup()
         {
-            return systems;
+            return rootSystem;
         }
-        static void MoveEntityAllocator(EntityAllocator& entityAllocator);
+        void MoveEntityAllocator(EntityAllocator& entityAllocator);
 
-        static bool HasEntity(const Entity entity)
+        bool HasEntity(const Entity entity)
         {
             return entityInfoAllocator.HasEntity(entity);
         }
 
-        static Entity AddEntity(const Archetype& archetype)
+        Entity AddEntity(const Archetype& archetype)
         {
             return entities.AddEntity(archetype);
         }
         template <Component... TComponents>
-        static Entity AddEntity(const TComponents&... components)
+        Entity AddEntity(const TComponents&... components)
         {
             Archetype& archetype = Archetype::CreateOrGet({Type::CreateOrGet<TComponents>()...});
             Entity entity = AddEntity(archetype);
             SetComponents(entity, components...);
             return entity;
         }
-        static void RemoveEntity(Entity& entity, bool removeFromScene = true);
-        static void MoveEntity(const Entity entity, const Archetype& newArchetype)
+        void RemoveEntity(Entity& entity, bool removeFromScene = true);
+        void MoveEntity(const Entity entity, const Archetype& newArchetype)
         {
             const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
             entityInfo.allocator->MoveEntity(entity, newArchetype);
         }
-        static void CopyEntity(const Entity destination, const Entity source)
+        void CopyEntity(const Entity destination, const Entity source)
         {
             entities.CopyEntity(destination, source);
         }
-        static Entity CloneEntity(const Entity entity, const bool addToScene = true)
+        Entity CloneEntity(const Entity entity, const bool addToScene = true)
         {
             return entities.CloneEntity(entity, addToScene);
         }
 
-        static void RemoveEntityAsync(Entity& entity, bool removeFromScene = true);
-        static void MoveEntityAsync(const Entity entity, const Archetype& newArchetype)
+        void RemoveEntityAsync(Entity& entity, bool removeFromScene = true);
+        void MoveEntityAsync(const Entity entity, const Archetype& newArchetype)
         {
             movingEntities.emplace_back(entity, &newArchetype);
         }
 
-        static bool HasSystem(System& system);
+        template <class TSystem>
+        void AddSystem()
+        {
+            if constexpr (!std::is_void_v<typename TSystem::Group>)
+                AddSystem<typename TSystem::Group>();
+
+            auto& [system,count] = systems[typeid(TSystem)];
+            ++count;
+
+            if (count == 1) //首次添加
+            {
+                //创建实例
+                system = std::make_shared<TSystem>();
+                system->world = this;
+                //注册到组
+                SystemGroup* group = std::is_void_v<typename TSystem::Group> ? &rootSystem : std::get<0>(systems[typeid(typename TSystem::Group)]).get();
+                group->AddSubSystem(*system);
+            }
+        }
+        template <class TSystem>
+        void RemoveSystem()
+        {
+            if constexpr (!std::is_void_v<typename TSystem::Group>)
+                RemoveSystem<typename TSystem::Group>();
+
+            auto& [system,count] = systems.at(typeid(TSystem));
+            --count;
+
+            if (count == 0) //最终移除
+            {
+                //从组移除
+                SystemGroup* group = std::is_void_v<typename TSystem::Group> ? &rootSystem : std::get<0>(systems[typeid(typename TSystem::Group)]).get();
+                group->RemoveSubSystem(*system);
+                //销毁实例
+                //在Update时执行，因为要等待系统Stop事件执行完毕。
+            }
+        }
+        template <class TSystem>
+        std::weak_ptr<TSystem> FindSystem()
+        {
+            if (!systems.contains(typeid(TSystem)))
+                return nullptr;
+            return std::get<0>(systems.at(typeid(TSystem)));
+        }
+
+        bool HasSystem(System& system);
         /**
          * @brief 添加系统
          *
@@ -78,8 +123,8 @@ namespace Gleam
          * 
          * @param system 
          */
-        static void AddSystem(System& system);
-        static void AddSystems(std::initializer_list<std::reference_wrapper<System>> systems);
+        void AddSystem(System& system);
+        void AddSystems(std::initializer_list<std::reference_wrapper<System>> systems);
         /**
          * @brief 移除系统
          *
@@ -89,97 +134,17 @@ namespace Gleam
          * @param system
          * @param removeFromScene 
          */
-        static void RemoveSystem(System& system, bool removeFromScene = true);
-        static void RemoveSystems(std::initializer_list<std::reference_wrapper<System>> systems, bool removeFromScene = true);
+        void RemoveSystem(System& system, bool removeFromScene = true);
+        void RemoveSystems(std::initializer_list<std::reference_wrapper<System>> systems, bool removeFromScene = true);
 
-        static Archetype& ComputeArchetype(
-            Entity entity,
-            std::initializer_list<std::reference_wrapper<const Type>> removingComponents,
-            std::initializer_list<std::reference_wrapper<const Type>> addingComponents);
-        static void AddComponents(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
+        void RemoveComponentsAsync(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
         {
-            Archetype& archetype = ComputeArchetype(entity, {}, componentTypes);
-            MoveEntity(entity, archetype);
-        }
-        static void RemoveComponents(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
-        {
-            Archetype& archetype = ComputeArchetype(entity, componentTypes, {});
-            MoveEntity(entity, archetype);
-        }
-        static void RemoveComponentsAsync(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
-        {
-            Archetype& archetype = ComputeArchetype(entity, componentTypes, {});
+            Archetype& archetype = CreateOrGetArchetype(entity, componentTypes, {});
             MoveEntityAsync(entity, archetype);
         }
 
-        template <Component TComponent>
-        static bool HasComponent(const Entity entity)
-        {
-            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
-            return entityInfo.archetype->HasComponent(typeid(TComponent));
-        }
-        template <Component TComponent>
-        static std::optional<std::reference_wrapper<TComponent>> TryGetComponent(const Entity entity)
-        {
-            if (HasComponent<TComponent>(entity) == false)
-                return std::nullopt;
-            return GetComponent<TComponent>(entity);
-        }
-        template <Component TComponent>
-        static bool TryGetComponent(const Entity entity, TComponent*& component)
-        {
-            assert(entity != Entity::Null && "目标实体为空！");
-            assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
-
-            if (HasComponent<TComponent>(entity) == false)
-                return false;
-            component = &GetComponent<TComponent>(entity);
-            return true;
-        }
-        template <Component TComponent>
-        static TComponent& GetComponent(const Entity entity)
-        {
-            assert(entity != Entity::Null && "目标实体为空！");
-            assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
-
-            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
-            int offset = entityInfo.archetype->GetComponentOffset(typeid(TComponent));
-            return *reinterpret_cast<TComponent*>(entityInfo.memoryAddress + offset);
-        }
-        template <Component... TComponents>
-        static void GetComponents(const Entity entity, TComponents*&... outComponents)
-        {
-            assert(entity != Entity::Null && "目标实体为空！");
-            assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
-
-            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
-            const Archetype& archetype = *entityInfo.archetype;
-            ((outComponents = reinterpret_cast<TComponents*>(entityInfo.memoryAddress + archetype.GetComponentOffset(typeid(TComponents)))), ...);
-        }
-        template <Component... TComponents>
-        static void GetComponents(const Entity entity, TComponents&... outComponents)
-        {
-            assert(entity != Entity::Null && "目标实体为空！");
-            assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
-
-            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
-            const Archetype& archetype = *entityInfo.archetype;
-            ((outComponents = *reinterpret_cast<TComponents*>(entityInfo.memoryAddress + archetype.GetComponentOffset(typeid(TComponents)))), ...);
-        }
-        template <Component... TComponents>
-        static void SetComponents(const Entity entity, const TComponents&... components)
-        {
-            assert(entity != Entity::Null && "目标实体为空！");
-            assert(entityInfoAllocator.HasEntity(entity) && "目标实体不存在！");
-
-            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
-            const Archetype& archetype = *entityInfo.archetype;
-            ((*reinterpret_cast<TComponents*>(entityInfo.memoryAddress + archetype.GetComponentOffset(typeid(TComponents))) = components), ...);
-        }
-
-
-        static void Update();
-        static void Clear();
+        void Update();
+        void Clear();
 
     private:
         Gleam_MakeType_Friend
@@ -192,13 +157,15 @@ namespace Gleam
         friend void Editor_InterceptRuntimeSystem();
         friend void ExtendWorldFunction();
 
-        inline static EntityInfoAllocator entityInfoAllocator;
-        inline static EntityAllocator entities = EntityAllocator{entityInfoAllocator};
-        inline static std::unordered_map<System*, int> systemUsageCount = {}; //系统使用计数，实现按需自动加载和卸载系统
-        inline static SystemGroup systems = {std::nullopt}; //场景内所有系统的根系统
-
-        inline static std::vector<std::tuple<Entity, bool>> removingEntities = {};
-        inline static std::vector<std::tuple<Entity, const Archetype*>> movingEntities = {};
+        //实体信息
+        EntityInfoAllocator entityInfoAllocator;
+        EntityAllocator entities = EntityAllocator{entityInfoAllocator};
+        std::vector<std::tuple<Entity, bool>> removingEntities = {};
+        std::vector<std::tuple<Entity, const Archetype*>> movingEntities = {};
+        //系统信息
+        std::unordered_map<std::type_index, std::tuple<std::shared_ptr<System>, int>> systems;
+        std::unordered_map<System*, int> systemUsageCount = {}; //系统使用计数，实现按需自动加载和卸载系统
+        SystemGroup rootSystem = {std::nullopt}; //场景内所有系统的根系统
 
         /**
          * 将缓存的新增、删除、移动的实体，应用修改到实际的实体容器中
@@ -210,6 +177,7 @@ namespace Gleam
          * 4. 部分实体无法被立即销毁，例如渲染资源被异步的图形功能占用，因此必须等待相关功能（即系统的一次调用）完成后，才可处理。
          * 实际上最主要的原因是第1、4点，由于相关需求较为常用，故使用ECS实现。另外这些需求实际只要实现销毁延迟即可，但出于一致性原则，创建也采用了相同的流程。
          */
-        static void FlushEntityQueue();
+        void FlushEntityQueue();
+        void FlushSystemQueue();
     };
 }

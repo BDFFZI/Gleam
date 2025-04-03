@@ -44,6 +44,11 @@ namespace Gleam
             });
             return result;
         }
+        static void AddCreateArchetypeEvent(const std::function<void(const Archetype&)>& event)
+        {
+            createArchetypeEvent.emplace_back(event);
+        }
+        static uuids::uuid ComputeID(const std::vector<std::reference_wrapper<const Type>>& componentTypes);
 
         template <Component... TComponents>
         static Archetype& Create(const std::string_view name)
@@ -61,8 +66,7 @@ namespace Gleam
             return allArchetypes.emplace(archetype.id, std::move(archetype)).first->second;
         }
         static Archetype& Create(const std::vector<std::reference_wrapper<const Type>>& componentTypes, std::string_view name = "");
-        static Archetype& CreateOrGet(const std::vector<std::reference_wrapper<const Type>>& componentTypes);
-        static uuids::uuid GetID(const std::vector<std::reference_wrapper<const Type>>& componentTypes);
+        static std::optional<std::reference_wrapper<Archetype>> GetArchetype(const std::vector<std::reference_wrapper<const Type>>& componentTypes);
 
         bool operator==(const Archetype& other) const
         {
@@ -95,6 +99,7 @@ namespace Gleam
         Gleam_MakeType_Friend
 
         inline static std::unordered_map<uuids::uuid, Archetype> allArchetypes = {};
+        inline static std::vector<std::function<void(const Archetype&)>> createArchetypeEvent;
 
         std::string name;
         uuids::uuid id;
