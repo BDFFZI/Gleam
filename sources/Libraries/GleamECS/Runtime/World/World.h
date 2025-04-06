@@ -2,11 +2,10 @@
 
 #include <cassert>
 
-#include "../Heap.h"
-#include "../Archetype.h"
+#include "GleamECS/Runtime/Entity/EntityAllocator.h"
+#include "GleamECS/Runtime/Entity/EntityInfoAllocator.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
-#include "EntityInfoAllocator.h"
-#include "EntityAllocator.h"
+#include "GleamECS/Runtime/Scene/Scene.h"
 
 namespace Gleam
 {
@@ -23,125 +22,96 @@ namespace Gleam
         }
         EntityAllocator& GetEntityAllocator()
         {
-            return entities;
+            return entityAllocator;
         }
         SystemGroup& GetRootSystemGroup()
         {
             return rootSystem;
         }
-        void MoveEntityAllocator(EntityAllocator& entityAllocator);
-
-        bool HasEntity(const Entity entity)
+        auto GetAllScenes()
         {
-            return entityInfoAllocator.HasEntity(entity);
+            return allScenes | std::views::transform([](auto& scene) { return std::reference_wrapper(*scene); });
         }
 
-        Entity AddEntity(const Archetype& archetype)
+        void RemoveEntityAsync(Entity& entity)
         {
-            return entities.AddEntity(archetype);
+            removingEntities.emplace_back(entity);
+            entity = Entity::Null; //避免野指针
         }
-        template <Component... TComponents>
-        Entity AddEntity(const TComponents&... components)
-        {
-            Archetype& archetype = Archetype::CreateOrGet({Type::CreateOrGet<TComponents>()...});
-            Entity entity = AddEntity(archetype);
-            SetComponents(entity, components...);
-            return entity;
-        }
-        void RemoveEntity(Entity& entity, bool removeFromScene = true);
-        void MoveEntity(const Entity entity, const Archetype& newArchetype)
-        {
-            const EntityInfo& entityInfo = entityInfoAllocator.GetEntityInfo(entity);
-            entityInfo.allocator->MoveEntity(entity, newArchetype);
-        }
-        void CopyEntity(const Entity destination, const Entity source)
-        {
-            entities.CopyEntity(destination, source);
-        }
-        Entity CloneEntity(const Entity entity, const bool addToScene = true)
-        {
-            return entities.CloneEntity(entity, addToScene);
-        }
-
-        void RemoveEntityAsync(Entity& entity, bool removeFromScene = true);
         void MoveEntityAsync(const Entity entity, const Archetype& newArchetype)
         {
             movingEntities.emplace_back(entity, &newArchetype);
         }
-
-        template <class TSystem>
-        void AddSystem()
+        void RemoveComponentsAsync(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
         {
-            if constexpr (!std::is_void_v<typename TSystem::Group>)
-                AddSystem<typename TSystem::Group>();
+            Archetype& archetype = entityAllocator.CreateOrGetArchetype(entity, componentTypes, {});
+            MoveEntityAsync(entity, archetype);
+        }
 
-            auto& [system,count] = systems[typeid(TSystem)];
-            ++count;
-
-            if (count == 1) //首次添加
-            {
-                //创建实例
-                system = std::make_shared<TSystem>();
-                system->world = this;
-                //注册到组
-                SystemGroup* group = std::is_void_v<typename TSystem::Group> ? &rootSystem : std::get<0>(systems[typeid(typename TSystem::Group)]).get();
-                group->AddSubSystem(*system);
-            }
+        void AddSystem(SystemInfo& systemInfo, bool addToScene = true);
+        template <class TSystem>
+        void AddSystem(const bool addToScene = true)
+        {
+            AddSystem(System::CreateOrGetSystemInfo<TSystem>(), addToScene);
+        }
+        template <class... TSystem>
+        void AddSystems(const bool addToScene = true)
+        {
+            (AddSystem<TSystem>(addToScene), ...);
+        }
+        void RemoveSystem(SystemInfo& systemInfo, bool removeFromScene = true);
+        template <class TSystem>
+        void RemoveSystem(const bool removeFromScene = true)
+        {
+            RemoveSystem(System::CreateOrGetSystemInfo<TSystem>(), removeFromScene);
+        }
+        template <class... TSystem>
+        void RemoveSystems(const bool removeFromScene = true)
+        {
+            (RemoveSystem<TSystem>(removeFromScene), ...);
         }
         template <class TSystem>
-        void RemoveSystem()
-        {
-            if constexpr (!std::is_void_v<typename TSystem::Group>)
-                RemoveSystem<typename TSystem::Group>();
-
-            auto& [system,count] = systems.at(typeid(TSystem));
-            --count;
-
-            if (count == 0) //最终移除
-            {
-                //从组移除
-                SystemGroup* group = std::is_void_v<typename TSystem::Group> ? &rootSystem : std::get<0>(systems[typeid(typename TSystem::Group)]).get();
-                group->RemoveSubSystem(*system);
-                //销毁实例
-                //在Update时执行，因为要等待系统Stop事件执行完毕。
-            }
-        }
-        template <class TSystem>
-        std::weak_ptr<TSystem> FindSystem()
+        std::weak_ptr<TSystem> GetSystem()
         {
             if (!systems.contains(typeid(TSystem)))
                 return nullptr;
             return std::get<0>(systems.at(typeid(TSystem)));
         }
 
-        bool HasSystem(System& system);
         /**
-         * @brief 添加系统
-         *
-         * 1. 会自动递归添加依赖的系统组
-         * 2. 允许重复添加，会自动记录使用计数以供移除时使用
-         * 
-         * @param system 
+         * 创建一个空Scene
+         * @param name
+         * @param isRunning 
+         * @return 
          */
-        void AddSystem(System& system);
-        void AddSystems(std::initializer_list<std::reference_wrapper<System>> systems);
+        Scene& AddScene(std::string_view name = "", bool isRunning = false);
         /**
-         * @brief 移除系统
+         * 移除Scene并销毁或释放其托管的相关资源
          *
-         * 1. 会自动递归移除依赖的系统组
-         * 2. 重复添加后需重复移除，当使用计数为0时才会真正移除系统
-         * 
-         * @param system
-         * @param removeFromScene 
+         * 释放即让场景放弃其对托管资源的所有权，原本其托管的所有System和Entity将完全交由World管理。
+         * 因为除了Scene，World也有回收Entity和System的权力，当由World回收时，Scene应当释放所有权。
+         * @param scene
+         * @param release 
          */
-        void RemoveSystem(System& system, bool removeFromScene = true);
-        void RemoveSystems(std::initializer_list<std::reference_wrapper<System>> systems, bool removeFromScene = true);
-
-        void RemoveComponentsAsync(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
+        void RemoveScene(Scene& scene, bool release = false);
+        std::optional<std::reference_wrapper<Scene>> GetScene(std::string_view name)
         {
-            Archetype& archetype = CreateOrGetArchetype(entity, componentTypes, {});
-            MoveEntityAsync(entity, archetype);
+            auto it = std::ranges::find_if(allScenes, [name](std::unique_ptr<Scene>& scene) { return scene->GetName() == name; });
+            return it != allScenes.end() ? std::optional<std::reference_wrapper<Scene>>(**it) : std::nullopt;
         }
+        std::optional<std::reference_wrapper<Scene>> GetScene(const Entity entity)
+        {
+            if (auto it = entityToScene.find(entity); it != entityToScene.end())
+                return *it->second;
+            return std::nullopt;
+        }
+        std::optional<std::reference_wrapper<Scene>> GetScene(SystemInfo& system)
+        {
+            if (auto it = systemToScene.find(&system); it != systemToScene.end())
+                return *it->second;
+            return std::nullopt;
+        }
+
 
         void Update();
         void Clear();
@@ -157,15 +127,30 @@ namespace Gleam
         friend void Editor_InterceptRuntimeSystem();
         friend void ExtendWorldFunction();
 
+        void AddEntityEvent(Entity entity) const;
+        void RemoveEntityEvent(Entity entity);
+
         //实体信息
         EntityInfoAllocator entityInfoAllocator;
-        EntityAllocator entities = EntityAllocator{entityInfoAllocator};
-        std::vector<std::tuple<Entity, bool>> removingEntities = {};
+        EntityAllocator entityAllocator = EntityAllocator{entityInfoAllocator, [this](const Entity entity)
+            {
+                AddEntityEvent(entity);
+            },
+            [this](const Entity entity)
+            {
+                RemoveEntityEvent(entity);
+            }};
+        std::vector<std::tuple<Entity>> removingEntities = {};
         std::vector<std::tuple<Entity, const Archetype*>> movingEntities = {};
         //系统信息
-        std::unordered_map<std::type_index, std::tuple<std::shared_ptr<System>, int>> systems;
+        std::unordered_map<const Type*, std::tuple<std::shared_ptr<System>, int>> systems;
         std::unordered_map<System*, int> systemUsageCount = {}; //系统使用计数，实现按需自动加载和卸载系统
-        SystemGroup rootSystem = {std::nullopt}; //场景内所有系统的根系统
+        SystemGroup rootSystem = {std::nullopt, 0}; //场景内所有系统的根系统
+        //场景信息
+        Scene* activeScene = nullptr;
+        std::vector<std::unique_ptr<Scene>> allScenes = {};
+        std::unordered_map<SystemInfo*, Scene*> systemToScene = {};
+        std::unordered_map<Entity, Scene*> entityToScene = {};
 
         /**
          * 将缓存的新增、删除、移动的实体，应用修改到实际的实体容器中

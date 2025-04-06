@@ -25,10 +25,19 @@ namespace Gleam
         }
         std::unordered_map<const Archetype*, Heap>& GetEntityHeaps();
         Heap& GetEntityHeap(const Archetype& archetype);
+        void MergeEntityAllocator(EntityAllocator& other);
 
         //添加实体
         Entity AddEntity(const Archetype& archetype);
         void AddEntities(const Archetype& archetype, int count, Entity* outEntities = nullptr);
+        template <Component... TComponents>
+        Entity AddEntity(const TComponents&... components)
+        {
+            Archetype& archetype = Archetype::CreateOrGet({Type::CreateOrGet<TComponents>()...});
+            Entity entity = AddEntity(archetype);
+            SetComponents(entity, components...);
+            return entity;
+        }
         //移除实体
         void RemoveEntity(Entity& entity);
         //移动实体
@@ -57,7 +66,6 @@ namespace Gleam
             Archetype& archetype = CreateOrGetArchetype(entity, componentTypes, {});
             MoveEntity(entity, archetype);
         }
-
         template <Component TComponent>
         bool HasComponent(const Entity entity) const
         {

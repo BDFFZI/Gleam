@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "World/World.h"
 #include "Query.h"
 #include "GleamECS/Runtime/Entity/EntityAllocator.h"
 
@@ -33,16 +32,13 @@ namespace Gleam
             ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
         void Each(TFunction function)
         {
-            auto 
-            
-            template <class TFunction, size_t... Indices>
-                requires ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
-            void Each_Inner(TFunction function, std::index_sequence<Indices...>)
+            static Query& query = Query::GetQuery<TFilter, TComponents...>();
+
+            constexpr static auto Each_Inner = []<size_t... Indices>(EntityAllocator& entityAllocator, TFunction function, std::index_sequence<Indices...>)
             {
-                Query& query = Query::GetQuery<TFilter, TComponents...>();
                 for (const auto& [archetype,componentOffsets] : query.GetTargets())
                 {
-                    World::GetEntityAllocator().GetEntityHeap(*archetype).ForeachElements([function,&componentOffsets](std::byte* item)
+                    entityAllocator.GetEntityHeap(*archetype).ForeachElements([function,&componentOffsets](std::byte* item)
                     {
                         if constexpr (ViewIterator<TFunction, TComponents...>)
                             function(*reinterpret_cast<TComponents*>(item + componentOffsets[Indices])...);
@@ -50,30 +46,32 @@ namespace Gleam
                             function(*reinterpret_cast<Entity*>(item), *reinterpret_cast<TComponents*>(item + componentOffsets[Indices])...);
                     });
                 }
-            }
-            
-            Each_Inner(function, std::make_index_sequence<sizeof...(TComponents)>());
+            };
+
+            Each_Inner(*entityAllocator, function, std::make_index_sequence<sizeof...(TComponents)>());
         }
         void Fetch(std::vector<Entity>& result)
         {
-            Query& query = Query::GetQuery<TFilter, TComponents...>();
+            static Query& query = Query::GetQuery<TFilter, TComponents...>();
+
             for (const auto& [archetype,componentOffsets] : query.GetTargets())
             {
-                Heap& heap = World::GetEntityAllocator().GetEntityHeap(*archetype);
+                Heap& heap = entityAllocator->GetEntityHeap(*archetype);
                 heap.ForeachElements([&result](std::byte* item)
                 {
                     result.push_back(*reinterpret_cast<Entity*>(item));
                 });
             }
         }
-        int Count()
+        int Count() const
         {
+            static Query& query = Query::GetQuery<TFilter, TComponents...>();
+
             int count = 0;
 
-            Query& query = Query::GetQuery<TFilter, TComponents...>();
             for (const auto& [archetype,componentOffsets] : query.GetTargets())
             {
-                count += World::GetEntityAllocator().GetEntityHeap(*archetype).GetCount();
+                count += entityAllocator->GetEntityHeap(*archetype).GetCount();
             }
 
             return count;
@@ -81,8 +79,6 @@ namespace Gleam
 
     private:
         EntityAllocator* entityAllocator;
-
-
     };
 
     template <Component TComponent,Component... TComponents>

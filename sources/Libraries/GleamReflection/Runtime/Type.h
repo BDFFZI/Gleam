@@ -16,6 +16,14 @@ namespace Gleam
     template <typename T>
     struct Type_Raii
     {
+        /**
+         * shared_ptr内部通过重写虚函数（_Ref_count<T>转_Ref_count_base）来实现多态。
+         * 因此支持std::shared_ptr<T>转std::shared_ptr<void>，从而在擦除类型信息的同时保留回收物体的能力。
+         * 这种特征同样对其创建的std::weak<void>有效，因为它们是共享的_Ref_count_base。
+         * 但直接用std::shared_ptr<void>创建是不行的，因为void没有虚表，无法调用虚析构函数，因此有必要为创建智能指针生成反射函数。
+         * @param obj 
+         * @return 
+         */
         static std::shared_ptr<void> MakeShared(void* obj)
         {
             return std::shared_ptr<T>(static_cast<T*>(obj));
@@ -157,7 +165,7 @@ namespace Gleam
         void SetParent(std::optional<std::reference_wrapper<const Type>> parent);
         bool FindFields(std::string_view path, std::vector<FieldInfo>& result) const;
 
-        std::shared_ptr<void> MakeShared(void* address) const;
+        std::shared_ptr<void> MakeShared(void* ptr) const;
         void* Create() const;
         void Destroy(void* address) const;
         void Construct(void* address) const;
@@ -178,7 +186,7 @@ namespace Gleam
         int size = 0;
         std::optional<std::reference_wrapper<const Type>> parent = std::nullopt;
         std::vector<FieldInfo> fields = {};
-        
+
         std::function<std::shared_ptr<void>(void*)> makeShared = nullptr;
         std::function<void*()> create = nullptr;
         std::function<void(void*)> destroy = nullptr;
