@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "GameUISystem.h"
-#include "GleamECS/Runtime/Archetype.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamRendering/Runtime/Entity/Archetype.h"
 
@@ -20,4 +20,4 @@ private:
 
     void Start() override;
 };
-Gleam_MakeGlobalSystem(AssetSystem)
+Gleam_MakeSystem(AssetSystem)

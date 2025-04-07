@@ -46,7 +46,7 @@ namespace Gleam
             removingEntities.emplace_back(entity, removeFromScene);
             entity = Entity::Null; //避免野指针
         }
-        
+
         void MoveEntityAsync(const Entity entity, const Archetype& newArchetype)
         {
             movingEntities.emplace_back(entity, &newArchetype);
@@ -82,9 +82,15 @@ namespace Gleam
         template <class TSystem>
         std::weak_ptr<TSystem> GetSystem()
         {
-            if (!systems.contains(typeid(TSystem)))
-                return nullptr;
-            return std::get<0>(systems.at(typeid(TSystem)));
+            auto optionalType = Type::GetType(typeid(TSystem));
+            if (!optionalType.has_value())
+                return {};
+
+            auto it = systems.find(&optionalType.value().get());
+            if (it == systems.end())
+                return {};
+
+            return *reinterpret_cast<std::shared_ptr<TSystem>*>(&std::get<0>(it->second));
         }
 
         /**

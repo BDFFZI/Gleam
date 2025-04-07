@@ -15,17 +15,25 @@ namespace Gleam
     class Engine
     {
     public:
+        static World& GetDefaultWorld()
+        {
+            return defaultWorld;
+        }
         static void AddStartEvent(const std::function<void()>& event, int order = 0);
         static void AddStopEvent(const std::function<void()>& event, int order = 0);
         static void AddUpdateEvent(const std::function<void()>& event, int order = 0);
-        static void AddRuntimeSystems(std::initializer_list<std::reference_wrapper<System>> systems);
+        template <class... TSystem>
+        static void AddRuntimeSystems()
+        {
+            runtimeSystems.insert(runtimeSystems.end(), {&System::CreateOrGetSystemInfo<TSystem>()...});
+        }
 
         static void Start()
         {
             assert(!isStopping && "引擎尚未启动就已被关闭，请检查运行流程！");
 
             for (auto system : runtimeSystems)
-                World::AddSystem(system);
+                defaultWorld.AddSystem(*system);
 
             for (auto& event : startEvents | std::views::values)
                 event();
@@ -37,13 +45,13 @@ namespace Gleam
                 World::Update();
                 Profiler::End();
 #else
-                World::Update();
+                defaultWorld.Update();
 #endif
 
                 for (auto& event : updateEvents | std::views::values)
                     event();
             }
-            World::Clear();
+            defaultWorld.Clear();
 
             for (auto& event : stopEvents | std::views::values)
                 event();
@@ -55,7 +63,8 @@ namespace Gleam
         friend void Editor_InterceptRuntimeSystem();
         friend void Editor_PlayOrStopEngine();
 
-        static inline std::vector<std::reference_wrapper<System>> runtimeSystems;
+        static inline World defaultWorld = {};
+        static inline std::vector<SystemInfo*> runtimeSystems;
         static inline std::multimap<int, std::function<void()>> startEvents;
         static inline std::multimap<int, std::function<void()>> updateEvents;
         static inline std::multimap<int, std::function<void()>> stopEvents;
@@ -89,5 +98,5 @@ return 0;\
 }
 
     ///将系统添加到世界，并注册到运行时系统组
-#define Gleam_AddRuntimeSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::AddRuntimeSystems({__VA_ARGS__});}
+#define Gleam_AddRuntimeSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::AddRuntimeSystems<__VA_ARGS__>();}
 }

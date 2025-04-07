@@ -15,7 +15,7 @@ class MySystem : public System
         World::AddEntity(data);
     }
 };
-Gleam_MakeGlobalSystem(MySystem)
+Gleam_MakeSystem(MySystem)
 Gleam_AddEditorSystems(GlobalMySystem)
 
 Gleam_Main

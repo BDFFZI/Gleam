@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamEngine/Runtime/Entity/Transform.h"
 #include "GleamPresentation/Runtime/PresentationSystem.h"
 #include "GleamRendering/Runtime/Component/Camera.h"
 #include "GleamRendering/Runtime/Component/Renderer.h"
@@ -52,5 +52,5 @@ namespace Gleam
         void Start() override;
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(RenderingSystem)
+    Gleam_MakeSystem(RenderingSystem)
 }

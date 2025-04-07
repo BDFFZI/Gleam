@@ -47,7 +47,7 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(ProjectWindow)
+    Gleam_MakeSystem(ProjectWindow)
 
 #define Gleam_MakeProjectWindowDirectoryMenu(name,action) \
 Gleam_MakeInitEvent(){::Gleam::ProjectWindow::MakeDirectoryMenu(name,action);}

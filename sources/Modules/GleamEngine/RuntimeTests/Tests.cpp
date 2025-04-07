@@ -8,15 +8,17 @@
 
 using namespace Gleam;
 
-class MySystem : public System
+// class GameSystem
+
+class MySystem : public SystemT<PostUpdateSystem>
 {
-public:
-    MySystem(): System(GlobalPostUpdateSystem)
-    {
-    }
+    TimeSystem* timeSystem = nullptr;
+    int countDown = 3;
 
     void Start() override
     {
+        timeSystem = GetWorld().GetSystem<TimeSystem>().lock().get();
+
         std::cout << "Engine Start" << std::endl;
     }
     void Update() override
@@ -26,8 +28,9 @@ public:
         if (countDown == 0)
             Engine::Stop();
 
+        Time& time = timeSystem->GetDefaultTime();
         std::cout
-            << std::format("Time:{:f}\tDeltaTime:{:f}", GlobalTimeSystem.GetTime(), GlobalTimeSystem.GetDeltaTime())
+            << std::format("Time:{:f}\tDeltaTime:{:f}", time.GetTime(), time.GetDeltaTime())
             << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -36,10 +39,8 @@ public:
     {
         std::cout << "Engine Stop" << std::endl;
     }
-
-    int countDown = 3;
 };
-Gleam_MakeGlobalSystem(MySystem)
-Gleam_AddRuntimeSystems(GlobalMySystem)
+Gleam_MakeSystem(MySystem)
+Gleam_AddRuntimeSystems(MySystem)
 
-inline int main() { Gleam::Engine::Start(); return 0; }
+Gleam_Main

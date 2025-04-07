@@ -24,5 +24,5 @@ namespace Gleam
         Gleam_MakeType_AddField(isEnabled);
     }
 
-    Gleam_MakeGlobalSystem(MassSpringRenderingSystem)
+    Gleam_MakeSystem(MassSpringRenderingSystem)
 }

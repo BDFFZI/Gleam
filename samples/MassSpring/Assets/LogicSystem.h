@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GleamECS/Runtime/Archetype.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamMassSpring/Runtime/System/CollisionSystem.h"
 #include "GleamMassSpring/Runtime/System/ForceSystem.h"
@@ -45,4 +45,4 @@ class LogicSystem : public Gleam::System
     void Update() override;
     void FixedUpdate() const;
 };
-Gleam_MakeGlobalSystem(LogicSystem)
+Gleam_MakeSystem(LogicSystem)

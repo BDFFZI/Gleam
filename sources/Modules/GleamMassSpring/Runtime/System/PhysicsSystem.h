@@ -1,5 +1,5 @@
 #pragma once
-#include "GleamECS/Runtime/Archetype.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamMath/Runtime/LinearAlgebra/Vector.h"
@@ -22,5 +22,5 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(PhysicsSystem)
+    Gleam_MakeSystem(PhysicsSystem)
 }

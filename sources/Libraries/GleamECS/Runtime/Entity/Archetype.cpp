@@ -22,6 +22,9 @@ namespace Gleam
         Archetype tempArchetype = Archetype{name, types};
         Archetype& archetype = allArchetypes.emplace(tempArchetype.id, std::move(tempArchetype)).first->second;
 
+        for (auto createArchetype : createArchetypeEvent)
+            createArchetype(archetype);
+
         return archetype;
     }
     std::optional<std::reference_wrapper<Archetype>> Archetype::GetArchetype(const std::vector<std::reference_wrapper<const Type>>& componentTypes)

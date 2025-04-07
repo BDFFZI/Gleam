@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamEngine/Runtime/Entity/Transform.h"
 #include "System/InspectorWindow.h"
 
 namespace Gleam

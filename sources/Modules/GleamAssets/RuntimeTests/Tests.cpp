@@ -7,7 +7,7 @@
 #include "GleamAssets/Runtime/Asset/PersistentEntity.h"
 #include "GleamECS/Runtime/Scene.h"
 #include "GleamAssets/Runtime/Asset/BasicSceneInfo.h"
-#include "GleamECS/Runtime/Archetype.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamECS/Runtime/View.h"
 #include "GleamEngine/Runtime/Engine.h"
@@ -151,8 +151,8 @@ class MySystem2 : public System
         });
     }
 };
-Gleam_MakeGlobalSystem(MySystem)
-Gleam_MakeGlobalSystem(MySystem2)
+Gleam_MakeSystem(MySystem)
+Gleam_MakeSystem(MySystem2)
 
 TEST(Assets, Runtime)
 {

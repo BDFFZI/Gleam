@@ -1,18 +1,17 @@
-#include "CursorSystem.h"
-
-#include "GleamWindow/Runtime/Window.h"
+#include "Cursor.h"
+#include "Window.h"
 
 namespace Gleam
 {
-    bool CursorSystem::GetLockState() const
+    bool Cursor::GetLockState()
     {
         return isLocking;
     }
-    float2 CursorSystem::GetLockPosition() const
+    float2 Cursor::GetLockPosition()
     {
         return lockingPos;
     }
-    void CursorSystem::SetLockState(const bool state)
+    void Cursor::SetLockState(const bool state)
     {
         if (state)
         {
@@ -22,14 +21,14 @@ namespace Gleam
         else
             isLocking = false;
     }
-    void CursorSystem::SetVisible(const bool state)
+    void Cursor::SetVisible(const bool state)
     {
         if (state)
             glfwSetInputMode(Window::GetGlfwWindow(),GLFW_CURSOR,GLFW_CURSOR_NORMAL);
         else
             glfwSetInputMode(Window::GetGlfwWindow(),GLFW_CURSOR,GLFW_CURSOR_HIDDEN);
     }
-    void CursorSystem::Update()
+    void Cursor::Update()
     {
         if (isLocking)
             Window::SetMousePosition(lockingPos);

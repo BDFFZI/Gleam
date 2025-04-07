@@ -1,7 +1,7 @@
 ﻿#include "CollisionSystem.h"
 
 #include "GleamECS/Runtime/View.h"
-#include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamEngine/Runtime/Entity/Transform.h"
 #include "GleamMassSpring/Runtime/Component/Collider.h"
 #include "GleamMassSpring/Runtime/Component/Particle.h"
 #include "GleamMath/Runtime/Geometry/Geometry.h"

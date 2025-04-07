@@ -53,7 +53,7 @@ class MySystem : public System
         });
     }
 };
-Gleam_MakeGlobalSystem(MySystem)
+Gleam_MakeSystem(MySystem)
 
 Gleam_MakeEngineStartEvent(Init, 0)
 {

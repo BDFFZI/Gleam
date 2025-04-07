@@ -1,7 +1,5 @@
 ﻿#include "Window.h"
 
-#include <iostream>
-
 namespace Gleam
 {
     GLFWwindow* Window::GetGlfwWindow()

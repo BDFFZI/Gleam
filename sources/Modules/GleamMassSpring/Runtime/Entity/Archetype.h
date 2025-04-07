@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "GleamECS/Runtime/Archetype.h"
-#include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
+#include "GleamEngine/Runtime/Entity/Transform.h"
 #include "GleamEngine/Runtime/Entity/Archetype.h"
 #include "GleamMassSpring/Runtime/Component/Collider.h"
 #include "GleamMassSpring/Runtime/Component/Particle.h"

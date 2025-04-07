@@ -1,7 +1,7 @@
 #pragma once
 #include "GleamECS/Runtime/View.h"
 #include "GleamEngine/Runtime/Engine.h"
-#include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamEngine/Runtime/Entity/Transform.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamRendering/Runtime/Entity/Archetype.h"

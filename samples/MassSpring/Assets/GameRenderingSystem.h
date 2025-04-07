@@ -23,4 +23,4 @@ private:
     void Start() override;
     void Update() override;
 };
-Gleam_MakeGlobalSystem(GameRenderingSystem)
+Gleam_MakeSystem(GameRenderingSystem)

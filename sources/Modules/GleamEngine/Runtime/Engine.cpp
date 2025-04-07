@@ -16,10 +16,6 @@ namespace Gleam
     {
         updateEvents.insert({order, event});
     }
-    void Engine::AddRuntimeSystems(const std::initializer_list<std::reference_wrapper<System>> systems)
-    {
-        runtimeSystems.insert(runtimeSystems.end(), systems.begin(), systems.end());
-    }
     void Engine::Stop()
     {
         isStopping = true;

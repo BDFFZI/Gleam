@@ -1,11 +1,11 @@
 #pragma once
 
-#include "GleamECS/Runtime/Archetype.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamUI/Runtime/UI.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Editor/System/EditorUISystem.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
-#include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamEngine/Runtime/Entity/Transform.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamRendering/Runtime/Entity/Archetype.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
@@ -56,7 +56,7 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(SceneWindow)
+    Gleam_MakeSystem(SceneWindow)
 
 #define Gleam_AddSceneWindowUI(type,drawSceneUI)\
     Gleam_MakeInitEvent(){SceneWindow::AddCustomUI(typeid(type),\

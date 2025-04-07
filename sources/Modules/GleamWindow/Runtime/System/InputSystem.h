@@ -1,54 +1,35 @@
 ﻿#pragma once
 
-#include "WindowSystem.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
+#include "GleamEngine/Runtime/System/UpdateSystem.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "GleamMath/Runtime/Geometry/2D/Rectangle.h"
-#include "GleamWindow/Runtime/InputEnum.h"
+#include "GleamWindow/Runtime/Entity/Archetype.h"
 
 namespace Gleam
 {
+    struct Input;
     /**
      * 每帧将GLFW传入的用户输入解析成Gleam所用的输入格式
      */
-    class InputSystem : public System
+    class InputSystem : public SystemT<PreUpdateSystem>
     {
     public:
-        InputSystem(): System(GlobalWindowSystem)
+        Input& GetDefaultInput() const
         {
+            return GetAllocator().GetComponent<Input>(defaultInput);
         }
 
-        bool GetIsFocus() const;
-        bool GetMouseButtonDown(MouseButton mouseButton) const;
-        bool GetMouseButton(MouseButton mouseButton) const;
-        bool GetMouseButtonUp(MouseButton mouseButton) const;
-        bool GetKeyDown(KeyCode keyCode) const;
-        bool GetKey(KeyCode keyCode) const;
-        bool GetKeyUp(KeyCode keyCode) const;
-        float2 GetMousePosition() const { return mousePosition[1]; }
-        float2 GetMouseMoveDelta() const { return mousePosition[1] - mousePosition[0]; }
-        float2 GetMouseScrollDelta() const { return mouseScrollDelta; }
-        void SetFocusArea(const Rectangle rect) { focusArea = rect; }
-
     private:
-        Gleam_MakeType_Friend
+        Entity defaultInput = {};
+        View<Input> view = {};
 
-        Rectangle focusArea = {0, std::numeric_limits<float>::max()};
-        bool isFocus = true;
-        bool mouseButtonStates[3][2] = {};
-        bool keyboardStates[349][2] = {};
-        float2 mousePosition[2] = {};
-        float2 mouseScrollDelta = {};
-
+        void Start() override
+        {
+            defaultInput = GetAllocator().AddEntity(InputData);
+            view = GetView<Input>();
+        }
         void Update() override;
     };
-    Gleam_MakeTypeWithID(InputSystem, "")
-    {
-        Gleam_MakeType_AddField(focusArea);
-        Gleam_MakeType_AddField(isFocus);
-        transferrer.TransferField("mousePosition", value.mousePosition[1]);
-        Gleam_MakeType_AddField(mouseScrollDelta);
-    }
-
-    Gleam_MakeGlobalSystem(InputSystem)
+    Gleam_MakeSystem(InputSystem)
 }

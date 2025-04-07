@@ -14,5 +14,5 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(ParticleEditingSystem)
+    Gleam_MakeSystem(ParticleEditingSystem)
 }

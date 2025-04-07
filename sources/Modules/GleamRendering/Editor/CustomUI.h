@@ -1,6 +1,6 @@
 #pragma once
-#include "GleamECS/Runtime/Archetype.h"
-#include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
+#include "GleamEngine/Runtime/Entity/Transform.h"
 #include "GleamMath/Runtime/Geometry/2D/Rectangle.h"
 #include "GleamMath/Runtime/Geometry/3D/Point.h"
 #include "GleamMath/Runtime/Geometry/3D/Cuboid.h"

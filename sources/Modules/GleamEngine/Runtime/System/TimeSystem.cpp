@@ -1,54 +1,35 @@
 ﻿#include "TimeSystem.h"
 
+#include "GleamEngine/Runtime/Entity/Time.h"
+
 namespace Gleam
 {
-    void TimeSystem::SetAutoStepTime(const bool state)
-    {
-        autoStepTime = state;
-    }
-    void TimeSystem::SetStepTime(const float stepTime)
-    {
-        this->stepTime = stepTime;
-    }
-
-    void TimeSystem::Start()
-    {
-        maxDeltaTime = 0.1f;
-        fixedDeltaTime = 0.01f;
-        timeScale = 1;
-        stepTime = 0;
-
-        frameCount = -1;
-        deltaTimeReal = 0;
-        timeReal = 0;
-        deltaTime = 0;
-        time = 0;
-        fixedTime = 0;
-        fixedDeltaCount = 0;
-    }
     void TimeSystem::Update()
     {
-        if (frameCount == -1)
-            timer.Tick();
-
-        //帧数
-        frameCount++;
-        //真实时间
-        const float currentTimeReal = static_cast<float>(static_cast<double>(timer.Time()) / 1000.0);
-        deltaTimeReal = currentTimeReal - timeReal;
-        timeReal = currentTimeReal;
-        //游戏时间
-        if (autoStepTime)
-            deltaTime = std::min(maxDeltaTime, deltaTimeReal) * timeScale;
-        else
+        view.Each([](Time& time)
         {
-            deltaTime = stepTime;
-            stepTime = 0;
-        }
-        time += deltaTime;
-        //固定更新游戏时间
-        float fixedTimeDelta = time - fixedTime;
-        fixedDeltaCount = static_cast<int>(fixedTimeDelta / fixedDeltaTime);
-        fixedTime += static_cast<float>(fixedDeltaCount) * fixedDeltaTime;
+            if (time.frameCount == -1)
+                time.timer.Tick();
+
+            //帧数
+            time.frameCount++;
+            //真实时间
+            const float currentTimeReal = static_cast<float>(static_cast<double>(time.timer.Time()) / 1000.0);
+            time.deltaTimeReal = currentTimeReal - time.timeReal;
+            time.timeReal = currentTimeReal;
+            //游戏时间
+            if (time.autoStepTime)
+                time.deltaTime = std::min(time.maxDeltaTime, time.deltaTimeReal) * time.timeScale;
+            else
+            {
+                time.deltaTime = time.stepTime;
+                time.stepTime = 0;
+            }
+            time.time += time.deltaTime;
+            //固定更新游戏时间
+            float fixedTimeDelta = time.time - time.fixedTime;
+            time.fixedDeltaCount = static_cast<int>(fixedTimeDelta / time.fixedDeltaTime);
+            time.fixedTime += static_cast<float>(time.fixedDeltaCount) * time.fixedDeltaTime;
+        });
     }
 }

@@ -24,8 +24,11 @@ namespace Gleam
     }
     System& World::AddSystem(SystemInfo& systemInfo, const bool addToScene)
     {
+        if (addToScene && activeScene != nullptr)
+            activeScene->AddSystem(systemInfo);
+
         if (systemInfo.group != nullptr)
-            AddSystem(*systemInfo.group);
+            AddSystem(*systemInfo.group, false);
 
         auto& [system,count] = systems[systemInfo.type];
         ++count;
@@ -44,10 +47,13 @@ namespace Gleam
 
         return *system;
     }
-    void World::RemoveSystem(SystemInfo& systemInfo, bool removeFromScene)
+    void World::RemoveSystem(SystemInfo& systemInfo, const bool removeFromScene)
     {
+        if (removeFromScene && activeScene != nullptr)
+            activeScene->RemoveSystem(systemInfo);
+
         if (systemInfo.group != nullptr)
-            RemoveSystem(*systemInfo.group);
+            RemoveSystem(*systemInfo.group, false);
 
         auto& [system,count] = systems.at(systemInfo.type);
         --count;
@@ -67,12 +73,15 @@ namespace Gleam
         std::unique_ptr<Scene>& scene = allScenes.emplace_back(std::make_unique<Scene>(
             *this, name, isRunning
         ));
+        activeScene = scene.get();
         return *scene;
     }
     void World::RemoveScene(Scene& scene, const bool release)
     {
         if (release)
             scene.Release();
+        if (activeScene == &scene)
+            activeScene = nullptr;
         erase_if(allScenes, [&scene](auto& scenePtr) { return scenePtr.get() == &scene; });
     }
 
@@ -100,8 +109,8 @@ namespace Gleam
             entityAllocator.MoveEntity(entity, *archetype);
         movingEntities.clear();
 
-        for (auto [entity] : removingEntities)
-            entityAllocator.RemoveEntity(entity);
+        for (auto [entity,removeFromScene] : removingEntities)
+            RemoveEntity(entity, removeFromScene);
         removingEntities.clear();
     }
     void World::FlushSystemQueue()

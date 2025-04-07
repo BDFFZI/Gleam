@@ -374,8 +374,7 @@ TEST(ECS, View)
     world.RemoveEntityAsync(physicsWithSpring);
 }
 
-// TEST(ECS, Scene)
-void main()
+TEST(ECS, Scene)
 {
     class TestSystem : public SystemT<>
     {

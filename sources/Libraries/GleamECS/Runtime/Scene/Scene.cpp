@@ -41,8 +41,6 @@ namespace Gleam
 
         systems.emplace(&system);
         world->systemToScene.emplace(&system, this);
-        if (isRunning)
-            world->AddSystem(system, false);
     }
     void Scene::RemoveSystem(SystemInfo& system)
     {
@@ -50,8 +48,6 @@ namespace Gleam
 
         systems.erase(&system);
         world->systemToScene.erase(&system);
-        if (isRunning)
-            world->RemoveSystem(system, false);
     }
     void Scene::AddEntity(Entity entity)
     {

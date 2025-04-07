@@ -98,7 +98,7 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(InspectorWindow)
+    Gleam_MakeSystem(InspectorWindow)
 
 #define Gleam_AddInspectorWindowUI(type,drawInspectorUI)\
     Gleam_MakeInitEvent(){InspectorWindow::MakeCustomUI(typeid(type),\

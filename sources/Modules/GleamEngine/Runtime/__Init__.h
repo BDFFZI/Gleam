@@ -11,17 +11,17 @@
 namespace Gleam
 {
     Gleam_AddRuntimeSystems(
-        GlobalPreUpdateSystem,
-        GlobalPostUpdateSystem,
-        GlobalTimeSystem,
-        GlobalTransformSystem
+        PreUpdateSystem,
+        PostUpdateSystem,
+        TimeSystem,
+        TransformSystem
     );
 
 #ifdef GleamEngineEditor
     Gleam_AddEditorSystems(
-        GlobalPreUpdateSystem,
-        GlobalPostUpdateSystem,
-        GlobalTransformSystem
+        PreUpdateSystem,
+        PostUpdateSystem,
+        TransformSystem
     );
 #endif
 }

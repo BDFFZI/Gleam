@@ -14,5 +14,5 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(LinesRendererSystem)
+    Gleam_MakeSystem(LinesRendererSystem)
 }

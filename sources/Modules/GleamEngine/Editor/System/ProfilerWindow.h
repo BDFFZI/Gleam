@@ -23,7 +23,7 @@ namespace Gleam
         void SetShowProfile(Profile& profile);
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(ProfilerWindow)
+    Gleam_MakeSystem(ProfilerWindow)
 
     void ProfilerWindow_FetchProfile();
 }

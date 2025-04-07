@@ -3,7 +3,6 @@
 
 #include "InputEnum.h"
 #include "GleamMath/Runtime/LinearAlgebra/Vector.h"
-#include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam
 {
@@ -32,8 +31,6 @@ namespace Gleam
         static void Update();
 
     private:
-        Gleam_MakeType_Friend
-
         inline static GLFWwindow* glfwWindow = nullptr;
         inline static float2 mousePosition = {};
         inline static float2 mouseScrollDelta = {};

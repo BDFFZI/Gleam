@@ -1,8 +1,7 @@
 #include "TransformSystem.h"
 
-#include "GleamECS/Runtime/View.h"
-#include "GleamEngine/Runtime/Component/Hierarchy.h"
-#include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamEngine/Runtime/Entity/Hierarchy.h"
+#include "GleamEngine/Runtime/Entity/Transform.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 
 namespace Gleam
@@ -16,18 +15,16 @@ namespace Gleam
     }
     void TransformSystem::Update()
     {
-        View<QueryExclusion<Parent>, LocalTransform, LocalToWorld>::Each(
-            [this](LocalTransform& localTransform, LocalToWorld& localToWorld)
-            {
-                ComputeLocalToWorld(localTransform, localToWorld);
-            }
-        );
+        GetView<QueryExclusion<Parent>, LocalTransform, LocalToWorld>().Each([this](LocalTransform& localTransform, LocalToWorld& localToWorld)
+        {
+            ComputeLocalToWorld(localTransform, localToWorld);
+        });
 
-        View<LocalTransform, LocalToWorld, Parent>::Each([this](LocalTransform& local, LocalToWorld& localToWorld, Parent& parent)
+        GetView<LocalTransform, LocalToWorld, Parent>().Each([this](LocalTransform& local, LocalToWorld& localToWorld, Parent& parent)
         {
         });
 
-        View<LocalToWorld, WorldToLocal>::Each([](LocalToWorld& localToWorld, WorldToLocal& worldToLocal)
+        GetView<LocalToWorld, WorldToLocal>().Each([](LocalToWorld& localToWorld, WorldToLocal& worldToLocal)
         {
             worldToLocal.value = inverse(localToWorld.value);
         });

@@ -111,7 +111,7 @@ class TestSystem : public System
         }
     }
 };
-Gleam_MakeGlobalSystem(TestSystem)
+Gleam_MakeSystem(TestSystem)
 Gleam_AddRuntimeSystems(GlobalTestSystem)
 
 #ifdef GleamEngineEditor

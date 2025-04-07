@@ -26,7 +26,7 @@ namespace Gleam
         {
         }
     };
-    Gleam_MakeGlobalSystem(EditorUISystem)
+    Gleam_MakeSystem(EditorUISystem)
 
 #define Gleam_AddEditorMenu(name,action) \
     Gleam_MakeInitEvent(){EditorUISystem::MakeEditorMenu(name,action);}

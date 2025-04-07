@@ -47,10 +47,6 @@ namespace Gleam
 
         virtual ~System() = default;
 
-        World& GetWorld() const
-        {
-            return *world;
-        }
         System& GetGroup() const
         {
             return *group;
@@ -60,6 +56,11 @@ namespace Gleam
             return order;
         }
 
+    protected:
+        World& GetWorld() const
+        {
+            return *world;
+        }
         EntityAllocator& GetAllocator() const;
         template <class... T>
         View<T...> GetView()
@@ -79,6 +80,7 @@ namespace Gleam
 
     private:
         friend class World;
+        friend class SystemGroup;
 
         inline static std::unordered_map<uuids::uuid, SystemInfo> systemInfoMap;
 
@@ -104,8 +106,8 @@ namespace Gleam
     {
     };
 
-#define Gleam_MakeGlobalSystem(systemClass) \
-inline systemClass& Global##systemClass = ::Gleam::System::CreateGlobal<systemClass>("",::Gleam::Type::CreateOrGet<systemClass>().GetID());
+#define Gleam_MakeSystem(systemClass) \
+inline SystemInfo& systemClass##Info = ::Gleam::System::CreateOrGetSystemInfo<systemClass>();
 #define Gleam_MakeGlobalSystemWithID(systemClass,uuidStr) \
 inline systemClass& Global##systemClass = ::Gleam::System::CreateGlobal<systemClass>("",uuids::uuid::from_string(uuidStr).value());
 }

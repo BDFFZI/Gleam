@@ -1,21 +1,17 @@
 #pragma once
 #include "UpdateSystem.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
-#include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamEngine/Runtime/Entity/Transform.h"
 
 namespace Gleam
 {
-    class TransformSystem : public System
+    class TransformSystem : public SystemT<PostUpdateSystem>
     {
     public:
         static void ComputeLocalToWorld(LocalTransform localTransform, LocalToWorld& localToWorld);
 
-        TransformSystem(): System(GlobalPostUpdateSystem)
-        {
-        }
-
     private:
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(TransformSystem)
+    Gleam_MakeSystem(TransformSystem)
 }

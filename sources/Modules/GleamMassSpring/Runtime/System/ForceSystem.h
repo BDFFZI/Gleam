@@ -26,5 +26,5 @@ namespace Gleam
         Gleam_MakeType_AddField(gravity);
     }
 
-    Gleam_MakeGlobalSystem(ForceSystem);
+    Gleam_MakeSystem(ForceSystem);
 }

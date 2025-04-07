@@ -22,7 +22,7 @@ namespace Gleam
         {
         }
     };
-    Gleam_MakeGlobalSystem(UISystem)
+    Gleam_MakeSystem(UISystem)
 
     /**
      * UI子系统模板，便于快速编写自定义UI

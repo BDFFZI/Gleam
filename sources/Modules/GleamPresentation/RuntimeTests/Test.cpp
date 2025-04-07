@@ -19,7 +19,7 @@ private:
         Gleam::GlobalPresentationSystem.GetPresentGCommandBuffer().ClearRenderTarget(Gleam::float4{0, 0, 1, 1});
     }
 };
-Gleam_MakeGlobalSystem(MySystem)
+Gleam_MakeSystem(MySystem)
 Gleam_AddRuntimeSystems(GlobalMySystem)
 
 Gleam_Main

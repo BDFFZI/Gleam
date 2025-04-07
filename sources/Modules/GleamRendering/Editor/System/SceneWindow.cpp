@@ -2,7 +2,7 @@
 
 #include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Editor/System/EditorTimeSystem.h"
-#include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamEngine/Runtime/Entity/Transform.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamRendering/Runtime/Entity/Archetype.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"

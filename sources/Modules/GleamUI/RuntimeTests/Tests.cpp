@@ -85,7 +85,7 @@ private:
         }
     }
 };
-Gleam_MakeGlobalSystem(MySystem)
+Gleam_MakeSystem(MySystem)
 Gleam_AddRuntimeSystems(GlobalMySystem)
 
 Gleam_Main

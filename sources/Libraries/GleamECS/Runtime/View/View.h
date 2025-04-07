@@ -25,7 +25,7 @@ namespace Gleam
     {
     public:
         View() = default;
-        View(EntityAllocator& entityAllocator): entityAllocator(&entityAllocator)
+        View(EntityAllocator& entityAllocator): entityAllocator(&entityAllocator), query(&Query::GetQuery<TFilter, TComponents...>())
         {
         }
 
@@ -33,9 +33,7 @@ namespace Gleam
             ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
         void Each(TFunction function)
         {
-            static Query& query = Query::GetQuery<TFilter, TComponents...>();
-
-            constexpr static auto Each_Inner = []<size_t... Indices>(EntityAllocator& entityAllocator, TFunction function, std::index_sequence<Indices...>)
+            constexpr static auto Each_Inner = []<size_t... Indices>(Query& query, EntityAllocator& entityAllocator, TFunction function, std::index_sequence<Indices...>)
             {
                 for (const auto& [archetype,componentOffsets] : query.GetTargets())
                 {
@@ -49,13 +47,11 @@ namespace Gleam
                 }
             };
 
-            Each_Inner(*entityAllocator, function, std::make_index_sequence<sizeof...(TComponents)>());
+            Each_Inner(*query, *entityAllocator, function, std::make_index_sequence<sizeof...(TComponents)>());
         }
         void Fetch(std::vector<Entity>& result)
         {
-            static Query& query = Query::GetQuery<TFilter, TComponents...>();
-
-            for (const auto& [archetype,componentOffsets] : query.GetTargets())
+            for (const auto& [archetype,componentOffsets] : query->GetTargets())
             {
                 Heap& heap = entityAllocator->GetEntityHeap(*archetype);
                 heap.ForeachElements([&result](std::byte* item)
@@ -66,11 +62,9 @@ namespace Gleam
         }
         int Count() const
         {
-            static Query& query = Query::GetQuery<TFilter, TComponents...>();
-
             int count = 0;
 
-            for (const auto& [archetype,componentOffsets] : query.GetTargets())
+            for (const auto& [archetype,componentOffsets] : query->GetTargets())
             {
                 count += entityAllocator->GetEntityHeap(*archetype).GetCount();
             }
@@ -80,6 +74,7 @@ namespace Gleam
 
     private:
         EntityAllocator* entityAllocator;
+        Query* query;
     };
 
     template <Component TComponent,Component... TComponents>

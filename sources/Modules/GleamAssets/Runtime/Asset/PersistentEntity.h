@@ -1,5 +1,5 @@
 #pragma once
-#include "GleamECS/Runtime/Archetype.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamECS/Runtime/World/World.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 

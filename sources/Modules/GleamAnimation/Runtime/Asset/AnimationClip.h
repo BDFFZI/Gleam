@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "AnimationCurve.h"
-#include "GleamECS/Runtime/Archetype.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 
 namespace Gleam
