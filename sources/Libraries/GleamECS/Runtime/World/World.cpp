@@ -2,7 +2,27 @@
 
 namespace Gleam
 {
-    void World::AddSystem(SystemInfo& systemInfo, const bool addToScene)
+    Entity World::AddEntity(const Archetype& archetype, const bool addToScene)
+    {
+        Entity entity = entityAllocator.AddEntity(archetype);
+
+        if (addToScene && activeScene != nullptr)
+            activeScene->AddEntity(entity);
+
+        return entity;
+    }
+    void World::RemoveEntity(Entity& entity, const bool removeFromScene)
+    {
+        if (removeFromScene)
+        {
+            auto optionalScene = GetScene(entity);
+            if (optionalScene.has_value())
+                optionalScene->get().RemoveEntity(entity);
+        }
+
+        entityAllocator.RemoveEntity(entity);
+    }
+    System& World::AddSystem(SystemInfo& systemInfo, const bool addToScene)
     {
         if (systemInfo.group != nullptr)
             AddSystem(*systemInfo.group);
@@ -12,13 +32,17 @@ namespace Gleam
 
         if (count == 1) //首次添加
         {
+            SystemGroup* group = systemInfo.group == nullptr ? &rootSystem : dynamic_cast<SystemGroup*>(std::get<0>(systems[systemInfo.group->type]).get());
             //创建实例
             system = std::shared_ptr<System>(static_cast<System*>(systemInfo.type->Create()));
             system->world = this;
+            system->group = group;
+            system->order = systemInfo.order;
             //注册到组
-            SystemGroup* group = systemInfo.group == nullptr ? &rootSystem : dynamic_cast<SystemGroup*>(std::get<0>(systems[systemInfo.group->type]).get());
             group->AddSubSystem(*system);
         }
+
+        return *system;
     }
     void World::RemoveSystem(SystemInfo& systemInfo, bool removeFromScene)
     {
@@ -70,17 +94,6 @@ namespace Gleam
         entityInfoAllocator.Clear();
     }
 
-    void World::AddEntityEvent(const Entity entity) const
-    {
-        if (activeScene != nullptr)
-            activeScene->AddEntity(entity);
-    }
-    void World::RemoveEntityEvent(const Entity entity)
-    {
-        auto optionalScene = GetScene(entity);
-        if (optionalScene.has_value())
-            optionalScene->get().RemoveEntity(entity);
-    }
     void World::FlushEntityQueue()
     {
         for (const auto& [entity,archetype] : movingEntities)
@@ -98,6 +111,8 @@ namespace Gleam
             int count = std::get<1>(it->second);
             if (count == 0)
                 it = systems.erase(it);
+            else
+                ++it;
         }
     }
 }

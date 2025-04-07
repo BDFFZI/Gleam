@@ -17,10 +17,6 @@ namespace Gleam
     class SystemGroup : public System
     {
     public:
-        SystemGroup(const std::optional<std::type_index> group, const int order) : System(group, order)
-        {
-        }
-
         /**
          * 统计所有子系统，包括递归，但不包含正在卸载的子系统。
          * 也即是在用户调用AddSubSystem和RemoveSubSystem后逻辑上子系统集合。
@@ -80,17 +76,17 @@ namespace Gleam
     };
 
     template <class TGroup = void, int TMinOrder = SystemMinOrder, int TMaxOrder = SystemMaxOrder>
-    class SystemGroupT : SystemBaseT<SystemGroup, TGroup, TMinOrder, TMaxOrder>
+    class SystemGroupT : public SystemBaseT<SystemGroup, TGroup, TMinOrder, TMaxOrder>
     {
     };
 
     template <class TParentSystem, int Order>
-    class AbsoluteSystemGroupT : AbsoluteSystemBaseT<SystemGroup, TParentSystem, Order>
+    class AbsoluteSystemGroupT : public AbsoluteSystemBaseT<SystemGroup, TParentSystem, Order>
     {
     };
 
     template <class TBrotherSystem, OrderRelation Relation>
-    class RelativeSystemGroupT : RelativeSystemBaseT<SystemGroup, TBrotherSystem, Relation>
+    class RelativeSystemGroupT : public RelativeSystemBaseT<SystemGroup, TBrotherSystem, Relation>
     {
     };
 }

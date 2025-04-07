@@ -44,11 +44,11 @@ namespace Gleam
         {
             static_cast<T*>(address)->T::~T();
         }
-        static void MoveConstruct(void* destination, void* source)
+        static void MoveConstruct(void* destination, void* source) requires std::is_move_constructible_v<T>
         {
             new(destination) T(std::move(*static_cast<T*>(source)));
         }
-        static void Move(void* destination, void* source)
+        static void Move(void* destination, void* source) requires std::is_move_assignable_v<T>
         {
             *static_cast<T*>(destination) = std::move(*static_cast<T*>(source));
         }
@@ -99,8 +99,10 @@ namespace Gleam
             type.destroy = Type_Raii<T>::Destroy;
             type.construct = Type_Raii<T>::Construct;
             type.destruct = Type_Raii<T>::Destruct;
-            type.moveConstruct = Type_Raii<T>::MoveConstruct;
-            type.move = Type_Raii<T>::Move;
+            if constexpr (requires() { Type_Raii<T>::MoveConstruct; })
+                type.moveConstruct = Type_Raii<T>::MoveConstruct;
+            if constexpr (requires() { Type_Raii<T>::Move; })
+                type.move = Type_Raii<T>::Move;
             if constexpr (requires() { Type_Raii<T>::CopyConstruct; })
                 type.copyConstruct = Type_Raii<T>::CopyConstruct;
             if constexpr (requires() { Type_Raii<T>::Copy; })
@@ -159,6 +161,8 @@ namespace Gleam
         int GetSize() const;
         std::optional<std::reference_wrapper<const Type>> GetParent() const;
         const std::vector<FieldInfo>& GetFields() const;
+        bool CanMoveConstruct() const { return moveConstruct != nullptr; }
+        bool CanMove() const { return move != nullptr; }
         bool CanCopyConstruct() const { return copyConstruct != nullptr; }
         bool CanCopy() const { return copy != nullptr; }
 

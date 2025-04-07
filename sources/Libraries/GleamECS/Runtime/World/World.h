@@ -15,6 +15,11 @@ namespace Gleam
     class World
     {
     public:
+        ~World()
+        {
+            Clear();
+        }
+
         //世界内容
         EntityInfoAllocator& GetEntityInfoAllocator()
         {
@@ -33,11 +38,15 @@ namespace Gleam
             return allScenes | std::views::transform([](auto& scene) { return std::reference_wrapper(*scene); });
         }
 
-        void RemoveEntityAsync(Entity& entity)
+
+        Entity AddEntity(const Archetype& archetype, bool addToScene = true);
+        void RemoveEntity(Entity& entity, bool removeFromScene = true);
+        void RemoveEntityAsync(Entity& entity, bool removeFromScene = true)
         {
-            removingEntities.emplace_back(entity);
+            removingEntities.emplace_back(entity, removeFromScene);
             entity = Entity::Null; //避免野指针
         }
+        
         void MoveEntityAsync(const Entity entity, const Archetype& newArchetype)
         {
             movingEntities.emplace_back(entity, &newArchetype);
@@ -48,11 +57,11 @@ namespace Gleam
             MoveEntityAsync(entity, archetype);
         }
 
-        void AddSystem(SystemInfo& systemInfo, bool addToScene = true);
+        System& AddSystem(SystemInfo& systemInfo, bool addToScene = true);
         template <class TSystem>
-        void AddSystem(const bool addToScene = true)
+        TSystem& AddSystem(const bool addToScene = true)
         {
-            AddSystem(System::CreateOrGetSystemInfo<TSystem>(), addToScene);
+            return reinterpret_cast<TSystem&>(AddSystem(System::CreateOrGetSystemInfo<TSystem>(), addToScene));
         }
         template <class... TSystem>
         void AddSystems(const bool addToScene = true)
@@ -127,25 +136,15 @@ namespace Gleam
         friend void Editor_InterceptRuntimeSystem();
         friend void ExtendWorldFunction();
 
-        void AddEntityEvent(Entity entity) const;
-        void RemoveEntityEvent(Entity entity);
-
         //实体信息
         EntityInfoAllocator entityInfoAllocator;
-        EntityAllocator entityAllocator = EntityAllocator{entityInfoAllocator, [this](const Entity entity)
-            {
-                AddEntityEvent(entity);
-            },
-            [this](const Entity entity)
-            {
-                RemoveEntityEvent(entity);
-            }};
-        std::vector<std::tuple<Entity>> removingEntities = {};
+        EntityAllocator entityAllocator = EntityAllocator{entityInfoAllocator};
+        std::vector<std::tuple<Entity, bool>> removingEntities = {};
         std::vector<std::tuple<Entity, const Archetype*>> movingEntities = {};
         //系统信息
         std::unordered_map<const Type*, std::tuple<std::shared_ptr<System>, int>> systems;
         std::unordered_map<System*, int> systemUsageCount = {}; //系统使用计数，实现按需自动加载和卸载系统
-        SystemGroup rootSystem = {std::nullopt, 0}; //场景内所有系统的根系统
+        SystemGroup rootSystem = {}; //场景内所有系统的根系统
         //场景信息
         Scene* activeScene = nullptr;
         std::vector<std::unique_ptr<Scene>> allScenes = {};

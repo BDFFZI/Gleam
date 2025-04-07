@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "GleamReflection/Runtime/Type.h"
-#include "GleamECS/Runtime/Archetype.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
 
 struct Transform
 {

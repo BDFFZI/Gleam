@@ -6,6 +6,9 @@
 
 namespace Gleam
 {
+    class World;
+    class System;
+
     struct SystemInfo
     {
         const Type* type;
@@ -13,16 +16,15 @@ namespace Gleam
         int order;
     };
 
-    class World;
-
     /**
      * 系统是一种高级的封装版事件。
      * 通过相对位置、嵌套等结构，实现在引擎中自由轻松的嵌入各种代码。
      */
+    // ReSharper disable once CppClassNeedsConstructorBecauseOfUninitializedMember
     class System
     {
     public:
-        template <class TSystem>
+        template <class TSystem> requires std::derived_from<TSystem, System>
         static SystemInfo& CreateOrGetSystemInfo()
         {
             Type& type = Type::CreateOrGet<TSystem>();
@@ -30,7 +32,10 @@ namespace Gleam
                 return systemInfoMap[type.GetID()];
 
             SystemInfo& systemInfo = systemInfoMap[type.GetID()];
-            systemInfo.group = std::is_void_v<typename TSystem::Group> ? nullptr : CreateOrGetSystemInfo<typename TSystem::Group>();
+            if constexpr (std::is_void_v<typename TSystem::Group>)
+                systemInfo.group = nullptr;
+            else
+                systemInfo.group = &CreateOrGetSystemInfo<typename TSystem::Group>();
             systemInfo.order = TSystem::Order;
             systemInfo.type = &type;
             return systemInfo;
@@ -40,33 +45,26 @@ namespace Gleam
             return systemInfoMap.at(typeID);
         }
 
-        System(const std::optional<std::type_index> group, const int order) : group(group), order(order)
-        {
-        }
-        System(const System&) = delete;
-        System& operator=(const System&) = delete;
-        System(System&&) = delete;
-        System& operator=(System&&) = delete;
         virtual ~System() = default;
 
         World& GetWorld() const
         {
             return *world;
         }
+        System& GetGroup() const
+        {
+            return *group;
+        }
+        int GetOrder() const
+        {
+            return order;
+        }
+
         EntityAllocator& GetAllocator() const;
         template <class... T>
         View<T...> GetView()
         {
             return View<T...>(GetAllocator());
-        }
-
-        std::optional<std::type_index> GetGroup() const
-        {
-            return group;
-        }
-        int GetOrder() const
-        {
-            return order;
         }
 
         virtual void Start()
@@ -80,28 +78,29 @@ namespace Gleam
         }
 
     private:
-        friend World;
+        friend class World;
 
         inline static std::unordered_map<uuids::uuid, SystemInfo> systemInfoMap;
 
-        World* world = nullptr; //由World修改
-        std::optional<std::type_index> group;
-        int order;
+        //由World创建时赋值
+        World* world = nullptr;
+        System* group = nullptr;
+        int order = 0;
     };
 
 
     template <class TGroup = void, int TMinOrder = SystemMinOrder, int TMaxOrder = SystemMaxOrder>
-    class SystemT : SystemBaseT<System, TGroup, TMinOrder, TMaxOrder>
+    class SystemT : public SystemBaseT<System, TGroup, TMinOrder, TMaxOrder>
     {
     };
 
     template <class TParentSystem, int Order>
-    class AbsoluteSystemT : AbsoluteSystemBaseT<System, TParentSystem, Order>
+    class AbsoluteSystemT : public AbsoluteSystemBaseT<System, TParentSystem, Order>
     {
     };
 
     template <class TBrotherSystem, OrderRelation Relation>
-    class RelativeSystemT : RelativeSystemBaseT<System, TBrotherSystem, Relation>
+    class RelativeSystemT : public RelativeSystemBaseT<System, TBrotherSystem, Relation>
     {
     };
 

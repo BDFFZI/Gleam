@@ -24,6 +24,7 @@ namespace Gleam
     class View<TFilter, TComponents...>
     {
     public:
+        View() = default;
         View(EntityAllocator& entityAllocator): entityAllocator(&entityAllocator)
         {
         }
@@ -85,5 +86,10 @@ namespace Gleam
         requires (sizeof...(TComponents) + 1 != 0) && !QueryFilter<TComponent>
     class View<TComponent, TComponents...> : public View<QueryAlways, TComponent, TComponents...>
     {
+    public:
+        View() = default;
+        View(EntityAllocator& entityAllocator): View<QueryAlways, TComponent, TComponents...>(entityAllocator)
+        {
+        }
     };
 }

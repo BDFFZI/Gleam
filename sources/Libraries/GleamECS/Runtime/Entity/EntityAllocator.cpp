@@ -69,9 +69,6 @@ namespace Gleam
         assert(entity != Entity::Null && "实体为空！");
         assert(entityInfoAllocator->HasEntity(entity) && "实体不存在！");
 
-        if (removeEntityEvent != nullptr)
-            removeEntityEvent(entity);
-
         const EntityInfo entityInfo = entityInfoAllocator->GetEntityInfo(entity);
         //去除实体信息
         entityInfoAllocator->SetEntityInfo(entity, std::nullopt);
@@ -163,9 +160,6 @@ namespace Gleam
         AddEntityUninitialized(*sourceEntityInfo.archetype, newEntity, newEntityInfo);
         sourceEntityInfo.archetype->CopyConstruct(newEntityInfo.memoryAddress, sourceEntityInfo.memoryAddress);
         *reinterpret_cast<Entity*>(newEntityInfo.memoryAddress) = newEntity;
-
-        if (addEntityEvent != nullptr)
-            addEntityEvent(newEntity);
 
         return newEntity;
     }

@@ -12,11 +12,12 @@ namespace Gleam
     class EntityAllocator
     {
     public:
-        explicit EntityAllocator(
-            EntityInfoAllocator& entityInfoAllocator,
-            const std::function<void(Entity)>& addEntityEvent = nullptr, const std::function<void(Entity)>& removeEntityEvent = nullptr)
-            : entityInfoAllocator(&entityInfoAllocator), addEntityEvent(addEntityEvent), removeEntityEvent(removeEntityEvent)
+        explicit EntityAllocator(EntityInfoAllocator& entityInfoAllocator): entityInfoAllocator(&entityInfoAllocator)
         {
+        }
+        ~EntityAllocator()
+        {
+            Clear();
         }
 
         EntityInfoAllocator& GetEntityInfoAllocator() const
@@ -136,8 +137,6 @@ namespace Gleam
     private:
         EntityInfoAllocator* entityInfoAllocator = nullptr;
         std::unordered_map<const Archetype*, Heap> entityHeaps;
-        std::function<void(Entity)> addEntityEvent;
-        std::function<void(Entity)> removeEntityEvent;
 
         void AddEntityUninitialized(const Archetype& archetype, Entity& outEntity, EntityInfo& outEntityInfo);
 
