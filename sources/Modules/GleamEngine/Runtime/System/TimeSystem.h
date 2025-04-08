@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "UpdateSystem.h"
+#include "GleamECS/Runtime/View/View.h"
 #include "GleamEngine/Runtime/Entity/Archetype.h"
 #include "GleamEngine/Runtime/Entity/Time.h"
 #include "GleamReflection/Runtime/Type.h"
@@ -13,18 +14,15 @@ namespace Gleam
     public:
         Time& GetDefaultTime() const
         {
-            return GetEntities().GetComponent<Time>(defaultTime);
+            return entities->GetComponent<Time>(defaultTime);
         }
 
     private:
-        Entity defaultTime = {};
+        EntityAllocator* entities = nullptr;
         View<Time> view = {};
+        Entity defaultTime = {};
 
-        void Start() override
-        {
-            defaultTime = GetEntities().AddEntity(TimeData);
-            view = GetView<Time>();
-        }
+        void Start() override;
         void Update() override;
     };
     Gleam_MakeSystem(TimeSystem)

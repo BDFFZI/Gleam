@@ -24,6 +24,8 @@ namespace Gleam
 
     void EditorUISystem::Start()
     {
+        timeSystem = &World::GetCurrentWorld().GetSystemAllocator().GetSystem<TimeSystem>();
+
         //初始化ImGuizmo
         ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
         ImGuizmo::AllowAxisFlip(false); //禁用手柄轴自动反转
@@ -44,13 +46,17 @@ namespace Gleam
             bool isPlaying = Editor::IsPlaying();
             if (ImGui::Checkbox("IsPlaying", &isPlaying))
                 Editor::IsPlaying() = isPlaying;
-            bool isPausing = !GlobalTimeSystem.GetAutoStepTime();
+
+            Time& time = timeSystem->GetDefaultTime();
+            //暂停
+            bool isPausing = !time.GetAutoStepTime();
             if (ImGui::Checkbox("IsPausing", &isPausing))
-                GlobalTimeSystem.SetAutoStepTime(!isPausing);
+                time.SetAutoStepTime(!isPausing);
+            //步进
             if (ImGui::Button("NextFrame"))
             {
-                GlobalTimeSystem.SetAutoStepTime(false);
-                GlobalTimeSystem.SetStepTime(GlobalTimeSystem.GetFixedDeltaTime());
+                time.SetAutoStepTime(false);
+                time.SetStepTime(time.GetFixedDeltaTime());
             }
 
             //自定义菜单项

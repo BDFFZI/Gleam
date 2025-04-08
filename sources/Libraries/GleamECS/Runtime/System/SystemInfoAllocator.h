@@ -86,6 +86,10 @@ inline ::Gleam::SystemInfo& systemClass##Info = ::Gleam::SystemInfoAllocator::Cr
         constexpr static int MaxOrder = TMaxOrder;
         constexpr static int Order = static_cast<int32_t>((static_cast<int64_t>(TMinOrder) + static_cast<int64_t>(TMaxOrder)) / 2);
         using Group = TGroup;
+
+        SystemBaseT(): TBase(Order)
+        {
+        }
     };
 
     template <class TBase, class TParentSystem, int Order>

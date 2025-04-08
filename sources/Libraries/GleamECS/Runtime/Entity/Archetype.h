@@ -66,7 +66,7 @@ namespace Gleam
             return allArchetypes.emplace(archetype.id, std::move(archetype)).first->second;
         }
         static Archetype& Create(const std::vector<std::reference_wrapper<const Type>>& componentTypes, std::string_view name = "");
-        static Archetype& CreateOrGet(const std::vector<std::reference_wrapper<const Type>>& componentTypes, std::string_view name = "")
+        static Archetype& CreateOrGet(const std::vector<std::reference_wrapper<const Type>>& componentTypes, const std::string_view name = "")
         {
             return GetArchetype(componentTypes).value_or(Create(componentTypes, name));
         }

@@ -7,11 +7,16 @@
 
 class MySystem : public Gleam::SystemT<Gleam::PresentationSystem>
 {
+    Gleam::PresentationSystem* presentationSystem = {};
+
+    void Start() override
+    {
+        presentationSystem = Gleam::World::GetCurrentWorld().GetSystemAllocator().GetSystemPtr<Gleam::PresentationSystem>().lock().get();
+    }
     void Update() override
     {
-        Gleam::PresentationSystem& presentationSystem = reinterpret_cast<Gleam::PresentationSystem&>(GetGroup());
-        presentationSystem.GetPresentGCommandBuffer().SetRenderTarget(Gleam::SwapChain::GetPresentRenderTarget());
-        presentationSystem.GetPresentGCommandBuffer().ClearRenderTarget(Gleam::float4{0, 0, 1, 1});
+        presentationSystem->GetPresentGCommandBuffer().SetRenderTarget(Gleam::SwapChain::GetPresentRenderTarget());
+        presentationSystem->GetPresentGCommandBuffer().ClearRenderTarget(Gleam::float4{0, 0, 1, 1});
     }
 };
 Gleam_MakeSystem(MySystem)

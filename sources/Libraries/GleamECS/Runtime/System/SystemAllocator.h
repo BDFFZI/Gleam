@@ -10,10 +10,6 @@ namespace Gleam
     class SystemAllocator
     {
     public:
-        SystemAllocator(World& world) : world(&world)
-        {
-        }
-
         System& AddSystem(SystemInfo& systemInfo);
         template <class TSystem>
         TSystem& AddSystem()
@@ -37,7 +33,7 @@ namespace Gleam
             (RemoveSystem<TSystem>(), ...);
         }
         template <class TSystem>
-        std::weak_ptr<TSystem> GetSystem()
+        std::weak_ptr<TSystem> GetSystemPtr()
         {
             auto optionalType = Type::GetType(typeid(TSystem));
             if (!optionalType.has_value())
@@ -49,13 +45,18 @@ namespace Gleam
 
             return *reinterpret_cast<std::shared_ptr<TSystem>*>(&std::get<0>(it->second));
         }
+        template <class TSystem>
+        TSystem& GetSystem()
+        {
+            return *reinterpret_cast<TSystem*>(std::get<0>(systems.at(&Type::GetType(typeid(TSystem)).value().get())).get());
+        }
 
         void Update();
         void Clear();
+
     private:
-        World* world = nullptr;
         std::unordered_map<const Type*, std::tuple<std::shared_ptr<System>, int>> systems = {};
         std::unordered_map<System*, int> systemUsageCount = {}; //系统使用计数，实现按需自动加载和卸载系统
-        SystemGroup rootSystem = {}; //场景内所有系统的根系统
+        SystemGroup rootSystem = {0}; //场景内所有系统的根系统
     };
 }

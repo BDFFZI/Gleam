@@ -17,7 +17,7 @@ class MySystem : public SystemT<PostUpdateSystem>
 
     void Start() override
     {
-        timeSystem = GetWorld().GetSystem<TimeSystem>().lock().get();
+        timeSystem = World::GetCurrentWorld().GetSystemAllocator().GetSystemPtr<TimeSystem>().lock().get();
 
         std::cout << "Engine Start" << std::endl;
     }

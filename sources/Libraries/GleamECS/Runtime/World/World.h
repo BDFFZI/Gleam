@@ -6,6 +6,7 @@
 #include "GleamECS/Runtime/Entity/EntityInfoAllocator.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamECS/Runtime/Scene/Scene.h"
+#include "GleamECS/Runtime/System/SystemAllocator.h"
 
 namespace Gleam
 {
@@ -15,6 +16,11 @@ namespace Gleam
     class World
     {
     public:
+        static World& GetCurrentWorld()
+        {
+            return *currentWorld;
+        }
+
         ~World()
         {
             Clear();
@@ -29,16 +35,15 @@ namespace Gleam
         {
             return entityAllocator;
         }
-        SystemGroup& GetRootSystemGroup()
+        SystemAllocator& GetSystemAllocator()
         {
-            return rootSystem;
+            return systemAllocator;
         }
         auto GetAllScenes()
         {
             return allScenes | std::views::transform([](auto& scene) { return std::reference_wrapper(*scene); });
         }
-
-
+        
         Entity AddEntity(const Archetype& archetype, bool addToScene = true);
         void RemoveEntity(Entity& entity, bool removeFromScene = true);
         void RemoveEntityAsync(Entity& entity, bool removeFromScene = true)
@@ -46,7 +51,6 @@ namespace Gleam
             removingEntities.emplace_back(entity, removeFromScene);
             entity = Entity::Null; //避免野指针
         }
-
         void MoveEntityAsync(const Entity entity, const Archetype& newArchetype)
         {
             movingEntities.emplace_back(entity, &newArchetype);
@@ -63,34 +67,11 @@ namespace Gleam
         {
             return reinterpret_cast<TSystem&>(AddSystem(SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>(), addToScene));
         }
-        template <class... TSystem>
-        void AddSystems(const bool addToScene = true)
-        {
-            (AddSystem<TSystem>(addToScene), ...);
-        }
         void RemoveSystem(SystemInfo& systemInfo, bool removeFromScene = true);
         template <class TSystem>
         void RemoveSystem(const bool removeFromScene = true)
         {
             RemoveSystem(SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>(), removeFromScene);
-        }
-        template <class... TSystem>
-        void RemoveSystems(const bool removeFromScene = true)
-        {
-            (RemoveSystem<TSystem>(removeFromScene), ...);
-        }
-        template <class TSystem>
-        std::weak_ptr<TSystem> GetSystem()
-        {
-            auto optionalType = Type::GetType(typeid(TSystem));
-            if (!optionalType.has_value())
-                return {};
-
-            auto it = systems.find(&optionalType.value().get());
-            if (it == systems.end())
-                return {};
-
-            return *reinterpret_cast<std::shared_ptr<TSystem>*>(&std::get<0>(it->second));
         }
 
         /**
@@ -142,15 +123,14 @@ namespace Gleam
         friend void Editor_InterceptRuntimeSystem();
         friend void ExtendWorldFunction();
 
+        inline static World* currentWorld = nullptr;
         //实体信息
         EntityInfoAllocator entityInfoAllocator;
         EntityAllocator entityAllocator = EntityAllocator{entityInfoAllocator};
+        SystemAllocator systemAllocator = SystemAllocator{};
+        //缓存的结构化更改
         std::vector<std::tuple<Entity, bool>> removingEntities = {};
         std::vector<std::tuple<Entity, const Archetype*>> movingEntities = {};
-        //系统信息
-        std::unordered_map<const Type*, std::tuple<std::shared_ptr<System>, int>> systems;
-        std::unordered_map<System*, int> systemUsageCount = {}; //系统使用计数，实现按需自动加载和卸载系统
-        SystemGroup rootSystem = {}; //场景内所有系统的根系统
         //场景信息
         Scene* activeScene = nullptr;
         std::vector<std::unique_ptr<Scene>> allScenes = {};
@@ -167,7 +147,6 @@ namespace Gleam
          * 4. 部分实体无法被立即销毁，例如渲染资源被异步的图形功能占用，因此必须等待相关功能（即系统的一次调用）完成后，才可处理。
          * 实际上最主要的原因是第1、4点，由于相关需求较为常用，故使用ECS实现。另外这些需求实际只要实现销毁延迟即可，但出于一致性原则，创建也采用了相同的流程。
          */
-        void FlushEntityQueue();
-        void FlushSystemQueue();
+        void FlushAsyncChange();
     };
 }

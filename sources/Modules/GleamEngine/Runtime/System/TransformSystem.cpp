@@ -13,18 +13,25 @@ namespace Gleam
         float4x4 translate = float4x4::Translate(localTransform.position);
         localToWorld.value = mul(translate, static_cast<float4x4>(mul(rotate, scale)));
     }
+    void TransformSystem::Start()
+    {
+        EntityAllocator& entityAllocator = World::GetCurrentWorld().GetEntityAllocator();
+        rootNodeView = entityAllocator;
+        childNodeView = entityAllocator;
+        nodeView = entityAllocator;
+    }
     void TransformSystem::Update()
     {
-        GetView<QueryExclusion<Parent>, LocalTransform, LocalToWorld>().Each([this](LocalTransform& localTransform, LocalToWorld& localToWorld)
+        rootNodeView.Each([this](LocalTransform& localTransform, LocalToWorld& localToWorld)
         {
             ComputeLocalToWorld(localTransform, localToWorld);
         });
 
-        GetView<LocalTransform, LocalToWorld, Parent>().Each([this](LocalTransform& local, LocalToWorld& localToWorld, Parent& parent)
+        childNodeView.Each([this](LocalTransform& local, LocalToWorld& localToWorld, Parent& parent)
         {
         });
 
-        GetView<LocalToWorld, WorldToLocal>().Each([](LocalToWorld& localToWorld, WorldToLocal& worldToLocal)
+        nodeView.Each([](LocalToWorld& localToWorld, WorldToLocal& worldToLocal)
         {
             worldToLocal.value = inverse(localToWorld.value);
         });

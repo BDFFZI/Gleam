@@ -4,6 +4,8 @@
 #include <typeindex>
 #include <benchmark/benchmark.h>
 #include <gtest/gtest.h>
+
+#include "GleamECS/Runtime/View/View.h"
 #include "GleamECS/Runtime/World/World.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 
@@ -301,9 +303,17 @@ public:
     constexpr static float DeltaTime = 0.02f;
 
 private:
+    View<Transform, RigidBody> view1 = {};
+    View<Transform, RigidBody, SpringPhysics> view2 = {};
+
+    void Start() override
+    {
+        view1 = {World::GetCurrentWorld().GetEntityAllocator()};
+        view2 = {World::GetCurrentWorld().GetEntityAllocator()};
+    }
     void Update() override
     {
-        GetView<Transform, RigidBody>().Each([](Transform& transform, RigidBody& rigidBody)
+        view1.Each([](Transform& transform, RigidBody& rigidBody)
         {
             float acceleration = rigidBody.force / rigidBody.mass; //牛顿第二定律
             acceleration += rigidBody.mass * -9.8f; //添加重力加速度
@@ -311,8 +321,7 @@ private:
             transform.position += rigidBody.velocity * DeltaTime;
             rigidBody.force = 0;
         });
-
-        GetView<Transform, RigidBody, SpringPhysics>().Each([](Transform& transform, RigidBody& rigidBody, SpringPhysics& spring)
+        view2.Each([](Transform& transform, RigidBody& rigidBody, SpringPhysics& spring)
         {
             float vector = spring.pinPosition - transform.position;
             float direction = vector >= 0 ? 1 : -1;
@@ -382,7 +391,7 @@ TEST(ECS, Scene)
 
         void Start() override
         {
-            view = View<Transform>(GetWorld().GetEntityAllocator());
+            view = {World::GetCurrentWorld().GetEntityAllocator()};
             view.Each([](Transform& transform)
             {
                 transform.position++;

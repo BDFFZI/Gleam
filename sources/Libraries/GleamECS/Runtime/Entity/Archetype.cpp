@@ -22,7 +22,7 @@ namespace Gleam
         Archetype tempArchetype = Archetype{name, types};
         Archetype& archetype = allArchetypes.emplace(tempArchetype.id, std::move(tempArchetype)).first->second;
 
-        for (auto createArchetype : createArchetypeEvent)
+        for (const auto& createArchetype : createArchetypeEvent)
             createArchetype(archetype);
 
         return archetype;

@@ -8,6 +8,12 @@
 using namespace Gleam;
 
 
+void InputSystem::Start()
+{
+    entities = &World::GetCurrentWorld().GetEntityAllocator();
+    view = {*entities};
+    defaultInput = entities->AddEntity(InputData);
+}
 void InputSystem::Update()
 {
     view.Each([](Input& input)

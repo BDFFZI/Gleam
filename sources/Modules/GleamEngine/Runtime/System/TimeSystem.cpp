@@ -4,6 +4,12 @@
 
 namespace Gleam
 {
+    void TimeSystem::Start()
+    {
+        entities = &World::GetCurrentWorld().GetEntityAllocator();
+        view = {*entities};
+        defaultTime = entities->AddEntity(TimeData);
+    }
     void TimeSystem::Update()
     {
         view.Each([](Time& time)

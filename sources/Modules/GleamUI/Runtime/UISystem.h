@@ -14,12 +14,9 @@ namespace Gleam
 {
     class UISystem : public UISystemBase
     {
-        PresentationSystem& presentationSystem;
+        PresentationSystem* presentationSystem = nullptr;
 
-        void Start() override
-        {
-            presentationSystem = GetEntities()
-        }
+        void Start() override;
         void Update() override;
     };
     Gleam_MakeSystem(UISystem)

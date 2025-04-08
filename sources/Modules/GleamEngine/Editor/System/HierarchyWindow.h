@@ -5,13 +5,9 @@
 
 namespace Gleam
 {
-    class HierarchyWindow : public System
+    class HierarchyWindow : public SystemT<EditorUISystem>
     {
     public:
-        HierarchyWindow(): System(GlobalEditorUISystem)
-        {
-        }
-
         static bool DrawEntity(Entity entity);
         static bool DrawSystem(System& system);
         static void DrawSubSystems(SystemGroup& systemGroup);

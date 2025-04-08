@@ -17,6 +17,11 @@ namespace Gleam
     class SystemGroup : public System
     {
     public:
+        SystemGroup(const int order)
+            : System(order)
+        {
+        }
+
         /**
          * 统计所有子系统，包括递归，但不包含正在卸载的子系统。
          * 也即是在用户调用AddSubSystem和RemoveSubSystem后逻辑上子系统集合。

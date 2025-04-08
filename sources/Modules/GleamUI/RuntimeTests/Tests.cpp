@@ -2,19 +2,14 @@
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamUI/Runtime/UI.h"
 #include "GleamUI/Runtime/UISystem.h"
-#include "GleamWindow/Runtime/System/CursorSystem.h"
+#include "GleamWindow/Runtime/Library/Cursor.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 
 using namespace Gleam;
 
-class MySystem : public System
+class MySystem : public SystemT<UISystem>
 {
-public:
-    MySystem(): System(GlobalUISystem)
-    {
-    }
-
-private:
+    InputSystem* inputSystem = nullptr;
     ImTextureID textureID = {};
     std::unique_ptr<GTexture2D> texture = {};
     float4x4 matrix = {
@@ -26,6 +21,7 @@ private:
 
     void Start() override
     {
+        inputSystem = &World::GetCurrentWorld().GetSystemAllocator().GetSystem<InputSystem>();
         float4 colors[] = {
             float4::White(), float4::Black(), float4::Red(),
             float4::Green(), float4::Blue(), float4::Gray(),
@@ -58,7 +54,7 @@ private:
 
         ImGui::ArrowButton("ArrowButton", ImGuiDir_Right);
 
-        UI::DragFloat4x4("matrix", &matrix);
+        UI::DragScalarMatrix("matrix", ImGuiDataType_Float, &matrix, 4, 4);
 
         std::unordered_map<std::string, float> map = {
             {"Test1/Test1", 2},
@@ -70,22 +66,23 @@ private:
         ImGui::DragScalarN("DragScalarN", ImGuiDataType_Float, floatValues, std::size(floatValues));
 
         //逻辑处理
-        if (GlobalInputSystem.GetKeyDown(KeyCode::Esc))
+        Input& input = inputSystem->GetDefaultInput();
+        if (input.GetKeyDown(KeyCode::Esc))
             Engine::Stop();
 
-        if (GlobalInputSystem.GetMouseButtonDown(MouseButton::Right))
+        if (input.GetMouseButtonDown(MouseButton::Right))
         {
-            GlobalCursorSystem.SetLockState(true);
-            GlobalCursorSystem.SetVisible(false);
+            Cursor::SetLockState(true);
+            Cursor::SetVisible(false);
         }
-        else if (GlobalInputSystem.GetMouseButtonUp(MouseButton::Right))
+        else if (input.GetMouseButtonUp(MouseButton::Right))
         {
-            GlobalCursorSystem.SetLockState(false);
-            GlobalCursorSystem.SetVisible(true);
+            Cursor::SetLockState(false);
+            Cursor::SetVisible(true);
         }
     }
 };
 Gleam_MakeSystem(MySystem)
-Gleam_AddRuntimeSystems(GlobalMySystem)
 
+Gleam_AddRuntimeSystems(MySystem)
 Gleam_Main

@@ -1,14 +1,8 @@
 #pragma once
 #include "SystemInfoAllocator.h"
-#include "GleamECS/Runtime/Entity/EntityAllocator.h"
-#include "GleamECS/Runtime/View/View.h"
 
 namespace Gleam
 {
-    class World;
-    class System;
-
-
     /**
      * 系统是一种高级的封装版事件。
      * 通过相对位置、嵌套等结构，实现在引擎中自由轻松的嵌入各种代码。
@@ -17,29 +11,18 @@ namespace Gleam
     class System
     {
     public:
+        System(const int order)
+            : order(order)
+        {
+        }
         virtual ~System() = default;
 
-        System& GetGroup() const
-        {
-            return *group;
-        }
         int GetOrder() const
         {
             return order;
         }
 
     protected:
-        World& GetWorld() const
-        {
-            return *world;
-        }
-        EntityAllocator& GetEntities() const;
-        template <class... T>
-        View<T...> GetView()
-        {
-            return View<T...>(GetEntities());
-        }
-
         virtual void Start()
         {
         }
@@ -51,12 +34,7 @@ namespace Gleam
         }
 
     private:
-        friend class SystemAllocator;
         friend class SystemGroup;
-
-        //由World创建时赋值
-        World* world = nullptr;
-        System* group = nullptr;
         int order = 0;
     };
 

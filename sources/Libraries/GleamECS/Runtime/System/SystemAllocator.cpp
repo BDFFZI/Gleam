@@ -15,9 +15,6 @@ namespace Gleam
             SystemGroup* group = systemInfo.group == nullptr ? &rootSystem : dynamic_cast<SystemGroup*>(std::get<0>(systems[systemInfo.group->type]).get());
             //创建实例
             system = std::shared_ptr<System>(static_cast<System*>(systemInfo.type->Create()));
-            system->world = world;
-            system->group = group;
-            system->order = systemInfo.order;
             //注册到组
             group->AddSubSystem(*system);
         }
@@ -45,6 +42,7 @@ namespace Gleam
     {
         rootSystem.Update();
 
+        //移除无效系统
         for (auto it = systems.begin(); it != systems.end();)
         {
             int count = std::get<1>(it->second);
@@ -59,6 +57,7 @@ namespace Gleam
         for (auto& count : systemUsageCount | std::views::values)
             count++; //抑制用户回收方法，防止重复回收
         rootSystem.Stop();
+        systems.clear();
         systemUsageCount.clear();
     }
 }

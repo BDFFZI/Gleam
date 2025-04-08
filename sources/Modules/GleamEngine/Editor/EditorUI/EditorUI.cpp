@@ -19,7 +19,7 @@ namespace Gleam
     {
         if (ImGui::Button(std::format("Entity:{}", static_cast<uint32_t>(entity)).c_str()))
         {
-            GlobalInspectorWindow.SetTarget(entity);
+            Engine::GetDefaultWorld().GetSystemAllocator().GetSystem<InspectorWindow>().SetTarget(entity);
         }
         if (ImGui::BeginDragDropSource())
         {

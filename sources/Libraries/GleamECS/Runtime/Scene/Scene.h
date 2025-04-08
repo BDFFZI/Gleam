@@ -1,9 +1,13 @@
 #pragma once
 #include <unordered_set>
+
+#include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
 
 namespace Gleam
 {
+    class World;
+
     /**
      * 场景是一种能将世界中的实体和系统分组托管并持久化的容器。其使用场景如下
      * 1. 托管世界中的实体，使其在场景销毁时连带销毁。
@@ -14,7 +18,6 @@ namespace Gleam
     class Scene
     {
     public:
-
         Scene(World& world, const std::string_view name, const bool isRunning)
             : world(&world), name(name), isRunning(isRunning)
         {
@@ -24,7 +27,6 @@ namespace Gleam
          *
          * 释放即让场景放弃其对托管资源的所有权，原本其托管的所有System和Entity将完全交由World管理。
          * 因为除了Scene，World也有回收Entity和System的权力，当由World回收时，Scene应当释放所有权。
-         * @param scene
          */
         ~Scene();
         Scene(Scene&) = delete;

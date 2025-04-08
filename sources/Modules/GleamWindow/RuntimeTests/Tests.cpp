@@ -18,8 +18,7 @@ class InputTest : public SystemT<>
 
     void Start() override
     {
-        inputSystem = GetWorld().GetSystem<InputSystem>().lock().get();
-
+        inputSystem = World::GetCurrentWorld().GetSystemAllocator().GetSystemPtr<InputSystem>().lock().get();
         windowPosition = Window::GetWindowPosition();
         resolution = static_cast<float2>(Window::GetResolution());
     }
