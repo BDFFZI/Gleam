@@ -4,7 +4,7 @@
 
 namespace Gleam
 {
-    EntityAllocator& System::GetAllocator() const
+    EntityAllocator& System::GetEntities() const
     {
         return world->GetEntityAllocator();
     }

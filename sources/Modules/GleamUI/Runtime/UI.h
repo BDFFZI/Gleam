@@ -11,6 +11,7 @@ operator Gleam::float4()const{return Gleam::float4{x,y,z,w};}
 // ReSharper restore CppUnusedIncludeDirective
 
 #include "GleamGL/Runtime/Resource/GLDescriptorPool.h"
+#include "GleamGraphics/Runtime/GCommandBuffer.h"
 #include "GleamGraphics/Runtime/Resource/GTexture/GTexture.h"
 #include "GleamMath/Runtime/LinearAlgebra/Matrix.h"
 
@@ -22,7 +23,7 @@ namespace Gleam
         static void Init();
         static void UnInit();
         static void BeginFrame();
-        static void EndFrame();
+        static void EndFrame(GCommandBuffer& commandBuffer);
 
         static ImTextureID CreateTexture(GTexture& texture);
         static void DeleteTexture(ImTextureID& texture);

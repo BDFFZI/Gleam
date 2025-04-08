@@ -1,15 +1,55 @@
 ﻿#pragma once
-#include <cstdint>
-#include <limits>
-#include <optional>
-#include <typeindex>
-#include <type_traits>
+#include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam
 {
+    struct SystemInfo
+    {
+        const Type* type;
+        SystemInfo* group;
+        int order;
+    };
+
+    class SystemInfoAllocator
+    {
+    public:
+        template <class TSystem> requires requires() { typename TSystem::Group;TSystem::Order; }
+        static SystemInfo& CreateOrGetSystemInfo()
+        {
+            Type& type = Type::CreateOrGet<TSystem>();
+            if (systemInfoMap.contains(type.GetID()))
+                return systemInfoMap[type.GetID()];
+
+            SystemInfo& systemInfo = systemInfoMap[type.GetID()];
+            if constexpr (std::is_void_v<typename TSystem::Group>)
+                systemInfo.group = nullptr;
+            else
+                systemInfo.group = &CreateOrGetSystemInfo<typename TSystem::Group>();
+            systemInfo.order = TSystem::Order;
+            systemInfo.type = &type;
+            return systemInfo;
+        }
+        static SystemInfo& GetSystemInfo(const uuids::uuid typeID)
+        {
+            return systemInfoMap.at(typeID);
+        }
+
+    private:
+        inline static std::unordered_map<uuids::uuid, SystemInfo> systemInfoMap;
+    };
+
+#define Gleam_MakeSystem(systemClass) \
+inline ::Gleam::SystemInfo& systemClass##Info = ::Gleam::SystemInfoAllocator::CreateOrGetSystemInfo<systemClass>();
+
     static constexpr int32_t SystemMinOrder = std::numeric_limits<int32_t>::lowest();
     static constexpr int32_t SystemMaxOrder = std::numeric_limits<int32_t>::max();
     static constexpr int32_t SystemMidOrder = 0;
+
+    enum class OrderRelation:uint8_t
+    {
+        Before,
+        After
+    };
 
     template <typename T>
     consteval int32_t GetSystemMinOrder()
@@ -53,11 +93,6 @@ namespace Gleam
     {
     };
 
-    enum class OrderRelation:uint8_t
-    {
-        Before,
-        After
-    };
 
     template <class TBase, class TBrotherSystem, OrderRelation Relation>
     class RelativeSystemBaseT : public SystemBaseT<TBase, typename TBrotherSystem::Group,

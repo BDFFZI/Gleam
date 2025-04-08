@@ -25,12 +25,12 @@ namespace Gleam
     }
 
     Gleam_AddRuntimeSystems(
-        GlobalPresentationSystem
+        PresentationSystem
     )
 
 #ifdef GleamEngineEditor
     Gleam_AddEditorSystems(
-        GlobalPresentationSystem
+        PresentationSystem
     );
 #endif
 }

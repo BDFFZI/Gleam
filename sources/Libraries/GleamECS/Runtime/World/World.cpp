@@ -99,8 +99,8 @@ namespace Gleam
         systemUsageCount.clear();
 
         entityAllocator.Clear();
-        removingEntities.clear();
         entityInfoAllocator.Clear();
+        removingEntities.clear();
     }
 
     void World::FlushEntityQueue()

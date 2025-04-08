@@ -1,20 +1,13 @@
 #pragma once
-#include "SystemBaseT.h"
+#include "SystemInfoAllocator.h"
 #include "GleamECS/Runtime/Entity/EntityAllocator.h"
 #include "GleamECS/Runtime/View/View.h"
-#include "GleamReflection/Runtime/Type.h"
 
 namespace Gleam
 {
     class World;
     class System;
 
-    struct SystemInfo
-    {
-        const Type* type;
-        SystemInfo* group;
-        int order;
-    };
 
     /**
      * 系统是一种高级的封装版事件。
@@ -24,27 +17,6 @@ namespace Gleam
     class System
     {
     public:
-        template <class TSystem> requires std::derived_from<TSystem, System>
-        static SystemInfo& CreateOrGetSystemInfo()
-        {
-            Type& type = Type::CreateOrGet<TSystem>();
-            if (systemInfoMap.contains(type.GetID()))
-                return systemInfoMap[type.GetID()];
-
-            SystemInfo& systemInfo = systemInfoMap[type.GetID()];
-            if constexpr (std::is_void_v<typename TSystem::Group>)
-                systemInfo.group = nullptr;
-            else
-                systemInfo.group = &CreateOrGetSystemInfo<typename TSystem::Group>();
-            systemInfo.order = TSystem::Order;
-            systemInfo.type = &type;
-            return systemInfo;
-        }
-        static SystemInfo& GetSystemInfo(const uuids::uuid typeID)
-        {
-            return systemInfoMap.at(typeID);
-        }
-
         virtual ~System() = default;
 
         System& GetGroup() const
@@ -61,11 +33,11 @@ namespace Gleam
         {
             return *world;
         }
-        EntityAllocator& GetAllocator() const;
+        EntityAllocator& GetEntities() const;
         template <class... T>
         View<T...> GetView()
         {
-            return View<T...>(GetAllocator());
+            return View<T...>(GetEntities());
         }
 
         virtual void Start()
@@ -79,10 +51,8 @@ namespace Gleam
         }
 
     private:
-        friend class World;
+        friend class SystemAllocator;
         friend class SystemGroup;
-
-        inline static std::unordered_map<uuids::uuid, SystemInfo> systemInfoMap;
 
         //由World创建时赋值
         World* world = nullptr;
@@ -105,9 +75,4 @@ namespace Gleam
     class RelativeSystemT : public RelativeSystemBaseT<System, TBrotherSystem, Relation>
     {
     };
-
-#define Gleam_MakeSystem(systemClass) \
-inline SystemInfo& systemClass##Info = ::Gleam::System::CreateOrGetSystemInfo<systemClass>();
-#define Gleam_MakeGlobalSystemWithID(systemClass,uuidStr) \
-inline systemClass& Global##systemClass = ::Gleam::System::CreateGlobal<systemClass>("",uuids::uuid::from_string(uuidStr).value());
 }

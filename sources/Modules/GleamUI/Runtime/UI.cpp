@@ -7,9 +7,9 @@
 #include "GleamGraphics/Runtime/Graphics.h"
 #include "GleamGraphics/Runtime/SwapChain.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
-#include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamPresentation/Runtime/PresentationSystem.h"
 #include "GleamUtility/Runtime/String.h"
+#include "GleamWindow/Runtime/Library/Window.h"
 
 namespace Gleam
 {
@@ -82,12 +82,11 @@ namespace Gleam
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
     }
-    void UI::EndFrame()
+    void UI::EndFrame(GCommandBuffer& commandBuffer)
     {
         //生成绘制数据
         ImGui::Render();
         //提交绘制命令
-        GCommandBuffer& commandBuffer = GlobalPresentationSystem.GetPresentGCommandBuffer();
         commandBuffer.SetRenderTarget(SwapChain::GetPresentRenderTarget());
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer.GetGLCommandBuffer().commandBuffer);
     }

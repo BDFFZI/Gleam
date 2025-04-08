@@ -13,7 +13,7 @@ namespace Gleam
     public:
         Time& GetDefaultTime() const
         {
-            return GetAllocator().GetComponent<Time>(defaultTime);
+            return GetEntities().GetComponent<Time>(defaultTime);
         }
 
     private:
@@ -22,7 +22,7 @@ namespace Gleam
 
         void Start() override
         {
-            defaultTime = GetAllocator().AddEntity(TimeData);
+            defaultTime = GetEntities().AddEntity(TimeData);
             view = GetView<Time>();
         }
         void Update() override;

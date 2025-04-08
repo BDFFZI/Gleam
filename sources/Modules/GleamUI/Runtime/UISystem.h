@@ -5,35 +5,31 @@
 
 #ifdef GleamRenderingRuntime
 #include "GleamRendering/Runtime/System/RenderingSystem.h"
-#define Order GlobalRenderingSystem,OrderRelation::After
+#define UISystemBase RelativeSystemGroupT<RenderingSystem,SystemOrderRelation::After>
 #else
-#define Order GlobalPresentationSystem
+#define UISystemBase SystemGroupT<PresentationSystem>
 #endif
 
 namespace Gleam
 {
-    class UISystem : public SystemGroup
+    class UISystem : public UISystemBase
     {
-        Gleam_MakeType_Friend
+        PresentationSystem& presentationSystem;
 
-        void Update() override;
-
-        UISystem(): SystemGroup(Order)
+        void Start() override
         {
+            presentationSystem = GetEntities()
         }
+        void Update() override;
     };
     Gleam_MakeSystem(UISystem)
 
     /**
      * UI子系统模板，便于快速编写自定义UI
      */
-    class UISubSystem : public System
+    class UISubSystem : public SystemT<UISystem>
     {
-    public:
-        UISubSystem(): System(GlobalUISystem)
-        {
-        }
     };
 }
 
-#undef Order
+#undef UISystemGroup

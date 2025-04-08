@@ -61,7 +61,7 @@ namespace Gleam
         template <class TSystem>
         TSystem& AddSystem(const bool addToScene = true)
         {
-            return reinterpret_cast<TSystem&>(AddSystem(System::CreateOrGetSystemInfo<TSystem>(), addToScene));
+            return reinterpret_cast<TSystem&>(AddSystem(SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>(), addToScene));
         }
         template <class... TSystem>
         void AddSystems(const bool addToScene = true)
@@ -72,7 +72,7 @@ namespace Gleam
         template <class TSystem>
         void RemoveSystem(const bool removeFromScene = true)
         {
-            RemoveSystem(System::CreateOrGetSystemInfo<TSystem>(), removeFromScene);
+            RemoveSystem(SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>(), removeFromScene);
         }
         template <class... TSystem>
         void RemoveSystems(const bool removeFromScene = true)

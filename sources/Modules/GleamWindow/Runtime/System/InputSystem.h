@@ -17,7 +17,7 @@ namespace Gleam
     public:
         Input& GetDefaultInput() const
         {
-            return GetAllocator().GetComponent<Input>(defaultInput);
+            return GetEntities().GetComponent<Input>(defaultInput);
         }
 
     private:
@@ -26,7 +26,7 @@ namespace Gleam
 
         void Start() override
         {
-            defaultInput = GetAllocator().AddEntity(InputData);
+            defaultInput = GetEntities().AddEntity(InputData);
             view = GetView<Input>();
         }
         void Update() override;

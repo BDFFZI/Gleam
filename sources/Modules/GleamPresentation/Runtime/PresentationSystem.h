@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GleamECS/Runtime/System/SystemGroup.h"
+#include "GleamEngine/Runtime/System/TransformSystem.h"
 #include "GleamGL/Runtime/GLCommandBuffer.h"
 #include "GleamGraphics/Runtime/GCommandBuffer.h"
 #include "GleamEngine/Runtime/System/UpdateSystem.h"
@@ -10,13 +11,9 @@ namespace Gleam
     /**
      * 将最终数据可视化输出到外部呈现设备中
      */
-    class PresentationSystem : public SystemGroup
+    class PresentationSystem : public RelativeSystemGroupT<TransformSystem, OrderRelation::After>
     {
     public:
-        PresentationSystem(): SystemGroup(GlobalPostUpdateSystem, DefaultOrder, MaxOrder)
-        {
-        }
-
         /**
          * 用于执行呈现命令的底层命令缓冲区。
          *

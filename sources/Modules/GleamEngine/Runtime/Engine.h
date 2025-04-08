@@ -25,7 +25,7 @@ namespace Gleam
         template <class... TSystem>
         static void AddRuntimeSystems()
         {
-            runtimeSystems.insert(runtimeSystems.end(), {&System::CreateOrGetSystemInfo<TSystem>()...});
+            runtimeSystems.insert(runtimeSystems.end(), {&SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>()...});
         }
 
         static void Start()

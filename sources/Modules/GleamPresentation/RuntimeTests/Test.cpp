@@ -5,21 +5,16 @@
 #include "GleamPresentation/Runtime/PresentationSystem.h"
 #include "GleamGraphics/Runtime/SwapChain.h"
 
-class MySystem : public Gleam::System
+class MySystem : public Gleam::SystemT<Gleam::PresentationSystem>
 {
-public:
-    MySystem(): System(Gleam::GlobalPresentationSystem)
-    {
-    }
-
-private:
     void Update() override
     {
-        Gleam::GlobalPresentationSystem.GetPresentGCommandBuffer().SetRenderTarget(Gleam::SwapChain::GetPresentRenderTarget());
-        Gleam::GlobalPresentationSystem.GetPresentGCommandBuffer().ClearRenderTarget(Gleam::float4{0, 0, 1, 1});
+        Gleam::PresentationSystem& presentationSystem = reinterpret_cast<Gleam::PresentationSystem&>(GetGroup());
+        presentationSystem.GetPresentGCommandBuffer().SetRenderTarget(Gleam::SwapChain::GetPresentRenderTarget());
+        presentationSystem.GetPresentGCommandBuffer().ClearRenderTarget(Gleam::float4{0, 0, 1, 1});
     }
 };
 Gleam_MakeSystem(MySystem)
-Gleam_AddRuntimeSystems(GlobalMySystem)
+Gleam_AddRuntimeSystems(MySystem)
 
 Gleam_Main
