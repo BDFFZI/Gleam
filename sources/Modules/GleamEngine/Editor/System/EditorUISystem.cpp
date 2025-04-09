@@ -47,7 +47,7 @@ namespace Gleam
             if (ImGui::Checkbox("IsPlaying", &isPlaying))
                 Editor::IsPlaying() = isPlaying;
 
-            Time& time = timeSystem->GetDefaultTime();
+            Time& time = timeSystem->GetMainTime();
             //暂停
             bool isPausing = !time.GetAutoStepTime();
             if (ImGui::Checkbox("IsPausing", &isPausing))

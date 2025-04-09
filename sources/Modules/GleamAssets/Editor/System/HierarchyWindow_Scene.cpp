@@ -63,7 +63,7 @@ namespace Gleam
             {
                 for (System& system : System::GetAllGlobalSystems())
                 {
-                    if (filter.PassFilter(system.GetName().data()) && ImGui::Button(system.GetName().data()))
+                    if (filter.PassFilter(typeid(system).name()) && ImGui::Button(typeid(system).name()))
                     {
                         scene.AddSystem(system);
                         ImGui::CloseCurrentPopup();

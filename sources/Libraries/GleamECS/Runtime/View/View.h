@@ -49,6 +49,13 @@ namespace Gleam
 
             Each_Inner(*query, *entityAllocator, function, std::make_index_sequence<sizeof...(TComponents)>());
         }
+        template <class TComponent>
+        TComponent& First()
+        {
+            const Archetype& archetype = *std::get<0>(query->GetTargets().front());
+            std::byte* address = entityAllocator->GetEntityHeap(archetype).At(0) + archetype.GetComponentOffset(typeid(TComponent));
+            return *reinterpret_cast<TComponent*>(address);
+        }
         void Fetch(std::vector<Entity>& result)
         {
             for (const auto& [archetype,componentOffsets] : query->GetTargets())

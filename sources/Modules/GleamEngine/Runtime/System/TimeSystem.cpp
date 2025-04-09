@@ -8,7 +8,7 @@ namespace Gleam
     {
         entities = &World::GetCurrentWorld().GetEntityAllocator();
         view = {*entities};
-        defaultTime = entities->AddEntity(TimeData);
+        mainTime = entities->AddEntity(TimeData);
     }
     void TimeSystem::Update()
     {

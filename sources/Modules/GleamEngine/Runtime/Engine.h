@@ -15,9 +15,9 @@ namespace Gleam
     class Engine
     {
     public:
-        static World& GetDefaultWorld()
+        static World& GetMainWorld()
         {
-            return defaultWorld;
+            return mainWorld;
         }
         static void AddStartEvent(const std::function<void()>& event, int order = 0);
         static void AddStopEvent(const std::function<void()>& event, int order = 0);
@@ -33,7 +33,7 @@ namespace Gleam
             assert(!isStopping && "引擎尚未启动就已被关闭，请检查运行流程！");
 
             for (auto system : runtimeSystems)
-                defaultWorld.AddSystem(*system);
+                mainWorld.AddSystem(*system);
 
             for (auto& event : startEvents | std::views::values)
                 event();
@@ -45,13 +45,13 @@ namespace Gleam
                 World::Update();
                 Profiler::End();
 #else
-                defaultWorld.Update();
+                mainWorld.Update();
 #endif
 
                 for (auto& event : updateEvents | std::views::values)
                     event();
             }
-            defaultWorld.Clear();
+            mainWorld.Clear();
 
             for (auto& event : stopEvents | std::views::values)
                 event();
@@ -63,7 +63,7 @@ namespace Gleam
         friend void Editor_InterceptRuntimeSystem();
         friend void Editor_PlayOrStopEngine();
 
-        static inline World defaultWorld = {};
+        static inline World mainWorld = {};
         static inline std::vector<SystemInfo*> runtimeSystems;
         static inline std::multimap<int, std::function<void()>> startEvents;
         static inline std::multimap<int, std::function<void()>> updateEvents;

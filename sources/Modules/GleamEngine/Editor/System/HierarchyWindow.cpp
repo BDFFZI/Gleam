@@ -1,5 +1,7 @@
 #include "HierarchyWindow.h"
 
+#include "GleamUI/Runtime/UI.h"
+
 #include "EditorTimeSystem.h"
 #include "InspectorWindow.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
@@ -13,13 +15,13 @@ namespace Gleam
         EditorUI::DrawEntityField(entity);
         return DrawEntityPopup(entity);
     }
-    bool HierarchyWindow::DrawSystem(System& system)
+    bool HierarchyWindow::DrawSystem(SystemAllocator& allocator, System& system)
     {
         SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(&system);
 
         //下拉框
         bool collapsing = ImGui::CollapsingHeader(
-            std::format("##{}", system.GetName()).c_str(),
+            std::format("##{}", typeid(system).name()).c_str(),
             (systemGroup == nullptr || systemGroup->updatingSystems.empty()
                  ? ImGuiTreeNodeFlags_Leaf : 0) //无子系统时不显示箭头
             | ImGuiTreeNodeFlags_AllowItemOverlap //支持叠加按钮
@@ -27,42 +29,42 @@ namespace Gleam
         //系统选中按钮
         ImGui::SameLine(); //放在下拉框旁边
         if (ImGui::Button(
-            system.GetName().c_str(),
+            typeid(system).name(),
             {ImGui::GetContentRegionAvail().x - ImGui::GetTextLineHeightWithSpacing() * 1.5f, 0} //按钮铺满当前行余下的所有空间
         ))
         {
-            GlobalInspectorWindow.SetTarget(InspectorTarget{system});
+            allocator.GetSystem<InspectorWindow>().SetTarget(InspectorTarget{system});
         }
         if (DrawSystemPopup(system) == false)
             return false;
 
         //系统引用计数
         ImGui::SameLine();
-        ImGui::Text("%i", World::systemUsageCount[&system]);
+        ImGui::Text("%i", allocator.GetSystemUsageCount().at(&system));
 
         if (systemGroup && collapsing)
         {
-            ImGui::TreePush(systemGroup->GetName().c_str());
-            DrawSubSystems(*systemGroup);
+            ImGui::TreePush(typeid(*systemGroup).name());
+            DrawSubSystems(allocator, *systemGroup);
             ImGui::TreePop();
         }
 
         return true;
     }
-    void HierarchyWindow::DrawSubSystems(SystemGroup& systemGroup)
+    void HierarchyWindow::DrawSubSystems(SystemAllocator& allocator, SystemGroup& systemGroup)
     {
         ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::GleamGreen());
         for (const auto subSystem : systemGroup.addingSystems)
-            DrawSystem(*subSystem);
+            DrawSystem(allocator, *subSystem);
         ImGui::PopStyleColor();
 
         ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::GleamRed());
         for (const auto subSystem : systemGroup.removingSystems)
-            DrawSystem(*subSystem);
+            DrawSystem(allocator, *subSystem);
         ImGui::PopStyleColor();
 
         for (const auto subSystem : systemGroup.updatingSystems)
-            DrawSystem(*subSystem);
+            DrawSystem(allocator, *subSystem);
     }
 
     void HierarchyWindow::DrawSystemsPopup()
@@ -74,9 +76,9 @@ namespace Gleam
             filter.Draw("##");
             if (ImGui::BeginListBox("##"))
             {
-                for (System& system : System::GetAllGlobalSystems())
+                for (SystemInfo& system : SystemInfoAllocator::GetAllSystemInfo())
                 {
-                    if (filter.PassFilter(system.GetName().data()) && ImGui::Button(system.GetName().data()))
+                    if (filter.PassFilter(typeid(system).name()) && ImGui::Button(typeid(system).name()))
                     {
                         World::AddSystem(system);
                         ImGui::CloseCurrentPopup();
@@ -106,6 +108,7 @@ namespace Gleam
         {
             if (ImGui::Button("AddEntity"))
             {
+                Engine::GetMainWorld()
                 World::AddEntity();
                 ImGui::CloseCurrentPopup();
             }
@@ -218,7 +221,7 @@ namespace Gleam
         {
             ImGui::SeparatorText("Statistics");
             ImGui::BulletText(std::format("IsPlaying:{}", Editor::IsPlaying()).c_str());
-            ImGui::BulletText(std::format("NextEntity:{}", World::entityInfoAllocator.nextEntity).c_str());
+            ImGui::BulletText(std::format("NextEntity:{}", Engine::GetMainWorld().GetEntityInfoAllocator().GetNextEntity()).c_str());
             //帧率信息
             static float deltaTime = 0;
             deltaTime = std::lerp(deltaTime, EditorTimeSystem.GetDeltaTimeReal(), 0.3f);

@@ -28,7 +28,7 @@ class MySystem : public SystemT<PostUpdateSystem>
         if (countDown == 0)
             Engine::Stop();
 
-        Time& time = timeSystem->GetDefaultTime();
+        Time& time = timeSystem->GetMainTime();
         std::cout
             << std::format("Time:{:f}\tDeltaTime:{:f}", time.GetTime(), time.GetDeltaTime())
             << std::endl;

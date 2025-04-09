@@ -24,7 +24,7 @@ class InputTest : public SystemT<>
     }
     void Update() override
     {
-        Input& input = inputSystem->GetDefaultInput();
+        Input& input = inputSystem->GetMainInput();
 
         //检查WASD输入
         float2 moveInput = 0;

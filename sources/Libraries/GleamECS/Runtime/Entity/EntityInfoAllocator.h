@@ -21,9 +21,14 @@ namespace Gleam
     class EntityInfoAllocator
     {
     public:
-        Entity NextEntity();
-        bool HasEntity(Entity entity) const;
         const EntityInfo& GetEntityInfo(Entity entity) const;
+        Entity GetNextEntity()
+        {
+            return static_cast<Entity>(nextEntity);
+        }
+        bool HasEntity(Entity entity) const;
+        
+        Entity NextEntity();
         void SetEntityInfo(Entity entity, const std::optional<EntityInfo>& info);
         void Clear();
 

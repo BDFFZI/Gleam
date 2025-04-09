@@ -1,7 +1,5 @@
 #pragma once
-#include "GleamUI/Runtime/UI.h"
 #include "EditorUISystem.h"
-#include "GleamEngine/Runtime/System/TimeSystem.h"
 
 namespace Gleam
 {
@@ -9,8 +7,8 @@ namespace Gleam
     {
     public:
         static bool DrawEntity(Entity entity);
-        static bool DrawSystem(System& system);
-        static void DrawSubSystems(SystemGroup& systemGroup);
+        static bool DrawSystem(SystemAllocator& allocator, System& system);
+        static void DrawSubSystems(SystemAllocator& allocator, SystemGroup& systemGroup);
 
         static void DrawSystemsPopup();
         static void DrawEntitiesPopup();

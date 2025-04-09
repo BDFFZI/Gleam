@@ -12,15 +12,15 @@ namespace Gleam
     class TimeSystem : public SystemT<PreUpdateSystem>
     {
     public:
-        Time& GetDefaultTime() const
+        Time& GetMainTime() const
         {
-            return entities->GetComponent<Time>(defaultTime);
+            return entities->GetComponent<Time>(mainTime);
         }
 
     private:
         EntityAllocator* entities = nullptr;
         View<Time> view = {};
-        Entity defaultTime = {};
+        Entity mainTime = {};
 
         void Start() override;
         void Update() override;

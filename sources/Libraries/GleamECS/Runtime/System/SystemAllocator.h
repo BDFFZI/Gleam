@@ -10,6 +10,11 @@ namespace Gleam
     class SystemAllocator
     {
     public:
+        const std::unordered_map<System*, int>& GetSystemUsageCount()
+        {
+            return systemUsageCount;
+        }
+
         System& AddSystem(SystemInfo& systemInfo);
         template <class TSystem>
         TSystem& AddSystem()

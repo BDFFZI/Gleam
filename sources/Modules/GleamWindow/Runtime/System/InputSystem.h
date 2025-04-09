@@ -16,15 +16,15 @@ namespace Gleam
     class InputSystem : public SystemT<PreUpdateSystem>
     {
     public:
-        Input& GetDefaultInput() const
+        Input& GetMainInput() const
         {
-            return entities->GetComponent<Input>(defaultInput);
+            return entities->GetComponent<Input>(mainInput);
         }
 
     private:
         EntityAllocator* entities = nullptr;
         View<Input> view = {};
-        Entity defaultInput = {};
+        Entity mainInput = {};
 
         void Start() override;
         void Update() override;

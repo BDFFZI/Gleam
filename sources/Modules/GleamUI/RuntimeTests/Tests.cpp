@@ -66,7 +66,7 @@ class MySystem : public SystemT<UISystem>
         ImGui::DragScalarN("DragScalarN", ImGuiDataType_Float, floatValues, std::size(floatValues));
 
         //逻辑处理
-        Input& input = inputSystem->GetDefaultInput();
+        Input& input = inputSystem->GetMainInput();
         if (input.GetKeyDown(KeyCode::Esc))
             Engine::Stop();
 

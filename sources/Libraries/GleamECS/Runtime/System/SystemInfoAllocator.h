@@ -13,6 +13,10 @@ namespace Gleam
     class SystemInfoAllocator
     {
     public:
+        static auto GetAllSystemInfo()
+        {
+            return systemInfoMap | std::views::values | std::views::transform([](SystemInfo& systemInfo) { return std::reference_wrapper(systemInfo); });
+        }
         template <class TSystem> requires requires() { typename TSystem::Group;TSystem::Order; }
         static SystemInfo& CreateOrGetSystemInfo()
         {

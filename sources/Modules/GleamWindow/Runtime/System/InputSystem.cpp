@@ -12,7 +12,7 @@ void InputSystem::Start()
 {
     entities = &World::GetCurrentWorld().GetEntityAllocator();
     view = {*entities};
-    defaultInput = entities->AddEntity(InputData);
+    mainInput = entities->AddEntity(InputData);
 }
 void InputSystem::Update()
 {

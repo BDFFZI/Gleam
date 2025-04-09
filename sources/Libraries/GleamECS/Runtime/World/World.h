@@ -43,7 +43,7 @@ namespace Gleam
         {
             return allScenes | std::views::transform([](auto& scene) { return std::reference_wrapper(*scene); });
         }
-        
+
         Entity AddEntity(const Archetype& archetype, bool addToScene = true);
         void RemoveEntity(Entity& entity, bool removeFromScene = true);
         void RemoveEntityAsync(Entity& entity, bool removeFromScene = true)
@@ -124,7 +124,7 @@ namespace Gleam
         friend void ExtendWorldFunction();
 
         inline static World* currentWorld = nullptr;
-        //实体信息
+        //实体系统信息
         EntityInfoAllocator entityInfoAllocator;
         EntityAllocator entityAllocator = EntityAllocator{entityInfoAllocator};
         SystemAllocator systemAllocator = SystemAllocator{};
