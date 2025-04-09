@@ -7,7 +7,7 @@ namespace Gleam
     class ForceSystem : public System
     {
     public:
-        ForceSystem(): System(GlobalPositionSystem, OrderRelation::After)
+        ForceSystem(): System(GlobalPositionSystem, SystemRelation::After)
         {
         }
 

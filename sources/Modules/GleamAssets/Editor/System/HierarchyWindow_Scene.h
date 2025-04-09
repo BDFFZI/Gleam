@@ -7,7 +7,7 @@ namespace Gleam
     class HierarchyWindow_Scene : public System
     {
     public:
-        HierarchyWindow_Scene(): System(GlobalHierarchyWindow, OrderRelation::After)
+        HierarchyWindow_Scene(): System(GlobalHierarchyWindow, SystemRelation::After)
         {
         }
 

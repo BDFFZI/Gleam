@@ -1,56 +1,63 @@
 #pragma once
-#include "SystemInfoAllocator.h"
+#include <cstdint>
+#include <limits>
+#include "GleamECS/Runtime/Entity/EntityAllocator.h"
 
 namespace Gleam
 {
+    static constexpr int32_t SystemMinOrder = std::numeric_limits<int32_t>::lowest();
+    static constexpr int32_t SystemMaxOrder = std::numeric_limits<int32_t>::max();
+    static constexpr int32_t SystemMidOrder = 0;
+
+    enum class SystemRelation:uint8_t
+    {
+        Before,
+        After
+    };
+
+    using SystemUpdate = void(*)(const EntityAllocator& entities);
+
     /**
      * 系统是一种高级的封装版事件。
      * 通过相对位置、嵌套等结构，实现在引擎中自由轻松的嵌入各种代码。
+     *
+     * 系统的设计参考了现实中的自然法则：法则没有开始和结束的说法，法则总是存在，只是每条法则作用的环境不一样。
+     * 因此作为等价于法则的系统，便是静态类且只有Update方法，并始终通过View来获取目标。
      */
-    // ReSharper disable once CppClassNeedsConstructorBecauseOfUninitializedMember
-    class System
+    template <class TGroup, int TMinOrder, int TMaxOrder>
+    class SystemBase
     {
     public:
-        System(const int order)
-            : order(order)
-        {
-        }
-        virtual ~System() = default;
+        constexpr static int MinOrder = TMinOrder;
+        constexpr static int MaxOrder = TMaxOrder;
+        constexpr static int Order = static_cast<int32_t>((static_cast<int64_t>(TMinOrder) + static_cast<int64_t>(TMaxOrder)) / 2);
+        using Group = TGroup;
 
-        int GetOrder() const
-        {
-            return order;
-        }
-
-    protected:
-        virtual void Start()
+        static void Update(const EntityAllocator& entities)
         {
         }
-        virtual void Update()
-        {
-        }
-        virtual void Stop()
-        {
-        }
-
-    private:
-        friend class SystemGroup;
-        int order = 0;
     };
 
+    template <class TGroup = void, auto...>
+    class System : public SystemBase<TGroup, SystemMinOrder, SystemMaxOrder>
+    {
+    };
 
-    template <class TGroup = void, int TMinOrder = SystemMinOrder, int TMaxOrder = SystemMaxOrder>
-    class SystemT : public SystemBaseT<System, TGroup, TMinOrder, TMaxOrder>
+    template <class TGroup, int TMinOrder, int TMaxOrder>
+    class System<TGroup, TMinOrder, TMaxOrder> : public SystemBase<TGroup, TMinOrder, TMaxOrder>
     {
     };
 
     template <class TParentSystem, int Order>
-    class AbsoluteSystemT : public AbsoluteSystemBaseT<System, TParentSystem, Order>
+    class System<TParentSystem, Order, Order> : public SystemBase<TParentSystem, Order, Order>
     {
     };
 
-    template <class TBrotherSystem, OrderRelation Relation>
-    class RelativeSystemT : public RelativeSystemBaseT<System, TBrotherSystem, Relation>
+    template <class TBrotherSystem, SystemRelation Relation>
+        requires static_cast<int64_t>(TBrotherSystem::MaxOrder) - static_cast<int64_t>(TBrotherSystem::MinOrder) >= 2
+    class System<TBrotherSystem, Relation> : public SystemBase<typename TBrotherSystem::Group,
+                                                               Relation == SystemRelation::Before ? TBrotherSystem::MinOrder : TBrotherSystem::Order,
+                                                               Relation == SystemRelation::Before ? TBrotherSystem::Order : TBrotherSystem::MaxOrder>
     {
     };
 }

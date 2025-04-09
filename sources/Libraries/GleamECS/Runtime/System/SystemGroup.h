@@ -2,6 +2,7 @@
 #include <functional>
 #include <optional>
 #include <set>
+#include <map>
 
 #include "System.h"
 
@@ -11,6 +12,46 @@
 
 namespace Gleam
 {
+    template <class TGroup, int TMinOrder, int TMaxOrder>
+    class SystemGroupBase : public SystemBase<TGroup, TMinOrder, TMaxOrder>
+    {
+    public:
+        static std::multimap<int, SystemUpdate>& GetSubSystemUpdates()
+        {
+            static std::multimap<int, SystemUpdate> subSystemUpdates;
+            return subSystemUpdates;
+        }
+
+        static void Update(const EntityAllocator& entities)
+        {
+        }
+    };
+
+
+    // template <class TGroup = void, auto...>
+    // class System : public SystemBase<TGroup, SystemMinOrder, SystemMaxOrder>
+    // {
+    // };
+    //
+    // template <class TGroup, int TMinOrder, int TMaxOrder>
+    // class System<TGroup, TMinOrder, TMaxOrder> : public SystemBase<TGroup, TMinOrder, TMaxOrder>
+    // {
+    // };
+    //
+    // template <class TParentSystem, int Order>
+    // class System<TParentSystem, Order, Order> : public SystemBase<TParentSystem, Order, Order>
+    // {
+    // };
+    //
+    // template <class TBrotherSystem, SystemRelation Relation>
+    //     requires static_cast<int64_t>(TBrotherSystem::MaxOrder) - static_cast<int64_t>(TBrotherSystem::MinOrder) >= 2
+    // class System<TBrotherSystem, Relation> : public SystemBase<typename TBrotherSystem::Group,
+    //                                                            Relation == SystemRelation::Before ? TBrotherSystem::MinOrder : TBrotherSystem::Order,
+    //                                                            Relation == SystemRelation::Before ? TBrotherSystem::Order : TBrotherSystem::MaxOrder>
+    // {
+    // };
+
+
     /**
      * 一种支持子系统的系统，可以实现系统的分类和更新方式的控制
      */
@@ -86,12 +127,12 @@ namespace Gleam
     };
 
     template <class TParentSystem, int Order>
-    class AbsoluteSystemGroupT : public AbsoluteSystemBaseT<SystemGroup, TParentSystem, Order>
+    class AbsoluteSystemGroupT : public AbsoluteSystem<SystemGroup, TParentSystem, Order>
     {
     };
 
-    template <class TBrotherSystem, OrderRelation Relation>
-    class RelativeSystemGroupT : public RelativeSystemBaseT<SystemGroup, TBrotherSystem, Relation>
+    template <class TBrotherSystem, SystemRelation Relation>
+    class RelativeSystemGroupT : public RelativeSystem<SystemGroup, TBrotherSystem, Relation>
     {
     };
 }

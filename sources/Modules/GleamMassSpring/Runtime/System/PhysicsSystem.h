@@ -12,7 +12,7 @@ namespace Gleam
     class PhysicsSystem : public SystemGroup
     {
     public:
-        PhysicsSystem(): SystemGroup(GlobalTimeSystem, OrderRelation::After)
+        PhysicsSystem(): SystemGroup(GlobalTimeSystem, SystemRelation::After)
         {
         }
 

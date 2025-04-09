@@ -7,7 +7,7 @@ namespace Gleam
     class CollisionSystem : public System
     {
     public:
-        CollisionSystem(): System(GlobalForceSystem, OrderRelation::After)
+        CollisionSystem(): System(GlobalForceSystem, SystemRelation::After)
         {
         }
 

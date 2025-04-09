@@ -7,7 +7,7 @@ namespace Gleam
     class PointsRendererSystem : public System
     {
     public:
-        PointsRendererSystem(): System(GlobalRenderingSystem, OrderRelation::Before)
+        PointsRendererSystem(): System(GlobalRenderingSystem, SystemRelation::Before)
         {
         }
 

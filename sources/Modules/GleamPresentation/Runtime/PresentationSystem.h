@@ -11,7 +11,7 @@ namespace Gleam
     /**
      * 将最终数据可视化输出到外部呈现设备中
      */
-    class PresentationSystem : public RelativeSystemGroupT<TransformSystem, OrderRelation::After>
+    class PresentationSystem : public RelativeSystemGroupT<TransformSystem, SystemRelation::After>
     {
     public:
         /**

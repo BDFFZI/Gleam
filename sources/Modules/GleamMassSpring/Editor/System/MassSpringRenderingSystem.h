@@ -6,7 +6,7 @@ namespace Gleam
     class MassSpringRenderingSystem : public System
     {
     public:
-        MassSpringRenderingSystem(): System(GlobalPhysicsSystem, OrderRelation::After)
+        MassSpringRenderingSystem(): System(GlobalPhysicsSystem, SystemRelation::After)
         {
         }
 

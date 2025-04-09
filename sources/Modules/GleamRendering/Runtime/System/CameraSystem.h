@@ -7,7 +7,7 @@ namespace Gleam
     class CameraSystem : public System
     {
     public:
-        CameraSystem(): System(GlobalRenderingSystem, OrderRelation::Before)
+        CameraSystem(): System(GlobalRenderingSystem, SystemRelation::Before)
         {
         }
 

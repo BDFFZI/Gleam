@@ -7,12 +7,12 @@ namespace Gleam
     class GizmosSystem : public System
     {
     public:
-        GizmosSystem(): System(GlobalRenderingSystem, OrderRelation::Before)
+        GizmosSystem(): System(GlobalRenderingSystem, SystemRelation::Before)
         {
         }
 
     private:
-        SystemEvent postProcessSystem = SystemEvent("GizmosSystem_PostProcess", GlobalPresentationSystem, OrderRelation::After);
+        SystemEvent postProcessSystem = SystemEvent("GizmosSystem_PostProcess", GlobalPresentationSystem, SystemRelation::After);
 
         void Start() override;
         void Stop() override;

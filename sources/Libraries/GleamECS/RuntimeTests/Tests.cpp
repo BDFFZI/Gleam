@@ -214,7 +214,7 @@ class System2 : public SystemT<>
 {
     PrintSystemContent
 };
-class System3 : public RelativeSystemGroupT<System2, OrderRelation::After>
+class System3 : public RelativeSystemGroupT<System2, SystemRelation::After>
 {
     PrintSystemGroupContent
 };
@@ -222,15 +222,15 @@ class System3_2 : public SystemGroupT<System3>
 {
     PrintSystemGroupContent
 };
-class System3_1 : public RelativeSystemT<System3_2, OrderRelation::Before>
+class System3_1 : public RelativeSystemT<System3_2, SystemRelation::Before>
 {
     PrintSystemContent
 };
-class System1 : public RelativeSystemT<System2, OrderRelation::Before>
+class System1 : public RelativeSystemT<System2, SystemRelation::Before>
 {
     PrintSystemContent
 };
-class System3_3 : public RelativeSystemT<System3_2, OrderRelation::After>
+class System3_3 : public RelativeSystemT<System3_2, SystemRelation::After>
 {
     PrintSystemContent
 };
@@ -238,7 +238,7 @@ class System3_2_2 : public SystemT<System3_2>
 {
     PrintSystemContent
 };
-class System3_2_1 : public RelativeSystemT<System3_2_2, OrderRelation::Before>
+class System3_2_1 : public RelativeSystemT<System3_2_2, SystemRelation::Before>
 {
     PrintSystemContent
 };

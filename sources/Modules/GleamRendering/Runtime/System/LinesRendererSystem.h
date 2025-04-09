@@ -7,7 +7,7 @@ namespace Gleam
     class LinesRendererSystem : public System
     {
     public:
-        LinesRendererSystem(): System(GlobalRenderingSystem, OrderRelation::Before)
+        LinesRendererSystem(): System(GlobalRenderingSystem, SystemRelation::Before)
         {
         }
 
