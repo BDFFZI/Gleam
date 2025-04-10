@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <limits>
+
 #include "GleamECS/Runtime/Entity/EntityAllocator.h"
 
 namespace Gleam
@@ -15,7 +16,13 @@ namespace Gleam
         After
     };
 
-    using SystemUpdate = void(*)(const EntityAllocator& entities);
+    struct SystemOrder
+    {
+        int order;
+    };
+
+    using SystemUpdate = void(*)(EntityAllocator& entities);
+    using SystemGroupUpdate = void(*)(EntityAllocator& entities, const std::function<void(EntityAllocator&)>& updateGroup);
 
     /**
      * 系统是一种高级的封装版事件。
@@ -32,13 +39,9 @@ namespace Gleam
         constexpr static int MaxOrder = TMaxOrder;
         constexpr static int Order = static_cast<int32_t>((static_cast<int64_t>(TMinOrder) + static_cast<int64_t>(TMaxOrder)) / 2);
         using Group = TGroup;
-
-        static void Update(const EntityAllocator& entities)
-        {
-        }
     };
 
-    template <class TGroup = void, auto...>
+    template <class TGroup = void, auto... VArgs>
     class System : public SystemBase<TGroup, SystemMinOrder, SystemMaxOrder>
     {
     };
@@ -54,7 +57,7 @@ namespace Gleam
     };
 
     template <class TBrotherSystem, SystemRelation Relation>
-        requires static_cast<int64_t>(TBrotherSystem::MaxOrder) - static_cast<int64_t>(TBrotherSystem::MinOrder) >= 2
+        requires (static_cast<int64_t>(TBrotherSystem::MaxOrder) - static_cast<int64_t>(TBrotherSystem::MinOrder) >= 2)
     class System<TBrotherSystem, Relation> : public SystemBase<typename TBrotherSystem::Group,
                                                                Relation == SystemRelation::Before ? TBrotherSystem::MinOrder : TBrotherSystem::Order,
                                                                Relation == SystemRelation::Before ? TBrotherSystem::Order : TBrotherSystem::MaxOrder>

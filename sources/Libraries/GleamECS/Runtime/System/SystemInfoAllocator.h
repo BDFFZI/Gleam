@@ -1,5 +1,7 @@
 ﻿#pragma once
+#include "System.h"
 #include "GleamReflection/Runtime/Type.h"
+#include <variant>
 
 namespace Gleam
 {
@@ -8,6 +10,7 @@ namespace Gleam
         const Type* type;
         SystemInfo* group;
         int order;
+        std::variant<SystemUpdate, SystemGroupUpdate> update;
     };
 
     class SystemInfoAllocator
@@ -31,6 +34,8 @@ namespace Gleam
                 systemInfo.group = &CreateOrGetSystemInfo<typename TSystem::Group>();
             systemInfo.order = TSystem::Order;
             systemInfo.type = &type;
+            systemInfo.update = TSystem::Update;
+            
             return systemInfo;
         }
         static SystemInfo& GetSystemInfo(const uuids::uuid typeID)
@@ -44,6 +49,4 @@ namespace Gleam
 
 #define Gleam_MakeSystem(systemClass) \
 inline ::Gleam::SystemInfo& systemClass##Info = ::Gleam::SystemInfoAllocator::CreateOrGetSystemInfo<systemClass>();
-
-
 }
