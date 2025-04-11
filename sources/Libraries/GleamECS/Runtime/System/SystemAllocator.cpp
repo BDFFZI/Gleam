@@ -2,14 +2,29 @@
 
 namespace Gleam
 {
-    bool SystemDataComparer::operator()(const SystemData* left, const SystemData* right) const
+    SystemAllocator::~SystemAllocator()
     {
-        if (left->order == right->order)
-            return left < right;
-        return left->order < right->order;
+        if (systems.empty())
+            return;
+
+        std::vector<std::tuple<SystemInfo*, int>> usageCount;
+        usageCount.reserve(systems.size());
+        for (auto& system : systems)
+            usageCount.emplace_back(system.first, std::get<1>(system.second));
+
+        std::ranges::sort(usageCount, [](std::tuple<SystemInfo*, int>& left, std::tuple<SystemInfo*, int>& right)
+        {
+            return std::get<1>(left) < std::get<1>(right);
+        });
+
+        for (auto& [system,count] : usageCount)
+        {
+            if (systems.contains(system))
+                RemoveSystem(*system);
+        }
     }
 
-    void SystemAllocator::AddSystem(SystemInfo& systemInfo)
+    IOrderedSystemEvent& SystemAllocator::AddSystem(SystemInfo& systemInfo)
     {
         if (systemInfo.group != nullptr)
             AddSystem(*systemInfo.group);
@@ -17,57 +32,33 @@ namespace Gleam
         auto& [system,count] = systems[&systemInfo];
         if (++count == 1) //首次添加
         {
-            system.type = systemInfo.type;
-            system.order = systemInfo.order;
-            if (systemInfo.update.index() == 0)
-                system.update = std::get<0>(systemInfo.update);
-            else
-            {
-                std::function updateGroup = [&subSystems = system.subSystems](EntityAllocator& entities)
-                {
-                    for (auto subSystem : subSystems)
-                    {
-                        subSystem->update(entities);
-                    }
-                };
-                system.update = [systemGroupUpdate = std::get<1>(systemInfo.update),updateGroup](EntityAllocator& entities)
-                {
-                    systemGroupUpdate(entities, updateGroup);
-                };
-            }
+            system = static_cast<IOrderedSystemEvent*>(systemInfo.type->Create());
+            system->Start();
 
-            if (systemInfo.group != nullptr)
-            {
-                SystemData& parentSystem = std::get<0>(systems[systemInfo.group]);
-                parentSystem.subSystems.insert(&system);
-            }
-            else
-            {
-                topSystems.insert(&system);
-            }
+            ISystemGroup& systemGroup = systemInfo.group ? *dynamic_cast<ISystemGroup*>(std::get<0>(systems[systemInfo.group])) : rootSystem;
+            systemGroup.AddSystem(*system);
         }
+        return *system;
     }
     void SystemAllocator::RemoveSystem(SystemInfo& systemInfo)
     {
-        if (systemInfo.group != nullptr)
-            RemoveSystem(*systemInfo.group);
-
         auto& [system,count] = systems.at(&systemInfo);
         if (--count == 0) //最终移除
         {
-            //从组移除
-            if (systemInfo.group != nullptr)
-            {
-                SystemData& parentSystem = std::get<0>(systems[&systemInfo]);
-                parentSystem.subSystems.erase(&system);
-            }
+            ISystemGroup& systemGroup = systemInfo.group ? *dynamic_cast<ISystemGroup*>(std::get<0>(systems[systemInfo.group])) : rootSystem;
+            systemGroup.RemoveSystem(*system);
+
             //销毁实例
+            system->Stop();
+            systemInfo.type->Destroy(system);
             systems.erase(&systemInfo);
         }
+
+        if (systemInfo.group != nullptr)
+            RemoveSystem(*systemInfo.group);
     }
-    void SystemAllocator::Update(EntityAllocator& entityAllocator) const
+    void SystemAllocator::Update()
     {
-        for (auto subSystem : topSystems)
-            subSystem->update(entityAllocator);
+        rootSystem.Update();
     }
 }

@@ -9,10 +9,11 @@ namespace Gleam
     {
         const Type* type;
         SystemInfo* group;
-        int order;
-        std::variant<SystemUpdate, SystemGroupUpdate> update;
     };
 
+    /**
+     * 用于支持运行时（非模板）增删系统
+     */
     class SystemInfoAllocator
     {
     public:
@@ -28,14 +29,12 @@ namespace Gleam
                 return systemInfoMap[type.GetID()];
 
             SystemInfo& systemInfo = systemInfoMap[type.GetID()];
+            systemInfo.type = &type;
             if constexpr (std::is_void_v<typename TSystem::Group>)
                 systemInfo.group = nullptr;
             else
                 systemInfo.group = &CreateOrGetSystemInfo<typename TSystem::Group>();
-            systemInfo.order = TSystem::Order;
-            systemInfo.type = &type;
-            systemInfo.update = TSystem::Update;
-            
+
             return systemInfo;
         }
         static SystemInfo& GetSystemInfo(const uuids::uuid typeID)

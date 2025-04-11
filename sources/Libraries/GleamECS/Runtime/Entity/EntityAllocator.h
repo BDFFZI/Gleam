@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <unordered_map>
 #include "Archetype.h"
-#include "Heap.h"
 #include "EntityInfoAllocator.h"
+#include "GleamUtility/Runtime/Container/Heap.h"
 
 namespace Gleam
 {
@@ -12,24 +12,30 @@ namespace Gleam
     class EntityAllocator
     {
     public:
+        EntityAllocator(const std::shared_ptr<EntityInfoAllocator>& entityInfoAllocator = std::make_shared<EntityInfoAllocator>())
+            : entityInfoAllocator(entityInfoAllocator)
+        {
+        }
+        EntityAllocator(EntityAllocator&& other) noexcept
+        {
+            entityInfoAllocator = other.entityInfoAllocator;
+            entityHeaps = std::move(other.entityHeaps);
+        }
+        EntityAllocator& operator=(EntityAllocator&& other) noexcept
+        {
+            Clear();
+            entityInfoAllocator = other.entityInfoAllocator;
+            entityHeaps = std::move(other.entityHeaps);
+            return *this;
+        }
         ~EntityAllocator()
         {
-            for (auto& [archetype, heap] : entityHeaps)
-            {
-                heap.ForeachElements([this,archetype](std::byte* address)
-                {
-                    Entity entity = *reinterpret_cast<Entity*>(address);
-                    //去除实体信息
-                    entityInfoAllocator->SetEntityInfo(entity, std::nullopt);
-                    //运行析构函数
-                    archetype->Destruct(address);
-                });
-            }
+            Clear();
         }
 
-        EntityInfoAllocator& GetEntityInfoAllocator() const
+        std::shared_ptr<EntityInfoAllocator> GetEntityInfoAllocator() const
         {
-            return *entityInfoAllocator;
+            return entityInfoAllocator;
         }
         std::unordered_map<const Archetype*, Heap>& GetEntityHeaps();
         Heap& GetEntityHeap(const Archetype& archetype);
@@ -137,8 +143,11 @@ namespace Gleam
             const Archetype& archetype = *entityInfo.archetype;
             ((*reinterpret_cast<TComponents*>(entityInfo.memoryAddress + archetype.GetComponentOffset(typeid(TComponents))) = components), ...);
         }
+
+        void Clear();
+
     private:
-        std::unique_ptr<EntityInfoAllocator> entityInfoAllocator = std::make_unique<EntityInfoAllocator>();
+        std::shared_ptr<EntityInfoAllocator> entityInfoAllocator;
         std::unordered_map<const Archetype*, Heap> entityHeaps;
 
         void AddEntityUninitialized(const Archetype& archetype, Entity& outEntity, EntityInfo& outEntityInfo);

@@ -5,108 +5,14 @@
 #include <benchmark/benchmark.h>
 #include <gtest/gtest.h>
 
+#include "GleamECS/Runtime/World.h"
 #include "GleamECS/Runtime/System/System.h"
 #include "GleamECS/Runtime/System/SystemAllocator.h"
 #include "GleamECS/Runtime/View/View.h"
-#include "GleamECS/Runtime/World/World.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 
 using namespace Gleam;
 
-TEST(ECS, Heap)
-{
-    Heap heap(sizeof(int));
-
-    heap.AddElements(5, [](const int itemIndex, std::byte* item)
-    {
-        int* element = reinterpret_cast<int*>(item);
-        *element = itemIndex;
-    });
-
-    heap.RemoveElements(2, 2);
-    heap.RemoveElement(1);
-    heap.AddElement([](std::byte* item)
-    {
-        *reinterpret_cast<int*>(item) = 5;
-    });
-    *reinterpret_cast<int*>(heap.At(0)) = 3;
-
-    std::vector<int> vector(heap.GetCount());
-    heap.CopyTo(reinterpret_cast<std::byte*>(vector.data()), 0, heap.GetCount());
-    ASSERT_EQ(vector.size(), 3);
-    ASSERT_EQ(vector[0], 3);
-    ASSERT_EQ(vector[1], 4);
-    ASSERT_EQ(vector[2], 5);
-}
-
-TEST(ECS, HeapBenchmark)
-{
-    struct Data
-    {
-        size_t data[32];
-    };
-
-    benchmark::RegisterBenchmark("Vector", [](benchmark::State& state)
-    {
-        for (auto _ : state)
-        {
-            std::vector<Data> container;
-            container.resize(30);
-            container.resize(60);
-            size_t size = container.size();
-            for (size_t i = 0; i < size; i++)
-                container[i].data[0] = i;
-            container.erase(container.begin(), container.begin() + 30);
-
-            container.resize(90);
-            container.resize(120);
-            size = container.size();
-            for (size_t i = 0; i < size; i++)
-                container[i].data[1] = i;
-            container.erase(container.begin() + 30, container.begin() + 60);
-
-            for (size_t i = 0; i < container.size(); i++)
-            {
-                if (i % 2 == 0)
-                    container.erase(container.begin() + static_cast<int64_t>(i));
-            }
-        }
-    });
-    benchmark::RegisterBenchmark("Heap", [](benchmark::State& state)
-    {
-        for (auto _ : state)
-        {
-            Heap container(sizeof(Data));
-            container.AddElements(30);
-            container.AddElements(30);
-            int index = 0;
-            container.ForeachElements([&index](std::byte* ptr)
-            {
-                Data* data = reinterpret_cast<Data*>(ptr);
-                data->data[0] = index;
-            });
-            container.RemoveElements(0, 30);
-
-            container.AddElements(30);
-            container.AddElements(30);
-            index = 0;
-            container.ForeachElements([&index](std::byte* ptr)
-            {
-                Data* data = reinterpret_cast<Data*>(ptr);
-                data->data[1] = index;
-            });
-            container.RemoveElements(30, 30);
-
-            for (int i = 0; i < container.GetCount(); i++)
-            {
-                if (i % 2 == 0)
-                    container.RemoveElement(i);
-            }
-        }
-    });
-    benchmark::Initialize(nullptr, nullptr);
-    benchmark::RunSpecifiedBenchmarks();
-}
 
 TEST(ECS, Archetype)
 {
@@ -163,29 +69,59 @@ struct RigidBody
     free(data);
 }
 
+TEST(ECS, View)
+{
+    EntityAllocator entities = {};
+
+    Entity physicsEntity = entities.AddEntity(physicsArchetype);
+    Entity physicsWithSpring = entities.AddEntity(physicsWithSpringArchetype);
+
+    View<Transform, RigidBody>(entities).Each([](auto& transform, auto&)
+    {
+        ++transform.position;
+    });
+    ASSERT_EQ(entities.GetComponent<Transform>(physicsEntity).position, 1);
+    ASSERT_EQ(entities.GetComponent<Transform>(physicsWithSpring).position, 1);
+
+    View<QueryExclusion<SpringPhysics>, Transform, RigidBody>(entities).Each([](auto& transform, auto&)
+    {
+        ++transform.position;
+    });
+    ASSERT_EQ(entities.GetComponent<Transform>(physicsEntity).position, 2);
+    ASSERT_EQ(entities.GetComponent<Transform>(physicsWithSpring).position, 1);
+
+    entities.RemoveEntity(physicsEntity);
+    entities.RemoveEntity(physicsWithSpring);
+}
+
 
 inline std::stringstream printResult = {};
 
 template <int ID, class TGroup = void, auto... Args>
 class PrintSystem : public System<TGroup, Args...>
 {
-public:
-    static void Update(EntityAllocator& entities)
+    void Start() override
+    {
+        printResult << ID << "->Create\n";
+    }
+    void Update() override
     {
         printResult << ID << "->Update\n";
     }
 };
 template <int ID, class TGroup = void, auto... Args>
-class PrintSystemGroup : public System<TGroup, Args...>
+class PrintSystemGroup : public System<TGroup, Args...>, public ISystemGroup
 {
-public:
-    static void Update(EntityAllocator& entities, const std::function<void(EntityAllocator&)>& updateGroup)
+    void Start() override
+    {
+        printResult << ID << "->Create\n";
+    }
+    void Update() override
     {
         printResult << ID << "->Update\n";
-        updateGroup(entities);
+        ISystemGroup::Update();
     }
 };
-
 
 TEST(ECS, SystemOrder)
 {
@@ -223,20 +159,28 @@ TEST(ECS, SystemOrder)
     ///    - system3_2_2
     ///  - system3_3
 
-    EntityInfoAllocator entitiesInfoAllocator;
-    EntityAllocator entities;
-    SystemAllocator systems;
-    systems.AddSystem<System2>();
-    systems.AddSystem<System3>();
-    systems.AddSystem<System3_1>();
-    systems.AddSystem<System1>();
-    systems.AddSystem<System3_3>();
-    systems.AddSystem<System3_2_2>();
-    systems.AddSystem<System3_2_1>();
-    systems.Update(entities);
+    {
+        SystemAllocator systems;
+        systems.AddSystem<System2>();
+        systems.AddSystem<System3>();
+        systems.AddSystem<System3_1>();
+        systems.AddSystem<System1>();
+        systems.AddSystem<System3_3>();
+        systems.AddSystem<System3_2_2>();
+        systems.AddSystem<System3_2_1>();
+        systems.Update();
+    }
 
-    std::cout << printResult.str() << std::endl;
-    ASSERT_EQ(printResult.str(), R"(1->Update
+    std::cout << printResult.str() << '\n' << std::flush;
+    ASSERT_EQ(printResult.str(), R"(2->Create
+3->Create
+31->Create
+1->Create
+33->Create
+32->Create
+322->Create
+321->Create
+1->Update
 2->Update
 3->Update
 31->Update
@@ -247,51 +191,26 @@ TEST(ECS, SystemOrder)
 )");
 }
 
-TEST(ECS, View)
-{
-    EntityAllocator entities = {};
-
-    Entity physicsEntity = entities.AddEntity(physicsArchetype);
-    Entity physicsWithSpring = entities.AddEntity(physicsWithSpringArchetype);
-
-    View<Transform, RigidBody>::Each(entities, [](auto& transform, auto&)
-    {
-        ++transform.position;
-    });
-    ASSERT_EQ(entities.GetComponent<Transform>(physicsEntity).position, 1);
-    ASSERT_EQ(entities.GetComponent<Transform>(physicsWithSpring).position, 1);
-
-    View<QueryExclusion<SpringPhysics>, Transform, RigidBody>::Each(entities, [](auto& transform, auto&)
-    {
-        ++transform.position;
-    });
-    ASSERT_EQ(entities.GetComponent<Transform>(physicsEntity).position, 2);
-    ASSERT_EQ(entities.GetComponent<Transform>(physicsWithSpring).position, 1);
-
-    entities.RemoveEntity(physicsEntity);
-    entities.RemoveEntity(physicsWithSpring);
-}
-
-
 /**
  * 质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
  */
 class PhysicsSystem : public System<>
 {
 public:
-    constexpr static float DeltaTime = 0.02f;
+    EntityAllocator* entities = {};
+    float deltaTime = 0.02f;
 
-    static void Update(EntityAllocator& entities)
+    void Update() override
     {
-        View<Transform, RigidBody>::Each(entities, [](Transform& transform, RigidBody& rigidBody)
+        View<Transform, RigidBody>(*entities).Each([this](Transform& transform, RigidBody& rigidBody)
         {
             float acceleration = rigidBody.force / rigidBody.mass; //牛顿第二定律
             acceleration += rigidBody.mass * -9.8f; //添加重力加速度
-            rigidBody.velocity += acceleration * DeltaTime;
-            transform.position += rigidBody.velocity * DeltaTime;
+            rigidBody.velocity += acceleration * deltaTime;
+            transform.position += rigidBody.velocity * deltaTime;
             rigidBody.force = 0;
         });
-        View<Transform, RigidBody, SpringPhysics>::Each(entities, [](Transform& transform, RigidBody& rigidBody, SpringPhysics& spring)
+        View<Transform, RigidBody, SpringPhysics>(*entities).Each([](Transform& transform, RigidBody& rigidBody, SpringPhysics& spring)
         {
             float vector = spring.pinPosition - transform.position;
             float direction = vector >= 0 ? 1 : -1;
@@ -305,17 +224,21 @@ public:
 
 TEST(ECS, System)
 {
-    SystemAllocator systems = {};
-    systems.AddSystem<PhysicsSystem>();
     EntityAllocator entities = {};
     for (int i = 0; i < 10; i++)
         entities.AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
 
+    SystemAllocator systems = {};
+    PhysicsSystem& physicsSystem = systems.AddSystem<PhysicsSystem>();
+    physicsSystem.deltaTime = 0.02f;
+    physicsSystem.entities = &entities;
+
+    //更新
     for (int i = 0; i < 200; i++)
-        systems.Update(entities); //更新
+        systems.Update();
 
     std::stringstream ss;
-    View<Transform>::Each(entities, [&entities,&ss](const Entity entity, Transform& transform)
+    View<Transform>(entities).Each([&entities,&ss](const Entity entity, Transform& transform)
     {
         ss << std::format("{:10.3f}", transform.position) << '|';
         ASSERT_TRUE(entities.HasComponent<SpringPhysics>(entity)
@@ -325,94 +248,89 @@ TEST(ECS, System)
     std::cout << ss.str();
 }
 
+TEST(ECS, World)
+{
+    Entity entities[2] = {
+        World::AddEntity(physicsArchetype),
+        World::AddEntity(physicsArchetype),
+    };
+    World::RemoveEntityAsync(entities[0]);
+    World::MoveEntityAsync(entities[1], physicsWithSpringArchetype);
 
-// TEST(ECS, World)
-// {
-//     World world;
-//     Entity entities[2] = {
-//         world.GetEntityAllocator().AddEntity(physicsArchetype),
-//         world.GetEntityAllocator().AddEntity(physicsArchetype),
-//     };
-//     world.RemoveEntityAsync(entities[0]);
-//     world.GetEntityAllocator().MoveEntity(entities[1], physicsWithSpringArchetype);
-//
-//     View view = View<Transform, RigidBody, SpringPhysics>(world.GetEntityAllocator());
-//     view.Each([entities](auto& entity, auto& transform, auto& rigidBody, auto& spring)
-//     {
-//         ASSERT_EQ(entity, entities[1]);
-//         ASSERT_EQ(transform, Transform());
-//         ASSERT_EQ(rigidBody, RigidBody());
-//         ASSERT_EQ(spring, SpringPhysics());
-//     });
-//
-//     RigidBody inRigidBody = {100, 1, 2};
-//     SpringPhysics inSpring = {1, 2, 3};
-//     world.GetEntityAllocator().SetComponents(entities[1], inRigidBody, inSpring);
-//     RigidBody outRigidBody;
-//     SpringPhysics outSpring;
-//     world.GetEntityAllocator().GetComponents(entities[1], outRigidBody, outSpring);
-//     ASSERT_EQ(outRigidBody, inRigidBody);
-//     ASSERT_EQ(outSpring, inSpring);
-//
-//     entities[0] = world.GetEntityAllocator().AddEntity(physicsArchetype);
-//     world.GetEntityAllocator().SetComponents(entities[0], Transform{3});
-//     ASSERT_EQ(world.GetEntityAllocator().GetComponent<Transform>(entities[0]), Transform{3});
-//
-//     world.RemoveEntityAsync(entities[0]);
-//     world.RemoveEntityAsync(entities[1]);
-//     world.Update();
-// }
+    World::Update();
+
+    World::View<Transform, RigidBody, SpringPhysics>().Each([entities](auto& entity, auto& transform, auto& rigidBody, auto& spring)
+    {
+        ASSERT_EQ(entity, entities[1]);
+        ASSERT_EQ(transform, Transform());
+        ASSERT_EQ(rigidBody, RigidBody());
+        ASSERT_EQ(spring, SpringPhysics());
+    });
+
+    RigidBody inRigidBody = {100, 1, 2};
+    SpringPhysics inSpring = {1, 2, 3};
+    World::Entities().SetComponents(entities[1], inRigidBody, inSpring);
+    RigidBody outRigidBody;
+    SpringPhysics outSpring;
+    World::Entities().GetComponents(entities[1], outRigidBody, outSpring);
+    ASSERT_EQ(outRigidBody, inRigidBody);
+    ASSERT_EQ(outSpring, inSpring);
+
+    entities[0] = World::Entities().AddEntity(physicsArchetype);
+    World::Entities().SetComponents(entities[0], Transform{3});
+    ASSERT_EQ(World::Entities().GetComponent<Transform>(entities[0]), Transform{3});
+
+    World::Clear();
+}
 
 
-//
-// TEST(ECS, Scene)
-// {
-//     class TestSystem : public SystemT<>
-//     {
-//         View<Transform> view = {};
-//
-//         void Start() override
-//         {
-//             view = {World::GetCurrentWorld().GetEntityAllocator()};
-//             view.Each([](Transform& transform)
-//             {
-//                 transform.position++;
-//             });
-//         }
-//         void Update() override
-//         {
-//             view.Each([](Transform& transform)
-//             {
-//                 transform.position++;
-//             });
-//         }
-//         void Stop() override
-//         {
-//             view.Each([](Transform& transform)
-//             {
-//                 transform.position--;
-//             });
-//         }
-//     };
-//
-//     Archetype& archetype = Archetype::CreateOrGet({TransformType});
-//
-//     World world;
-//     Scene& scene = world.AddScene("TestScene", true);
-//     Entity entity = world.AddEntity(archetype);
-//     System& system = world.AddSystem<TestSystem>();
-//
-//     world.Update();
-//     ASSERT_EQ(world.GetEntityAllocator().GetComponent<Transform>(entity).position, 2);
-//     world.Update();
-//     ASSERT_EQ(world.GetEntityAllocator().GetComponent<Transform>(entity).position, 3);
-//
-//     scene.RemoveEntity(entity);
-//     world.RemoveScene(scene);
-//     ASSERT_EQ(world.GetEntityAllocator().GetComponent<Transform>(entity).position, 3);
-//     world.Update();
-//     ASSERT_EQ(world.GetEntityAllocator().GetComponent<Transform>(entity).position, 2);
-//
-//     world.Clear();
-//     ASSERT_EQ(world.GetEntityInfoAllocator().HasEntity(entity), false);
-// }
+TEST(ECS, World2)
+{
+    class TestSystem : public System<>
+    {
+        void Start() override
+        {
+            World::View<Transform>().Each([](Transform& transform)
+            {
+                transform.position++;
+            });
+        }
+        void Update() override
+        {
+            World::View<Transform>().Each([](Transform& transform)
+            {
+                transform.position++;
+            });
+        }
+        void Stop() override
+        {
+            World::View<Transform>().Each([](Transform& transform)
+            {
+                transform.position--;
+            });
+        }
+    };
+
+
+    Scene& scene = World::AddScene("TestScene", true);
+    Entity entity = World::AddEntity(Archetype::CreateOrGet<Transform>("Transform"));
+    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 0);
+    World::AddSystem<TestSystem>();
+    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 1);
+    World::Update();
+    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 2);
+
+    //回收场景
+    scene.RemoveEntity(entity); //实体不回收
+    World::RemoveScene(scene);
+
+    World::Update();
+    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 1);
+
+    World::AddSystem<TestSystem>();
+    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 2);
+    World::Update();
+    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 3);
+    
+    World::Clear();
+}

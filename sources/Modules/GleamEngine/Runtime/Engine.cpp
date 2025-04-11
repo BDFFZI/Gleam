@@ -1,6 +1,4 @@
 ﻿#include "Engine.h"
-#include "GleamECS/Runtime/World/World.h"
-
 
 namespace Gleam
 {

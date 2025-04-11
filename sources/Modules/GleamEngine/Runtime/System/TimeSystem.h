@@ -9,7 +9,7 @@
 
 namespace Gleam
 {
-    class TimeSystem : public SystemT<PreUpdateSystem>
+    class TimeSystem : public System<PreUpdateSystem>
     {
     public:
         Time& GetMainTime() const

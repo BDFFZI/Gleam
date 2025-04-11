@@ -2,8 +2,8 @@
 #include <functional>
 #include <map>
 
-#include "GleamECS/Runtime/System/SystemGroup.h"
-#include "GleamECS/Runtime/World/World.h"
+#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/System/SystemInfoAllocator.h"
 #include "GleamUtility/Runtime/Macro.h"
 
 #ifdef GleamEngineEditor
@@ -15,13 +15,17 @@ namespace Gleam
     class Engine
     {
     public:
-        static World& GetMainWorld()
-        {
-            return mainWorld;
-        }
         static void AddStartEvent(const std::function<void()>& event, int order = 0);
         static void AddStopEvent(const std::function<void()>& event, int order = 0);
         static void AddUpdateEvent(const std::function<void()>& event, int order = 0);
+        template <class TSystem>
+        static TSystem* MakeGlobalRuntimeSystem()
+        {
+            TSystem* system = nullptr;
+            runtimeSystems.emplace_back(&SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>, &system);
+            return system;
+        }
+
         template <class... TSystem>
         static void AddRuntimeSystems()
         {
@@ -33,7 +37,7 @@ namespace Gleam
             assert(!isStopping && "引擎尚未启动就已被关闭，请检查运行流程！");
 
             for (auto system : runtimeSystems)
-                mainWorld.AddSystem(*system);
+                World::AddSystem(*system);
 
             for (auto& event : startEvents | std::views::values)
                 event();
@@ -45,13 +49,13 @@ namespace Gleam
                 World::Update();
                 Profiler::End();
 #else
-                mainWorld.Update();
+                World::Update();
 #endif
 
                 for (auto& event : updateEvents | std::views::values)
                     event();
             }
-            mainWorld.Clear();
+            World::Clear();
 
             for (auto& event : stopEvents | std::views::values)
                 event();
@@ -63,8 +67,7 @@ namespace Gleam
         friend void Editor_InterceptRuntimeSystem();
         friend void Editor_PlayOrStopEngine();
 
-        static inline World mainWorld = {};
-        static inline std::vector<SystemInfo*> runtimeSystems;
+        static inline std::vector<std::tuple<SystemInfo*, ISystemEvent**>> runtimeSystems;
         static inline std::multimap<int, std::function<void()>> startEvents;
         static inline std::multimap<int, std::function<void()>> updateEvents;
         static inline std::multimap<int, std::function<void()>> stopEvents;
@@ -99,4 +102,6 @@ return 0;\
 
     ///将系统添加到世界，并注册到运行时系统组
 #define Gleam_AddRuntimeSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::AddRuntimeSystems<__VA_ARGS__>();}
+
+#define Gleam_MakeGlobalRuntimeSystem
 }

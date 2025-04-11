@@ -7,17 +7,12 @@
 
 namespace Gleam
 {
-    class TransformSystem : public SystemT<PostUpdateSystem>
+    class TransformSystem : public System<PostUpdateSystem>
     {
     public:
         static void ComputeLocalToWorld(LocalTransform localTransform, LocalToWorld& localToWorld);
 
     private:
-        View<QueryExclusion<Parent>, LocalTransform, LocalToWorld> rootNodeView = {};
-        View<LocalTransform, LocalToWorld, Parent> childNodeView = {};
-        View<LocalToWorld, WorldToLocal> nodeView = {};
-
-        void Start() override;
         void Update() override;
     };
     Gleam_MakeSystem(TransformSystem)

@@ -24,9 +24,14 @@ namespace Gleam
     class View<TFilter, TComponents...>
     {
     public:
+        View(EntityAllocator& entityAllocator)
+            : entities(&entityAllocator)
+        {
+        }
+
         template <class TFunction> requires
             ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
-        static void Each(EntityAllocator& entities, TFunction function)
+        void Each(TFunction function)
         {
             constexpr static auto Each_Inner = []<size_t... Indices>(EntityAllocator& entityAllocator, TFunction function, std::index_sequence<Indices...>)
             {
@@ -42,42 +47,50 @@ namespace Gleam
                 }
             };
 
-            Each_Inner(entities, function, std::make_index_sequence<sizeof...(TComponents)>());
+            Each_Inner(*entities, function, std::make_index_sequence<sizeof...(TComponents)>());
         }
         template <class TComponent>
-        static TComponent& First(EntityAllocator& entities)
+        TComponent& First()
         {
             const Archetype& archetype = *std::get<0>(Query::GetQuery<TFilter, TComponents...>().GetTargets().front());
-            std::byte* address = entities.GetEntityHeap(archetype).At(0) + archetype.GetComponentOffset(typeid(TComponent));
+            std::byte* address = entities->GetEntityHeap(archetype).At(0) + archetype.GetComponentOffset(typeid(TComponent));
             return *reinterpret_cast<TComponent*>(address);
         }
-        static void Fetch(EntityAllocator& entities, std::vector<Entity>& result)
+        void Fetch(std::vector<Entity>& result)
         {
             for (const auto& [archetype,componentOffsets] : Query::GetQuery<TFilter, TComponents...>().GetTargets())
             {
-                Heap& heap = entities.GetEntityHeap(*archetype);
+                Heap& heap = entities->GetEntityHeap(*archetype);
                 heap.ForeachElements([&result](std::byte* item)
                 {
                     result.push_back(*reinterpret_cast<Entity*>(item));
                 });
             }
         }
-        int Count(EntityAllocator& entities) const
+        int Count() const
         {
             int count = 0;
 
             for (const auto& [archetype,componentOffsets] : Query::GetQuery<TFilter, TComponents...>().GetTargets())
             {
-                count += entities.GetEntityHeap(*archetype).GetCount();
+                count += entities->GetEntityHeap(*archetype).GetCount();
             }
 
             return count;
         }
+
+    private:
+        EntityAllocator* entities;
     };
 
     template <Component TComponent,Component... TComponents>
         requires (sizeof...(TComponents) + 1 != 0) && !QueryFilter<TComponent>
     class View<TComponent, TComponents...> : public View<QueryAlways, TComponent, TComponents...>
     {
+    public:
+        View(EntityAllocator& entityAllocator)
+            : View<QueryAlways, TComponent, TComponents...>(entityAllocator)
+        {
+        }
     };
 }
