@@ -31,6 +31,8 @@ namespace Gleam
         static void Update();
 
     private:
+        Gleam_MakeType_Friend
+
         inline static GLFWwindow* glfwWindow = nullptr;
         inline static float2 mousePosition = {};
         inline static float2 mouseScrollDelta = {};

@@ -10,7 +10,6 @@ namespace Gleam
     class PreUpdateSystem : public System<void, SystemMinOrder, SystemMidOrder>, public ISystemGroup
     {
     };
-    Gleam_MakeSystem(PreUpdateSystem)
 
     /**
      * 在默认更新顺序之后执行，用于引擎接收处理用户更新后的游戏数据，系统将根据这些信息调整一些系统功能，例如更新矩阵，绘制。
@@ -18,5 +17,4 @@ namespace Gleam
     class PostUpdateSystem : public System<void, SystemMidOrder, SystemMaxOrder>, public ISystemGroup
     {
     };
-    Gleam_MakeSystem(PostUpdateSystem)
 }

@@ -12,8 +12,9 @@ namespace Gleam
         static void SetVisible(bool state);
 
         static void Update();
-
     private:
+        Gleam_MakeType_Friend
+        
         inline static bool isLocking = false;
         inline static float2 lockingPos = 0;
     };

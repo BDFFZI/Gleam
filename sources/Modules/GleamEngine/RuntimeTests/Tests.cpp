@@ -1,24 +1,18 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
-#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamEngine/Runtime/System/UpdateSystem.h"
 
 using namespace Gleam;
 
-// class GameSystem
-
-class MySystem : public SystemT<PostUpdateSystem>
+class MySystem : public System<PostUpdateSystem>
 {
-    TimeSystem* timeSystem = nullptr;
     int countDown = 3;
 
     void Start() override
     {
-        timeSystem = World::GetCurrentWorld().GetSystemAllocator().GetSystemPtr<TimeSystem>().lock().get();
-
         std::cout << "Engine Start" << std::endl;
     }
     void Update() override
@@ -28,9 +22,8 @@ class MySystem : public SystemT<PostUpdateSystem>
         if (countDown == 0)
             Engine::Stop();
 
-        Time& time = timeSystem->GetMainTime();
         std::cout
-            << std::format("Time:{:f}\tDeltaTime:{:f}", time.GetTime(), time.GetDeltaTime())
+            << std::format("Time:{:f}\tDeltaTime:{:f}", GlobalTimeSystem->GetTimeReal(), GlobalTimeSystem->GetDeltaTimeReal())
             << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -40,7 +33,6 @@ class MySystem : public SystemT<PostUpdateSystem>
         std::cout << "Engine Stop" << std::endl;
     }
 };
-Gleam_MakeSystem(MySystem)
-Gleam_AddRuntimeSystems(MySystem)
+Gleam_MakeRuntimeSystem(MySystem)
 
 Gleam_Main

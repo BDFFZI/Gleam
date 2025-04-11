@@ -19,25 +19,19 @@ namespace Gleam
         static void AddStopEvent(const std::function<void()>& event, int order = 0);
         static void AddUpdateEvent(const std::function<void()>& event, int order = 0);
         template <class TSystem>
-        static TSystem* MakeGlobalRuntimeSystem()
+        static TSystem* MakeRuntimeSystem(TSystem*& globalSystemPtr)
         {
-            TSystem* system = nullptr;
-            runtimeSystems.emplace_back(&SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>, &system);
-            return system;
-        }
-
-        template <class... TSystem>
-        static void AddRuntimeSystems()
-        {
-            runtimeSystems.insert(runtimeSystems.end(), {&SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>()...});
+            runtimeSystems.emplace_back(std::make_tuple<SystemInfo*, ISystemEvent**>(
+                &SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>(), reinterpret_cast<ISystemEvent**>(&globalSystemPtr)
+            ));
+            return nullptr;
         }
 
         static void Start()
         {
             assert(!isStopping && "引擎尚未启动就已被关闭，请检查运行流程！");
 
-            for (auto system : runtimeSystems)
-                World::AddSystem(*system);
+            AddRuntimeSystemToWorld();
 
             for (auto& event : startEvents | std::views::values)
                 event();
@@ -72,6 +66,16 @@ namespace Gleam
         static inline std::multimap<int, std::function<void()>> updateEvents;
         static inline std::multimap<int, std::function<void()>> stopEvents;
         inline static bool isStopping = false;
+
+        static void AddRuntimeSystemToWorld()
+        {
+            for (const auto& [system,slot] : runtimeSystems)
+            {
+                void* address = &World::AddSystem(*system);
+                *slot = static_cast<ISystemEvent*>(address);
+                // *slot = &World::AddSystem(*system); //注意！不能这样连写，否则取到的地址是错的，神奇的机制
+            }
+        }
     };
 
     ///利用如下宏实现关系到程序整个运行周期的事件，如库初始化。
@@ -100,8 +104,5 @@ Gleam::Engine::Start();\
 return 0;\
 }
 
-    ///将系统添加到世界，并注册到运行时系统组
-#define Gleam_AddRuntimeSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::AddRuntimeSystems<__VA_ARGS__>();}
-
-#define Gleam_MakeGlobalRuntimeSystem
+#define Gleam_MakeRuntimeSystem(type) inline type* Global##type = ::Gleam::Engine::MakeRuntimeSystem<type>(Global##type);
 }

@@ -1,5 +1,7 @@
 ﻿#include "SystemAllocator.h"
 
+#include <iostream>
+
 namespace Gleam
 {
     SystemAllocator::~SystemAllocator()
@@ -34,7 +36,6 @@ namespace Gleam
         {
             system = static_cast<IOrderedSystemEvent*>(systemInfo.type->Create());
             system->Start();
-
             ISystemGroup& systemGroup = systemInfo.group ? *dynamic_cast<ISystemGroup*>(std::get<0>(systems[systemInfo.group])) : rootSystem;
             systemGroup.AddSystem(*system);
         }

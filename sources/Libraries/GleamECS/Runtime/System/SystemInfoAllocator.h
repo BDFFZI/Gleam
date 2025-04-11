@@ -45,7 +45,4 @@ namespace Gleam
     private:
         inline static std::unordered_map<uuids::uuid, SystemInfo> systemInfoMap;
     };
-
-#define Gleam_MakeSystem(systemClass) \
-inline ::Gleam::SystemInfo& systemClass##Info = ::Gleam::SystemInfoAllocator::CreateOrGetSystemInfo<systemClass>();
 }
