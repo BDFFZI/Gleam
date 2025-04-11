@@ -24,18 +24,13 @@ namespace Gleam
     class View<TFilter, TComponents...>
     {
     public:
-        View() = default;
-        View(EntityAllocator& entityAllocator): entityAllocator(&entityAllocator), query(&Query::GetQuery<TFilter, TComponents...>())
-        {
-        }
-
         template <class TFunction> requires
             ViewIterator<TFunction, TComponents...> || ViewIteratorWithEntity<TFunction, TComponents...>
-        void Each(TFunction function)
+        static void Each(EntityAllocator& entities, TFunction function)
         {
-            constexpr static auto Each_Inner = []<size_t... Indices>(Query& query, EntityAllocator& entityAllocator, TFunction function, std::index_sequence<Indices...>)
+            constexpr static auto Each_Inner = []<size_t... Indices>(EntityAllocator& entityAllocator, TFunction function, std::index_sequence<Indices...>)
             {
-                for (const auto& [archetype,componentOffsets] : query.GetTargets())
+                for (const auto& [archetype,componentOffsets] : Query::GetQuery<TFilter, TComponents...>().GetTargets())
                 {
                     entityAllocator.GetEntityHeap(*archetype).ForeachElements([function,&componentOffsets](std::byte* item)
                     {
@@ -47,51 +42,42 @@ namespace Gleam
                 }
             };
 
-            Each_Inner(*query, *entityAllocator, function, std::make_index_sequence<sizeof...(TComponents)>());
+            Each_Inner(entities, function, std::make_index_sequence<sizeof...(TComponents)>());
         }
         template <class TComponent>
-        TComponent& First()
+        static TComponent& First(EntityAllocator& entities)
         {
-            const Archetype& archetype = *std::get<0>(query->GetTargets().front());
-            std::byte* address = entityAllocator->GetEntityHeap(archetype).At(0) + archetype.GetComponentOffset(typeid(TComponent));
+            const Archetype& archetype = *std::get<0>(Query::GetQuery<TFilter, TComponents...>().GetTargets().front());
+            std::byte* address = entities.GetEntityHeap(archetype).At(0) + archetype.GetComponentOffset(typeid(TComponent));
             return *reinterpret_cast<TComponent*>(address);
         }
-        void Fetch(std::vector<Entity>& result)
+        static void Fetch(EntityAllocator& entities, std::vector<Entity>& result)
         {
-            for (const auto& [archetype,componentOffsets] : query->GetTargets())
+            for (const auto& [archetype,componentOffsets] : Query::GetQuery<TFilter, TComponents...>().GetTargets())
             {
-                Heap& heap = entityAllocator->GetEntityHeap(*archetype);
+                Heap& heap = entities.GetEntityHeap(*archetype);
                 heap.ForeachElements([&result](std::byte* item)
                 {
                     result.push_back(*reinterpret_cast<Entity*>(item));
                 });
             }
         }
-        int Count() const
+        int Count(EntityAllocator& entities) const
         {
             int count = 0;
 
-            for (const auto& [archetype,componentOffsets] : query->GetTargets())
+            for (const auto& [archetype,componentOffsets] : Query::GetQuery<TFilter, TComponents...>().GetTargets())
             {
-                count += entityAllocator->GetEntityHeap(*archetype).GetCount();
+                count += entities.GetEntityHeap(*archetype).GetCount();
             }
 
             return count;
         }
-
-    private:
-        EntityAllocator* entityAllocator;
-        Query* query;
     };
 
     template <Component TComponent,Component... TComponents>
         requires (sizeof...(TComponents) + 1 != 0) && !QueryFilter<TComponent>
     class View<TComponent, TComponents...> : public View<QueryAlways, TComponent, TComponents...>
     {
-    public:
-        View() = default;
-        View(EntityAllocator& entityAllocator): View<QueryAlways, TComponent, TComponents...>(entityAllocator)
-        {
-        }
     };
 }

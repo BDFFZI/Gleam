@@ -12,12 +12,19 @@ namespace Gleam
     class EntityAllocator
     {
     public:
-        explicit EntityAllocator(EntityInfoAllocator& entityInfoAllocator): entityInfoAllocator(&entityInfoAllocator)
-        {
-        }
         ~EntityAllocator()
         {
-            Clear();
+            for (auto& [archetype, heap] : entityHeaps)
+            {
+                heap.ForeachElements([this,archetype](std::byte* address)
+                {
+                    Entity entity = *reinterpret_cast<Entity*>(address);
+                    //去除实体信息
+                    entityInfoAllocator->SetEntityInfo(entity, std::nullopt);
+                    //运行析构函数
+                    archetype->Destruct(address);
+                });
+            }
         }
 
         EntityInfoAllocator& GetEntityInfoAllocator() const
@@ -26,7 +33,6 @@ namespace Gleam
         }
         std::unordered_map<const Archetype*, Heap>& GetEntityHeaps();
         Heap& GetEntityHeap(const Archetype& archetype);
-        void MergeEntityAllocator(EntityAllocator& other);
 
         //添加实体
         Entity AddEntity(const Archetype& archetype);
@@ -131,11 +137,8 @@ namespace Gleam
             const Archetype& archetype = *entityInfo.archetype;
             ((*reinterpret_cast<TComponents*>(entityInfo.memoryAddress + archetype.GetComponentOffset(typeid(TComponents))) = components), ...);
         }
-
-        void Clear();
-
     private:
-        EntityInfoAllocator* entityInfoAllocator = nullptr;
+        std::unique_ptr<EntityInfoAllocator> entityInfoAllocator = std::make_unique<EntityInfoAllocator>();
         std::unordered_map<const Archetype*, Heap> entityHeaps;
 
         void AddEntityUninitialized(const Archetype& archetype, Entity& outEntity, EntityInfo& outEntityInfo);

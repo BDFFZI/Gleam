@@ -15,27 +15,7 @@ namespace Gleam
         entityHeaps.insert({&archetype, Heap(archetype.GetSize())});
         return entityHeaps.at(&archetype);
     }
-    void EntityAllocator::MergeEntityAllocator(EntityAllocator& other)
-    {
-        assert(&other.GetEntityInfoAllocator() == entityInfoAllocator && "只有实体信息分配器相同才可融并！");
-        for (auto& [archetype, heap] : other.GetEntityHeaps())
-        {
-            heap.ForeachElements([this,archetype](std::byte* address)
-            {
-                Entity entity = *reinterpret_cast<Entity*>(address);
-                //分配新内存
-                Heap& newHeap = GetEntityHeap(*archetype);
-                std::byte* newAddress = newHeap.AddElement();
-                //将旧数据移动到新内存
-                archetype->MoveConstruct(newAddress, address);
-                //设置新实体信息
-                EntityInfo entityInfo = {*archetype, *this, newHeap.GetCount() - 1, newAddress};
-                entityInfoAllocator->SetEntityInfo(entity, entityInfo);
-            });
-        }
-        other.GetEntityHeaps().clear();
-    }
-
+    
     Entity EntityAllocator::AddEntity(const Archetype& archetype)
     {
         Entity entity;
@@ -183,22 +163,6 @@ namespace Gleam
         if (!optionalArchetype.has_value())
             optionalArchetype = Archetype::Create(currentComponents);
         return optionalArchetype.value();
-    }
-
-    void EntityAllocator::Clear()
-    {
-        for (auto& [archetype, heap] : entityHeaps)
-        {
-            heap.ForeachElements([this,archetype](std::byte* address)
-            {
-                Entity entity = *reinterpret_cast<Entity*>(address);
-                //去除实体信息
-                entityInfoAllocator->SetEntityInfo(entity, std::nullopt);
-                //运行析构函数
-                archetype->Destruct(address);
-            });
-        }
-        entityHeaps.clear();
     }
 
     void EntityAllocator::AddEntityUninitialized(const Archetype& archetype, Entity& outEntity, EntityInfo& outEntityInfo)

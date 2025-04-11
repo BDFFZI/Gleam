@@ -38,7 +38,7 @@ namespace Gleam
 
             if (systemInfo.group != nullptr)
             {
-                SystemData& parentSystem = std::get<0>(systems[&systemInfo]);
+                SystemData& parentSystem = std::get<0>(systems[systemInfo.group]);
                 parentSystem.subSystems.insert(&system);
             }
             else

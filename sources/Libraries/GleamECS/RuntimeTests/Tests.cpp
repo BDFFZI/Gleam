@@ -187,8 +187,7 @@ public:
 };
 
 
-// TEST(ECS, System)
-void main()
+TEST(ECS, SystemOrder)
 {
     class System2 : public PrintSystem<2>
     {
@@ -225,7 +224,7 @@ void main()
     ///  - system3_3
 
     EntityInfoAllocator entitiesInfoAllocator;
-    EntityAllocator entities = EntityAllocator(entitiesInfoAllocator);
+    EntityAllocator entities;
     SystemAllocator systems;
     systems.AddSystem<System2>();
     systems.AddSystem<System3>();
@@ -237,32 +236,95 @@ void main()
     systems.Update(entities);
 
     std::cout << printResult.str() << std::endl;
-//     ASSERT_EQ(printResult.str(), R"(class System1->Start
-// class System2->Start
-// class System3->Start
-// class System3_1->Start
-// class System3_2->Start
-// class System3_2_1->Start
-// class System3_2_2->Start
-// class System3_3->Start
-// class System1->Update
-// class System2->Update
-// class System3->Update
-// class System3_1->Update
-// class System3_2->Update
-// class System3_2_1->Update
-// class System3_2_2->Update
-// class System3_3->Update
-// class System3_3->Stop
-// class System3_2_2->Stop
-// class System3_2_1->Stop
-// class System3_2->Stop
-// class System3_1->Stop
-// class System3->Stop
-// class System2->Stop
-// class System1->Stop
-// )");
+    ASSERT_EQ(printResult.str(), R"(1->Update
+2->Update
+3->Update
+31->Update
+32->Update
+321->Update
+322->Update
+33->Update
+)");
 }
+
+TEST(ECS, View)
+{
+    EntityAllocator entities = {};
+
+    Entity physicsEntity = entities.AddEntity(physicsArchetype);
+    Entity physicsWithSpring = entities.AddEntity(physicsWithSpringArchetype);
+
+    View<Transform, RigidBody>::Each(entities, [](auto& transform, auto&)
+    {
+        ++transform.position;
+    });
+    ASSERT_EQ(entities.GetComponent<Transform>(physicsEntity).position, 1);
+    ASSERT_EQ(entities.GetComponent<Transform>(physicsWithSpring).position, 1);
+
+    View<QueryExclusion<SpringPhysics>, Transform, RigidBody>::Each(entities, [](auto& transform, auto&)
+    {
+        ++transform.position;
+    });
+    ASSERT_EQ(entities.GetComponent<Transform>(physicsEntity).position, 2);
+    ASSERT_EQ(entities.GetComponent<Transform>(physicsWithSpring).position, 1);
+
+    entities.RemoveEntity(physicsEntity);
+    entities.RemoveEntity(physicsWithSpring);
+}
+
+
+/**
+ * 质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
+ */
+class PhysicsSystem : public System<>
+{
+public:
+    constexpr static float DeltaTime = 0.02f;
+
+    static void Update(EntityAllocator& entities)
+    {
+        View<Transform, RigidBody>::Each(entities, [](Transform& transform, RigidBody& rigidBody)
+        {
+            float acceleration = rigidBody.force / rigidBody.mass; //牛顿第二定律
+            acceleration += rigidBody.mass * -9.8f; //添加重力加速度
+            rigidBody.velocity += acceleration * DeltaTime;
+            transform.position += rigidBody.velocity * DeltaTime;
+            rigidBody.force = 0;
+        });
+        View<Transform, RigidBody, SpringPhysics>::Each(entities, [](Transform& transform, RigidBody& rigidBody, SpringPhysics& spring)
+        {
+            float vector = spring.pinPosition - transform.position;
+            float direction = vector >= 0 ? 1 : -1;
+            float distance = abs(vector) - spring.length;
+            float elasticForce = spring.elasticity * distance * direction; //弹力或推力
+            float resistance = -0.01f * spring.elasticity * (rigidBody.velocity * direction) * direction; //弹簧内部阻力（不添加无法使弹簧稳定）
+            rigidBody.force += elasticForce + resistance;
+        });
+    }
+};
+
+TEST(ECS, System)
+{
+    SystemAllocator systems = {};
+    systems.AddSystem<PhysicsSystem>();
+    EntityAllocator entities = {};
+    for (int i = 0; i < 10; i++)
+        entities.AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
+
+    for (int i = 0; i < 200; i++)
+        systems.Update(entities); //更新
+
+    std::stringstream ss;
+    View<Transform>::Each(entities, [&entities,&ss](const Entity entity, Transform& transform)
+    {
+        ss << std::format("{:10.3f}", transform.position) << '|';
+        ASSERT_TRUE(entities.HasComponent<SpringPhysics>(entity)
+            ?abs(transform.position+5) < 0.1f
+            :transform.position<70);
+    });
+    std::cout << ss.str();
+}
+
 
 // TEST(ECS, World)
 // {
@@ -301,95 +363,7 @@ void main()
 //     world.Update();
 // }
 
-//
-// /**
-//  * 质点弹簧物理系统模拟：https://zhuanlan.zhihu.com/p/361126215
-//  */
-// class PhysicsSystem : public SystemT<>
-// {
-// public:
-//     constexpr static float DeltaTime = 0.02f;
-//
-// private:
-//     View<Transform, RigidBody> view1 = {};
-//     View<Transform, RigidBody, SpringPhysics> view2 = {};
-//
-//     void Start() override
-//     {
-//         view1 = {World::GetCurrentWorld().GetEntityAllocator()};
-//         view2 = {World::GetCurrentWorld().GetEntityAllocator()};
-//     }
-//     void Update() override
-//     {
-//         view1.Each([](Transform& transform, RigidBody& rigidBody)
-//         {
-//             float acceleration = rigidBody.force / rigidBody.mass; //牛顿第二定律
-//             acceleration += rigidBody.mass * -9.8f; //添加重力加速度
-//             rigidBody.velocity += acceleration * DeltaTime;
-//             transform.position += rigidBody.velocity * DeltaTime;
-//             rigidBody.force = 0;
-//         });
-//         view2.Each([](Transform& transform, RigidBody& rigidBody, SpringPhysics& spring)
-//         {
-//             float vector = spring.pinPosition - transform.position;
-//             float direction = vector >= 0 ? 1 : -1;
-//             float distance = abs(vector) - spring.length;
-//             float elasticForce = spring.elasticity * distance * direction; //弹力或推力
-//             float resistance = -0.01f * spring.elasticity * (rigidBody.velocity * direction) * direction; //弹簧内部阻力（不添加无法使弹簧稳定）
-//             rigidBody.force += elasticForce + resistance;
-//         });
-//     }
-// };
-//
-// TEST(ECS, System)
-// {
-//     World world;
-//     world.AddSystem<PhysicsSystem>();
-//     for (int i = 0; i < 10; i++)
-//         world.GetEntityAllocator().AddEntity(i % 2 == 0 ? physicsArchetype : physicsWithSpringArchetype);
-//
-//     for (int i = 0; i < 200; i++)
-//         world.Update(); //更新
-//
-//     std::stringstream ss;
-//     View<Transform>(world.GetEntityAllocator()).Each([&world,&ss](const Entity entity, Transform& transform)
-//     {
-//         ss << std::format("{:10.3f}", transform.position) << '|';
-//         ASSERT_TRUE(world.GetEntityAllocator().HasComponent<SpringPhysics>(entity)
-//             ?abs(transform.position+5) < 0.1f
-//             :transform.position<70);
-//     });
-//     std::cout << ss.str();
-//
-//     world.Clear();
-// }
-//
-// TEST(ECS, View)
-// {
-//     World world;
-//     View view1 = View<Transform, RigidBody>(world.GetEntityAllocator());
-//     View view2 = View<QueryExclusion<SpringPhysics>, Transform, RigidBody>(world.GetEntityAllocator());
-//
-//     Entity physicsEntity = world.AddEntity(physicsArchetype);
-//     Entity physicsWithSpring = world.AddEntity(physicsWithSpringArchetype);
-//     world.Update();
-//     view1.Each([](auto& transform, auto&)
-//     {
-//         ++transform.position;
-//     });
-//     ASSERT_EQ(world.GetEntityAllocator().GetComponent<Transform>(physicsEntity).position, 1);
-//     ASSERT_EQ(world.GetEntityAllocator().GetComponent<Transform>(physicsWithSpring).position, 1);
-//
-//     view2.Each([](auto& transform, auto&)
-//     {
-//         ++transform.position;
-//     });
-//     ASSERT_EQ(world.GetEntityAllocator().GetComponent<Transform>(physicsEntity).position, 2);
-//     ASSERT_EQ(world.GetEntityAllocator().GetComponent<Transform>(physicsWithSpring).position, 1);
-//
-//     world.RemoveEntityAsync(physicsEntity);
-//     world.RemoveEntityAsync(physicsWithSpring);
-// }
+
 //
 // TEST(ECS, Scene)
 // {
