@@ -61,15 +61,15 @@ namespace Gleam
         template <class... TValue>
         void Transfer(std::tuple<TValue...>& value)
         {
-            auto TransferTuple = [this]<size_t... Indices>(
-                std::tuple<TValue...>& value, std::index_sequence<Indices...>)
+            constexpr static auto TransferTuple = []<size_t... Indices>(
+                FieldDataTransferrer* transferrer, std::tuple<TValue...>& value, std::index_sequence<Indices...>)
             {
-                PushNode(std::nullopt, DataType::Class);
-                (this->TransferField(std::format("item_{}", Indices), std::get<Indices>(value)), ...);
-                PopNode();
+                transferrer->PushNode(std::nullopt, DataType::Class);
+                (transferrer->TransferField(std::format("item_{}", Indices), std::get<Indices>(value)), ...);
+                transferrer->PopNode();
             };
 
-            TransferTuple(value, std::make_index_sequence<sizeof...(TValue)>());
+            TransferTuple(this, value, std::make_index_sequence<sizeof...(TValue)>());
         }
         /**
          * 字典类型
