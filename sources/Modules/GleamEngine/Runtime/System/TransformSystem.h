@@ -2,6 +2,10 @@
 #include "UpdateSystem.h"
 #include "GleamEngine/Runtime/Entity/Transform.h"
 
+#ifdef GleamEngineEditor
+#include "GleamEngine/Editor/Editor.h"
+#endif
+
 namespace Gleam
 {
     class TransformSystem : public System<PostUpdateSystem>

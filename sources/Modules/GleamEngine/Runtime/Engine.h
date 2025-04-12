@@ -12,29 +12,50 @@
 
 namespace Gleam
 {
+    class GlobalSystemAllocator
+    {
+    public:
+        template <class TSystem>
+        TSystem* MakeGlobalSystem(TSystem*& globalSystemPtr)
+        {
+            globalSystems.emplace_back(std::make_tuple<const SystemInfo*, ISystemEvent**>(
+                &SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>(), reinterpret_cast<ISystemEvent**>(&globalSystemPtr)
+            ));
+            return nullptr;
+        }
+        void AddGlobalSystemsToWorld()
+        {
+            for (const auto& [system,slot] : globalSystems)
+            {
+                void* address = &World::AddSystem(*system);
+                *slot = static_cast<ISystemEvent*>(address);
+                // *slot = &World::AddSystem(*system); //注意！不能这样连写，否则取到的地址是错的，神奇的机制
+            }
+        }
+
+    private:
+        std::vector<std::tuple<const SystemInfo*, ISystemEvent**>> globalSystems;
+    };
+
     class Engine
     {
     public:
         static void AddStartEvent(const std::function<void()>& event, int order = 0);
         static void AddStopEvent(const std::function<void()>& event, int order = 0);
         static void AddUpdateEvent(const std::function<void()>& event, int order = 0);
-        template <class TSystem>
-        static TSystem* MakeRuntimeSystem(TSystem*& globalSystemPtr)
+        static GlobalSystemAllocator& GetRuntimeSystems()
         {
-            runtimeSystems.emplace_back(std::make_tuple<SystemInfo*, ISystemEvent**>(
-                &SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>(), reinterpret_cast<ISystemEvent**>(&globalSystemPtr)
-            ));
-            return nullptr;
+            return runtimeSystems;
         }
 
         static void Start()
         {
             assert(!isStopping && "引擎尚未启动就已被关闭，请检查运行流程！");
 
-            AddRuntimeSystemToWorld();
-
             for (auto& event : startEvents | std::views::values)
                 event();
+
+            runtimeSystems.AddGlobalSystemsToWorld();
 
             while (!isStopping)
             {
@@ -49,6 +70,7 @@ namespace Gleam
                 for (auto& event : updateEvents | std::views::values)
                     event();
             }
+
             World::Clear();
 
             for (auto& event : stopEvents | std::views::values)
@@ -58,24 +80,14 @@ namespace Gleam
 
     private:
         friend class Editor;
-        friend void Editor_InterceptRuntimeSystem();
+        friend void Editor_ReplaceRuntimeSystem();
         friend void Editor_PlayOrStopEngine();
 
-        static inline std::vector<std::tuple<SystemInfo*, ISystemEvent**>> runtimeSystems;
+        static inline GlobalSystemAllocator runtimeSystems;
         static inline std::multimap<int, std::function<void()>> startEvents;
         static inline std::multimap<int, std::function<void()>> updateEvents;
         static inline std::multimap<int, std::function<void()>> stopEvents;
         inline static bool isStopping = false;
-
-        static void AddRuntimeSystemToWorld()
-        {
-            for (const auto& [system,slot] : runtimeSystems)
-            {
-                void* address = &World::AddSystem(*system);
-                *slot = static_cast<ISystemEvent*>(address);
-                // *slot = &World::AddSystem(*system); //注意！不能这样连写，否则取到的地址是错的，神奇的机制
-            }
-        }
     };
 
     ///利用如下宏实现关系到程序整个运行周期的事件，如库初始化。
@@ -104,5 +116,5 @@ Gleam::Engine::Start();\
 return 0;\
 }
 
-#define Gleam_MakeRuntimeSystem(type) inline type* Global##type = ::Gleam::Engine::MakeRuntimeSystem<type>(Global##type);
+#define Gleam_MakeRuntimeSystem(type) inline type* Global##type = ::Gleam::Engine::GetRuntimeSystems().MakeGlobalSystem<type>(Global##type);
 }

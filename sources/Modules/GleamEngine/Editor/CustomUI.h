@@ -1,7 +1,7 @@
 #pragma once
 
+#include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamEngine/Runtime/Entity/Transform.h"
-#include "System/InspectorWindow.h"
 
 namespace Gleam
 {

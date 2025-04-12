@@ -5,7 +5,6 @@
 #include "EditorTimeSystem.h"
 #include "InspectorWindow.h"
 #include "GleamEngine/Editor/EditorUI/EditorUI.h"
-#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Editor/Editor.h"
 
 namespace Gleam
@@ -15,14 +14,15 @@ namespace Gleam
         EditorUI::DrawEntityField(entity);
         return DrawEntityPopup(entity);
     }
-    bool HierarchyWindow::DrawSystem(SystemAllocator& allocator, System& system)
+    bool HierarchyWindow::DrawSystem(const ISystemEvent& system)
     {
-        SystemGroup* systemGroup = dynamic_cast<SystemGroup*>(&system);
+        const SystemInfo& systemInfo = SystemInfoAllocator::GetSystemInfo(system);
+        const ISystemGroup* systemGroup = dynamic_cast<const ISystemGroup*>(&system);
 
         //下拉框
         bool collapsing = ImGui::CollapsingHeader(
             std::format("##{}", typeid(system).name()).c_str(),
-            (systemGroup == nullptr || systemGroup->updatingSystems.empty()
+            (systemGroup == nullptr || systemGroup->GetSystems().empty()
                  ? ImGuiTreeNodeFlags_Leaf : 0) //无子系统时不显示箭头
             | ImGuiTreeNodeFlags_AllowItemOverlap //支持叠加按钮
         );
@@ -33,38 +33,28 @@ namespace Gleam
             {ImGui::GetContentRegionAvail().x - ImGui::GetTextLineHeightWithSpacing() * 1.5f, 0} //按钮铺满当前行余下的所有空间
         ))
         {
-            allocator.GetSystem<InspectorWindow>().SetTarget(InspectorTarget{system});
+            GlobalInspectorWindow->SetMajorTarget(World::GetSystemAllocator().GetSystem(systemInfo));
         }
         if (DrawSystemPopup(system) == false)
             return false;
 
         //系统引用计数
         ImGui::SameLine();
-        ImGui::Text("%i", allocator.GetSystemUsageCount().at(&system));
+        ImGui::Text("%i", World::GetSystemAllocator().GetUsageCount(SystemInfoAllocator::GetSystemInfo(system)));
 
         if (systemGroup && collapsing)
         {
             ImGui::TreePush(typeid(*systemGroup).name());
-            DrawSubSystems(allocator, *systemGroup);
+            DrawSubSystems(*systemGroup);
             ImGui::TreePop();
         }
 
         return true;
     }
-    void HierarchyWindow::DrawSubSystems(SystemAllocator& allocator, SystemGroup& systemGroup)
+    void HierarchyWindow::DrawSubSystems(const ISystemGroup& systemGroup)
     {
-        ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::GleamGreen());
-        for (const auto subSystem : systemGroup.addingSystems)
-            DrawSystem(allocator, *subSystem);
-        ImGui::PopStyleColor();
-
-        ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_Header) * float4::GleamRed());
-        for (const auto subSystem : systemGroup.removingSystems)
-            DrawSystem(allocator, *subSystem);
-        ImGui::PopStyleColor();
-
-        for (const auto subSystem : systemGroup.updatingSystems)
-            DrawSystem(allocator, *subSystem);
+        for (const auto subSystem : systemGroup.GetSystems())
+            DrawSystem(*subSystem);
     }
 
     void HierarchyWindow::DrawSystemsPopup()
@@ -108,24 +98,23 @@ namespace Gleam
         {
             if (ImGui::Button("AddEntity"))
             {
-                Engine::GetMainWorld()
-                World::AddEntity();
+                World::GetEntityAllocator().AddEntity();
                 ImGui::CloseCurrentPopup();
             }
 
             ImGui::EndPopup();
         }
     }
-    bool HierarchyWindow::DrawSystemPopup(System& system)
+    bool HierarchyWindow::DrawSystemPopup(const ISystemEvent& system)
     {
         bool result = true;
 
-        std::string id = std::format("{}SystemPopup", system.GetName());
+        std::string id = std::format("{}SystemPopup", typeid(system).name());
         if (ImGui::BeginPopupContextItem(id.data()))
         {
             if (ImGui::Button("RemoveSystem"))
             {
-                World::RemoveSystem(system);
+                World::RemoveSystem(SystemInfoAllocator::GetSystemInfo(system));
                 ImGui::CloseCurrentPopup();
                 result = false;
             }
@@ -149,9 +138,9 @@ namespace Gleam
             }
             if (ImGui::Button("Clone"))
             {
-                Entity newEntity = World::CloneEntity(entity);
+                Entity newEntity = World::GetEntityAllocator().CloneEntity(entity);
                 ImGui::CloseCurrentPopup();
-                GlobalInspectorWindow.SetTarget(newEntity);
+                GlobalInspectorWindow->SetMajorTarget(newEntity);
             }
 
             ImGui::EndPopup();
@@ -175,7 +164,7 @@ namespace Gleam
         if (systemsCollapsing)
         {
             ImGui::PushID("Systems");
-            DrawSubSystems(World::GetRootSystemGroup());
+            DrawSubSystems(World::GetSystemAllocator().GetRootSystem());
             ImGui::PopID();
         }
 
@@ -209,7 +198,7 @@ namespace Gleam
             for (const Archetype& archetype : Archetype::GetAllArchetypes())
             {
                 if (ImGui::Button(archetype.GetName().data()))
-                    GlobalInspectorWindow.SetTarget(InspectorTarget{const_cast<Archetype&>(archetype)});
+                    GlobalInspectorWindow->SetMajorTarget(InspectorTarget{const_cast<Archetype&>(archetype)});
             }
             ImGui::PopID();
         }
@@ -221,10 +210,10 @@ namespace Gleam
         {
             ImGui::SeparatorText("Statistics");
             ImGui::BulletText(std::format("IsPlaying:{}", Editor::IsPlaying()).c_str());
-            ImGui::BulletText(std::format("NextEntity:{}", Engine::GetMainWorld().GetEntityInfoAllocator().GetNextEntity()).c_str());
+            ImGui::BulletText(std::format("NextEntity:{}", static_cast<uint32_t>(World::GetEntityInfoAllocator().GetNextEntity())).c_str());
             //帧率信息
             static float deltaTime = 0;
-            deltaTime = std::lerp(deltaTime, EditorTimeSystem.GetDeltaTimeReal(), 0.3f);
+            deltaTime = std::lerp(deltaTime, GlobalEditorTimeSystem->GetDeltaTimeReal(), 0.3f);
             ImGui::BulletText(
                 "FrameRate:%5.1f ms/f (%5.1f FPS)",
                 deltaTime * 1000.0,

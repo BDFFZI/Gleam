@@ -20,7 +20,7 @@ namespace Gleam
                     {
                         if (ImGui::Button(std::to_string(assetSlot.GetID()).c_str()))
                         {
-                            GlobalInspectorWindow.SetTarget(InspectorTarget{
+                            GlobalInspectorWindow->SetMajorTarget(InspectorTarget{
                                 assetSlot.GetAsset().GetObjectPtr(),
                                 assetSlot.GetAsset().GetObjectType().GetIndex()
                             });

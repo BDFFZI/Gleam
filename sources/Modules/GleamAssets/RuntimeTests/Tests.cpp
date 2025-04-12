@@ -151,8 +151,8 @@ class MySystem2 : public System
         });
     }
 };
-Gleam_MakeSystem(MySystem)
-Gleam_MakeSystem(MySystem2)
+Gleam_MakeRuntimeSystem(MySystem)
+Gleam_MakeRuntimeSystem(MySystem2)
 
 TEST(Assets, Runtime)
 {

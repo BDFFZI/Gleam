@@ -23,9 +23,9 @@ namespace Gleam
 
     //激活所有场景
     void EditorSceneManager_StartScenes();
-    Gleam_MakeSystemEvent(EditorSceneManager_StartScenes, Start, GlobalPostUpdateSystem, System::MaxOrder)
+    Gleam_MakeRuntimeSystemEvent(EditorSceneManager_StartScenes, Start, GlobalPostUpdateSystem, System::MaxOrder)
 
     //清理并打开上次场景
     void EditorSceneManager_OpenLastScene();
-    Gleam_MakeSystemEvent(EditorSceneManager_OpenLastScene, Start, GlobalPostUpdateSystem, System::MaxOrder)
+    Gleam_MakeRuntimeSystemEvent(EditorSceneManager_OpenLastScene, Start, GlobalPostUpdateSystem, System::MaxOrder)
 }

@@ -1,30 +1,17 @@
 ﻿#include "Editor.h"
 
-#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/Engine.h"
 
 namespace Gleam
 {
-    void Editor::AddEditorSystems(const std::initializer_list<std::reference_wrapper<System>> systems)
-    {
-        editorSystems.insert(editorSystems.end(), systems.begin(), systems.end());
-    }
-    void Editor::AddEditorOnlySystems(const std::initializer_list<std::reference_wrapper<System>> systems)
-    {
-        editorOnlySystems.insert(editorOnlySystems.end(), systems.begin(), systems.end());
-    }
     bool& Editor::IsPlaying()
     {
         return isPlaying;
     }
-    void Editor_InterceptRuntimeSystem()
+    void Editor_ReplaceRuntimeSystem()
     {
-        for (auto system : Engine::runtimeSystems)
-            Engine::GetMainWorld().RemoveSystem(*system); //撤销运行时系统
-        for (auto system : Editor::editorSystems)
-            Engine::GetMainWorld().RemoveSystem(*system);
-        for (auto system : Editor::editorOnlySystems)
-            Engine::GetMainWorld().RemoveSystem(*system);
+        Editor::runtimeSystems = std::move(Engine::runtimeSystems); //剥夺运行时引擎对全局系统的控制权
+        Editor::editorSystems.AddGlobalSystemsToWorld(); //添加编辑器系统
     }
     void Editor_PlayOrStopEngine()
     {
@@ -33,19 +20,12 @@ namespace Gleam
         {
             if (Editor::IsPlaying())
             {
-                for (auto system : Engine::runtimeSystems)
-                    Engine::GetMainWorld().AddSystem(*system);
-                for (auto system : Editor::editorOnlySystems)
-                    Engine::GetMainWorld().AddSystem(*system);
+                Editor::runtimeSystems.AddGlobalSystemsToWorld(); //添加运行时系统
             }
             else
             {
-                World::Clear();
-
-                for (auto system : Editor::editorSystems)
-                    Engine::GetMainWorld().AddSystem(*system);
-                for (auto system : Editor::editorOnlySystems)
-                    Engine::GetMainWorld().AddSystem(*system);
+                World::Clear(); //重置世界
+                Editor::editorSystems.AddGlobalSystemsToWorld(); //添加编辑器系统
             }
         }
 

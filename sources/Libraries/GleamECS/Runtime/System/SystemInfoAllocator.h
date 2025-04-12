@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "System.h"
+#include "SystemGroup.h"
 #include "GleamReflection/Runtime/Type.h"
 #include <variant>
 
@@ -8,7 +9,8 @@ namespace Gleam
     struct SystemInfo
     {
         const Type* type;
-        SystemInfo* group;
+        const SystemInfo* group;
+        bool isGroup;
     };
 
     /**
@@ -22,7 +24,7 @@ namespace Gleam
             return systemInfoMap | std::views::values | std::views::transform([](SystemInfo& systemInfo) { return std::reference_wrapper(systemInfo); });
         }
         template <class TSystem> requires requires() { typename TSystem::Group;TSystem::Order; }
-        static SystemInfo& CreateOrGetSystemInfo()
+        static const SystemInfo& CreateOrGetSystemInfo()
         {
             Type& type = Type::CreateOrGet<TSystem>();
             if (systemInfoMap.contains(type.GetID()))
@@ -34,12 +36,17 @@ namespace Gleam
                 systemInfo.group = nullptr;
             else
                 systemInfo.group = &CreateOrGetSystemInfo<typename TSystem::Group>();
+            systemInfo.isGroup = std::derived_from<TSystem, ISystemGroup>;
 
             return systemInfo;
         }
-        static SystemInfo& GetSystemInfo(const uuids::uuid typeID)
+        static const SystemInfo& GetSystemInfo(const uuids::uuid typeID)
         {
             return systemInfoMap.at(typeID);
+        }
+        static const SystemInfo& GetSystemInfo(const ISystemEvent& system)
+        {
+            return GetSystemInfo(Type::GetType(typeid(system)).value().get().GetID());
         }
 
     private:

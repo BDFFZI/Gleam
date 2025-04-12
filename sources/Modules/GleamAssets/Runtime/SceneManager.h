@@ -35,5 +35,5 @@ namespace Gleam
 
     //引擎停止时，需释放场景（世界负责回收，场景需释放所有权）并回收资源包
     void SceneManager_ReleaseScenes();
-    Gleam_MakeSystemEvent(SceneManager_ReleaseScenes, Stop, GlobalPostUpdateSystem, System::MaxOrder)
+    Gleam_MakeRuntimeSystemEvent(SceneManager_ReleaseScenes, Stop, GlobalPostUpdateSystem, System::MaxOrder)
 }

@@ -18,13 +18,13 @@ namespace Gleam
         }
         EntityAllocator(EntityAllocator&& other) noexcept
         {
-            entityInfoAllocator = other.entityInfoAllocator;
+            entityInfoAllocator = std::move(other.entityInfoAllocator);
             entityHeaps = std::move(other.entityHeaps);
         }
         EntityAllocator& operator=(EntityAllocator&& other) noexcept
         {
             Clear();
-            entityInfoAllocator = other.entityInfoAllocator;
+            entityInfoAllocator = std::move(other.entityInfoAllocator);
             entityHeaps = std::move(other.entityHeaps);
             return *this;
         }

@@ -25,5 +25,5 @@ class TestSystem : public System
         Gizmos::PopLocalToWorld();
     }
 };
-Gleam_MakeSystem(TestSystem)
+Gleam_MakeRuntimeSystem(TestSystem)
 Gleam_AddRuntimeSystems(GlobalTestSystem)

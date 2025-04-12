@@ -21,5 +21,5 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeSystem(HierarchyWindow_Scene)
+    Gleam_MakeRuntimeSystem(HierarchyWindow_Scene)
 }

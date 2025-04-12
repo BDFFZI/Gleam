@@ -23,5 +23,5 @@ namespace Gleam
         Gleam_MakeType_AddField(ccdMaxCount);
     }
 
-    Gleam_MakeSystem(CollisionSystem)
+    Gleam_MakeRuntimeSystem(CollisionSystem)
 }

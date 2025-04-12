@@ -18,5 +18,5 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeSystem(GizmosSystem)
+    Gleam_MakeRuntimeSystem(GizmosSystem)
 }

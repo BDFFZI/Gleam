@@ -20,4 +20,4 @@ private:
 
     void Start() override;
 };
-Gleam_MakeSystem(AssetSystem)
+Gleam_MakeRuntimeSystem(AssetSystem)

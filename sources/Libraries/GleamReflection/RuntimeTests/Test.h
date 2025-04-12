@@ -96,7 +96,7 @@ struct CustomObject : CustomParent
     }
 };
 
-Gleam_MakeTypeWithIDParent(CustomObject, "", CustomParentType)
+Gleam_MakeTypeWithIDParent(CustomObject, "", CustomParent)
 {
     Gleam_MakeType_AddField(vectorValue);
     Gleam_MakeType_AddField(boolVectorValue);

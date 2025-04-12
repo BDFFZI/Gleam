@@ -52,5 +52,5 @@ namespace Gleam
         void Start() override;
         void Update() override;
     };
-    Gleam_MakeSystem(RenderingSystem)
+    Gleam_MakeRuntimeSystem(RenderingSystem)
 }

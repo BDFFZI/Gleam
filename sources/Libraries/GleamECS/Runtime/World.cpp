@@ -24,14 +24,14 @@ namespace Gleam
 
         CurrentContext->entityAllocator.RemoveEntity(entity);
     }
-    IOrderedSystemEvent& World::AddSystem(SystemInfo& systemInfo, const bool addToScene)
+    IOrderedSystemEvent& World::AddSystem(const SystemInfo& systemInfo, const bool addToScene)
     {
         if (addToScene && CurrentContext->activeScene != nullptr)
             CurrentContext->activeScene->AddSystem(systemInfo);
 
         return CurrentContext->systemAllocator.AddSystem(systemInfo);
     }
-    void World::RemoveSystem(SystemInfo& systemInfo, const bool removeFromScene)
+    void World::RemoveSystem(const SystemInfo& systemInfo, const bool removeFromScene)
     {
         if (removeFromScene && CurrentContext->activeScene != nullptr)
             CurrentContext->activeScene->RemoveSystem(systemInfo);

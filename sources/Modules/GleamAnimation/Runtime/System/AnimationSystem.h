@@ -13,5 +13,5 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeSystem(AnimationSystem)
+    Gleam_MakeRuntimeSystem(AnimationSystem)
 }

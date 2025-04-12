@@ -26,5 +26,5 @@ namespace Gleam
         Gleam_MakeType_AddField(optionalEntity);
     }
 
-    Gleam_MakeSystem(ParticleSelectionSystem)
+    Gleam_MakeRuntimeSystem(ParticleSelectionSystem)
 }

@@ -14,5 +14,5 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeSystem(ScenePrefabSystem);
+    Gleam_MakeRuntimeSystem(ScenePrefabSystem);
 }

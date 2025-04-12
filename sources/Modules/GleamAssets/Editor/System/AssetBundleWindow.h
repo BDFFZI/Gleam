@@ -14,5 +14,5 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeSystem(AssetBundleWindow)
+    Gleam_MakeRuntimeSystem(AssetBundleWindow)
 }

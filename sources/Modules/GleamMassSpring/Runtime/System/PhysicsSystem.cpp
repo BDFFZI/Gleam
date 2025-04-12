@@ -26,6 +26,6 @@ namespace Gleam
     void PhysicsSystem::Update()
     {
         for (int i = 0; i < GlobalTimeSystem.GetFixedDeltaCount(); i++)
-            SystemGroup::Update();
+            ISystemGroup::Update();
     }
 }

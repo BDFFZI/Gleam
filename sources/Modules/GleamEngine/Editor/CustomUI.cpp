@@ -1,7 +1,9 @@
 #include "CustomUI.h"
 
+#include "EditorUI/EditorUI.h"
 #include "EditorUI/EditorUISerializer.h"
 #include "GleamUI/Runtime/UI.h"
+#include "System/InspectorWindow.h"
 
 namespace Gleam
 {
@@ -55,12 +57,9 @@ namespace Gleam
             {
                 for (Type& type : Type::GetAllTypes())
                 {
-                    if (type.GetParent() == SystemType)
-                        continue;
-
                     if (filter.PassFilter(type.GetName().data()) && ImGui::Button(type.GetName().data()))
                     {
-                        World::AddComponents(entity, {type});
+                        World::GetEntityAllocator().AddComponents(entity, {type});
                         ImGui::CloseCurrentPopup();
                         break;
                     }
@@ -102,7 +101,7 @@ namespace Gleam
 
     void InspectorWindowUI_Entity(const Entity entity)
     {
-        if (World::HasEntity(entity))
+        if (World::GetEntityInfoAllocator().HasEntity(entity))
         {
             InspectorWindowUI_Entity_Target = entity;
             DrawEntity(

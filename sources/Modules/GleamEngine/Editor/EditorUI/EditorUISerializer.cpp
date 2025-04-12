@@ -123,7 +123,7 @@ namespace Gleam
         {
             //内容和检视
             if (ImGui::Button(std::format("Ptr:{}", reinterpret_cast<uintptr_t>(value.lock().get())).c_str()))
-                GlobalInspectorWindow.SetTarget(InspectorTarget{value.lock(), objectTypeIndex});
+                GlobalInspectorWindow->SetMajorTarget(InspectorTarget{value.lock(), objectTypeIndex});
             //拖拽
             EditorUI::SetDragDropObject(value.lock(), objectTypeIndex);
             if (std::shared_ptr<void> dragging = EditorUI::GetDragDropObject(objectTypeIndex))

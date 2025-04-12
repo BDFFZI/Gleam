@@ -10,7 +10,7 @@ class MySystem : public Gleam::System // 实现System类
         Gleam::Engine::Stop(); //停止引擎
     }
 };
-Gleam_MakeSystem(MySystem) //创建System实例
+Gleam_MakeRuntimeSystem(MySystem) //创建System实例
 Gleam_AddRuntimeSystems(GlobalMySystem) //将System实例添加到World中
 
 Gleam_Main //运行引擎

@@ -1,13 +1,11 @@
-#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamUI/Runtime/UI.h"
 #include "GleamUI/Runtime/UISystem.h"
-#include "GleamWindow/Runtime/Library/Cursor.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 
 using namespace Gleam;
 
-class MySystem : public SystemT<UISystem>
+class MySystem : public System<UISystem>
 {
     InputSystem* inputSystem = nullptr;
     ImTextureID textureID = {};
@@ -21,7 +19,6 @@ class MySystem : public SystemT<UISystem>
 
     void Start() override
     {
-        inputSystem = &World::GetCurrentWorld().GetSystemAllocator().GetSystem<InputSystem>();
         float4 colors[] = {
             float4::White(), float4::Black(), float4::Red(),
             float4::Green(), float4::Blue(), float4::Gray(),
@@ -30,12 +27,6 @@ class MySystem : public SystemT<UISystem>
         texture = std::make_unique<GTexture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, colors, sizeof(colors));
         textureID = UI::CreateTexture(*texture);
     }
-    void Stop() override
-    {
-        UI::DeleteTexture(textureID);
-        texture.reset();
-    }
-
     void Update() override
     {
         ImGui::ShowDemoWindow();
@@ -66,23 +57,27 @@ class MySystem : public SystemT<UISystem>
         ImGui::DragScalarN("DragScalarN", ImGuiDataType_Float, floatValues, std::size(floatValues));
 
         //逻辑处理
-        Input& input = inputSystem->GetMainInput();
-        if (input.GetKeyDown(KeyCode::Esc))
+        if (GlobalInputSystem->GetKeyDown(KeyCode::Esc))
             Engine::Stop();
 
-        if (input.GetMouseButtonDown(MouseButton::Right))
+        if (GlobalInputSystem->GetMouseButtonDown(MouseButton::Right))
         {
             Cursor::SetLockState(true);
             Cursor::SetVisible(false);
         }
-        else if (input.GetMouseButtonUp(MouseButton::Right))
+        else if (GlobalInputSystem->GetMouseButtonUp(MouseButton::Right))
         {
             Cursor::SetLockState(false);
             Cursor::SetVisible(true);
         }
     }
+    void Stop() override
+    {
+        GlobalPresentationSystem->WaitPresentationFinish();
+        UI::DeleteTexture(textureID);
+        texture.reset();
+    }
 };
-Gleam_MakeSystem(MySystem)
+Gleam_MakeRuntimeSystem(MySystem)
 
-Gleam_AddRuntimeSystems(MySystem)
 Gleam_Main

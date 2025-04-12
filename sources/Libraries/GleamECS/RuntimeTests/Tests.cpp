@@ -259,7 +259,7 @@ TEST(ECS, World)
 
     World::Update();
 
-    World::View<Transform, RigidBody, SpringPhysics>().Each([entities](auto& entity, auto& transform, auto& rigidBody, auto& spring)
+    World::GetView<Transform, RigidBody, SpringPhysics>().Each([entities](auto& entity, auto& transform, auto& rigidBody, auto& spring)
     {
         ASSERT_EQ(entity, entities[1]);
         ASSERT_EQ(transform, Transform());
@@ -269,16 +269,16 @@ TEST(ECS, World)
 
     RigidBody inRigidBody = {100, 1, 2};
     SpringPhysics inSpring = {1, 2, 3};
-    World::Entities().SetComponents(entities[1], inRigidBody, inSpring);
+    World::GetEntityAllocator().SetComponents(entities[1], inRigidBody, inSpring);
     RigidBody outRigidBody;
     SpringPhysics outSpring;
-    World::Entities().GetComponents(entities[1], outRigidBody, outSpring);
+    World::GetEntityAllocator().GetComponents(entities[1], outRigidBody, outSpring);
     ASSERT_EQ(outRigidBody, inRigidBody);
     ASSERT_EQ(outSpring, inSpring);
 
-    entities[0] = World::Entities().AddEntity(physicsArchetype);
-    World::Entities().SetComponents(entities[0], Transform{3});
-    ASSERT_EQ(World::Entities().GetComponent<Transform>(entities[0]), Transform{3});
+    entities[0] = World::GetEntityAllocator().AddEntity(physicsArchetype);
+    World::GetEntityAllocator().SetComponents(entities[0], Transform{3});
+    ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entities[0]), Transform{3});
 
     World::Clear();
 }
@@ -290,21 +290,21 @@ TEST(ECS, World2)
     {
         void Start() override
         {
-            World::View<Transform>().Each([](Transform& transform)
+            World::GetView<Transform>().Each([](Transform& transform)
             {
                 transform.position++;
             });
         }
         void Update() override
         {
-            World::View<Transform>().Each([](Transform& transform)
+            World::GetView<Transform>().Each([](Transform& transform)
             {
                 transform.position++;
             });
         }
         void Stop() override
         {
-            World::View<Transform>().Each([](Transform& transform)
+            World::GetView<Transform>().Each([](Transform& transform)
             {
                 transform.position--;
             });
@@ -314,23 +314,23 @@ TEST(ECS, World2)
 
     Scene& scene = World::AddScene("TestScene", true);
     Entity entity = World::AddEntity(Archetype::CreateOrGet<Transform>("Transform"));
-    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 0);
+    ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 0);
     World::AddSystem<TestSystem>();
-    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 1);
+    ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 1);
     World::Update();
-    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 2);
+    ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 2);
 
     //回收场景
     scene.RemoveEntity(entity); //实体不回收
     World::RemoveScene(scene);
 
     World::Update();
-    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 1);
+    ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 1);
 
     World::AddSystem<TestSystem>();
-    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 2);
+    ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 2);
     World::Update();
-    ASSERT_EQ(World::Entities().GetComponent<Transform>(entity).position, 3);
+    ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 3);
     
     World::Clear();
 }

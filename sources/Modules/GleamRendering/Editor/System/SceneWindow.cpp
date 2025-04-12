@@ -197,7 +197,7 @@ namespace Gleam
                 if (ImGui::BeginMenu("Camera"))
                 {
                     if (ImGui::Button("Inspect"))
-                        InspectorWindow::Show(sceneCamera);
+                        InspectorWindow::AddMinorTarget(sceneCamera);
                     ImGui::Checkbox("Ortho", &World::GetComponent<Camera>(sceneCamera).orthographic);
                     ImGui::DragFloat("Speed", &moveSpeed);
 
@@ -258,7 +258,7 @@ namespace Gleam
                 }
 
                 //绘制自定义UI或Gizmos
-                const InspectorTarget& target = GlobalInspectorWindow.GetTarget();
+                const InspectorTarget& target = GlobalInspectorWindow.GetMajorTarget();
                 if (!target.objectPtr.expired() && sceneGUIs.contains(target.objectTypeIndex))
                 {
                     ImGui::SetCursorPos({});

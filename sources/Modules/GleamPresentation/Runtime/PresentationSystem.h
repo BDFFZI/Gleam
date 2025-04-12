@@ -11,9 +11,10 @@ namespace Gleam
     /**
      * 将最终数据可视化输出到外部呈现设备中
      */
-    class PresentationSystem : public RelativeSystemGroupT<TransformSystem, SystemRelation::After>
+    class PresentationSystem : public System<TransformSystem, SystemRelation::After>, public ISystemGroup
     {
     public:
+        void WaitPresentationFinish() const;
         /**
          * 用于执行呈现命令的底层命令缓冲区。
          *
@@ -38,5 +39,10 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeSystem(PresentationSystem)
+
+#ifdef GleamEngineEditor
+    Gleam_MakeEditorSystem(PresentationSystem);
+#else
+    Gleam_MakeRuntimeSystem(PresentationSystem)
+#endif
 }

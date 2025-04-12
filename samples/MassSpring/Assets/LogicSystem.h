@@ -45,4 +45,4 @@ class LogicSystem : public Gleam::System
     void Update() override;
     void FixedUpdate() const;
 };
-Gleam_MakeSystem(LogicSystem)
+Gleam_MakeRuntimeSystem(LogicSystem)

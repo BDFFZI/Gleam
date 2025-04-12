@@ -9,10 +9,10 @@ namespace Gleam
     /**
      * 在用户数据默认更新顺序之前执行，用于向用户提供当前物理场景结算后的信息，以便用户根据模拟结果调整游戏数据。
      */
-    class PhysicsSystem : public SystemGroup
+    class PhysicsSystem : public ISystemGroup
     {
     public:
-        PhysicsSystem(): SystemGroup(GlobalTimeSystem, SystemRelation::After)
+        PhysicsSystem(): ISystemGroup(GlobalTimeSystem, SystemRelation::After)
         {
         }
 
@@ -22,5 +22,5 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeSystem(PhysicsSystem)
+    Gleam_MakeRuntimeSystem(PhysicsSystem)
 }

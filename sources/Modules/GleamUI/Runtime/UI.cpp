@@ -9,7 +9,7 @@
 #include "GleamWindow/Runtime/System/InputSystem.h"
 #include "GleamPresentation/Runtime/PresentationSystem.h"
 #include "GleamUtility/Runtime/String.h"
-#include "GleamWindow/Runtime/Library/Window.h"
+#include "GleamWindow/Runtime/Window.h"
 
 namespace Gleam
 {

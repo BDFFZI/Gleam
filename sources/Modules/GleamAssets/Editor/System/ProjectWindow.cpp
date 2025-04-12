@@ -142,7 +142,7 @@ namespace Gleam
             if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
             {
                 AssetImporter& assetImporter = AssetImporter::GetImporter(path);
-                GlobalInspectorWindow.SetTarget(InspectorTarget{assetImporter});
+                GlobalInspectorWindow->SetMajorTarget(InspectorTarget{assetImporter});
             }
         }
         else
@@ -213,7 +213,7 @@ namespace Gleam
                 {
                     if (ImGui::Button(std::to_string(assetSlot.GetID()).c_str()))
                     {
-                        GlobalInspectorWindow.SetTarget(InspectorTarget{
+                        GlobalInspectorWindow->SetMajorTarget(InspectorTarget{
                             assetSlot.GetAsset().GetObjectPtr(),
                             assetSlot.GetAsset().GetObjectType().GetIndex()
                         });

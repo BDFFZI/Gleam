@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "CursorSystem.h"
 #include "GleamEngine/Runtime/System/UpdateSystem.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "GleamMath/Runtime/Geometry/2D/Rectangle.h"
@@ -11,7 +10,7 @@ namespace Gleam
     /**
      * 每帧将GLFW传入的用户输入解析成Gleam所用的输入格式
      */
-    class InputSystem : public System<CursorSystem, SystemRelation::Before>
+    class InputSystem : public System<PreUpdateSystem>
     {
     public:
         bool GetIsFocus() const

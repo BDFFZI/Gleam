@@ -24,14 +24,10 @@ namespace Gleam
 
     void EditorUISystem::Start()
     {
-        timeSystem = &World::GetCurrentWorld().GetSystemAllocator().GetSystem<TimeSystem>();
-
         //初始化ImGuizmo
         ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
         ImGuizmo::AllowAxisFlip(false); //禁用手柄轴自动反转
         ImGuizmo::SetGizmoSizeClipSpace(0.2f); //设置手柄在剪辑空间的大小
-
-        SystemGroup::Start();
     }
     void EditorUISystem::Update()
     {
@@ -47,18 +43,20 @@ namespace Gleam
             if (ImGui::Checkbox("IsPlaying", &isPlaying))
                 Editor::IsPlaying() = isPlaying;
 
-            Time& time = timeSystem->GetMainTime();
             //暂停
-            bool isPausing = !time.GetAutoStepTime();
-            if (ImGui::Checkbox("IsPausing", &isPausing))
-                time.SetAutoStepTime(!isPausing);
-            //步进
-            if (ImGui::Button("NextFrame"))
+            if (Editor::IsPlaying())
             {
-                time.SetAutoStepTime(false);
-                time.SetStepTime(time.GetFixedDeltaTime());
+                bool isPausing = !GlobalTimeSystem->GetAutoStepTime();
+                if (ImGui::Checkbox("IsPausing", &isPausing))
+                    GlobalTimeSystem->SetAutoStepTime(!isPausing);
+                //步进
+                if (ImGui::Button("NextFrame"))
+                {
+                    GlobalTimeSystem->SetAutoStepTime(false);
+                    GlobalTimeSystem->SetStepTime(GlobalTimeSystem->GetFixedDeltaTime());
+                }
             }
-
+            
             //自定义菜单项
             for (auto& [name,func] : editorMenus)
             {
@@ -71,7 +69,7 @@ namespace Gleam
         }
 
         //绘制其他界面
-        SystemGroup::Update();
+        ISystemGroup::Update();
 
         if (showIDStackToolWindow)
             ImGui::ShowIDStackToolWindow(&showIDStackToolWindow);

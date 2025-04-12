@@ -36,7 +36,7 @@ namespace Gleam
         {
             return name;
         }
-        const std::unordered_set<SystemInfo*>& GetSystems() const
+        const std::unordered_set<const SystemInfo*>& GetSystems() const
         {
             return systems;
         }
@@ -67,8 +67,8 @@ namespace Gleam
          */
         void Stop();
 
-        void AddSystem(SystemInfo& system);
-        void RemoveSystem(SystemInfo& system);
+        void AddSystem(const SystemInfo& system);
+        void RemoveSystem(const SystemInfo& system);
         void AddEntity(Entity entity);
         void RemoveEntity(Entity entity);
         void AddSubScene(Scene& scene)
@@ -87,7 +87,7 @@ namespace Gleam
     private:
         std::string name;
         std::unordered_set<Entity> entities;
-        std::unordered_set<SystemInfo*> systems;
+        std::unordered_set<const SystemInfo*> systems;
         std::unordered_set<Scene*> subScenes;
         bool isRunning = false;
     };

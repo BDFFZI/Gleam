@@ -17,7 +17,7 @@ namespace Gleam
         //场景数据
         Scene* activeScene = nullptr;
         std::vector<std::unique_ptr<Scene>> allScenes = {};
-        std::unordered_map<SystemInfo*, Scene*> systemToScene = {};
+        std::unordered_map<const SystemInfo*, Scene*> systemToScene = {};
         std::unordered_map<Entity, Scene*> entityToScene = {};
         //缓存的结构化更变
         std::vector<std::tuple<Entity, bool>> removingEntities = {};
@@ -39,18 +39,22 @@ namespace Gleam
             return *CurrentContext;
         }
 
-        static EntityAllocator& Entities()
+        static EntityInfoAllocator& GetEntityInfoAllocator()
+        {
+            return *GetEntityAllocator().GetEntityInfoAllocator();
+        }
+        static EntityAllocator& GetEntityAllocator()
         {
             return CurrentContext->entityAllocator;
         }
-        static SystemAllocator& Systems()
+        static SystemAllocator& GetSystemAllocator()
         {
             return CurrentContext->systemAllocator;
         }
         template <class... Args>
-        static View<Args...> View()
+        static View<Args...> GetView()
         {
-            return Gleam::View<Args...>(Entities());
+            return Gleam::View<Args...>(GetEntityAllocator());
         }
 
         static Entity AddEntity(const Archetype& archetype, bool addToScene = true);
@@ -70,8 +74,8 @@ namespace Gleam
             MoveEntityAsync(entity, archetype);
         }
 
-        static IOrderedSystemEvent& AddSystem(SystemInfo& systemInfo, bool addToScene = true);
-        static void RemoveSystem(SystemInfo& systemInfo, bool removeFromScene = true);
+        static IOrderedSystemEvent& AddSystem(const SystemInfo& systemInfo, bool addToScene = true);
+        static void RemoveSystem(const SystemInfo& systemInfo, bool removeFromScene = true);
         template <class TSystem>
         static TSystem& AddSystem(const bool addToScene = true)
         {

@@ -56,7 +56,7 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeSystem(SceneWindow)
+    Gleam_MakeRuntimeSystem(SceneWindow)
 
 #define Gleam_AddSceneWindowUI(type,drawSceneUI)\
     Gleam_MakeInitEvent(){SceneWindow::AddCustomUI(typeid(type),\

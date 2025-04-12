@@ -1,6 +1,11 @@
 #include "PresentationSystem.h"
 #include "GleamGraphics/Runtime/SwapChain.h"
 
+void Gleam::PresentationSystem::WaitPresentationFinish() const
+{
+    if (presentGLCommandBuffer != nullptr)
+        presentGLCommandBuffer->WaitSubmissionFinish();
+}
 GLCommandBuffer& Gleam::PresentationSystem::GetPresentGLCommandBuffer() const
 {
     return *presentGLCommandBuffer;
@@ -13,17 +18,12 @@ Gleam::GCommandBuffer& Gleam::PresentationSystem::GetPresentGCommandBuffer() con
 void Gleam::PresentationSystem::Start()
 {
     presentGCommandBuffer = std::make_unique<GCommandBuffer>("PresentGCommandBuffer");
-
-    SystemGroup::Start();
 }
 void Gleam::PresentationSystem::Stop()
 {
     //等待上一帧结束，因为图形资源必须是不被占用的情况下才能销毁。
-    if (presentGLCommandBuffer != nullptr)
-        presentGLCommandBuffer->WaitSubmissionFinish();
-
-    SystemGroup::Stop();
-
+    WaitPresentationFinish();
+    
     presentGCommandBuffer.reset();
 }
 void Gleam::PresentationSystem::Update()
@@ -36,7 +36,7 @@ void Gleam::PresentationSystem::Update()
     if (SwapChain::BeginPresent(&presentGLCommandBuffer))
     {
         presentGCommandBuffer->BeginRecording(); //开始公共命令缓冲区录制
-        SystemGroup::Update();
+        ISystemGroup::Update();
         presentGCommandBuffer->EndRecording(); //完成公共命令缓冲区录制
         presentGLCommandBuffer->ExecuteSubCommands(presentGCommandBuffer->GetGLCommandBuffer()); //执行公共缓冲区中的命令
 

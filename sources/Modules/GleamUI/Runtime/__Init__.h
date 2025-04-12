@@ -18,10 +18,5 @@ namespace Gleam
         {
             UI::UnInit();
         }, UnInitGraphicsLibraryOrder - 1);
-
-        Engine::AddRuntimeSystems<UISystem>();
-#ifdef GleamEngineEditor
-        Editor::AddEditorSystems<UISystem>();
-#endif
     }
 }

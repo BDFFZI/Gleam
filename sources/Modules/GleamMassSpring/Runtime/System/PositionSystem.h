@@ -13,5 +13,5 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeSystem(PositionSystem)
+    Gleam_MakeRuntimeSystem(PositionSystem)
 }

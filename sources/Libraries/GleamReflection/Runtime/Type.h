@@ -229,4 +229,5 @@ transferrer.TransferField(#field, value.field)
 
 #define Gleam_MakeType(type) Gleam_MakeType_Inner(type,"",std::nullopt)
 #define Gleam_MakeTypeWithID(type,uuidStr) Gleam_MakeType_Inner(type,uuidStr,std::nullopt)
-#define Gleam_MakeTypeWithIDParent(type,uuidStr,parent) Gleam_MakeType_Inner(type,uuidStr,parent)
+#define Gleam_MakeTypeWithParent(type,parentType) Gleam_MakeType_Inner(type,"",::Gleam::Type::CreateOrGet<parentType>())
+#define Gleam_MakeTypeWithIDParent(type,uuidStr,parentType) Gleam_MakeType_Inner(type,uuidStr,::Gleam::Type::CreateOrGet<parentType>())

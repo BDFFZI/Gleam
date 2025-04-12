@@ -27,7 +27,7 @@ void LogicSystem::OnMoveParticle()
             particle.drag = 1;
         }
 #ifdef GleamEngineEditor
-        GlobalInspectorWindow.SetTarget(fixedParticle);
+        GlobalInspectorWindow->SetMajorTarget(fixedParticle);
 #endif
     }
     else if (GlobalInputSystem.GetMouseButtonUp(MouseButton::Left))
@@ -46,7 +46,7 @@ void LogicSystem::OnCreateParticle() const
         // ReSharper disable once CppDeclaratorNeverUsed
         Entity entity = PhysicsSystem::AddParticle(mousePositionWS, drag, mass);
 #ifdef GleamEngineEditor
-        GlobalInspectorWindow.SetTarget(entity);
+        GlobalInspectorWindow->SetMajorTarget(entity);
 #endif
     }
 }

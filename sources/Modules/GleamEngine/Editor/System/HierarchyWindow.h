@@ -3,16 +3,16 @@
 
 namespace Gleam
 {
-    class HierarchyWindow : public SystemT<EditorUISystem>
+    class HierarchyWindow : public System<EditorUISystem>
     {
     public:
         static bool DrawEntity(Entity entity);
-        static bool DrawSystem(SystemAllocator& allocator, System& system);
-        static void DrawSubSystems(SystemAllocator& allocator, SystemGroup& systemGroup);
+        static bool DrawSystem(const ISystemEvent& system);
+        static void DrawSubSystems(const ISystemGroup& systemGroup);
 
         static void DrawSystemsPopup();
         static void DrawEntitiesPopup();
-        static bool DrawSystemPopup(System& system);
+        static bool DrawSystemPopup(const ISystemEvent& system);
         static bool DrawEntityPopup(Entity entity);
 
         static void DrawWorld();
@@ -21,5 +21,5 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeSystem(HierarchyWindow)
+    Gleam_MakeEditorSystem(HierarchyWindow)
 }

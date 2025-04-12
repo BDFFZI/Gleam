@@ -16,16 +16,16 @@ namespace Gleam
 
     void TransformSystem::Update()
     {
-        World::View<QueryExclusion<Parent>, LocalTransform, LocalToWorld>().Each([](LocalTransform& localTransform, LocalToWorld& localToWorld)
+        World::GetView<QueryExclusion<Parent>, LocalTransform, LocalToWorld>().Each([](LocalTransform& localTransform, LocalToWorld& localToWorld)
         {
             ComputeLocalToWorld(localTransform, localToWorld);
         });
 
-        World::View<LocalTransform, LocalToWorld, Parent>().Each([](LocalTransform& local, LocalToWorld& localToWorld, Parent& parent)
+        World::GetView<LocalTransform, LocalToWorld, Parent>().Each([](LocalTransform& local, LocalToWorld& localToWorld, Parent& parent)
         {
         });
 
-        World::View<LocalToWorld, WorldToLocal>().Each([](LocalToWorld& localToWorld, WorldToLocal& worldToLocal)
+        World::GetView<LocalToWorld, WorldToLocal>().Each([](LocalToWorld& localToWorld, WorldToLocal& worldToLocal)
         {
             worldToLocal.value = inverse(localToWorld.value);
         });

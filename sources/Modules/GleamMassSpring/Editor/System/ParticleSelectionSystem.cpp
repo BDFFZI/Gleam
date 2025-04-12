@@ -39,6 +39,6 @@ namespace Gleam
 
         //选择质点
         if (optionalEntity != Entity::Null && inputSystem.GetMouseButtonUp(MouseButton::Left) && !ImGuizmo::IsUsingAny())
-            GlobalInspectorWindow.SetTarget(optionalEntity);
+            GlobalInspectorWindow->SetMajorTarget(optionalEntity);
     }
 }
