@@ -5,7 +5,7 @@
 
 #ifdef GleamRenderingRuntime
 #include "GleamRendering/Runtime/System/RenderingSystem.h"
-#define UISystemBase public System<RenderingSystem,SystemRelation::After>,public ISystemGroup
+#define UISystemBase public RelativeSystem<RenderingSystem,SystemRelation::After>,public ISystemGroup
 #else
 #define UISystemBase public System<PresentationSystem>,public ISystemGroup
 #endif

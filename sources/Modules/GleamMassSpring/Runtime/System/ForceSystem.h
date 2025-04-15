@@ -1,30 +1,12 @@
 ﻿#pragma once
 #include "PositionSystem.h"
-#include "GleamECS/Runtime/System/SystemGroup.h"
 
 namespace Gleam
 {
-    class ForceSystem : public System
+    class ForceSystem : public RelativeSystem<PositionSystem, SystemRelation::After>
     {
-    public:
-        ForceSystem(): System(GlobalPositionSystem, SystemRelation::After)
-        {
-        }
-
-        float3 GetGravity() const { return gravity; }
-        void SetGravity(const float3 gravity) { this->gravity = gravity; }
-
-    private:
-        Gleam_MakeType_Friend
-
-        float3 gravity = {0.0f, -9.81f, 0.0f};
-
         void Update() override;
     };
-    Gleam_MakeTypeWithID(ForceSystem, "")
-    {
-        Gleam_MakeType_AddField(gravity);
-    }
 
     Gleam_MakeRuntimeSystem(ForceSystem);
 }

@@ -1,24 +1,27 @@
 ﻿#include "ForceSystem.h"
 
-#include "GleamECS/Runtime/View.h"
+#include "GleamECS/Runtime/View/View.h"
+#include "GleamMassSpring/Runtime/Physics.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
-#include "GleamMassSpring/Runtime/Component/Spring.h"
+#include "GleamMassSpring/Runtime/Entity/Spring.h"
 
 void Gleam::ForceSystem::Update()
 {
+    TimeSystem& timeSystem = World::GetSystemAllocator().GetSystem<TimeSystem>();
+
     //重力
-    View<Particle>::Each([this](Particle& particle)
+    World::GetView<Particle>().Each([this,&timeSystem](Particle& particle)
     {
-        float3 move = GetGravity() * GlobalTimeSystem.GetFixedDeltaTime() * GlobalTimeSystem.GetFixedDeltaTime()
+        float3 move = Physics::GetGravity() * timeSystem.GetFixedDeltaTime() * timeSystem.GetFixedDeltaTime()
             * (1 - particle.drag);
         particle.position += move;
     });
 
     //弹簧力
-    View<Spring>::Each([](Spring& spring)
+    World::GetView<Spring>().Each([](Spring& spring)
     {
-        Particle& particleA = World::GetComponent<Particle>(spring.particleA);
-        Particle& particleB = World::GetComponent<Particle>(spring.particleB);
+        Particle& particleA = World::GetEntityAllocator().GetComponent<Particle>(spring.particleA);
+        Particle& particleB = World::GetEntityAllocator().GetComponent<Particle>(spring.particleB);
 
         //使用质点结算了当前速度和力后的位置信息来计算参数（这里力始终直接施加在位移上），这种类似半隐式欧拉的计算方法可以提高模拟稳定性，
         //因为它能考虑到与当前其他力的相互作用，从而能实现一定的弹簧阻力，否则得额外实现弹簧阻力。

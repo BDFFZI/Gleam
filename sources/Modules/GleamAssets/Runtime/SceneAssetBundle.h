@@ -11,7 +11,7 @@ namespace Gleam
     class SceneAssetBundle
     {
     public:
-        static void GetSceneAssets(AssetBundle& assetBundle, std::string& outName, std::vector<System*>& outSystems, std::vector<PersistentEntity*>& outEntities);
+        static void GetSceneAssets(AssetBundle& assetBundle, std::string& outName, std::vector<const SystemInfo*>& outSystems, std::vector<PersistentEntity*>& outEntities);
         /**
          * 将Scene数据拷贝到AssetBundle，以便用其持久化保存Scene。
          * @param scene 

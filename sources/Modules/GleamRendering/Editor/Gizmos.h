@@ -12,6 +12,8 @@ namespace Gleam
     public:
         static void Init();
         static void UnInit();
+        static void Render(std::vector<RendererInfo>& outputRendererInfos);
+        static void Clear();
 
         static void PushLocalToWorld(const float4x4& localToWorld);
         static void PopLocalToWorld();
@@ -27,8 +29,6 @@ namespace Gleam
         static void DrawWire(const Sphere& sphere, const float4& color = float4::White());
 
     private:
-        friend class GizmosSystem;
-
         struct GizmoInfo
         {
             float4x4 localToWorld;
@@ -62,8 +62,6 @@ namespace Gleam
         inline static std::unique_ptr<Mesh> linesMesh = nullptr;
         inline static std::unique_ptr<Material> linesMaterial = nullptr;
 
-        static void Draw(GizmoQueue& instanceQueue, Mesh& mesh);
+        static void Render(GizmoQueue& instanceQueue, Mesh& mesh, std::vector<RendererInfo>& outputRendererInfos);
     };
-
-
 }

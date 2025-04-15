@@ -1,7 +1,7 @@
 #pragma once
-#include "GleamRendering/Runtime/Component/Camera.h"
-#include "GleamRendering/Runtime/Component/LinesMesh.h"
-#include "GleamRendering/Runtime/Component/PointsMesh.h"
+#include "GleamRendering/Runtime/Entity/Camera.h"
+#include "GleamRendering/Runtime/Entity/LinesMesh.h"
+#include "GleamRendering/Runtime/Entity/PointsMesh.h"
 #include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamEngine/Runtime/Entity/Archetype.h"
 

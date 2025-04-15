@@ -33,7 +33,7 @@ namespace Gleam
             {ImGui::GetContentRegionAvail().x - ImGui::GetTextLineHeightWithSpacing() * 1.5f, 0} //按钮铺满当前行余下的所有空间
         ))
         {
-            GlobalInspectorWindow->SetMajorTarget(World::GetSystemAllocator().GetSystem(systemInfo));
+            GlobalInspectorWindow->SetMajorTarget(World::GetSystemAllocator().GetSystemPtr(systemInfo));
         }
         if (DrawSystemPopup(system) == false)
             return false;
@@ -209,7 +209,7 @@ namespace Gleam
         if (ImGui::Begin("HierarchyWindow"))
         {
             ImGui::SeparatorText("Statistics");
-            ImGui::BulletText(std::format("IsPlaying:{}", Editor::IsPlaying()).c_str());
+            ImGui::BulletText(std::format("IsPlaying:{}", Editor::GetIsPlaying()).c_str());
             ImGui::BulletText(std::format("NextEntity:{}", static_cast<uint32_t>(World::GetEntityInfoAllocator().GetNextEntity())).c_str());
             //帧率信息
             static float deltaTime = 0;

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "GleamECS/Runtime/World/World.h"
+#include "GleamECS/Runtime/World.h"
 #include "GleamMath/Runtime/Math.h"
 #include "GleamUtility/Runtime/String.h"
 

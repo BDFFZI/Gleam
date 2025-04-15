@@ -49,7 +49,7 @@ namespace Gleam
             const EntityInfo& otherEntityInfo = World::GetEntityInfoAllocator().GetEntityInfo(other.entity);
             const EntityInfo& entityInfo = World::GetEntityInfoAllocator().GetEntityInfo(entity);
             if (entityInfo.archetype != otherEntityInfo.archetype)
-                World::MoveEntity(entity, *otherEntityInfo.archetype);
+                World::GetEntityAllocator().MoveEntity(entity, *otherEntityInfo.archetype);
             otherEntityInfo.archetype->Move(entityInfo.memoryAddress, otherEntityInfo.memoryAddress);
         }
 

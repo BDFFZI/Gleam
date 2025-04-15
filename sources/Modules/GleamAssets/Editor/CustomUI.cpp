@@ -13,12 +13,12 @@ namespace Gleam
     {
         auto path = ProjectWindow::GetDirectoryDrawing() / "NewScene.scene";
 
-        Scene& scene = Scene::Create("NewScene");
+        Scene& scene = World::AddScene("NewScene");
         AssetBundle& assetBundle = AssetBundle::Create();
         SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
         AssetDatabase::Create(path, assetBundle);
         AssetBundle::Unload(assetBundle);
-        Scene::Destroy(scene);
+        World::RemoveScene(scene);
     }
     void ProjectWindowMenu_OpenScene()
     {

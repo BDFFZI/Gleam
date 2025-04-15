@@ -1,19 +1,19 @@
 ﻿#include "AnimationSystem.h"
 
 #include "GleamAnimation/Runtime/Component/Animation.h"
-#include "GleamECS/Runtime/View.h"
+#include "GleamECS/Runtime/View/View.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 
 namespace Gleam
 {
     void AnimationSystem::Update()
     {
-        View<Animation>::Each([](const Entity entity, Animation& animationClip)
+        View<Animation>().Each([](const Entity entity, Animation& animationClip)
         {
             if (animationClip.clip.expired() || animationClip.isPlaying == false)
                 return;
 
-            animationClip.time += GlobalTimeSystem.GetDeltaTime();
+            animationClip.time += GlobalTimeSystem->GetDeltaTime();
             animationClip.clip.lock()->SampleAnimation(entity, animationClip.time);
         });
     }

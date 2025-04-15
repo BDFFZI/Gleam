@@ -3,9 +3,7 @@
 #include <imgui_impl_vulkan.h>
 
 #include "SceneWindow.h"
-#include "GleamECS/Runtime/View.h"
-#include "GleamECS/Runtime/World/World.h"
-#include "GleamEngine/Runtime/System/TimeSystem.h"
+#include "GleamECS/Runtime/View/View.h"
 #include "GleamGraphics/Runtime/SwapChain.h"
 #include "GleamRendering/Runtime/System/RenderingSystem.h"
 #include "GleamUI/Runtime/UI.h"
@@ -13,30 +11,31 @@
 
 namespace Gleam
 {
-    void GameWindow::Start()
+    void GameWindow_PreProcess::Start()
     {
-        preProcessSystem.OnUpdate() = [this]
-        {
-            //重建渲染目标和纹理
-            if (isDirty && lastImageSize.x > 0 && lastImageSize.y > 0)
-            {
-                isDirty = false;
-                SwapChain::WaitPresent();
-                if (renderTextureID != nullptr)
-                    UI::DeleteTexture(renderTextureID);
-                renderTexture = std::make_shared<GRenderTexture>(static_cast<int2>(lastImageSize));
-                renderTextureID = UI::CreateTexture(*renderTexture);
-                GlobalRenderingSystem.SetDefaultRenderTarget(*renderTexture);
-            }
-            //更新输入系统的焦点范围为GameWindow
-            GlobalInputSystem.SetFocusArea(Rectangle::CreateFromOrigin(imagePosition, lastImageSize));
-        };
-        World::AddSystem(preProcessSystem);
+        gameWindow = &World::GetSystemAllocator().GetSystem<GameWindow>();
+        renderingSystem = &World::GetSystemAllocator().GetSystem<RenderingSystem>();
     }
+    void GameWindow_PreProcess::Update()
+    {
+        //重建渲染目标和纹理
+        if (gameWindow->isDirty && gameWindow->lastImageSize.x > 0 && gameWindow->lastImageSize.y > 0)
+        {
+            gameWindow->isDirty = false;
+            SwapChain::WaitPresent();
+            if (gameWindow->renderTextureID != nullptr)
+                UI::DeleteTexture(gameWindow->renderTextureID);
+            gameWindow->renderTexture = std::make_shared<GRenderTexture>(static_cast<int2>(gameWindow->lastImageSize));
+            gameWindow->renderTextureID = UI::CreateTexture(*gameWindow->renderTexture);
+            renderingSystem->SetDefaultRenderTarget(*gameWindow->renderTexture);
+        }
+        //更新输入系统的焦点范围为GameWindow
+        if (InputSystem* inputSystem = World::GetSystemAllocator().TryGetSystem<InputSystem>())
+            inputSystem->SetFocusArea(Rectangle::CreateFromOrigin(gameWindow->imagePosition, gameWindow->lastImageSize));
+    }
+
     void GameWindow::Stop()
     {
-        World::RemoveSystem(preProcessSystem);
-
         //以便重启时能触发纹理重建
         lastImageSize = 0;
         renderTexture.reset();
@@ -77,7 +76,7 @@ namespace Gleam
             }
             //显示游戏画面（必须保证在相机渲染后才可显示游戏画面。例如，假设ProjectWindow在GameWindow前执行，由于其加载场景是立即的，导致相机未渲染时被GameWindow窗口捕获，于是就会触发vk验证错误）
             int cameraCount = 0;
-            View<Camera>::Each([&cameraCount](Camera& camera)
+            World::GetView<Camera>().Each([&cameraCount](Camera& camera)
             {
                 if (camera.renderTarget == std::nullopt)
                     cameraCount++;

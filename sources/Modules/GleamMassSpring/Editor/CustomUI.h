@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "GleamMassSpring/Runtime/Component/Particle.h"
+#include "GleamMassSpring/Runtime/Entity/Particle.h"
 
 namespace Gleam
 {

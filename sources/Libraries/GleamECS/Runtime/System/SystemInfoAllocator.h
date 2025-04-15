@@ -48,6 +48,10 @@ namespace Gleam
         {
             return GetSystemInfo(Type::GetType(typeid(system)).value().get().GetID());
         }
+        static bool HasSystemInfo(const uuids::uuid typeID)
+        {
+            return systemInfoMap.contains(typeID);
+        }
 
     private:
         inline static std::unordered_map<uuids::uuid, SystemInfo> systemInfoMap;

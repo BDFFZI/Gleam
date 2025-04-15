@@ -3,7 +3,7 @@
 
 #include "Gizmos.h"
 #include "Handles.h"
-#include "GleamECS/Runtime/World/World.h"
+#include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamEngine/Runtime/System/TransformSystem.h"
 #include "System/SceneWindow.h"
 
@@ -11,7 +11,7 @@ namespace Gleam
 {
     void DrawRectangle(const Entity entity, const Rectangle& rectangle, const float4& color)
     {
-        if (LocalToWorld* localToWorld; World::TryGetComponent(entity, localToWorld))
+        if (LocalToWorld* localToWorld; World::GetEntityAllocator().TryGetComponent(entity, localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
             Gizmos::DrawWire(rectangle, color);
@@ -24,7 +24,7 @@ namespace Gleam
     }
     void DrawCuboid(const Entity entity, const Cuboid& cuboid, const float4& color)
     {
-        if (LocalToWorld* localToWorld; World::TryGetComponent(entity, localToWorld))
+        if (LocalToWorld* localToWorld; World::GetEntityAllocator().TryGetComponent(entity, localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
             Gizmos::DrawWire(cuboid, color);
@@ -37,7 +37,7 @@ namespace Gleam
     }
     void DrawSphere(const Entity entity, const Sphere& sphere, const float4& color)
     {
-        if (LocalToWorld* localToWorld; World::TryGetComponent(entity, localToWorld))
+        if (LocalToWorld* localToWorld; World::GetEntityAllocator().TryGetComponent(entity, localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
             Gizmos::DrawWire(sphere, color);
@@ -52,7 +52,7 @@ namespace Gleam
     void InspectorWindowUI_Point(Point& point)
     {
         EditorUI::DrawSerializedContent(&point, typeid(point));
-        if (LocalToWorld* localToWorld; World::TryGetComponent(InspectorWindowUI_Entity_Target, localToWorld))
+        if (LocalToWorld* localToWorld; World::GetEntityAllocator().TryGetComponent(InspectorWindowUI_Entity_Target, localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
             Gizmos::Draw(point.position);
@@ -66,7 +66,7 @@ namespace Gleam
     void InspectorWindowUI_Segment(Segment& segment)
     {
         EditorUI::DrawSerializedContent(&segment, typeid(segment));
-        if (LocalToWorld* localToWorld; World::TryGetComponent(InspectorWindowUI_Entity_Target, localToWorld))
+        if (LocalToWorld* localToWorld; World::GetEntityAllocator().TryGetComponent(InspectorWindowUI_Entity_Target, localToWorld))
         {
             Gizmos::PushLocalToWorld(localToWorld->value);
             Gizmos::Draw(segment);
@@ -95,7 +95,7 @@ namespace Gleam
 
     void SceneWindowUI_Entity(const Entity entity)
     {
-        if (!World::HasEntity(entity))
+        if (!World::GetEntityInfoAllocator().HasEntity(entity))
             return;
 
         SceneWindowUI_Entity_Target = entity;
@@ -119,16 +119,13 @@ namespace Gleam
     {
         //获取实体和组件
         Entity entity = SceneWindowUI_Entity_Target;
-        auto optionalTransform = World::TryGetComponent<LocalTransform>(entity);
+        auto optionalTransform = World::GetEntityAllocator().TryGetComponent<LocalTransform>(entity);
         if (optionalTransform.has_value()) //LocalToWorld可能过时，显式更新一次
             TransformSystem::ComputeLocalToWorld(optionalTransform.value(), localToWorld);
         //获取手柄类型信息
         static constexpr ImGuizmo::OPERATION options[] = {ImGuizmo::BOUNDS, ImGuizmo::TRANSLATE, ImGuizmo::ROTATE, ImGuizmo::SCALE};
-        ImGuizmo::OPERATION imGuiOption = options[GlobalSceneWindow.GetHandleOption()];
+        ImGuizmo::OPERATION imGuiOption = options[GlobalSceneWindow->GetHandleOption()];
         //绘制
-        if (optionalTransform.has_value())
-            Handles::DrawHandle(imGuiOption, localToWorld.value, optionalTransform.value());
-        else
-            Handles::DrawHandle(imGuiOption, localToWorld.value, std::nullopt);
+        Handles::DrawHandle(imGuiOption, localToWorld.value, optionalTransform);
     }
 }

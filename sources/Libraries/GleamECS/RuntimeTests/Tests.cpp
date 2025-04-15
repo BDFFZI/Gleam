@@ -97,8 +97,8 @@ TEST(ECS, View)
 
 inline std::stringstream printResult = {};
 
-template <int ID, class TGroup = void, auto... Args>
-class PrintSystem : public System<TGroup, Args...>
+template <int ID, class Parent>
+class PrintSystem : public Parent
 {
     void Start() override
     {
@@ -108,45 +108,55 @@ class PrintSystem : public System<TGroup, Args...>
     {
         printResult << ID << "->Update\n";
     }
+    void Stop() override
+    {
+        printResult << ID << "->Stop\n";
+    }
 };
-template <int ID, class TGroup = void, auto... Args>
-class PrintSystemGroup : public System<TGroup, Args...>, public ISystemGroup
+template <int ID, class Parent>
+class PrintSystemGroup : public Parent, public ISystemGroup
 {
     void Start() override
     {
         printResult << ID << "->Create\n";
+        ISystemGroup::Start();
     }
     void Update() override
     {
         printResult << ID << "->Update\n";
         ISystemGroup::Update();
     }
+    void Stop() override
+    {
+        ISystemGroup::Stop();
+        printResult << ID << "->Stop\n";
+    }
 };
 
 TEST(ECS, SystemOrder)
 {
-    class System2 : public PrintSystem<2>
+    class System2 : public PrintSystem<2, System<>>
     {
     };
-    class System3 : public PrintSystemGroup<3, System2, SystemRelation::After>
+    class System3 : public PrintSystemGroup<3, RelativeSystem<System2, SystemRelation::After>>
     {
     };
-    class System3_2 : public PrintSystemGroup<32, System3>
+    class System3_2 : public PrintSystemGroup<32, System<System3>>
     {
     };
-    class System3_1 : public PrintSystem<31, System3_2, SystemRelation::Before>
+    class System3_1 : public PrintSystem<31, RelativeSystem<System3_2, SystemRelation::Before>>
     {
     };
-    class System1 : public PrintSystem<1, System2, SystemRelation::Before>
+    class System1 : public PrintSystem<1, RelativeSystem<System2, SystemRelation::Before>>
     {
     };
-    class System3_3 : public PrintSystem<33, System3_2, SystemRelation::After>
+    class System3_3 : public PrintSystem<33, RelativeSystem<System3_2, SystemRelation::After>>
     {
     };
-    class System3_2_2 : public PrintSystem<322, System3_2>
+    class System3_2_2 : public PrintSystem<322, System<System3_2>>
     {
     };
-    class System3_2_1 : public PrintSystem<321, System3_2_2, SystemRelation::Before>
+    class System3_2_1 : public PrintSystem<321, RelativeSystem<System3_2_2, SystemRelation::Before>>
     {
     };
 
@@ -172,14 +182,14 @@ TEST(ECS, SystemOrder)
     }
 
     std::cout << printResult.str() << '\n' << std::flush;
-    ASSERT_EQ(printResult.str(), R"(2->Create
+    ASSERT_EQ(printResult.str(), R"(1->Create
+2->Create
 3->Create
 31->Create
-1->Create
-33->Create
 32->Create
-322->Create
 321->Create
+322->Create
+33->Create
 1->Update
 2->Update
 3->Update
@@ -188,6 +198,14 @@ TEST(ECS, SystemOrder)
 321->Update
 322->Update
 33->Update
+33->Stop
+322->Stop
+321->Stop
+32->Stop
+31->Stop
+3->Stop
+2->Stop
+1->Stop
 )");
 }
 
@@ -316,7 +334,6 @@ TEST(ECS, World2)
     Entity entity = World::AddEntity(Archetype::CreateOrGet<Transform>("Transform"));
     ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 0);
     World::AddSystem<TestSystem>();
-    ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 1);
     World::Update();
     ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 2);
 
@@ -328,9 +345,8 @@ TEST(ECS, World2)
     ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 1);
 
     World::AddSystem<TestSystem>();
-    ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 2);
     World::Update();
     ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 3);
-    
+
     World::Clear();
 }

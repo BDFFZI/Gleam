@@ -1,14 +1,13 @@
-﻿#include "LinesRendererSystem.h"
+﻿#include "LinesRendererPreProcessSystem.h"
 
-#include "GleamECS/Runtime/View.h"
 #include "GleamRendering/Runtime/Rendering.h"
-#include "GleamRendering/Runtime/Component/LinesMesh.h"
+#include "GleamRendering/Runtime/Entity/LinesMesh.h"
 
 namespace Gleam
 {
-    void LinesRendererSystem::Update()
+    void LinesRendererPreProcessSystem::Update()
     {
-        View<LinesMesh>::Each([](LinesMesh& linesRenderer)
+        World::GetView<LinesMesh>().Each([](LinesMesh& linesRenderer)
         {
             Mesh& lineMesh = *linesRenderer.linesMesh;
             std::vector<Vertex>& lineVertices = lineMesh.GetVertices();
@@ -27,7 +26,7 @@ namespace Gleam
 
             lineMesh.SetDirty();
         });
-        View<LinesMesh, Renderer>::Each([](LinesMesh& linesRenderer, Renderer& renderer)
+        World::GetView<LinesMesh, Renderer>().Each([](LinesMesh& linesRenderer, Renderer& renderer)
         {
             if (renderer.mesh.expired())
                 renderer.mesh = linesRenderer.linesMesh;

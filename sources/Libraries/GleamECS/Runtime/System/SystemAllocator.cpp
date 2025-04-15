@@ -12,7 +12,6 @@ namespace Gleam
         {
             //创建实例
             system = std::static_pointer_cast<IOrderedSystemEvent, void>(systemInfo.type->MakeShared(systemInfo.type->Create()));
-            system->Start();
             //添加到组
             ISystemGroup& systemGroup = systemInfo.group ? *dynamic_cast<ISystemGroup*>(std::get<0>(systems[systemInfo.group]).get()) : rootSystem;
             systemGroup.AddSystem(*system);
@@ -28,8 +27,7 @@ namespace Gleam
             ISystemGroup& systemGroup = systemInfo.group ? *dynamic_cast<ISystemGroup*>(std::get<0>(systems[systemInfo.group]).get()) : rootSystem;
             systemGroup.RemoveSystem(*system);
             //销毁实例
-            system->Stop();
-            systems.erase(&systemInfo);
+            //交给Update执行，因为要正确触发Stop事件
         }
 
         if (systemInfo.group != nullptr)
@@ -38,25 +36,19 @@ namespace Gleam
     void SystemAllocator::Update()
     {
         rootSystem.Update();
+        //Stop事件执行完毕，真正从内存中移除系统
+        for (auto it = systems.begin(); it != systems.end();)
+        {
+            int count = std::get<1>(it->second);
+            if (count == 0)
+                it = systems.erase(it);
+            else
+                ++it;
+        }
     }
     void SystemAllocator::Clear()
     {
-        std::vector<std::tuple<const SystemInfo*, int>> usageCount;
-        usageCount.reserve(systems.size());
-        for (auto& system : systems)
-            usageCount.emplace_back(system.first, std::get<1>(system.second));
-
-        std::ranges::sort(usageCount, [](std::tuple<const SystemInfo*, int>& left, std::tuple<const SystemInfo*, int>& right)
-        {
-            if (std::get<0>(left)->isGroup ^ std::get<0>(right)->isGroup)
-                return std::get<0>(left)->isGroup < std::get<0>(right)->isGroup;
-            return std::get<1>(left) < std::get<1>(right);
-        });
-
-        for (auto& [system,count] : usageCount)
-        {
-            if (systems.contains(system))
-                RemoveSystem(*system);
-        }
+        rootSystem.Stop();
+        systems.clear();
     }
 }

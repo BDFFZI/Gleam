@@ -1,6 +1,6 @@
 #pragma once
 #include "GleamECS/Runtime/Entity/Archetype.h"
-#include "GleamECS/Runtime/World/World.h"
+#include "GleamECS/Runtime/World.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 
 namespace Gleam
@@ -52,7 +52,7 @@ namespace Gleam
                 //持久化原型
                 int componentCount = archetype->GetComponentCount();
                 std::vector<uuids::uuid> componentTypes = std::vector<uuids::uuid>(componentCount);
-                for (std::size_t i = 0; i < componentCount; ++i)
+                for (int i = 0; i < componentCount; ++i)
                     componentTypes[i] = archetype->GetComponentType(i).GetID();
                 dataTransferrer.TransferField("componentTypes", componentTypes);
             }

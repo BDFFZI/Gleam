@@ -28,6 +28,8 @@ namespace Gleam
         ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
         ImGuizmo::AllowAxisFlip(false); //禁用手柄轴自动反转
         ImGuizmo::SetGizmoSizeClipSpace(0.2f); //设置手柄在剪辑空间的大小
+
+        ISystemGroup::Start();
     }
     void EditorUISystem::Update()
     {
@@ -39,24 +41,24 @@ namespace Gleam
         if (ImGui::BeginMainMenuBar())
         {
             //系统菜单项
-            bool isPlaying = Editor::IsPlaying();
+            bool isPlaying = Editor::GetIsPlaying();
             if (ImGui::Checkbox("IsPlaying", &isPlaying))
-                Editor::IsPlaying() = isPlaying;
+                Editor::SetIsPlaying(isPlaying);
 
             //暂停
-            if (Editor::IsPlaying())
+            bool isPausing = Editor::GetIsPaused();
+            if (ImGui::Checkbox("IsPausing", &isPausing))
+                Editor::SetIsPaused(isPausing);
+            if (auto timeSystem = World::GetSystemAllocator().TryGetSystem<TimeSystem>())
             {
-                bool isPausing = !GlobalTimeSystem->GetAutoStepTime();
-                if (ImGui::Checkbox("IsPausing", &isPausing))
-                    GlobalTimeSystem->SetAutoStepTime(!isPausing);
                 //步进
                 if (ImGui::Button("NextFrame"))
                 {
-                    GlobalTimeSystem->SetAutoStepTime(false);
-                    GlobalTimeSystem->SetStepTime(GlobalTimeSystem->GetFixedDeltaTime());
+                    Editor::SetIsPaused(true);
+                    timeSystem->SetStepTime(timeSystem->GetFixedDeltaTime());
                 }
             }
-            
+
             //自定义菜单项
             for (auto& [name,func] : editorMenus)
             {

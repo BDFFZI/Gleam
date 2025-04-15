@@ -1,28 +1,29 @@
 #include "ParticleSelectionSystem.h"
 
-#include "GleamECS/Runtime/View.h"
+#include "GleamECS/Runtime/View/View.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
-#include "GleamMassSpring/Runtime/Component/Particle.h"
+#include "GleamMassSpring/Runtime/Entity/Particle.h"
 #include "GleamMath/Runtime/LinearAlgebra/MatrixMath.h"
 #include "GleamRendering/Editor/Handles.h"
 #include "GleamRendering/Editor/System/SceneWindow.h"
-#include "GleamRendering/Runtime/Component/Camera.h"
+#include "GleamRendering/Runtime/Entity/Camera.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 
 namespace Gleam
 {
     void ParticleSelectionSystem::Update()
     {
-        InputSystem& inputSystem = GlobalSceneWindow.GetSceneInputSystem();
+        SceneWindow& sceneWindow = World::GetSystemAllocator().GetSystem<SceneWindow>();
+        InputSystem& inputSystem = World::GetSystemAllocator().GetSystem<SceneWindowInput>();
 
-        float4x4 worldToClip = World::GetComponent<WorldToClip>(GlobalSceneWindow.GetSceneCamera()).value;
-        float4x4 screenToClip = World::GetComponent<ScreenToClip>(GlobalSceneWindow.GetSceneCamera()).value;
+        float4x4 worldToClip = World::GetEntityAllocator().GetComponent<WorldToClip>(sceneWindow.GetSceneCamera()).value;
+        float4x4 screenToClip = World::GetEntityAllocator().GetComponent<ScreenToClip>(sceneWindow.GetSceneCamera()).value;
         float2 mousePositionNDC = mul(screenToClip, float4(inputSystem.GetMousePosition(), 0, 1)).xy;
 
         //检索当前鼠标位置的质点实体
         optionalEntity = Entity::Null;
         optionalEntityZ = 1;
-        View<Particle>::Each([this,&worldToClip,mousePositionNDC](const Entity entity, const Particle& point)
+        World::GetView<Particle>().Each([this,&worldToClip,mousePositionNDC](const Entity entity, const Particle& point)
         {
             float4 pointPositionCS = mul(worldToClip, float4(point.position, 1));
             float3 pointPositionNDC = pointPositionCS.xyz / pointPositionCS.w;

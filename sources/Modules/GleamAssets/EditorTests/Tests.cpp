@@ -7,7 +7,7 @@
 #include "GleamAssets/Editor/System/ProjectWindow.h"
 #include "GleamAssets/Runtime/Asset/BasicSceneInfo.h"
 #include "GleamECS/Runtime/Scene.h"
-#include "GleamECS/Runtime/View.h"
+#include "GleamECS/Runtime/View/View.h"
 
 Gleam_Main
 
@@ -33,21 +33,21 @@ class MySystem : public System
 {
     void Start() override
     {
-        View<MyComponent>::Each([&](auto& component)
+        View<MyComponent>().Each([&](auto& component)
         {
             std::cout << component.value << std::endl;
         });
     }
     void Update() override
     {
-        View<MyComponent>::Each([&](auto& component)
+        View<MyComponent>().Each([&](auto& component)
         {
             ++component.value;
         });
     }
     void Stop() override
     {
-        View<MyComponent>::Each([&](auto& component)
+        View<MyComponent>().Each([&](auto& component)
         {
             std::cout << component.value << std::endl;
         });
@@ -58,7 +58,7 @@ Gleam_MakeRuntimeSystem(MySystem)
 Gleam_MakeEngineStartEvent(Init, 0)
 {
     {
-        Scene& scene = Scene::Create("TestScene");
+        Scene& scene = World::AddScene("TestScene");
         scene.AddEntity(World::AddEntity(MyComponent{123}));
         scene.AddSystem(GlobalMySystem);
         {
@@ -68,7 +68,7 @@ Gleam_MakeEngineStartEvent(Init, 0)
             AssetDatabase::Create("Assets/Scenes/TestScene.scene", assetBundle);
             AssetBundle::Unload(assetBundle);
         }
-        Scene::Destroy(scene);
+        World::RemoveScene(scene);
     }
 
     EditorSceneManager::OpenScene("Assets/Scenes/TestScene.scene");

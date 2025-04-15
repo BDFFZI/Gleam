@@ -11,7 +11,7 @@ namespace Gleam
     /**
      * 将最终数据可视化输出到外部呈现设备中
      */
-    class PresentationSystem : public System<TransformSystem, SystemRelation::After>, public ISystemGroup
+    class PresentationSystem : public RelativeSystem<TransformSystem, SystemRelation::After>, public ISystemGroup
     {
     public:
         void WaitPresentationFinish() const;
@@ -36,8 +36,8 @@ namespace Gleam
         std::unique_ptr<GCommandBuffer> presentGCommandBuffer = nullptr; //预建的辅助命令缓冲区
 
         void Start() override;
-        void Stop() override;
         void Update() override;
+        void Stop() override;
     };
 
 #ifdef GleamEngineEditor

@@ -1,6 +1,7 @@
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamUI/Runtime/UI.h"
 #include "GleamUI/Runtime/UISystem.h"
+#include "GleamWindow/Runtime/Cursor.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 
 using namespace Gleam;
@@ -73,7 +74,6 @@ class MySystem : public System<UISystem>
     }
     void Stop() override
     {
-        GlobalPresentationSystem->WaitPresentationFinish();
         UI::DeleteTexture(textureID);
         texture.reset();
     }

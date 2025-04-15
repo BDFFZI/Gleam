@@ -30,7 +30,7 @@ namespace Gleam
         }
         else //非基于序列化的运行时场景
         {
-            Scene::Destroy(scene);
+            World::RemoveScene(scene);
         }
     }
     void EditorSceneManager::SaveScene(Scene& scene)

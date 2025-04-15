@@ -5,8 +5,10 @@ namespace Gleam
 {
     void UISystem::Update()
     {
+        PresentationSystem& presentationSystem = World::GetSystemAllocator().GetSystem<PresentationSystem>();
+
         UI::BeginFrame();
         ISystemGroup::Update();
-        UI::EndFrame(GlobalPresentationSystem->GetPresentGCommandBuffer());
+        UI::EndFrame(presentationSystem.GetPresentGCommandBuffer());
     }
 }

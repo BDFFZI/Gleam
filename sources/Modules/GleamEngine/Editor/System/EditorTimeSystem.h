@@ -1,5 +1,6 @@
 #pragma once
 #include "GleamEngine/Runtime/System/TimeSystem.h"
+#include "GleamEngine/Editor/Editor.h"
 
 namespace Gleam
 {

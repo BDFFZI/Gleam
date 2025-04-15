@@ -36,9 +36,31 @@ namespace Gleam
         {
             return rootSystem;
         }
-        std::weak_ptr<IOrderedSystemEvent> GetSystem(const SystemInfo& systemInfo)
+        std::weak_ptr<IOrderedSystemEvent> GetSystemPtr(const SystemInfo& systemInfo)
         {
             return std::get<0>(systems.at(&systemInfo));
+        }
+        template <class TSystem>
+        bool HasSystem() const
+        {
+            const SystemInfo& systemInfo = SystemInfoAllocator::GetSystemInfo(Type::CreateOrGet<TSystem>().GetID());
+            return systems.contains(&systemInfo);
+        }
+        template <class TSystem>
+        TSystem& GetSystem()
+        {
+            IOrderedSystemEvent* system = this->GetSystemPtr(SystemInfoAllocator::GetSystemInfo(Type::CreateOrGet<TSystem>().GetID())).lock().get();
+            return *dynamic_cast<TSystem*>(system);
+        }
+        template <class TSystem>
+        TSystem* TryGetSystem()
+        {
+            const SystemInfo& systemInfo = SystemInfoAllocator::GetSystemInfo(Type::CreateOrGet<TSystem>().GetID());
+            auto it = systems.find(&systemInfo);
+            if (it == systems.end())
+                return nullptr;
+            auto& [system,count] = it->second;
+            return dynamic_cast<TSystem*>(system.get());
         }
 
         IOrderedSystemEvent& AddSystem(const SystemInfo& systemInfo);

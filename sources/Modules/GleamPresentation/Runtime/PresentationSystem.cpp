@@ -18,13 +18,8 @@ Gleam::GCommandBuffer& Gleam::PresentationSystem::GetPresentGCommandBuffer() con
 void Gleam::PresentationSystem::Start()
 {
     presentGCommandBuffer = std::make_unique<GCommandBuffer>("PresentGCommandBuffer");
-}
-void Gleam::PresentationSystem::Stop()
-{
-    //等待上一帧结束，因为图形资源必须是不被占用的情况下才能销毁。
-    WaitPresentationFinish();
-    
-    presentGCommandBuffer.reset();
+
+    ISystemGroup::Start();
 }
 void Gleam::PresentationSystem::Update()
 {
@@ -43,4 +38,13 @@ void Gleam::PresentationSystem::Update()
         //结束呈现命令缓冲区录制并提交呈现命令
         SwapChain::EndPresent(*presentGLCommandBuffer);
     }
+}
+void Gleam::PresentationSystem::Stop()
+{
+    //等待上一帧结束，因为图形资源必须是不被占用的情况下才能销毁。
+    WaitPresentationFinish();
+
+    ISystemGroup::Stop();
+
+    presentGCommandBuffer.reset();
 }

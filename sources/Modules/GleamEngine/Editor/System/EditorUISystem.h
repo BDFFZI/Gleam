@@ -1,13 +1,12 @@
 ﻿#pragma once
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Editor/Editor.h"
-#include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamUI/Runtime/UISystem.h"
 #include "GleamUtility/Runtime/Macro.h"
 
 namespace Gleam
 {
-    class EditorUISystem : public IAbsoluteSystem<UISystem, SystemMaxOrder>, public ISystemGroup
+    class EditorUISystem : public AbsoluteSystem<UISystem, SystemMaxOrder>, public ISystemGroup
     {
     public:
         static void MakeEditorMenu(const std::string& name, const std::function<void()>& action);

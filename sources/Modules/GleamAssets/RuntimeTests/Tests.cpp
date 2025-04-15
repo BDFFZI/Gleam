@@ -9,7 +9,7 @@
 #include "GleamAssets/Runtime/Asset/BasicSceneInfo.h"
 #include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
-#include "GleamECS/Runtime/View.h"
+#include "GleamECS/Runtime/View/View.h"
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamPersistence/Runtime/Resources.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
@@ -32,7 +32,7 @@ class MySystem : public System
 {
     void Update() override
     {
-        View<MyComponent>::Each([](MyComponent& myComponent)
+        View<MyComponent>().Each([](MyComponent& myComponent)
         {
             myComponent.value++;
         });
@@ -46,7 +46,7 @@ TEST(Assets, Scene)
 
     //测试场景的创建和保存
     {
-        Scene& scene = Scene::Create("TestScene");
+        Scene& scene = World::AddScene("TestScene");
         //添加实体
         Entity entity = World::AddEntity(Transform{999}, RigidBody{}, SpringPhysics{});
         scene.AddEntity(entity);
@@ -62,7 +62,7 @@ TEST(Assets, Scene)
         AssetBundle::Unload(assetBundle); //卸载资源包不影响，场景内实体
         ASSERT_EQ(View<Transform>::Count(), 2);
         //销毁场景会移除实体
-        Scene::Destroy(scene);
+        World::RemoveScene(scene);
         World::Update(); //应用世界更改
         ASSERT_EQ(View<Transform>::Count(), 0);
     }
@@ -82,11 +82,11 @@ TEST(Assets, Scene)
         std::vector<Entity> entities;
         View<MyComponent>::Fetch(entities);
         ASSERT_TRUE(scene.HasEntity(entities[0]));
-        MyComponent& myComponent = World::GetComponent<MyComponent>(entities[0]);
+        MyComponent& myComponent = World::GetEntityAllocator().GetComponent<MyComponent>(entities[0]);
         ASSERT_EQ(myComponent.value, 3);
-        ASSERT_EQ(World::GetComponent<Transform>(myComponent.dependency).position, 999);
+        ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(myComponent.dependency).position, 999);
 
-        Scene::Destroy(scene);
+        World::RemoveScene(scene);
         World::Update(); //应用世界更改
     }
 
@@ -107,12 +107,12 @@ TEST(Assets, Scene)
         World::Update();
         ASSERT_EQ(World::GetRootSystemGroup().GetSubSystems().size(), 0);
         //实体被更新
-        ASSERT_EQ(World::GetComponent<MyComponent>(assetBundle.GetObject<PersistentEntity>(3).GetEntity()).value, 5);
+        ASSERT_EQ(World::GetEntityAllocator().GetComponent<MyComponent>(assetBundle.GetObject<PersistentEntity>(3).GetEntity()).value, 5);
         //写回资源包并卸载场景
         SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
         AssetBundle::SaveJson("TestScene.json", assetBundle);
         AssetBundle::Unload(assetBundle);
-        Scene::Destroy(scene);
+        World::RemoveScene(scene);
         World::Update(); //应用世界更改
     }
 
@@ -124,7 +124,7 @@ TEST(Assets, Scene)
 
         ASSERT_EQ(scene.GetEntities().size(), 3);
         ASSERT_EQ(scene.GetSystems().size(), 2);
-        Scene::Destroy(scene);
+        World::RemoveScene(scene);
     }
 
     World::Clear();
@@ -134,7 +134,7 @@ class MySystem2 : public System
 {
     void Start() override
     {
-        View<MyComponent>::Each([](MyComponent& myComponent)
+        View<MyComponent>().Each([](MyComponent& myComponent)
         {
             std::cout << myComponent.value << std::endl;
         });
@@ -145,7 +145,7 @@ class MySystem2 : public System
     }
     void Stop() override
     {
-        View<MyComponent>::Each([](MyComponent& myComponent)
+        View<MyComponent>().Each([](MyComponent& myComponent)
         {
             std::cout << myComponent.value << std::endl;
         });
@@ -159,7 +159,7 @@ TEST(Assets, Runtime)
     uuids::uuid id = MD5("TestScene2").toArray();
     //持久化一个场景
     {
-        Scene& scene = Scene::Create("TestScene2");
+        Scene& scene = World::AddScene("TestScene2");
         scene.AddEntity(World::AddEntity(MyComponent{123}));
         scene.AddSystem(GlobalMySystem);
         scene.AddSystem(GlobalMySystem2);
@@ -167,7 +167,7 @@ TEST(Assets, Runtime)
         SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
         Resources::Create(assetBundle);
         assetBundle.Unload(assetBundle);
-        Scene::Destroy(scene);
+        World::RemoveScene(scene);
     }
 
     //加载场景

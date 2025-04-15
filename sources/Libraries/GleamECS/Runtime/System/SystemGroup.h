@@ -14,34 +14,73 @@ namespace Gleam
         ISystemGroup() = default;
         ISystemGroup(ISystemGroup&& other) noexcept
         {
-            subSystems = std::move(other.subSystems);
+            updatingSystems = std::move(other.updatingSystems);
         }
         ISystemGroup& operator=(ISystemGroup&& other) noexcept
         {
-            subSystems = std::move(other.subSystems);
+            updatingSystems = std::move(other.updatingSystems);
             return *this;
         }
 
         const auto& GetSystems() const
         {
-            return subSystems;
+            return updatingSystems;
         }
         void AddSystem(IOrderedSystemEvent& system)
         {
-            assert(!subSystems.contains(&system) && "添加已存在的系统！");
+            assert(!updatingSystems.contains(&system) && "添加已存在的系统！");
 
-            subSystems.insert(&system);
+            addingSystems.insert(&system);
+            updatingSystems.insert(&system);
         }
         void RemoveSystem(IOrderedSystemEvent& system)
         {
-            assert(subSystems.contains(&system) && "移除不存在的系统！");
+            assert(updatingSystems.contains(&system) && "移除不存在的系统！");
 
-            subSystems.erase(&system);
+            removingSystems.insert(&system);
+            updatingSystems.erase(&system);
         }
 
+        void Start() override
+        {
+            FlushAddingSystems();
+        }
         void Update() override
         {
-            for (IOrderedSystemEvent* system : subSystems)
+            FlushAddingSystems();
+            FlushUpdatingSystems();
+            FlushRemovingSystems();
+        }
+        void Stop() override
+        {
+            removingSystems.insert(updatingSystems.begin(), updatingSystems.end());
+            FlushRemovingSystems();
+
+            addingSystems.clear();
+            updatingSystems.clear();
+            removingSystems.clear();
+        }
+
+    private:
+        std::set<IOrderedSystemEvent*, IOrderedSystemEventComparer> addingSystems = {};
+        std::set<IOrderedSystemEvent*, IOrderedSystemEventComparer> updatingSystems = {};
+        std::set<IOrderedSystemEvent*, IOrderedSystemEventComparer> removingSystems = {};
+
+        void FlushAddingSystems()
+        {
+            for (IOrderedSystemEvent* system : addingSystems)
+                system->Start();
+            addingSystems.clear();
+        }
+        void FlushRemovingSystems()
+        {
+            for (auto it = removingSystems.rbegin(); it != removingSystems.rend(); ++it)
+                (*it)->Stop();
+            removingSystems.clear();
+        }
+        void FlushUpdatingSystems() const
+        {
+            for (IOrderedSystemEvent* system : updatingSystems)
             {
 #ifdef GleamEngineEditor
                 std::string_view name = typeid(*system).name();
@@ -50,8 +89,5 @@ namespace Gleam
                 system->Update();
             }
         }
-
-    private:
-        std::set<IOrderedSystemEvent*, IOrderedSystemEventComparer> subSystems = {};
     };
 }

@@ -1,15 +1,14 @@
-﻿#include "PointsRendererSystem.h"
+﻿#include "PointsRendererPreProcessSystem.h"
 
-#include "GleamECS/Runtime/View.h"
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamRendering/Runtime/Rendering.h"
-#include "GleamRendering/Runtime/Component/PointsMesh.h"
+#include "GleamRendering/Runtime/Entity/PointsMesh.h"
 
 namespace Gleam
 {
-    void PointsRendererSystem::Update()
+    void PointsRendererPreProcessSystem::Update()
     {
-        View<PointsMesh>::Each([](PointsMesh& pointsRenderer)
+        World::GetView<PointsMesh>().Each([](PointsMesh& pointsRenderer)
         {
             Mesh& pointMesh = *pointsRenderer.pointsMesh;
             std::vector<Vertex>& pointVertices = pointMesh.GetVertices();
@@ -26,7 +25,7 @@ namespace Gleam
 
             pointMesh.SetDirty();
         });
-        View<PointsMesh, Renderer>::Each([](PointsMesh& pointsRenderer, Renderer& renderer)
+        World::GetView<PointsMesh, Renderer>().Each([](PointsMesh& pointsRenderer, Renderer& renderer)
         {
             if (renderer.mesh.expired())
                 renderer.mesh = pointsRenderer.pointsMesh;

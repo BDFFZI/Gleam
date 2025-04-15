@@ -1,11 +1,11 @@
 ﻿#include "PositionSystem.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
-#include "GleamECS/Runtime/View.h"
-#include "GleamMassSpring/Runtime/Component/Particle.h"
+#include "GleamECS/Runtime/View/View.h"
+#include "GleamMassSpring/Runtime/Entity/Particle.h"
 
 void Gleam::PositionSystem::Update()
 {
-    View<Particle>::Each([](Particle& particle)
+    World::GetView<Particle>().Each([](Particle& particle)
     {
         float3 currentPosition = particle.position;
         //Verlet积分法（但消去了对加速度的计算，完全基于位移控制质点）

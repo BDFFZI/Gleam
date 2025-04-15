@@ -1,9 +1,9 @@
 ﻿#include "CollisionSystem.h"
 
-#include "GleamECS/Runtime/View.h"
+#include "GleamECS/Runtime/View/View.h"
 #include "GleamEngine/Runtime/Entity/Transform.h"
-#include "GleamMassSpring/Runtime/Component/Collider.h"
-#include "GleamMassSpring/Runtime/Component/Particle.h"
+#include "GleamMassSpring/Runtime/Entity/Collider.h"
+#include "GleamMassSpring/Runtime/Entity/Particle.h"
 #include "GleamMath/Runtime/Geometry/Geometry.h"
 #include "GleamMath/Runtime/Geometry/3D/Cuboid.h"
 #include "GleamMath/Runtime/Geometry/3D/Sphere.h"
@@ -86,37 +86,37 @@ namespace Gleam
 
     void CollisionSystem::Update()
     {
-        View<LocalToWorld, WorldToLocal, Rectangle, Collider>::Each(
+        World::GetView<LocalToWorld, WorldToLocal, Rectangle, Collider>().Each(
             [this](LocalToWorld& localToWorld, WorldToLocal& worldToLocal, Rectangle rectangle, Collider collider)
             {
-                View<Particle>::Each(
+                World::GetView<Particle>().Each(
                     [this, &localToWorld,&worldToLocal,&rectangle,&collider](Particle& particle)
                     {
-                        ComputeCollision(localToWorld, worldToLocal, rectangle, collider, particle, ccdMaxCount);
+                        ComputeCollision(localToWorld, worldToLocal, rectangle, collider, particle, Physics::GetMaxCcdCount());
                     }
                 );
             }
         );
 
-        View<LocalToWorld, WorldToLocal, Cuboid, Collider>::Each(
+        World::GetView<LocalToWorld, WorldToLocal, Cuboid, Collider>().Each(
             [this](LocalToWorld& localToWorld, WorldToLocal& worldToLocal, Cuboid cuboid, Collider collider)
             {
-                View<Particle>::Each(
+                World::GetView<Particle>().Each(
                     [this,&localToWorld,&worldToLocal,&cuboid,&collider](Particle& particle)
                     {
-                        ComputeCollision(localToWorld, worldToLocal, cuboid, collider, particle, ccdMaxCount);
+                        ComputeCollision(localToWorld, worldToLocal, cuboid, collider, particle, Physics::GetMaxCcdCount());
                     }
                 );
             }
         );
 
-        View<LocalToWorld, WorldToLocal, Sphere, Collider>::Each(
+        World::GetView<LocalToWorld, WorldToLocal, Sphere, Collider>().Each(
             [this](LocalToWorld& localToWorld, WorldToLocal& worldToLocal, Sphere sphere, Collider collider)
             {
-                View<Particle>::Each(
+                World::GetView<Particle>().Each(
                     [this, &localToWorld,&worldToLocal,&sphere,&collider](Particle& particle)
                     {
-                        ComputeCollision(localToWorld, worldToLocal, sphere, collider, particle, ccdMaxCount);
+                        ComputeCollision(localToWorld, worldToLocal, sphere, collider, particle, Physics::GetMaxCcdCount());
                     }
                 );
             }

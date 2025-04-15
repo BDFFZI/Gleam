@@ -11,7 +11,7 @@ namespace Gleam
     Gleam_MakeInitEvent()
     {
         Engine::AddStartEvent(Editor_ReplaceRuntimeSystem, std::numeric_limits<int>::max());
-        Engine::AddUpdateEvent(Editor_PlayOrStopEngine, std::numeric_limits<int>::max());
+        Engine::AddUpdateEvent(Editor_PlayPauseStopEngine, std::numeric_limits<int>::max());
         Engine::AddUpdateEvent(ProfilerWindow_FetchProfile, std::numeric_limits<int>::max());
 
         EditorUISystem::MakeEditorMenu("Window/UI/IDStackTool", [] { GlobalEditorUISystem->ShowIDStackToolWindow(); });

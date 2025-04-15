@@ -4,14 +4,8 @@
 
 namespace Gleam
 {
-    class ScenePrefabSystem : public System
+    class ScenePrefabSystem : public AbsoluteSystem<PreUpdateSystem, SystemMinOrder>
     {
-    public:
-        ScenePrefabSystem(): System(GlobalPreUpdateSystem, MinOrder, MinOrder)
-        {
-        }
-
-    private:
         void Update() override;
     };
     Gleam_MakeRuntimeSystem(ScenePrefabSystem);
