@@ -28,12 +28,8 @@ namespace Gleam
         static void UnloadScene(uuids::uuid assetBundleID);
 
     private:
-        friend void SceneManager_ReleaseScenes();
+        friend void EditorSceneManager_RuntimeStop();
 
         inline static std::unordered_map<uuids::uuid, Scene*> allScenes;
     };
-
-    //引擎停止时，需释放场景（世界负责回收，场景需释放所有权）并回收资源包
-    void SceneManager_ReleaseScenes();
-    Gleam_MakeRuntimeSystemEvent(SceneManager_ReleaseScenes, Stop, GlobalPostUpdateSystem, System::MaxOrder)
 }

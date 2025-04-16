@@ -4,20 +4,6 @@
 
 namespace Gleam
 {
-    Scene::~Scene()
-    {
-        //从世界中移除托管的资源
-        if (isRunning)
-        {
-            for (const SystemInfo* system : systems)
-                World::RemoveSystem(*system, false);
-            isRunning = false;
-        }
-        for (Entity entity : entities)
-            World::RemoveEntityAsync(entity);
-        for (Scene* subScene : subScenes)
-            World::RemoveScene(*subScene);
-    }
     void Scene::Start()
     {
         for (Scene* scene : subScenes)
@@ -69,5 +55,19 @@ namespace Gleam
         entities.clear();
         for (auto& subScene : subScenes)
             subScene->Release();
+    }
+    void Scene::Destroy()
+    {
+        //从世界中移除托管的资源
+        if (isRunning)
+        {
+            for (const SystemInfo* system : systems)
+                World::RemoveSystem(*system, false);
+            isRunning = false;
+        }
+        for (Entity entity : entities)
+            World::RemoveEntityAsync(entity, false);
+        for (Scene* subScene : subScenes)
+            World::RemoveScene(*subScene, false);
     }
 }

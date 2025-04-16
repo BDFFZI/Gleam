@@ -51,6 +51,9 @@ namespace Gleam
     {
         if (release)
             scene.Release();
+        else
+            scene.Destroy();
+
         if (CurrentContext->activeScene == &scene)
             CurrentContext->activeScene = nullptr;
         erase_if(CurrentContext->allScenes, [&scene](auto& scenePtr) { return scenePtr.get() == &scene; });
@@ -80,7 +83,7 @@ namespace Gleam
     }
     void World::Clear()
     {
-        *CurrentContext = {};
+        CurrentContext->systemAllocator.Clear();
     }
 
 

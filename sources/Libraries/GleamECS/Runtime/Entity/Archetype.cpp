@@ -4,11 +4,19 @@
 
 namespace Gleam
 {
-    uuids::uuid Archetype::ComputeID(const std::vector<std::reference_wrapper<const Type>>& componentTypes)
+    uuids::uuid Archetype::SortAndComputeID(std::vector<const Type*>& componentTypes)
     {
+        //原型与组件排序无关
+        std::ranges::sort(
+            componentTypes,
+            [](auto a, auto b) { return a->GetID() < b->GetID(); }
+        );
+        assert(std::ranges::unique(componentTypes).begin() == componentTypes.end() && "一个原型内不允许有重复组件！");
+
+        //计算原型ID
         std::string componentIDs = {};
         for (const auto& componentType : componentTypes)
-            componentIDs += to_string(componentType.get().GetID());
+            componentIDs += to_string(componentType->GetID());
         return MD5(componentIDs).toArray();
     }
 
@@ -29,7 +37,12 @@ namespace Gleam
     }
     std::optional<std::reference_wrapper<Archetype>> Archetype::GetArchetype(const std::vector<std::reference_wrapper<const Type>>& componentTypes)
     {
-        uuids::uuid id = ComputeID(componentTypes);
+        std::vector<const Type*> components;
+        components.reserve(componentTypes.size());
+        for (const auto& type : componentTypes)
+            components.push_back(&type.get());
+
+        uuids::uuid id = SortAndComputeID(components);
         if (allArchetypes.contains(id))
             return allArchetypes.at(id);
         return std::nullopt;
@@ -150,21 +163,8 @@ namespace Gleam
 
     Archetype::Archetype(const std::string_view name, std::vector<const Type*> componentTypes)
     {
-        //原型与组件排序无关
-        std::ranges::sort(
-            componentTypes,
-            [](auto a, auto b) { return a->GetID() < b->GetID(); }
-        );
-        assert(std::ranges::unique(componentTypes).begin() == componentTypes.end() && "一个原型内不允许有重复组件！");
-
-        //计算原型ID
-        std::string componentIDs = {};
-        for (const auto& componentType : componentTypes)
-            componentIDs += to_string(componentType->GetID());
-        MD5 md5 = MD5(componentIDs);
-
-        this->id = uuids::uuid(md5.toArray());
-        this->name = name.empty() ? md5.toStr() : name;
+        this->id = SortAndComputeID(componentTypes);
+        this->name = name.empty() ? to_string(this->id) : name;
 
         this->componentCount = static_cast<int>(componentTypes.size());
         this->componentMapping.reserve(componentCount);

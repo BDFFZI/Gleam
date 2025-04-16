@@ -83,10 +83,10 @@ namespace Gleam
         friend void Editor_ReplaceRuntimeSystem();
         friend void Editor_PlayPauseStopEngine();
 
-        static inline GlobalSystemAllocator runtimeSystems;
         static inline std::multimap<int, std::function<void()>> startEvents;
         static inline std::multimap<int, std::function<void()>> updateEvents;
         static inline std::multimap<int, std::function<void()>> stopEvents;
+        static inline GlobalSystemAllocator runtimeSystems;
         inline static bool isStopping = false;
     };
 

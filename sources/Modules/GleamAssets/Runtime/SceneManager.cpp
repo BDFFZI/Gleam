@@ -38,15 +38,4 @@ namespace Gleam
         Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
         allScenes.erase(assetBundleID);
     }
-
-    void SceneManager_ReleaseScenes()
-    {
-        //引擎停止，释放场景（世界负责回收，场景需释放所有权）并回收资源包
-        for (auto [id,scene] : SceneManager::allScenes)
-        {
-            World::RemoveScene(*scene, true);
-            Resources::Unload(AssetBundle::GetAssetBundle(id));
-        }
-        SceneManager::allScenes.clear();
-    }
 }

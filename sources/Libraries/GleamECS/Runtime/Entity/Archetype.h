@@ -48,7 +48,7 @@ namespace Gleam
         {
             createArchetypeEvent.emplace_back(event);
         }
-        static uuids::uuid ComputeID(const std::vector<std::reference_wrapper<const Type>>& componentTypes);
+        static uuids::uuid SortAndComputeID(std::vector<const Type*>& componentTypes);
 
         template <Component... TComponents>
         static Archetype& Create(const std::string_view name)
@@ -69,7 +69,10 @@ namespace Gleam
 
         static Archetype& CreateOrGet(const std::vector<std::reference_wrapper<const Type>>& componentTypes, const std::string_view name = "")
         {
-            return GetArchetype(componentTypes).value_or(Create(componentTypes, name));
+            auto optionalArchetype = GetArchetype(componentTypes);
+            if (optionalArchetype.has_value())
+                return optionalArchetype->get();
+            return Create(componentTypes, name);
         }
         template <Component... TComponents>
         static Archetype& CreateOrGet(const std::string_view name = "")

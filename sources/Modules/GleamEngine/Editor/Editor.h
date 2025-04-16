@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamEngine/Runtime/Engine.h"
 
 namespace Gleam
@@ -8,6 +7,8 @@ namespace Gleam
     class Editor
     {
     public:
+        static void AddPlayEvent(const std::function<void()>& event, int order = 0);
+        static void AddStopEvent(const std::function<void()>& event, int order = 0);
         static GlobalSystemAllocator& GetEditorSystems()
         {
             return editorSystems;
@@ -33,11 +34,12 @@ namespace Gleam
     private:
         friend void Editor_ReplaceRuntimeSystem();
         friend void Editor_PlayPauseStopEngine();
+        static inline std::multimap<int, std::function<void()>> playEvents;
+        static inline std::multimap<int, std::function<void()>> stopEvents;
         static inline GlobalSystemAllocator editorSystems;
         static inline GlobalSystemAllocator runtimeSystems;
         static inline bool isPlaying = false;
         static inline bool isPaused = false;
-        static inline Entity editorTimeEntity;
     };
 
     void Editor_ReplaceRuntimeSystem();

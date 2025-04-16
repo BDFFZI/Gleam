@@ -22,13 +22,6 @@ namespace Gleam
             : name(name), isRunning(isRunning)
         {
         }
-        /**
-         * 销毁所有资源，包括子场景。
-         *
-         * 释放即让场景放弃其对托管资源的所有权，原本其托管的所有System和Entity将完全交由World管理。
-         * 因为除了Scene，World也有回收Entity和System的权力，当由World回收时，Scene应当释放所有权。
-         */
-        ~Scene();
         Scene(Scene&) = delete;
         Scene& operator=(Scene&) = delete;
 
@@ -49,7 +42,7 @@ namespace Gleam
             return isRunning;
         }
 
-        bool HasSystem(SystemInfo& system) const
+        bool HasSystem(const SystemInfo& system) const
         {
             return systems.contains(&system);
         }
@@ -79,10 +72,18 @@ namespace Gleam
         {
             subScenes.erase(&scene);
         }
+
         /**
          * 释放资源所有权而不销毁，同时也会释放子场景资源所有权
          */
         void Release();
+        /**
+          * 销毁所有资源，包括子场景。
+          *
+          * 释放即让场景放弃其对托管资源的所有权，原本其托管的所有System和Entity将完全交由World管理。
+          * 因为除了Scene，World也有回收Entity和System的权力，当由World回收时，Scene应当释放所有权。
+          */
+        void Destroy();
 
     private:
         std::string name;

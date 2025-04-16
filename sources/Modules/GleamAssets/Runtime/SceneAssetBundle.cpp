@@ -61,7 +61,7 @@ namespace Gleam
     Scene& SceneAssetBundle::MoveFromAssetBundle(AssetBundle& assetBundle, const bool isRunning)
     {
         std::string name;
-        std::vector<System*> systems;
+        std::vector<const SystemInfo*> systems;
         std::vector<PersistentEntity*> entities;
         GetSceneAssets(assetBundle, name, systems, entities);
 
@@ -79,7 +79,7 @@ namespace Gleam
     Scene& SceneAssetBundle::CopyFromAssetBundle(AssetBundle& assetBundle, const bool isRunning)
     {
         std::string name;
-        std::vector<System*> systems;
+        std::vector<const SystemInfo*> systems;
         std::vector<PersistentEntity*> entities;
         GetSceneAssets(assetBundle, name, systems, entities);
 

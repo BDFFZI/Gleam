@@ -42,14 +42,21 @@ namespace Gleam
         AssetDatabase::Save(path);
     }
 
-    void EditorSceneManager_StartScenes()
+    void EditorSceneManager_RuntimeStart()
     {
+        //进入运行时，激活所有场景
         for (auto& scene : SceneManager::GetAllScenes() | UnwrapRef)
             scene.Start();
     }
-    void EditorSceneManager_OpenLastScene()
+    void EditorSceneManager_RuntimeStop()
     {
+        //结束运行时，场景已被世界销毁，清理相关资源包和场景记录
+        for (const auto id : SceneManager::allScenes | std::views::keys)
+            Resources::Unload(AssetBundle::GetAssetBundle(id));
+        SceneManager::allScenes.clear();
         EditorSceneManager::scenePaths.clear();
+
+        //重新打开上次的场景
         if (std::filesystem::exists(EditorSceneState::lastScenePath))
             EditorSceneManager::OpenScene(EditorSceneState::lastScenePath);
     }

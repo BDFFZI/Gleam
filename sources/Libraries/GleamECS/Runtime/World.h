@@ -14,11 +14,11 @@ namespace Gleam
         //实体系统数据
         EntityAllocator entityAllocator = {};
         SystemAllocator systemAllocator = {};
-        //场景数据
+        //场景数据（场景不会主动回收）
         Scene* activeScene = nullptr;
-        std::vector<std::unique_ptr<Scene>> allScenes = {};
         std::unordered_map<const SystemInfo*, Scene*> systemToScene = {};
         std::unordered_map<Entity, Scene*> entityToScene = {};
+        std::vector<std::unique_ptr<Scene>> allScenes = {};
         //缓存的结构化更变
         std::vector<std::tuple<Entity, bool>> removingEntities = {};
         std::vector<std::tuple<Entity, const Archetype*>> movingEntities = {};

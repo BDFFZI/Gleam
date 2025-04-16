@@ -15,17 +15,11 @@ namespace Gleam
         static void SaveScene(Scene& scene);
 
     private:
-        friend void EditorSceneManager_OpenLastScene();
+        friend void EditorSceneManager_RuntimeStop();
 
         inline static std::unordered_map<Scene*, std::filesystem::path> scenePaths = {};
     };
 
-
-    //激活所有场景
-    void EditorSceneManager_StartScenes();
-    Gleam_MakeRuntimeSystemEvent(EditorSceneManager_StartScenes, Start, GlobalPostUpdateSystem, System::MaxOrder)
-
-    //清理并打开上次场景
-    void EditorSceneManager_OpenLastScene();
-    Gleam_MakeRuntimeSystemEvent(EditorSceneManager_OpenLastScene, Start, GlobalPostUpdateSystem, System::MaxOrder)
+    void EditorSceneManager_RuntimeStart();
+    void EditorSceneManager_RuntimeStop();
 }
