@@ -36,7 +36,6 @@ namespace Gleam
     {
         for (size_t i = 0; i < inspectorTargets.size(); ++i)
         {
-            InspectorTarget& target = inspectorTargets[i];
             if (i == 0)
                 ImGui::Begin("InspectorWindow", nullptr, ImGuiWindowFlags_MenuBar);
             else
@@ -45,14 +44,18 @@ namespace Gleam
                 bool isOpen = true;
                 ImGui::Begin(std::format("InspectorWindow##{}", i).c_str(), &isOpen);
                 if (isOpen == false)
+                {
                     inspectorTargets.erase(inspectorTargets.begin() + static_cast<ptrdiff_t>(i));
+                    ImGui::End();
+                    continue;
+                }
             }
 
             //绘制菜单项
             if (ImGui::BeginMenuBar())
             {
                 if (ImGui::MenuItem("Clone"))
-                    AddMinorTarget(target);
+                    inspectorTargets.emplace_back(inspectorTargets[i]); //增加元素可能导致扩容，而使指针失效，因此不能一开始就缓存指针或引用
                 if (ImGui::MenuItem("Clear"))
                     SetMajorTarget(nullptr);
                 if (ImGui::BeginMenu("Debug"))
@@ -63,8 +66,9 @@ namespace Gleam
 
                 ImGui::EndMenuBar();
             }
-            
+
             //绘制目标
+            InspectorTarget& target = inspectorTargets[i];
             if (!target.objectPtr.expired())
             {
                 if (inspectorGUIs.contains(target.objectTypeIndex))

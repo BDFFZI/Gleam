@@ -5,6 +5,7 @@
 
 #include "GleamAssets/Editor/AssetDatabase/AssetDatabase.h"
 #include "GleamAssets/Editor/AssetDatabase/AssetImporter.h"
+#include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamPersistence/Runtime/Resources.h"
 #include "GleamUI/Runtime/UI.h"
@@ -147,7 +148,7 @@ namespace Gleam
         }
         else
         {
-            if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+            if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                 File::OpenInAssociatedApp(path);
         }
 

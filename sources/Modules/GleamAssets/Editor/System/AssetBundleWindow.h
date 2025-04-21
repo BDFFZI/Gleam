@@ -4,15 +4,9 @@
 
 namespace Gleam
 {
-    class AssetBundleWindow : public System
+    class AssetBundleWindow : public System<EditorUISystem>
     {
-    public:
-        AssetBundleWindow(): System(GlobalEditorUISystem)
-        {
-        }
-
-    private:
         void Update() override;
     };
-    Gleam_MakeRuntimeSystem(AssetBundleWindow)
+    Gleam_MakeEditorSystem(AssetBundleWindow)
 }

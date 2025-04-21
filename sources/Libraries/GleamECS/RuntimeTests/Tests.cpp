@@ -30,7 +30,7 @@ TEST(ECS, Archetype)
         archetypeInfos[i] = to_string(item);
         i++;
     }
-    ASSERT_EQ(archetypeInfos[0], R"(Name:d1c9b3f452d6c5636f23b1a112880c3b
+    ASSERT_EQ(archetypeInfos[0], R"(Name:d1c9b3f4-52d6-c563-6f23-b1a112880c3b
 ID:d1c9b3f4-52d6-c563-6f23-b1a112880c3b
 Size:28
 Components:
@@ -269,10 +269,10 @@ TEST(ECS, System)
 TEST(ECS, World)
 {
     Entity entities[2] = {
-        World::AddEntity(physicsArchetype),
-        World::AddEntity(physicsArchetype),
+        World::AddSceneEntity(physicsArchetype),
+        World::AddSceneEntity(physicsArchetype),
     };
-    World::RemoveEntityAsync(entities[0]);
+    World::RemoveSceneEntityAsync(entities[0]);
     World::MoveEntityAsync(entities[1], physicsWithSpringArchetype);
 
     World::Update();
@@ -331,9 +331,9 @@ TEST(ECS, World2)
 
 
     Scene& scene = World::AddScene("TestScene", true);
-    Entity entity = World::AddEntity(Archetype::CreateOrGet<Transform>("Transform"));
+    Entity entity = World::AddSceneEntity(Archetype::CreateOrGet<Transform>("Transform"));
     ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 0);
-    World::AddSystem<TestSystem>();
+    World::AddSceneSystem<TestSystem>();
     World::Update();
     ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 2);
 
@@ -344,7 +344,7 @@ TEST(ECS, World2)
     World::Update();
     ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 1);
 
-    World::AddSystem<TestSystem>();
+    World::AddSceneSystem<TestSystem>();
     World::Update();
     ASSERT_EQ(World::GetEntityAllocator().GetComponent<Transform>(entity).position, 3);
 

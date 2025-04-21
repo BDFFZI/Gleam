@@ -9,11 +9,6 @@
 
 namespace Gleam
 {
-    bool HierarchyWindow::DrawEntity(Entity entity)
-    {
-        EditorUI::DrawEntityField(entity);
-        return DrawEntityPopup(entity);
-    }
     bool HierarchyWindow::DrawSystem(const ISystemEvent& system)
     {
         const SystemInfo& systemInfo = SystemInfoAllocator::GetSystemInfo(system);
@@ -40,7 +35,7 @@ namespace Gleam
 
         //系统引用计数
         ImGui::SameLine();
-        ImGui::Text("%i", World::GetSystemAllocator().GetUsageCount(SystemInfoAllocator::GetSystemInfo(system)));
+        ImGui::Text("%i", World::GetSystemAllocator().GetSystemUsageCount(SystemInfoAllocator::GetSystemInfo(system)));
 
         if (systemGroup && collapsing)
         {
@@ -54,43 +49,53 @@ namespace Gleam
     void HierarchyWindow::DrawSubSystems(const ISystemGroup& systemGroup)
     {
         for (const auto subSystem : systemGroup.GetSystems())
-            DrawSystem(*subSystem);
-    }
-
-    void HierarchyWindow::DrawSystemsPopup()
-    {
-        ImGuiID addSystemID = ImGui::GetID("AddSystem");
-        if (ImGui::BeginPopup("AddSystem"))
         {
-            static ImGuiTextFilter filter;
-            filter.Draw("##");
-            if (ImGui::BeginListBox("##"))
-            {
-                for (SystemInfo& system : SystemInfoAllocator::GetAllSystemInfo())
-                {
-                    if (filter.PassFilter(typeid(system).name()) && ImGui::Button(typeid(system).name()))
-                    {
-                        World::AddSystem(system);
-                        ImGui::CloseCurrentPopup();
-                        break;
-                    }
-                }
+            if (!DrawSystem(*subSystem))
+                break;
+        }
+    }
+    bool HierarchyWindow::DrawSystemPopup(const ISystemEvent& system)
+    {
+        bool result = true;
 
-                ImGui::EndListBox();
+        std::string id = std::format("{}SystemPopup", typeid(system).name());
+        if (ImGui::BeginPopupContextItem(id.data()))
+        {
+            if (ImGui::Button("RemoveSystem"))
+            {
+                World::RemoveSceneSystem(SystemInfoAllocator::GetSystemInfo(system));
+                ImGui::CloseCurrentPopup();
+                result = false;
             }
+
             ImGui::EndPopup();
         }
+        return result;
+    }
+    void HierarchyWindow::DrawSystemsPopup()
+    {
+        const SystemInfo* selectedSystemInfo = nullptr;
+        ImGuiID selectSystemPopup = EditorUI::DrawSelectSystemPopup(selectedSystemInfo);
 
         if (ImGui::BeginPopupContextItem("SystemsPopup"))
         {
             if (ImGui::Button("AddSystem"))
             {
                 ImGui::CloseCurrentPopup();
-                ImGui::OpenPopup(addSystemID);
+                ImGui::OpenPopup(selectSystemPopup);
             }
 
             ImGui::EndPopup();
         }
+
+        if (selectedSystemInfo != nullptr)
+            World::AddSceneSystem(*selectedSystemInfo);
+    }
+
+    bool HierarchyWindow::DrawEntity(Entity entity)
+    {
+        EditorUI::DrawEntityField(entity);
+        return DrawEntityPopup(entity);
     }
     void HierarchyWindow::DrawEntitiesPopup()
     {
@@ -105,24 +110,6 @@ namespace Gleam
             ImGui::EndPopup();
         }
     }
-    bool HierarchyWindow::DrawSystemPopup(const ISystemEvent& system)
-    {
-        bool result = true;
-
-        std::string id = std::format("{}SystemPopup", typeid(system).name());
-        if (ImGui::BeginPopupContextItem(id.data()))
-        {
-            if (ImGui::Button("RemoveSystem"))
-            {
-                World::RemoveSystem(SystemInfoAllocator::GetSystemInfo(system));
-                ImGui::CloseCurrentPopup();
-                result = false;
-            }
-
-            ImGui::EndPopup();
-        }
-        return result;
-    }
     bool HierarchyWindow::DrawEntityPopup(Entity entity)
     {
         bool result = true;
@@ -132,13 +119,16 @@ namespace Gleam
         {
             if (ImGui::Button("RemoveEntity"))
             {
-                World::RemoveEntityAsync(entity);
+                World::RemoveSceneEntityAsync(entity);
                 ImGui::CloseCurrentPopup();
                 result = false;
             }
             if (ImGui::Button("Clone"))
             {
                 Entity newEntity = World::GetEntityAllocator().CloneEntity(entity);
+                if (auto optionalScene = World::GetScene(entity); optionalScene.has_value())
+                    optionalScene->get().AddEntity(newEntity);
+
                 ImGui::CloseCurrentPopup();
                 GlobalInspectorWindow->SetMajorTarget(newEntity);
             }

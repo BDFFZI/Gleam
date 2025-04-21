@@ -63,8 +63,8 @@ void LogicSystem::OnDeleteParticle()
                 lines.push_back(entity);
         });
         for (Entity entity : lines)
-            World::RemoveEntityAsync(entity);
-        World::RemoveEntityAsync(coveringParticle);
+            World::RemoveSceneEntityAsync(entity);
+        World::RemoveSceneEntityAsync(coveringParticle);
     }
 }
 void LogicSystem::OnCreateSpring()
@@ -88,7 +88,7 @@ void LogicSystem::OnCreateSpring()
                 Physics::AddSpring(springParticleA, coveringParticle, elasticity);
 
             springParticleA = Entity::Null;
-            World::RemoveEntityAsync(tempLine);
+            World::RemoveSceneEntityAsync(tempLine);
         }
     }
 

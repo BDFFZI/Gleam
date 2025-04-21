@@ -38,7 +38,7 @@ namespace Gleam
         auto& path = scenePaths.at(&scene);
         AssetBundle& assetBundle = AssetDatabase::GetAssetBundle(path);
 
-        SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
+        SceneAssetBundle::MapToAssetBundle(scene, assetBundle);
         AssetDatabase::Save(path);
     }
 
@@ -50,12 +50,7 @@ namespace Gleam
     }
     void EditorSceneManager_RuntimeStop()
     {
-        //结束运行时，场景已被世界销毁，清理相关资源包和场景记录
-        for (const auto id : SceneManager::allScenes | std::views::keys)
-            Resources::Unload(AssetBundle::GetAssetBundle(id));
-        SceneManager::allScenes.clear();
         EditorSceneManager::scenePaths.clear();
-
         //重新打开上次的场景
         if (std::filesystem::exists(EditorSceneState::lastScenePath))
             EditorSceneManager::OpenScene(EditorSceneState::lastScenePath);

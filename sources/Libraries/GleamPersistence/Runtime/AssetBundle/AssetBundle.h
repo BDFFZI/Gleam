@@ -192,7 +192,6 @@ namespace Gleam
                 dynamic_cast<AssetRefStatistician*>(&serializer)
             )
             {
-                std::uintptr_t address = reinterpret_cast<uintptr_t>(&value);
                 AssetRef assetRef = AssetBundle::pointerToAssetRef[&value]; //读取来自首次反序列化时保存的值或默认空值
                 {
                     //优先获取目标对象的资源地址（序列化时保存），否则使用指针映射表存储的资源地址

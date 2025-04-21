@@ -15,7 +15,7 @@ namespace Gleam
 
         Scene& scene = World::AddScene("NewScene");
         AssetBundle& assetBundle = AssetBundle::Create();
-        SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
+        SceneAssetBundle::MapToAssetBundle(scene, assetBundle);
         AssetDatabase::Create(path, assetBundle);
         AssetBundle::Unload(assetBundle);
         World::RemoveScene(scene);

@@ -28,11 +28,16 @@ namespace Gleam
     public:
         static bool IsMatched(const Archetype& archetype)
         {
-            std::type_index components[] = {typeid(TComponents)...};
-            for (size_t i = 0; i < sizeof...(TComponents); ++i)
-                if (archetype.HasComponent(components[i]) == false)
-                    return false;
-            return true;
+            if constexpr (sizeof...(TComponents) == 0)
+                return true;
+            else
+            {
+                std::type_index components[] = {typeid(TComponents)...};
+                for (size_t i = 0; i < sizeof...(TComponents); ++i)
+                    if (archetype.HasComponent(components[i]) == false)
+                        return false;
+                return true;
+            }
         }
     };
     static_assert(QueryFilter<QueryNecessary<>>);

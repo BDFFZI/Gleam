@@ -2,6 +2,14 @@
 
 namespace Gleam
 {
+    IOrderedSystemEvent* SystemAllocator::TryGetSystem(const SystemInfo& systemInfo)
+    {
+        auto it = systems.find(&systemInfo);
+        if (it == systems.end())
+            return nullptr;
+        auto& [system,count] = it->second;
+        return system.get();
+    }
     IOrderedSystemEvent& SystemAllocator::AddSystem(const SystemInfo& systemInfo)
     {
         if (systemInfo.group != nullptr)

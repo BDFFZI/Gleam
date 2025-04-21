@@ -28,7 +28,11 @@ namespace Gleam
             Clear();
         }
 
-        int GetUsageCount(const SystemInfo& systemInfo) const
+        int GetSystemCount() const
+        {
+            return static_cast<int>(systems.size());
+        }
+        int GetSystemUsageCount(const SystemInfo& systemInfo) const
         {
             return std::get<1>(systems.at(&systemInfo));
         }
@@ -52,15 +56,12 @@ namespace Gleam
             IOrderedSystemEvent* system = this->GetSystemPtr(SystemInfoAllocator::GetSystemInfo(Type::CreateOrGet<TSystem>().GetID())).lock().get();
             return *dynamic_cast<TSystem*>(system);
         }
+        IOrderedSystemEvent* TryGetSystem(const SystemInfo& systemInfo);
         template <class TSystem>
         TSystem* TryGetSystem()
         {
             const SystemInfo& systemInfo = SystemInfoAllocator::GetSystemInfo(Type::CreateOrGet<TSystem>().GetID());
-            auto it = systems.find(&systemInfo);
-            if (it == systems.end())
-                return nullptr;
-            auto& [system,count] = it->second;
-            return dynamic_cast<TSystem*>(system.get());
+            return dynamic_cast<TSystem*>(TryGetSystem(systemInfo));
         }
 
         IOrderedSystemEvent& AddSystem(const SystemInfo& systemInfo);

@@ -13,7 +13,7 @@ namespace Gleam
     class Query
     {
     public:
-        template <QueryFilter TFilter,Component... TComponents> requires (sizeof...(TComponents) != 0)
+        template <QueryFilter TFilter,Component... TComponents>
         static Query& GetQuery()
         {
             //利用静态局部变量初始化的特性，仅在首次查询时创建并计算目标
@@ -28,7 +28,7 @@ namespace Gleam
                         && TFilter::IsMatched(archetype)) //满足自定义筛选器
                     {
                         query.targets.emplace_back(
-                            &archetype, std::vector{archetype.GetComponentOffset(typeid(TComponents))...}
+                            &archetype, std::vector<int>{archetype.GetComponentOffset(typeid(TComponents))...}
                         );
                     }
                 };

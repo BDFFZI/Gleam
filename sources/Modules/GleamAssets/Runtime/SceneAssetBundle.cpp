@@ -22,7 +22,7 @@ namespace Gleam
             outEntities.emplace_back(&entityAsset);
         }
     }
-    void SceneAssetBundle::SaveToAssetBundle(Scene& scene, AssetBundle& assetBundle)
+    void SceneAssetBundle::MapToAssetBundle(Scene& scene, AssetBundle& assetBundle)
     {
         int assetCount = static_cast<int>(assetBundle.GetAssetSlots().size());
 

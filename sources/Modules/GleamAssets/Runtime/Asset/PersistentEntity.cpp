@@ -61,7 +61,7 @@ namespace Gleam
         {
             entityToAsset.erase(entity);
             if (ownership)
-                World::RemoveEntityAsync(entity);
+                World::RemoveSceneEntityAsync(entity);
         }
     }
 

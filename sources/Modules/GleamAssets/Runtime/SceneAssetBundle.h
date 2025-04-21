@@ -13,11 +13,12 @@ namespace Gleam
     public:
         static void GetSceneAssets(AssetBundle& assetBundle, std::string& outName, std::vector<const SystemInfo*>& outSystems, std::vector<PersistentEntity*>& outEntities);
         /**
-         * 将Scene数据拷贝到AssetBundle，以便用其持久化保存Scene。
+         * 将Scene中数据的数据映射成AssetBundle，以便用其持久化保存Scene。
+         * 注意！该资源包不托管场景对象，场景对象仍属于场景。
          * @param scene 
          * @param assetBundle 
          */
-        static void SaveToAssetBundle(Scene& scene, AssetBundle& assetBundle);
+        static void MapToAssetBundle(Scene& scene, AssetBundle& assetBundle);
         /**
          * 从AssetBundle中复原Scene并夺取相关资源的所有权。
          * @param assetBundle

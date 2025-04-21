@@ -27,7 +27,7 @@ namespace Gleam
         {
             for (const auto& [system,slot] : globalSystems)
             {
-                void* address = &World::AddSystem(*system);
+                void* address = &World::GetSystemAllocator().AddSystem(*system);
                 *slot = static_cast<ISystemEvent*>(address);
                 // *slot = &World::AddSystem(*system); //注意！不能这样连写，否则取到的地址是错的，神奇的机制
             }

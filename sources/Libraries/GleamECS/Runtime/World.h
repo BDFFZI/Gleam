@@ -15,13 +15,29 @@ namespace Gleam
         EntityAllocator entityAllocator = {};
         SystemAllocator systemAllocator = {};
         //场景数据（场景不会主动回收）
-        Scene* activeScene = nullptr;
         std::unordered_map<const SystemInfo*, Scene*> systemToScene = {};
         std::unordered_map<Entity, Scene*> entityToScene = {};
+        Scene* activeScene = nullptr;
         std::vector<std::unique_ptr<Scene>> allScenes = {};
         //缓存的结构化更变
-        std::vector<std::tuple<Entity, bool>> removingEntities = {};
+        std::vector<std::tuple<Entity>> removingEntities = {};
         std::vector<std::tuple<Entity, const Archetype*>> movingEntities = {};
+        
+        WorldContext& operator=(WorldContext&& other) noexcept
+        {
+            //限制重置顺序，以便正确触发回收事件
+            if (this == &other)
+                return *this;
+            movingEntities = std::move(other.movingEntities);
+            removingEntities = std::move(other.removingEntities);
+            allScenes = std::move(other.allScenes);
+            activeScene = other.activeScene;
+            entityToScene = std::move(other.entityToScene);
+            systemToScene = std::move(other.systemToScene);
+            systemAllocator = std::move(other.systemAllocator);
+            entityAllocator = std::move(other.entityAllocator);
+            return *this;
+        }
     };
 
     /**
@@ -56,12 +72,22 @@ namespace Gleam
         {
             return Gleam::View<Args...>(GetEntityAllocator());
         }
-
-        static Entity AddEntity(const Archetype& archetype, bool addToScene = true);
-        static void RemoveEntity(Entity& entity, bool removeFromScene = true);
-        static void RemoveEntityAsync(Entity& entity, bool removeFromScene = true)
+        
+        template <class... Args>
+        static Entity AddSceneEntity(Args&&... args)
         {
-            CurrentContext->removingEntities.emplace_back(entity, removeFromScene);
+            Entity entity = CurrentContext->entityAllocator.AddEntity(std::forward<Args>(args)...);
+
+            if (CurrentContext->activeScene != nullptr)
+                CurrentContext->activeScene->AddEntity(entity);
+
+            return entity;
+        }
+        static void RemoveSceneEntity(Entity& entity);
+        
+        static void RemoveSceneEntityAsync(Entity& entity)
+        {
+            CurrentContext->removingEntities.emplace_back(entity);
             entity = Entity::Null; //避免野指针
         }
         static void MoveEntityAsync(const Entity entity, const Archetype& newArchetype)
@@ -74,17 +100,17 @@ namespace Gleam
             MoveEntityAsync(entity, archetype);
         }
 
-        static IOrderedSystemEvent& AddSystem(const SystemInfo& systemInfo, bool addToScene = true);
-        static void RemoveSystem(const SystemInfo& systemInfo, bool removeFromScene = true);
+        static void AddSceneSystem(const SystemInfo& systemInfo);
+        static void RemoveSceneSystem(const SystemInfo& systemInfo);
         template <class TSystem>
-        static TSystem& AddSystem(const bool addToScene = true)
+        static void AddSceneSystem()
         {
-            return reinterpret_cast<TSystem&>(AddSystem(SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>(), addToScene));
+            AddSceneSystem(SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>());
         }
         template <class TSystem>
-        static void RemoveSystem(const bool removeFromScene = true)
+        static void RemoveSceneSystem()
         {
-            RemoveSystem(SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>(), removeFromScene);
+            RemoveSceneSystem(SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>());
         }
 
         /**
@@ -105,7 +131,7 @@ namespace Gleam
         static void RemoveScene(Scene& scene, bool release = false);
         static std::optional<std::reference_wrapper<Scene>> GetScene(std::string_view name);
         static std::optional<std::reference_wrapper<Scene>> GetScene(Entity entity);
-        static std::optional<std::reference_wrapper<Scene>> GetScene(SystemInfo& system);
+        static std::optional<std::reference_wrapper<Scene>> GetScene(const SystemInfo& system);
 
         static void Update();
         static void Clear();

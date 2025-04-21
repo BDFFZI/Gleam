@@ -17,11 +17,12 @@ namespace Gleam
             : InspectorTarget()
         {
         }
+
         InspectorTarget(const std::weak_ptr<void>& objectPtr, const std::type_index objectTypeIndex)
             : objectPtr(objectPtr), objectTypeIndex(objectTypeIndex)
         {
         }
-        template <class T> requires !std::is_void_v<T>
+        template <class T> requires !std::is_void_v<T> && !std::is_same_v<T, InspectorTarget>
         InspectorTarget(const std::weak_ptr<T>& objectPtr)
         {
             this->objectPtr = objectPtr;
@@ -33,7 +34,7 @@ namespace Gleam
          * @param object 
          */
         template <class T> requires
-            !std::is_reference_v<T> && !std::is_pointer_v<T> && !std::is_same_v<T, InspectorTarget> && std::is_trivial_v<T>
+            !std::is_reference_v<T> && !std::is_pointer_v<T> && std::is_trivial_v<T> && !std::is_same_v<T, InspectorTarget>
         InspectorTarget(T object)
         {
             ownedObject = std::make_shared<T>(object);
@@ -47,7 +48,7 @@ namespace Gleam
          * @param object 
          */
         template <class T> requires
-            !std::is_reference_v<T> && !std::is_pointer_v<T> && !std::is_same_v<T, InspectorTarget> && !std::is_same_v<T, std::weak_ptr<T>>
+            !std::is_reference_v<T> && !std::is_pointer_v<T> && !std::is_same_v<T, std::weak_ptr<T>> && !std::is_same_v<T, InspectorTarget>
         explicit InspectorTarget(T& object)
         {
             ownedObject = std::shared_ptr<T>(&object, [](T*)

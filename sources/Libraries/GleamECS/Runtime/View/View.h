@@ -20,7 +20,6 @@ namespace Gleam
     concept ViewIteratorWithEntity = requires(TFunction function, Entity& entity, TComponents&... components) { function(entity, components...); };
 
     template <QueryFilter TFilter,Component... TComponents>
-        requires (sizeof...(TComponents) != 0)
     class View<TFilter, TComponents...>
     {
     public:

@@ -23,4 +23,4 @@ namespace Gleam
 #endif
 }
 
-#undef UISystemGroup
+#undef UISystemBase

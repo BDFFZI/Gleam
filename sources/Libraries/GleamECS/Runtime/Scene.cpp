@@ -9,7 +9,7 @@ namespace Gleam
         for (Scene* scene : subScenes)
             scene->Start();
         for (const SystemInfo* system : systems)
-            World::AddSystem(*system, false);
+            World::GetSystemAllocator().AddSystem(*system);
         isRunning = true;
     }
     void Scene::Stop()
@@ -17,7 +17,7 @@ namespace Gleam
         for (Scene* scene : subScenes)
             scene->Stop();
         for (const SystemInfo* system : systems)
-            World::RemoveSystem(*system, false);
+            World::GetSystemAllocator().RemoveSystem(*system);
         isRunning = false;
     }
 
@@ -27,10 +27,16 @@ namespace Gleam
 
         systems.emplace(&system);
         World::GetCurrentContext().systemToScene.emplace(&system, this);
+
+        if (isRunning)
+            World::GetSystemAllocator().AddSystem(system);
     }
     void Scene::RemoveSystem(const SystemInfo& system)
     {
         assert(systems.contains(&system) && "场景中不存在该系统！");
+
+        if (isRunning)
+            World::GetSystemAllocator().RemoveSystem(system);
 
         systems.erase(&system);
         World::GetCurrentContext().systemToScene.erase(&system);
@@ -51,23 +57,33 @@ namespace Gleam
     }
     void Scene::Release()
     {
+        for (auto element : systems)
+            World::GetCurrentContext().systemToScene.erase(element);
+        for (auto entity : entities)
+            World::GetCurrentContext().entityToScene.erase(entity);
+
         systems.clear();
         entities.clear();
         for (auto& subScene : subScenes)
             subScene->Release();
+        subScenes.clear();
     }
     void Scene::Destroy()
     {
+        for (auto element : systems)
+            World::GetCurrentContext().systemToScene.erase(element);
+        for (auto entity : entities)
+            World::GetCurrentContext().entityToScene.erase(entity);
+
         //从世界中移除托管的资源
         if (isRunning)
-        {
-            for (const SystemInfo* system : systems)
-                World::RemoveSystem(*system, false);
-            isRunning = false;
-        }
+            Stop();
+        systems.clear();
         for (Entity entity : entities)
-            World::RemoveEntityAsync(entity, false);
+            World::GetEntityAllocator().RemoveEntity(entity); //先前已经断开了实体与场景的连接，故不会重复移除
+        entities.clear();
         for (Scene* subScene : subScenes)
             World::RemoveScene(*subScene, false);
+        subScenes.clear();
     }
 }

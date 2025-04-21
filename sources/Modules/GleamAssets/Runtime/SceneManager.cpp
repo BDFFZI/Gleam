@@ -38,4 +38,12 @@ namespace Gleam
         Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
         allScenes.erase(assetBundleID);
     }
+    
+    void SceneManager_ClearAssetBundle()
+    {
+        //结束运行时，场景已被世界销毁，但还需清理相关资源包和场景记录
+        for (const auto id : SceneManager::allScenes | std::views::keys)
+            Resources::Unload(AssetBundle::GetAssetBundle(id));
+        SceneManager::allScenes.clear();
+    }
 }

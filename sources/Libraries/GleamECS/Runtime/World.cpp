@@ -4,39 +4,28 @@
 
 namespace Gleam
 {
-    Entity World::AddEntity(const Archetype& archetype, const bool addToScene)
+    void World::RemoveSceneEntity(Entity& entity)
     {
-        Entity entity = CurrentContext->entityAllocator.AddEntity(archetype);
-
-        if (addToScene && CurrentContext->activeScene != nullptr)
-            CurrentContext->activeScene->AddEntity(entity);
-
-        return entity;
-    }
-    void World::RemoveEntity(Entity& entity, const bool removeFromScene)
-    {
-        if (removeFromScene)
-        {
-            auto optionalScene = GetScene(entity);
-            if (optionalScene.has_value())
-                optionalScene->get().RemoveEntity(entity);
-        }
+        auto optionalScene = GetScene(entity);
+        if (optionalScene.has_value())
+            optionalScene->get().RemoveEntity(entity);
 
         CurrentContext->entityAllocator.RemoveEntity(entity);
     }
-    IOrderedSystemEvent& World::AddSystem(const SystemInfo& systemInfo, const bool addToScene)
+    void World::AddSceneSystem(const SystemInfo& systemInfo)
     {
-        if (addToScene && CurrentContext->activeScene != nullptr)
+        if (CurrentContext->activeScene != nullptr)
             CurrentContext->activeScene->AddSystem(systemInfo);
-
-        return CurrentContext->systemAllocator.AddSystem(systemInfo);
+        else
+            CurrentContext->systemAllocator.AddSystem(systemInfo);
     }
-    void World::RemoveSystem(const SystemInfo& systemInfo, const bool removeFromScene)
+    void World::RemoveSceneSystem(const SystemInfo& systemInfo)
     {
-        if (removeFromScene && CurrentContext->activeScene != nullptr)
-            CurrentContext->activeScene->RemoveSystem(systemInfo);
-
-        CurrentContext->systemAllocator.RemoveSystem(systemInfo);
+        auto optionalScene = GetScene(systemInfo);
+        if (optionalScene.has_value())
+            optionalScene->get().RemoveSystem(systemInfo);
+        else
+            CurrentContext->systemAllocator.RemoveSystem(systemInfo);
     }
     Scene& World::AddScene(const std::string_view name, const bool isRunning)
     {
@@ -69,7 +58,7 @@ namespace Gleam
             return *it->second;
         return std::nullopt;
     }
-    std::optional<std::reference_wrapper<Scene>> World::GetScene(SystemInfo& system)
+    std::optional<std::reference_wrapper<Scene>> World::GetScene(const SystemInfo& system)
     {
         if (auto it = CurrentContext->systemToScene.find(&system); it != CurrentContext->systemToScene.end())
             return *it->second;
@@ -83,7 +72,7 @@ namespace Gleam
     }
     void World::Clear()
     {
-        CurrentContext->systemAllocator.Clear();
+        *CurrentContext = WorldContext{};
     }
 
 
@@ -93,8 +82,8 @@ namespace Gleam
             CurrentContext->entityAllocator.MoveEntity(entity, *archetype);
         CurrentContext->movingEntities.clear();
 
-        for (auto [entity,removeFromScene] : CurrentContext->removingEntities)
-            RemoveEntity(entity, removeFromScene);
+        for (auto [entity] : CurrentContext->removingEntities)
+            RemoveSceneEntity(entity);
         CurrentContext->removingEntities.clear();
     }
 }

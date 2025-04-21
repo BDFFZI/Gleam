@@ -28,8 +28,10 @@ namespace Gleam
         static void UnloadScene(uuids::uuid assetBundleID);
 
     private:
-        friend void EditorSceneManager_RuntimeStop();
+        friend void SceneManager_ClearAssetBundle();
 
         inline static std::unordered_map<uuids::uuid, Scene*> allScenes;
     };
+
+    void SceneManager_ClearAssetBundle();
 }
