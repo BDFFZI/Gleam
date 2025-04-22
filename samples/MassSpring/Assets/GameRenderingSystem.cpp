@@ -8,8 +8,8 @@ void GameRenderingSystem::Start()
 {
     using namespace Gleam;
 
-    pointsRenderer = World::AddEntity(PointRendererArchetype);
-    linesRenderer = World::AddEntity(LineRendererArchetype);
+    pointsRenderer = World::AddSceneEntity(PointRendererArchetype);
+    linesRenderer = World::AddSceneEntity(LineRendererArchetype);
 }
 void GameRenderingSystem::Update()
 {

@@ -15,11 +15,11 @@ namespace Gleam
         static void SaveScene(Scene& scene);
 
     private:
-        friend void EditorSceneManager_RuntimeStop();
+        friend void EditorSceneManager_OpenLastScene();
 
         inline static std::unordered_map<Scene*, std::filesystem::path> scenePaths = {};
     };
 
-    void EditorSceneManager_RuntimeStart();
-    void EditorSceneManager_RuntimeStop();
+    void EditorSceneManager_StartAllScenes();
+    void EditorSceneManager_OpenLastScene();
 }

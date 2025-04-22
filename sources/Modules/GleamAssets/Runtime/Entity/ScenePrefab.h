@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "GleamAssets/Runtime/Asset/PersistentEntity.h"
+#include "GleamAssets/Runtime/Asset/EntityAsset.h"
 #include "GleamAssets/Runtime/Asset/BasicSceneInfo.h"
 
 #ifdef GleamEngineEditor

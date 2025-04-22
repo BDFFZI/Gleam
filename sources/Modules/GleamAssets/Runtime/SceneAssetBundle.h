@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Asset/PersistentEntity.h"
+#include "Asset/EntityAsset.h"
 #include "GleamECS/Runtime/Scene.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 
@@ -11,7 +11,7 @@ namespace Gleam
     class SceneAssetBundle
     {
     public:
-        static void GetSceneAssets(AssetBundle& assetBundle, std::string& outName, std::vector<const SystemInfo*>& outSystems, std::vector<PersistentEntity*>& outEntities);
+        static void GetSceneAssets(AssetBundle& assetBundle, std::string& outName, std::vector<const SystemInfo*>& outSystems, std::vector<EntityAsset*>& outEntities);
         /**
          * 将Scene中数据的数据映射成AssetBundle，以便用其持久化保存Scene。
          * 注意！该资源包不托管场景对象，场景对象仍属于场景。

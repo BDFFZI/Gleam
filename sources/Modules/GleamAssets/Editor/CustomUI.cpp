@@ -34,8 +34,8 @@ namespace Gleam
         AssetDatabase::Unload(oldPath);
     }
 
-    void InspectorWindowUI_EntityAsset(PersistentEntity& entityAsset)
+    void InspectorWindowUI_EntityAsset(EntityAsset& entityAsset)
     {
-        InspectorWindowUI_Entity(entityAsset.GetEntity());
+        InspectorWindowUI_Entity(entityAsset.GetLinkedEntity());
     }
 }

@@ -12,25 +12,25 @@ void AssetSystem::Start()
 {
     using namespace Gleam;
     //添加相机
-    cameraEntity = World::AddEntity(CameraArchetype2);
+    cameraEntity = World::AddSceneEntity(CameraArchetype2);
     Camera& camera = World::GetEntityAllocator().GetComponent<Camera>(cameraEntity);
     camera.orthographic = true;
     camera.halfHeight = 50;
     //添加碰撞
-    Entity collider1 = World::AddEntity(RectangleCollider);
+    Entity collider1 = World::AddSceneEntity(RectangleCollider);
     World::GetEntityAllocator().SetComponents(collider1, Gleam::Rectangle{float2{-90, -100}, float2{90, -50}});
-    Entity collider2 = World::AddEntity(RectangleCollider);
+    Entity collider2 = World::AddSceneEntity(RectangleCollider);
     World::GetEntityAllocator().SetComponents(collider2, Gleam::Rectangle{float2{-100, -90}, float2{-50, 90}});
-    Entity collider3 = World::AddEntity(RectangleCollider);
+    Entity collider3 = World::AddSceneEntity(RectangleCollider);
     World::GetEntityAllocator().SetComponents(collider3, Gleam::Rectangle{float2{50, -90}, float2{100, 90}});
-    Entity collider4 = World::AddEntity(RectangleCollider);
+    Entity collider4 = World::AddSceneEntity(RectangleCollider);
     World::GetEntityAllocator().SetComponents(collider4, Rectangle::CreateFromCenter(float2{0, 0}, float2(100, 100)), LocalTransform{{0, -50 - 70.71f + 17.67f, 0}, Quaternion::Euler({0, 0, 45})});
     colliders.emplace_back(collider1);
     colliders.emplace_back(collider2);
     colliders.emplace_back(collider3);
     colliders.emplace_back(collider4);
     //碰撞渲染器
-    Entity colliderRenderer = World::AddEntity(LineRendererArchetype);
+    Entity colliderRenderer = World::AddSceneEntity(LineRendererArchetype);
     LinesMesh& linesMesh = World::GetEntityAllocator().GetComponent<LinesMesh>(colliderRenderer);
     linesMesh.lines.insert(
         linesMesh.lines.end(),

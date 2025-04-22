@@ -76,7 +76,7 @@ void LogicSystem::OnCreateSpring()
             if (coveringParticle != Entity::Null)
             {
                 springParticleA = coveringParticle;
-                tempLine = World::AddEntity(LineRendererArchetype);
+                tempLine = World::AddSceneEntity(LineRendererArchetype);
             }
         }
     }

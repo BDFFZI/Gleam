@@ -8,15 +8,18 @@ using namespace Gleam;
 class MySystem : public System<>
 {
     std::shared_ptr<AnimationClip> clip;
-    
+
     void Start() override
     {
         clip = std::make_shared<AnimationClip>();
-        clip.
-        
+        clip->SetTimeWrapMode(TimeWrapMode::PingPong);
+        clip->AddCurve(SphereType.GetID(), "center.y", AnimationCurve{
+                           {0, 5}, {0, 10}
+                       });
+
         Entity entity = World::GetEntityAllocator().AddEntity(Sphere{}, Animation{});
         Animation& animation = World::GetEntityAllocator().GetComponent<Animation>(entity);
-        animation.clip = std::
+        animation.clip = clip;
     }
 };
 Gleam_MakeEditorSystem(MySystem)

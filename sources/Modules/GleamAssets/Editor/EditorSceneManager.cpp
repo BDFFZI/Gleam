@@ -42,13 +42,13 @@ namespace Gleam
         AssetDatabase::Save(path);
     }
 
-    void EditorSceneManager_RuntimeStart()
+    void EditorSceneManager_StartAllScenes()
     {
         //进入运行时，激活所有场景
         for (auto& scene : SceneManager::GetAllScenes() | UnwrapRef)
             scene.Start();
     }
-    void EditorSceneManager_RuntimeStop()
+    void EditorSceneManager_OpenLastScene()
     {
         EditorSceneManager::scenePaths.clear();
         //重新打开上次的场景

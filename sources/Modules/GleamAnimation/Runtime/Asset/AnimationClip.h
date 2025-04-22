@@ -23,6 +23,8 @@ namespace Gleam
 
         void SampleAnimation(Entity entity, float time);
         void CalculateRuntimeData();
+        void AddCurve(uuids::uuid component, const std::string& property, const AnimationCurve& curve);
+        void SetTimeWrapMode(TimeWrapMode mode);
 
     private:
         Gleam_MakeType_Friend

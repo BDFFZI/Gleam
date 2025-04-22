@@ -88,4 +88,14 @@ namespace Gleam
             runtimeData.emplace_back(curveIndex, component.GetIndex(), fieldOffset, fields.back().type);
         }
     }
+    void AnimationClip::AddCurve(const uuids::uuid component, const std::string& property, const AnimationCurve& curve)
+    {
+        components.push_back(component);
+        properties.push_back(property);
+        curves.push_back(curve);
+    }
+    void AnimationClip::SetTimeWrapMode(const TimeWrapMode mode)
+    {
+        timeWrapMode = mode;
+    }
 }

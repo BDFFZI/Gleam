@@ -34,11 +34,12 @@ namespace Gleam
         return value > 0 ? 1.0f : value < 0.0f ? -1.0f : 0.0f;
     }
     /**
-     * 类似取模，但会处理负数情况，保证结果永远在0到length之间
+     * 类似取模，但对负数范围也通用生效，保证结果永远在0到length之间循环
      *
      * 实现方法：
-     * 1. 获取t相对length取余后的带符号整数
-     * 2. 该整数始终小于等于t，将t减去该值即可求出t相对length的无符号余数
+     * 1. 想象数轴被length分割为无数个重复区间
+     * 1. 通过对t/length向下取整并乘length来获得当前区间t的底数
+     * 2. 将t减去该底数即可求出t相对length的无符号余数
      * @param t 
      * @param length 
      * @return 
@@ -51,16 +52,16 @@ namespace Gleam
      * 将t限制在0到length间来回跳动
      *
      * 实现方法：
-     * 1. t相对length的倍数奇偶性决定了跳动的方向，故先对t无符号取模，获取其在0到2*length的值，其他区域都是该区间的重复。
-     * 2. 直接将t减去其与length的距离即可使length左右两边的数发生弹跳。
+     * 1. 将结果看成t是相对length的反弹，而反弹大小是重复在length * 2范围内的t与length的距离。
+     * 2. 故先求弹力，再用length减去弹力即可。
      * @param t 
      * @param length 
      * @return 
      */
-    inline float PingPong(float t, const float length)
+    inline float PingPong(const float t, const float length)
     {
-        t = Repeat(t, length * 2);
-        return length - std::abs(t - length);
+        float elasticity = std::abs(Repeat(t, length * 2) - length);
+        return length - elasticity;
     }
 
     template <typename Type>

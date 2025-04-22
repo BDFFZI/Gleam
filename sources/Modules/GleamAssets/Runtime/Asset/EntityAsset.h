@@ -11,30 +11,30 @@ namespace Gleam
      * 每当一个Entity与资源包有连接时，EntityAsset就会存在，用于管理Entity与AssetRef的关联信息。
      * 资源卸载后EntityAsset也会销毁，因此可以用EntityAsset是否存在来判断，Entity是否与资源包相连
      */
-    class PersistentEntity
+    class EntityAsset
     {
     public:
-        static std::optional<std::reference_wrapper<PersistentEntity>> GetEntityAsset(Entity entity);
+        static std::optional<std::reference_wrapper<EntityAsset>> GetEntityAsset(Entity entity);
 
-        PersistentEntity();
-        PersistentEntity(Entity entity, bool ownership);
-        PersistentEntity(PersistentEntity&& other) noexcept;
-        PersistentEntity& operator=(PersistentEntity&& other) noexcept;
-        ~PersistentEntity();
+        EntityAsset();
+        EntityAsset(Entity entity, bool ownership);
+        EntityAsset(EntityAsset&& other) noexcept;
+        EntityAsset& operator=(EntityAsset&& other) noexcept;
+        ~EntityAsset();
 
-        Entity GetEntity() const;
-        bool GetOwnership() const;
-        void SetEntity(Entity entity);
-        void SetOwnership(bool ownership);
+        Entity GetLinkedEntity() const;
+        bool GetAllowRemoveEntity() const;
+        void SetLinkedEntity(Entity entity);
+        void SetAllowRemoveEntity(bool ownership);
 
     private:
-        inline static std::unordered_map<Entity, PersistentEntity*> entityToAsset = {};
+        inline static std::unordered_map<Entity, EntityAsset*> entityToAsset = {};
 
-        Entity entity;
-        bool ownership;
+        Entity linkedEntity;
+        bool allowRemoveEntity;
     };
     //Entity持久化函数
-    Gleam_MakeTypeWithID(PersistentEntity, "112887C5-1B8D-42DF-801D-4360DA6F8A15")
+    Gleam_MakeTypeWithID(EntityAsset, "112887C5-1B8D-42DF-801D-4360DA6F8A15")
     {
         if constexpr (std::derived_from<TFieldTransferrer, FieldDataTransferrer>)
         {
@@ -43,9 +43,9 @@ namespace Gleam
             const Archetype* archetype;
             std::byte* components;
 
-            if (value.GetEntity() != Entity::Null) //持久化 
+            if (value.GetLinkedEntity() != Entity::Null) //持久化 
             {
-                const EntityInfo& entityInfo = World::GetEntityInfoAllocator().GetEntityInfo(value.GetEntity());
+                const EntityInfo& entityInfo = World::GetEntityInfoAllocator().GetEntityInfo(value.GetLinkedEntity());
                 archetype = entityInfo.archetype;
                 components = entityInfo.memoryAddress;
 
@@ -71,7 +71,7 @@ namespace Gleam
 
                 archetype = &Archetype::CreateOrGet(componentTypes);
                 value = {World::GetEntityAllocator().AddEntity(*archetype), true};
-                components = World::GetEntityInfoAllocator().GetEntityInfo(value.GetEntity()).memoryAddress;
+                components = World::GetEntityInfoAllocator().GetEntityInfo(value.GetLinkedEntity()).memoryAddress;
             }
 
             //序列化组件
@@ -101,8 +101,8 @@ namespace Gleam
         )
         {
             //获取引用实体的资源指针
-            auto optionalEntityAsset = PersistentEntity::GetEntityAsset(value);
-            PersistentEntity* entityAsset = optionalEntityAsset.has_value() ? &optionalEntityAsset.value().get() : nullptr;
+            auto optionalEntityAsset = EntityAsset::GetEntityAsset(value);
+            EntityAsset* entityAsset = optionalEntityAsset.has_value() ? &optionalEntityAsset.value().get() : nullptr;
 
             AssetRef assetRef = AssetBundle::pointerToAssetRef[&value]; //读取来自首次反序列化时保存的值或默认空值
             {
@@ -112,17 +112,17 @@ namespace Gleam
                 Transfer(assetRef); //序列化时写入或首次反序列化时从文件读取（PointerSerializer不执行传输）
                 //根据资源依赖获取数据
                 std::shared_ptr<void> object = AssetBundle::GetObject(assetRef).value_or(std::shared_ptr<void>{});
-                value = object == nullptr ? Entity::Null : static_cast<PersistentEntity*>(object.get())->GetEntity();
+                value = object == nullptr ? Entity::Null : static_cast<EntityAsset*>(object.get())->GetLinkedEntity();
             }
             AssetBundle::pointerToAssetRef[&value] = assetRef; //首次反序列化结束时保存来自资源文件的值
         }
         //统计未托管的可持久化实体
         else if (ObjectRefStatistician* statistician = dynamic_cast<ObjectRefStatistician*>(this))
         {
-            if (value == Entity::Null || PersistentEntity::GetEntityAsset(value).has_value())
+            if (value == Entity::Null || EntityAsset::GetEntityAsset(value).has_value())
                 return;
 
-            statistician->dependencies.emplace_back(PersistentEntity{value, false});
+            statistician->dependencies.emplace_back(EntityAsset{value, false});
         }
         //默认传输方式
         else

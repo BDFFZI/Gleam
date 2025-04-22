@@ -14,10 +14,11 @@ namespace Gleam
 {
     Gleam_MakeInitEvent()
     {
-        Editor::AddPlayEvent(EditorSceneManager_RuntimeStart);
-        Editor::AddStopEvent(EditorSceneManager_RuntimeStop);
+        Engine::AddStartEvent(EditorSceneManager_OpenLastScene);
+        Editor::AddPlayEvent(EditorSceneManager_StartAllScenes);
+        Editor::AddStopEvent(EditorSceneManager_OpenLastScene);
 
-        InspectorWindow::MakeCustomUI<PersistentEntity>(InspectorWindowUI_EntityAsset);
+        InspectorWindow::MakeCustomUI<EntityAsset>(InspectorWindowUI_EntityAsset);
         ProjectWindow::MakeDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene);
         ProjectWindow::MakeFileMenu(".scene", "Open", ProjectWindowMenu_OpenScene);
         ProjectWindow::MakeFileRenameEvent(".scene", ProjectWindowEvent_RenameScene);

@@ -5,7 +5,7 @@
 
 #include "GleamAssets/Runtime/SceneAssetBundle.h"
 #include "GleamAssets/Runtime/SceneManager.h"
-#include "GleamAssets/Runtime/Asset/PersistentEntity.h"
+#include "GleamAssets/Runtime/Asset/EntityAsset.h"
 #include "GleamECS/Runtime/Scene.h"
 #include "GleamAssets/Runtime/Asset/BasicSceneInfo.h"
 #include "GleamECS/Runtime/Entity/Archetype.h"
@@ -109,7 +109,7 @@ TEST(Assets, Scene)
         World::Update();
         ASSERT_EQ(World::GetSystemAllocator().GetRootSystem().GetSystems().size(), 0);
         //实体被更新
-        ASSERT_EQ(World::GetEntityAllocator().GetComponent<MyComponent>(assetBundle.GetObject<PersistentEntity>(3).GetEntity()).value, 5);
+        ASSERT_EQ(World::GetEntityAllocator().GetComponent<MyComponent>(assetBundle.GetObject<EntityAsset>(3).GetLinkedEntity()).value, 5);
         //写回资源包并卸载场景
         SceneAssetBundle::MapToAssetBundle(scene, assetBundle);
         AssetBundle::SaveJson("TestScene.json", assetBundle);

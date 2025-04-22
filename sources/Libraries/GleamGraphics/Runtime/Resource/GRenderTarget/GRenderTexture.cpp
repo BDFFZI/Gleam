@@ -1,5 +1,7 @@
 ﻿#include "GRenderTexture.h"
 
+#include "GleamGraphics/Runtime/GCommandBuffer.h"
+
 using namespace Gleam;
 
 GRenderTexture::GRenderTexture(
@@ -27,6 +29,16 @@ GRenderTexture::GRenderTexture(
     glColorImageView = colorImageView.get();
     glDepthStencilImageView = depthStencilImageView.get();
     glColorResolveImageView = colorResolveImageView.get();
+
+    GLCommandBuffer::ExecuteSingleTimeCommands([this](const GLCommandBuffer& glCommandBuffer)
+    {
+        //图片初始布局为未定义，需转换后才可使用
+        glCommandBuffer.TransitionImageLayout(
+            glFinalImage,
+            VK_IMAGE_LAYOUT_UNDEFINED, glFinalLayout,
+            VK_ACCESS_NONE, VK_ACCESS_NONE,
+            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+    });
 }
 GRenderTexture::GRenderTexture(const int2 size, const VkFormat colorFormat, const VkFormat depthStencilFormat, const VkSampleCountFlagBits sampleCount)
     : GRenderTexture(size.x, size.y, colorFormat, depthStencilFormat, sampleCount)
