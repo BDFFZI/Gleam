@@ -22,7 +22,7 @@ namespace Gleam
         //缓存的结构化更变
         std::vector<std::tuple<Entity>> removingEntities = {};
         std::vector<std::tuple<Entity, const Archetype*>> movingEntities = {};
-        
+
         WorldContext& operator=(WorldContext&& other) noexcept
         {
             //限制重置顺序，以便正确触发回收事件
@@ -72,7 +72,7 @@ namespace Gleam
         {
             return Gleam::View<Args...>(GetEntityAllocator());
         }
-        
+
         template <class... Args>
         static Entity AddSceneEntity(Args&&... args)
         {
@@ -84,21 +84,6 @@ namespace Gleam
             return entity;
         }
         static void RemoveSceneEntity(Entity& entity);
-        
-        static void RemoveSceneEntityAsync(Entity& entity)
-        {
-            CurrentContext->removingEntities.emplace_back(entity);
-            entity = Entity::Null; //避免野指针
-        }
-        static void MoveEntityAsync(const Entity entity, const Archetype& newArchetype)
-        {
-            CurrentContext->movingEntities.emplace_back(entity, &newArchetype);
-        }
-        static void RemoveComponentsAsync(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
-        {
-            Archetype& archetype = CurrentContext->entityAllocator.CreateOrGetArchetype(entity, componentTypes, {});
-            MoveEntityAsync(entity, archetype);
-        }
 
         static void AddSceneSystem(const SystemInfo& systemInfo);
         static void RemoveSceneSystem(const SystemInfo& systemInfo);
@@ -136,6 +121,20 @@ namespace Gleam
         static void Update();
         static void Clear();
 
+        static void RemoveSceneEntityAsync(Entity& entity)
+        {
+            CurrentContext->removingEntities.emplace_back(entity);
+            entity = Entity::Null; //避免野指针
+        }
+        static void MoveEntityAsync(const Entity entity, const Archetype& newArchetype)
+        {
+            CurrentContext->movingEntities.emplace_back(entity, &newArchetype);
+        }
+        static void RemoveComponentsAsync(const Entity entity, const std::initializer_list<std::reference_wrapper<const Type>> componentTypes)
+        {
+            Archetype& archetype = CurrentContext->entityAllocator.CreateOrGetArchetype(entity, componentTypes, {});
+            MoveEntityAsync(entity, archetype);
+        }
     private:
         inline static std::unique_ptr<WorldContext> mainContext = std::make_unique<WorldContext>();
         inline static std::vector<WorldContext*> worldContexts = {mainContext.get()};

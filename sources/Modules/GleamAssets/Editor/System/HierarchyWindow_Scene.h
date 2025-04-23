@@ -14,8 +14,6 @@ namespace Gleam
         static void DrawScenePopup(Scene& scene);
 
     private:
-        inline static std::vector<Scene*> removingScenes = {};
-
         void Update() override;
     };
     Gleam_MakeEditorSystem(HierarchyWindow_Scene)

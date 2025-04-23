@@ -30,7 +30,7 @@ namespace Gleam
         }
         else //非基于序列化的运行时场景
         {
-            World::RemoveScene(scene);
+            throw std::runtime_error("不支持移除用户自行创建的运行时场景！");
         }
     }
     void EditorSceneManager::SaveScene(Scene& scene)

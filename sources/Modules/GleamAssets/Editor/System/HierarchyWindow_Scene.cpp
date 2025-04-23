@@ -111,7 +111,7 @@ namespace Gleam
             if (ImGui::MenuItem("Save"))
                 EditorSceneManager::SaveScene(scene);
             if (ImGui::MenuItem("Close"))
-                removingScenes.emplace_back(&scene);
+                EditorSceneManager::CloseScene(scene);
 
             ImGui::EndPopup();
         }
@@ -126,9 +126,5 @@ namespace Gleam
                 DrawScene(scene);
         }
         ImGui::End();
-
-        for (auto scene : removingScenes)
-            EditorSceneManager::CloseScene(*scene);
-        removingScenes.clear();
     }
 }
