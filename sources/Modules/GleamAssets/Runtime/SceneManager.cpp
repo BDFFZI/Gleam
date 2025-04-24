@@ -16,7 +16,7 @@ namespace Gleam
         std::vector<uuids::uuid> oldScenes = {};
         std::ranges::copy(allScenes | std::views::keys, std::back_inserter(oldScenes));
         for (uuids::uuid id : oldScenes)
-            UnloadScene(id);
+            UnloadSceneAsync(id);
 
         AssetBundle& assetBundle = Resources::Load(assetBundleID);
 
@@ -32,7 +32,7 @@ namespace Gleam
             return LoadScene(it->second, isRunning);
         return std::nullopt;
     }
-    void SceneManager::UnloadScene(const uuids::uuid assetBundleID)
+    void SceneManager::UnloadSceneAsync(const uuids::uuid assetBundleID)
     {
         removingScenes.emplace_back(assetBundleID);
     }

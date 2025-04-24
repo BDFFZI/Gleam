@@ -13,7 +13,7 @@ namespace Gleam
     {
         uuids::uuid assetBundleID = AssetDatabase::GetAssetBundleID(path);
         if (SceneManager::HasScene(assetBundleID))
-            SceneManager::UnloadScene(assetBundleID);
+            SceneManager::UnloadSceneAsync(assetBundleID);
 
         Scene& scene = SceneManager::LoadScene(assetBundleID, false);
         scenePaths[&scene] = path;
@@ -24,7 +24,7 @@ namespace Gleam
         if (scenePaths.contains(&scene))
         {
             std::filesystem::path scenePath = scenePaths.at(&scene);
-            SceneManager::UnloadScene(AssetDatabase::GetAssetBundleID(scenePath));
+            SceneManager::UnloadSceneAsync(AssetDatabase::GetAssetBundleID(scenePath));
             if (scenePath == EditorSceneState::lastScenePath)
                 EditorSceneState::lastScenePath = "";
         }

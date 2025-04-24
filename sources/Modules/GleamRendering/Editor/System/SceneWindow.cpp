@@ -124,8 +124,6 @@ namespace Gleam
 
     void SceneWindow::Start()
     {
-        windowContentSize = 0; //以便重启时能触发纹理重建
-
         sceneCamera = World::GetEntityAllocator().AddEntity(SceneCameraArchetype);
         World::GetEntityAllocator().SetComponents(sceneCamera, cameraTransformSaving);
         World::GetEntityAllocator().SetComponents(sceneCamera, cameraSaving);

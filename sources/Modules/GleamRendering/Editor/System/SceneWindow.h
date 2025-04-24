@@ -31,7 +31,7 @@ namespace Gleam
         inline static SceneWindow* sceneWindowDrawing = nullptr;
 
         float2 windowContentPosition = 0;
-        float2 windowContentSize = 0;
+        float2 windowContentSize = 1; //纹理只有SceneWindow渲染时才可创建（需知道窗口大小），但默认情况下也要确保能创建和分配一个纹理，否则会被GameWindow误判为需要默认渲染目标的相机
         //预建资源
         Entity sceneCamera = Entity::Null;
         //场景相机渲染目标相关

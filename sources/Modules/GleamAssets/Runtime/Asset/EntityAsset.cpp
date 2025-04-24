@@ -2,6 +2,12 @@
 
 namespace Gleam
 {
+    WorldContext& GetAssetWorldContext()
+    {
+        static WorldContext assetWorldContext = WorldContext{World::GetMainContext().entityAllocator.GetEntityInfoAllocator()};
+        return assetWorldContext;
+    }
+    
     std::optional<std::reference_wrapper<EntityAsset>> EntityAsset::GetEntityAsset(const Entity entity)
     {
         return entityToAsset.contains(entity)
@@ -64,7 +70,7 @@ namespace Gleam
             ///但EntityAsset的生命周期跟随资源包，这超出了World中Entity的生命周期。为了避免所有权冲突，故将EntityAsset视作Entity的弱引用。
             ///因此EntityAsset只能尝试回收Entity，即回收前必须判断存在。
             if (allowRemoveEntity && World::GetEntityInfoAllocator().HasEntity(linkedEntity))
-                World::GetEntityAllocator().RemoveEntity(linkedEntity);
+                World::RemoveSceneEntityAsync(linkedEntity);
         }
     }
 

@@ -23,6 +23,11 @@ namespace Gleam
         std::vector<std::tuple<Entity>> removingEntities = {};
         std::vector<std::tuple<Entity, const Archetype*>> movingEntities = {};
 
+        WorldContext() = default;
+        explicit WorldContext(const std::shared_ptr<EntityInfoAllocator>& entityInfoAllocator)
+        {
+            entityAllocator = EntityAllocator(entityInfoAllocator);
+        }
         WorldContext& operator=(WorldContext&& other) noexcept
         {
             //限制重置顺序，以便正确触发回收事件
@@ -46,9 +51,9 @@ namespace Gleam
     class World
     {
     public:
-        static auto GetAllScenes()
+        static WorldContext& GetMainContext()
         {
-            return CurrentContext->allScenes | std::views::transform([](auto& scene) { return std::reference_wrapper(*scene); });
+            return *mainContext;
         }
         static WorldContext& GetCurrentContext()
         {
@@ -71,6 +76,10 @@ namespace Gleam
         static View<Args...> GetView()
         {
             return Gleam::View<Args...>(GetEntityAllocator());
+        }
+        static auto GetAllScenes()
+        {
+            return CurrentContext->allScenes | std::views::transform([](auto& scene) { return std::reference_wrapper(*scene); });
         }
 
         template <class... Args>
@@ -135,6 +144,9 @@ namespace Gleam
             Archetype& archetype = CurrentContext->entityAllocator.CreateOrGetArchetype(entity, componentTypes, {});
             MoveEntityAsync(entity, archetype);
         }
+
+        World() = delete;
+
     private:
         inline static std::unique_ptr<WorldContext> mainContext = std::make_unique<WorldContext>();
         inline static std::vector<WorldContext*> worldContexts = {mainContext.get()};

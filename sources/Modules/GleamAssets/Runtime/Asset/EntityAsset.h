@@ -5,6 +5,8 @@
 
 namespace Gleam
 {
+    WorldContext& GetAssetWorldContext();
+
     /**
      * Entity持久化包装器，用Entity模拟出正常对象一样用指针引用、序列化、构造析构的功能，从而使其能被序列化
      *
@@ -70,8 +72,8 @@ namespace Gleam
                 }
 
                 archetype = &Archetype::CreateOrGet(componentTypes);
-                value = {World::GetEntityAllocator().AddEntity(*archetype), true};
-                components = World::GetEntityInfoAllocator().GetEntityInfo(value.GetLinkedEntity()).memoryAddress;
+                value = {GetAssetWorldContext().entityAllocator.AddEntity(*archetype), true};
+                components = GetAssetWorldContext().entityAllocator.GetEntityInfoAllocator()->GetEntityInfo(value.GetLinkedEntity()).memoryAddress;
             }
 
             //序列化组件

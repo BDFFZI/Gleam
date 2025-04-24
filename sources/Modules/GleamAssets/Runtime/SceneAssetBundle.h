@@ -20,7 +20,7 @@ namespace Gleam
          */
         static void MapToAssetBundle(Scene& scene, AssetBundle& assetBundle);
         /**
-         * 从AssetBundle中复原Scene并夺取相关资源的所有权。
+         * 从AssetBundle中复原Scene并夺取相关资源的所有权，但保持与AssetBundle的连接。
          * @param assetBundle
          * @param isRunning 
          * @return 

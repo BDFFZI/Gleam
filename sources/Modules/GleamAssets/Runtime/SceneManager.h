@@ -25,7 +25,7 @@ namespace Gleam
         static bool HasScene(uuids::uuid assetBundleID);
         static Scene& LoadScene(uuids::uuid assetBundleID, bool isRunning = true);
         static std::optional<std::reference_wrapper<Scene>> LoadScene(std::string_view sceneName, bool isRunning = true);
-        static void UnloadScene(uuids::uuid assetBundleID);
+        static void UnloadSceneAsync(uuids::uuid assetBundleID);
 
     private:
         friend void SceneManager_ClearAssetBundle();
