@@ -2,12 +2,6 @@
 
 namespace Gleam
 {
-    WorldContext& GetAssetWorldContext()
-    {
-        static WorldContext assetWorldContext = WorldContext{World::GetMainContext().entityAllocator.GetEntityInfoAllocator()};
-        return assetWorldContext;
-    }
-    
     std::optional<std::reference_wrapper<EntityAsset>> EntityAsset::GetEntityAsset(const Entity entity)
     {
         return entityToAsset.contains(entity)
