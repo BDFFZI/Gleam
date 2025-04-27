@@ -2,8 +2,7 @@
 #include <variant>
 
 #include "EditorUISystem.h"
-#include "GleamEngine/Editor/EditorUI/EditorUI.h"
-#include "GleamECS/Runtime/System/SystemGroup.h"
+#include "GleamEngine/Editor/Editor.h"
 
 namespace Gleam
 {
@@ -18,15 +17,16 @@ namespace Gleam
             : InspectorTarget()
         {
         }
-        InspectorTarget(const std::shared_ptr<void>& objectPtr, const std::type_index objectTypeIndex)
+
+        InspectorTarget(const std::weak_ptr<void>& objectPtr, const std::type_index objectTypeIndex)
             : objectPtr(objectPtr), objectTypeIndex(objectTypeIndex)
         {
         }
-        template <class T> requires !std::is_void_v<T>
-        InspectorTarget(const std::shared_ptr<T>& objectPtr)
+        template <class T> requires !std::is_void_v<T> && !std::is_same_v<T, InspectorTarget>
+        InspectorTarget(const std::weak_ptr<T>& objectPtr)
         {
             this->objectPtr = objectPtr;
-            objectTypeIndex = typeid(*objectPtr.get());
+            objectTypeIndex = typeid(*objectPtr.lock().get());
         }
 
         /**
@@ -34,7 +34,7 @@ namespace Gleam
          * @param object 
          */
         template <class T> requires
-            !std::is_reference_v<T> && !std::is_pointer_v<T> && !std::is_same_v<T, InspectorTarget> && std::is_trivial_v<T>
+            !std::is_reference_v<T> && !std::is_pointer_v<T> && std::is_trivial_v<T> && !std::is_same_v<T, InspectorTarget>
         InspectorTarget(T object)
         {
             ownedObject = std::make_shared<T>(object);
@@ -48,7 +48,7 @@ namespace Gleam
          * @param object 
          */
         template <class T> requires
-            !std::is_reference_v<T> && !std::is_pointer_v<T> && !std::is_same_v<T, InspectorTarget> && !std::is_same_v<T, std::shared_ptr<T>>
+            !std::is_reference_v<T> && !std::is_pointer_v<T> && !std::is_same_v<T, std::weak_ptr<T>> && !std::is_same_v<T, InspectorTarget>
         explicit InspectorTarget(T& object)
         {
             ownedObject = std::shared_ptr<T>(&object, [](T*)
@@ -61,7 +61,7 @@ namespace Gleam
         }
     };
 
-    class InspectorWindow : public System
+    class InspectorWindow : public System<EditorUISystem, SystemMidOrder, SystemMaxOrder>
     {
     public:
         using CustomUI = std::unordered_map<std::type_index, std::function<void(void*)>>;
@@ -81,24 +81,20 @@ namespace Gleam
 
         static const CustomUI& GetCustomUI();
         static bool& GetIsDebugGUI();
-        static void Show(const InspectorTarget& inspectorTarget);
 
-        InspectorWindow(): System(GlobalEditorUISystem, DefaultOrder, MaxOrder)
-        {
-        }
-
-        const InspectorTarget& GetTarget() const;
-        void SetTarget(const InspectorTarget& target);
+        const InspectorTarget& GetMajorTarget() const;
+        void SetMajorTarget(const InspectorTarget& target);
+        void AddMinorTarget(const InspectorTarget& inspectorTarget);
 
     private:
         inline static CustomUI inspectorGUIs = {};
         inline static bool isDebugGUI = false;
 
-        InspectorTarget inspectorTarget;
+        std::vector<InspectorTarget> inspectorTargets = {InspectorTarget{}};
 
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(InspectorWindow)
+    Gleam_MakeEditorSystem(InspectorWindow)
 
 #define Gleam_AddInspectorWindowUI(type,drawInspectorUI)\
     Gleam_MakeInitEvent(){InspectorWindow::MakeCustomUI(typeid(type),\

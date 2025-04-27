@@ -1,7 +1,6 @@
 ﻿#pragma once
 
-#include "WindowSystem.h"
-#include "GleamECS/Runtime/System/SystemGroup.h"
+#include "GleamEngine/Runtime/System/UpdateSystem.h"
 #include "GleamMath/Runtime/LinearAlgebra/VectorMath.h"
 #include "GleamMath/Runtime/Geometry/2D/Rectangle.h"
 #include "GleamWindow/Runtime/InputEnum.h"
@@ -11,20 +10,49 @@ namespace Gleam
     /**
      * 每帧将GLFW传入的用户输入解析成Gleam所用的输入格式
      */
-    class InputSystem : public System
+    class InputSystem : public System<PreUpdateSystem>
     {
     public:
-        InputSystem(): System(GlobalWindowSystem)
+        bool GetIsFocus() const
         {
+            return isFocus;
         }
-
-        bool GetIsFocus() const;
-        bool GetMouseButtonDown(MouseButton mouseButton) const;
-        bool GetMouseButton(MouseButton mouseButton) const;
-        bool GetMouseButtonUp(MouseButton mouseButton) const;
-        bool GetKeyDown(KeyCode keyCode) const;
-        bool GetKey(KeyCode keyCode) const;
-        bool GetKeyUp(KeyCode keyCode) const;
+        bool GetMouseButtonDown(MouseButton mouseButton) const
+        {
+            const uint8_t index = static_cast<uint8_t>(mouseButton);
+            return mouseButtonStates[index][0] == false &&
+                mouseButtonStates[index][1] == true;
+        }
+        bool GetMouseButton(MouseButton mouseButton) const
+        {
+            const uint8_t index = static_cast<uint8_t>(mouseButton);
+            return mouseButtonStates[index][0] == true &&
+                mouseButtonStates[index][1] == true;
+        }
+        bool GetMouseButtonUp(MouseButton mouseButton) const
+        {
+            const uint8_t index = static_cast<uint8_t>(mouseButton);
+            return mouseButtonStates[index][0] == true &&
+                mouseButtonStates[index][1] == false;
+        }
+        bool GetKeyDown(KeyCode keyCode) const
+        {
+            const uint16_t index = static_cast<uint16_t>(keyCode);
+            return keyboardStates[index][0] == false &&
+                keyboardStates[index][1] == true;
+        }
+        bool GetKey(KeyCode keyCode) const
+        {
+            const uint16_t index = static_cast<uint16_t>(keyCode);
+            return keyboardStates[index][0] == true &&
+                keyboardStates[index][1] == true;
+        }
+        bool GetKeyUp(KeyCode keyCode) const
+        {
+            const uint16_t index = static_cast<uint16_t>(keyCode);
+            return keyboardStates[index][0] == true &&
+                keyboardStates[index][1] == false;
+        }
         float2 GetMousePosition() const { return mousePosition[1]; }
         float2 GetMouseMoveDelta() const { return mousePosition[1] - mousePosition[0]; }
         float2 GetMouseScrollDelta() const { return mouseScrollDelta; }
@@ -42,7 +70,7 @@ namespace Gleam
 
         void Update() override;
     };
-    Gleam_MakeTypeWithID(InputSystem, "")
+    Gleam_MakeType(InputSystem)
     {
         Gleam_MakeType_AddField(focusArea);
         Gleam_MakeType_AddField(isFocus);
@@ -50,5 +78,5 @@ namespace Gleam
         Gleam_MakeType_AddField(mouseScrollDelta);
     }
 
-    Gleam_MakeGlobalSystem(InputSystem)
+    Gleam_MakeRuntimeSystem(InputSystem)
 }

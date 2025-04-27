@@ -1,10 +1,13 @@
 #pragma once
 #include <unordered_set>
-#include "GleamECS/Runtime/Archetype.h"
-#include "GleamECS/Runtime/System/SystemGroup.h"
+
+#include "GleamECS/Runtime/Entity/Archetype.h"
+#include "System/SystemInfoAllocator.h"
 
 namespace Gleam
 {
+    class World;
+
     /**
      * 场景是一种能将世界中的实体和系统分组托管并持久化的容器。其使用场景如下
      * 1. 托管世界中的实体，使其在场景销毁时连带销毁。
@@ -15,32 +18,10 @@ namespace Gleam
     class Scene
     {
     public:
-        static auto GetAllScenes()
+        Scene(const std::string_view name, const bool isRunning)
+            : name(name), isRunning(isRunning)
         {
-            return allScenes | std::views::transform([](auto& scene) { return std::reference_wrapper(*scene); });
         }
-        static std::optional<std::reference_wrapper<Scene>> GetScene(std::string_view name);
-        static std::optional<std::reference_wrapper<Scene>> GetScene(System& system);
-        static std::optional<std::reference_wrapper<Scene>> GetScene(Entity entity);
-
-        /**
-         * 创建一个空Scene
-         * @param name
-         * @param isRunning 
-         * @return 
-         */
-        static Scene& Create(std::string_view name = "", bool isRunning = false);
-        /**
-         * 移除Scene并销毁或释放其托管的相关资源
-         *
-         * 释放即让场景放弃其对托管资源的所有权，原本其托管的所有System和Entity将完全交由World管理。
-         * 因为除了Scene，World也有回收Entity和System的权力，当由World回收时，Scene应当释放所有权。
-         * @param scene
-         * @param onlyRelease 
-         */
-        static void Destroy(Scene& scene, bool onlyRelease = false);
-
-        Scene() = default;
         Scene(Scene&) = delete;
         Scene& operator=(Scene&) = delete;
 
@@ -48,7 +29,7 @@ namespace Gleam
         {
             return name;
         }
-        const std::unordered_set<System*>& GetSystems() const
+        const std::unordered_set<const SystemInfo*>& GetSystems() const
         {
             return systems;
         }
@@ -60,7 +41,8 @@ namespace Gleam
         {
             return isRunning;
         }
-        bool HasSystem(System& system) const
+
+        bool HasSystem(const SystemInfo& system) const
         {
             return systems.contains(&system);
         }
@@ -78,8 +60,8 @@ namespace Gleam
          */
         void Stop();
 
-        void AddSystem(System& system);
-        void RemoveSystem(System& system);
+        void AddSystem(const SystemInfo& system);
+        void RemoveSystem(const SystemInfo& system);
         void AddEntity(Entity entity);
         void RemoveEntity(Entity entity);
         void AddSubScene(Scene& scene)
@@ -91,14 +73,22 @@ namespace Gleam
             subScenes.erase(&scene);
         }
 
-    private:
-        inline static std::vector<std::unique_ptr<Scene>> allScenes = {};
-        inline static std::unordered_map<System*, Scene*> systemToWorld = {};
-        inline static std::unordered_map<Entity, Scene*> entityToWorld = {};
+        /**
+         * 释放资源所有权而不销毁，同时也会释放子场景资源所有权
+         */
+        void Release();
+        /**
+          * 销毁所有资源，包括子场景。
+          *
+          * 释放即让场景放弃其对托管资源的所有权，原本其托管的所有System和Entity将完全交由World管理。
+          * 因为除了Scene，World也有回收Entity和System的权力，当由World回收时，Scene应当释放所有权。
+          */
+        void Destroy();
 
+    private:
         std::string name;
-        std::unordered_set<System*> systems;
         std::unordered_set<Entity> entities;
+        std::unordered_set<const SystemInfo*> systems;
         std::unordered_set<Scene*> subScenes;
         bool isRunning = false;
     };

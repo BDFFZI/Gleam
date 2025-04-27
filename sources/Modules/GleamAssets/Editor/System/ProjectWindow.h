@@ -10,7 +10,7 @@
 
 namespace Gleam
 {
-    class ProjectWindow : public System
+    class ProjectWindow : public System<EditorUISystem>
     {
     public:
         static void MakeDirectoryMenu(const std::string& name, const std::function<void()>& action);
@@ -20,10 +20,6 @@ namespace Gleam
 
         static const std::filesystem::path& GetFileDrawing();
         static const std::filesystem::path& GetDirectoryDrawing();
-
-        ProjectWindow(): System(GlobalEditorUISystem)
-        {
-        }
 
     private:
         inline static std::unordered_map<std::string, std::function<void()>> directoryMenus = {};
@@ -47,7 +43,7 @@ namespace Gleam
         void Stop() override;
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(ProjectWindow)
+    Gleam_MakeEditorSystem(ProjectWindow)
 
 #define Gleam_MakeProjectWindowDirectoryMenu(name,action) \
 Gleam_MakeInitEvent(){::Gleam::ProjectWindow::MakeDirectoryMenu(name,action);}

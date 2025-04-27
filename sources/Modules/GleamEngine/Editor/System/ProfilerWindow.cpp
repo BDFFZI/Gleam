@@ -106,6 +106,6 @@ namespace Gleam
 
     void ProfilerWindow_FetchProfile()
     {
-        GlobalProfilerWindow.SetProfile(Profiler::FlushProfile());
+        GlobalProfilerWindow->SetProfile(Profiler::FlushProfile());
     }
 }

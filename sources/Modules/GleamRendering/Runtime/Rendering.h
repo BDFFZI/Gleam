@@ -1,7 +1,6 @@
 #pragma once
 #include "Asset/Material.h"
 #include "Asset/Mesh.h"
-#include "GleamGraphics/Runtime/Resource/GRenderTarget/GRenderTarget.h"
 
 namespace Gleam
 {

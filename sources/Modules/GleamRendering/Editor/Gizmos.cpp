@@ -57,6 +57,41 @@ namespace Gleam
         linesMaterial.reset();
     }
 
+    void Gizmos::Render(std::vector<RendererInfo>& outputRendererInfos)
+    {
+        outputRendererInfos.clear();
+
+        Render(cuboidQueue, *cubeMesh, outputRendererInfos);
+        Render(sphereQueue, *sphereMesh, outputRendererInfos);
+        Render(wireCuboidQueue, *cubeMesh, outputRendererInfos);
+        Render(wireSphereQueue, *sphereMesh, outputRendererInfos);
+        if (!pointsMesh->GetIndices().empty())
+        {
+            pointsMesh->SetDirty();
+            outputRendererInfos.emplace_back(
+                float4x4::Identity(), RenderQueue_Opaque, *pointsMaterial, *pointsMesh
+            );
+        }
+        if (!linesMesh->GetIndices().empty())
+        {
+            linesMesh->SetDirty();
+            outputRendererInfos.emplace_back(
+                float4x4::Identity(), RenderQueue_Opaque, *linesMaterial, *linesMesh
+            );
+        }
+    }
+    void Gizmos::Clear()
+    {
+        cuboidQueue.Clear();
+        sphereQueue.Clear();
+        wireCuboidQueue.Clear();
+        wireSphereQueue.Clear();
+        pointsMesh->SetVertices({});
+        pointsMesh->SetIndices({});
+        linesMesh->SetVertices({});
+        linesMesh->SetIndices({});
+    }
+
     void Gizmos::PushLocalToWorld(const float4x4& localToWorld)
     {
         localToWorlds.push_back(localToWorld);
@@ -144,15 +179,15 @@ namespace Gleam
         material.reset();
     }
 
-    void Gizmos::Draw(GizmoQueue& instanceQueue, Mesh& mesh)
+    void Gizmos::Render(GizmoQueue& instanceQueue, Mesh& mesh, std::vector<RendererInfo>& outputRendererInfos)
     {
         if (!instanceQueue.instances.empty())
         {
             instanceQueue.Flush();
-            GlobalRenderingSystem.AddRendererInfo(RendererInfo{
+            outputRendererInfos.emplace_back(
                 float4x4::Identity(), RenderQueue_Opaque, *instanceQueue.material, mesh,
                 static_cast<uint32_t>(instanceQueue.instances.size())
-            });
+            );
             instanceQueue.Clear();
         }
     }

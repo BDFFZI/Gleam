@@ -1,25 +1,19 @@
 #pragma once
-#include "GleamUI/Runtime/UI.h"
 #include "EditorUISystem.h"
-#include "GleamEngine/Runtime/System/TimeSystem.h"
 
 namespace Gleam
 {
-    class HierarchyWindow : public System
+    class HierarchyWindow : public System<EditorUISystem>
     {
     public:
-        HierarchyWindow(): System(GlobalEditorUISystem)
-        {
-        }
+        static bool DrawSystem(const ISystemEvent& system);
+        static void DrawSubSystems(const ISystemGroup& systemGroup);
+        static bool DrawSystemPopup(const ISystemEvent& system);
+        static void DrawSystemsPopup();
 
         static bool DrawEntity(Entity entity);
-        static bool DrawSystem(System& system);
-        static void DrawSubSystems(SystemGroup& systemGroup);
-
-        static void DrawSystemsPopup();
-        static void DrawEntitiesPopup();
-        static bool DrawSystemPopup(System& system);
         static bool DrawEntityPopup(Entity entity);
+        static void DrawEntitiesPopup();
 
         static void DrawWorld();
         static void DrawWorldUnfolding();
@@ -27,5 +21,5 @@ namespace Gleam
     private:
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(HierarchyWindow)
+    Gleam_MakeEditorSystem(HierarchyWindow)
 }

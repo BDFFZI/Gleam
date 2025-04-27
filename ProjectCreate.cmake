@@ -140,6 +140,10 @@ endmacro()
 macro(addProject)
     initProjectInfo()
     initProject()
+    
+    # 屏蔽掉一些运行时生成的文件
+    list(FILTER ProjectFiles EXCLUDE REGEX "${ProjectName}/(Debug|Library|StreamingAssets)")
+
     setExecutable()
 
     # 针对专门的示例项目，重新设置输出目录和工作目录，以兼容部分编辑器模块

@@ -1,7 +1,6 @@
 #include "InspectorWindow.h"
 
-#include "GleamECS/Runtime/World/World.h"
-#include "GleamEngine/Editor/EditorUI/EditorUISerializer.h"
+#include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamUI/Runtime/UI.h"
 
 namespace Gleam
@@ -18,66 +17,69 @@ namespace Gleam
     {
         return isDebugGUI;
     }
-    void InspectorWindow::Show(const InspectorTarget& inspectorTarget)
-    {
-        static std::unique_ptr<InspectorWindow> copyWindowCache;
 
-        copyWindowCache = std::make_unique<InspectorWindow>();
-        copyWindowCache->SetTarget(inspectorTarget);
-        World::AddSystem(*copyWindowCache);
+    const InspectorTarget& InspectorWindow::GetMajorTarget() const
+    {
+        return inspectorTargets.front();
+    }
+    void InspectorWindow::SetMajorTarget(const InspectorTarget& target)
+    {
+        inspectorTargets.front() = target;
+    }
+    void InspectorWindow::AddMinorTarget(const InspectorTarget& inspectorTarget)
+    {
+        inspectorTargets.emplace_back(inspectorTarget);
     }
 
-    const InspectorTarget& InspectorWindow::GetTarget() const
-    {
-        return inspectorTarget;
-    }
-    void InspectorWindow::SetTarget(const InspectorTarget& target)
-    {
-        this->inspectorTarget = target;
-    }
 
     void InspectorWindow::Update()
     {
-        if (this == &GlobalInspectorWindow)
-            ImGui::Begin("InspectorWindow", nullptr, ImGuiWindowFlags_MenuBar);
-        else
+        for (size_t i = 0; i < inspectorTargets.size(); ++i)
         {
-            //非默认检视窗口，支持多窗口和关闭功能
-            bool isOpen = true;
-            ImGui::Begin(
-                std::format("InspectorWindow##{}", reinterpret_cast<uintptr_t>(this)).c_str(),
-                this == &GlobalInspectorWindow ? nullptr : &isOpen
-            );
-            if (isOpen == false)
-                World::RemoveSystem(*this);
-        }
-
-        //绘制菜单项
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::MenuItem("Clone"))
-                Show(inspectorTarget);
-            if (ImGui::MenuItem("Clear"))
-                SetTarget(nullptr);
-            if (ImGui::BeginMenu("Debug"))
+            if (i == 0)
+                ImGui::Begin("InspectorWindow", nullptr, ImGuiWindowFlags_MenuBar);
+            else
             {
-                ImGui::Checkbox("UseDebugGUI", &isDebugGUI);
-                ImGui::EndMenu();
+                //非默认检视窗口，支持多窗口和关闭功能
+                bool isOpen = true;
+                ImGui::Begin(std::format("InspectorWindow##{}", i).c_str(), &isOpen);
+                if (isOpen == false)
+                {
+                    inspectorTargets.erase(inspectorTargets.begin() + static_cast<ptrdiff_t>(i));
+                    ImGui::End();
+                    continue;
+                }
             }
 
-            ImGui::EndMenuBar();
-        }
-        //绘制目标
-        if (!inspectorTarget.objectPtr.expired())
-        {
-            if (inspectorGUIs.contains(inspectorTarget.objectTypeIndex))
-                inspectorGUIs[inspectorTarget.objectTypeIndex](inspectorTarget.objectPtr.lock().get());
-            else
-                EditorUI::DrawSerializedContent(inspectorTarget.objectPtr.lock().get(), inspectorTarget.objectTypeIndex);
-        }
-        else
-            ImGui::Text("Target has expired");
+            //绘制菜单项
+            if (ImGui::BeginMenuBar())
+            {
+                if (ImGui::MenuItem("Clone"))
+                    inspectorTargets.emplace_back(inspectorTargets[i]); //增加元素可能导致扩容，而使指针失效，因此不能一开始就缓存指针或引用
+                if (ImGui::MenuItem("Clear"))
+                    SetMajorTarget(nullptr);
+                if (ImGui::BeginMenu("Debug"))
+                {
+                    ImGui::Checkbox("UseDebugGUI", &isDebugGUI);
+                    ImGui::EndMenu();
+                }
 
-        ImGui::End();
+                ImGui::EndMenuBar();
+            }
+
+            //绘制目标
+            InspectorTarget& target = inspectorTargets[i];
+            if (!target.objectPtr.expired())
+            {
+                if (inspectorGUIs.contains(target.objectTypeIndex))
+                    inspectorGUIs[target.objectTypeIndex](target.objectPtr.lock().get());
+                else
+                    EditorUI::DrawSerializedContent(target.objectPtr.lock().get(), target.objectTypeIndex);
+            }
+            else
+                ImGui::Text("Target has expired");
+
+            ImGui::End();
+        }
     }
 }

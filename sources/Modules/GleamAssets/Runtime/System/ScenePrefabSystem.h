@@ -2,17 +2,20 @@
 #include "GleamECS/Runtime/System/System.h"
 #include "GleamEngine/Runtime/System/UpdateSystem.h"
 
+#ifdef GleamEngineEditor
+#include "GleamEngine/Editor/Editor.h"
+#endif
+
 namespace Gleam
 {
-    class ScenePrefabSystem : public System
+    class ScenePrefabSystem : public AbsoluteSystem<PreUpdateSystem, SystemMinOrder>
     {
-    public:
-        ScenePrefabSystem(): System(GlobalPreUpdateSystem, MinOrder, MinOrder)
-        {
-        }
-
-    private:
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(ScenePrefabSystem);
+
+#ifdef GleamEngineEditor
+    Gleam_MakeEditorSystem(ScenePrefabSystem);
+#else
+    Gleam_MakeRuntimeSystem(ScenePrefabSystem);
+#endif
 }

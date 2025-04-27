@@ -19,7 +19,7 @@ namespace Gleam
     {
         if (ImGui::Button(std::format("Entity:{}", static_cast<uint32_t>(entity)).c_str()))
         {
-            GlobalInspectorWindow.SetTarget(entity);
+            GlobalInspectorWindow->SetMajorTarget(entity);
         }
         if (ImGui::BeginDragDropSource())
         {
@@ -54,5 +54,82 @@ namespace Gleam
             ImGui::EndDragDropTarget();
         }
         return nullptr;
+    }
+
+    ImGuiID EditorUI::DrawSelectSystemPopup(const SystemInfo*& outSystemInfo)
+    {
+        if (ImGui::BeginPopup("SelectSystem"))
+        {
+            static ImGuiTextFilter filter;
+            filter.Draw("##");
+            if (ImGui::BeginListBox("##"))
+            {
+                for (SystemInfo& system : SystemInfoAllocator::GetAllSystemInfo())
+                {
+                    std::string_view name = system.type->GetName();
+                    if (filter.PassFilter(name.data()) && ImGui::Button(name.data()))
+                    {
+                        outSystemInfo = &system;
+                        ImGui::CloseCurrentPopup();
+                        break;
+                    }
+                }
+
+                ImGui::EndListBox();
+            }
+            ImGui::EndPopup();
+        }
+        return ImGui::GetID("SelectSystem");
+    }
+    ImGuiID EditorUI::DrawSelectComponentPopup(const Type*& outComponent)
+    {
+        if (ImGui::BeginPopup("SelectComponent"))
+        {
+            static ImGuiTextFilter filter;
+            filter.Draw("##");
+            if (ImGui::BeginListBox("##"))
+            {
+                for (Type& type : Type::GetAllTypes())
+                {
+                    if (filter.PassFilter(type.GetName().data()) && ImGui::Button(type.GetName().data()))
+                    {
+                        outComponent = &type;
+                        ImGui::CloseCurrentPopup();
+                        break;
+                    }
+                }
+
+                ImGui::EndListBox();
+            }
+
+            ImGui::EndPopup();
+        }
+        return ImGui::GetID("SelectComponent");
+    }
+    ImGuiID EditorUI::DrawSelectArchetypePopup(const Archetype*& outArchetype)
+    {
+        if (ImGui::BeginPopup("SelectArchetype"))
+        {
+            static ImGuiTextFilter filter;
+            filter.Draw("##");
+            if (ImGui::BeginListBox("##"))
+            {
+                for (const Archetype& archetype : Archetype::GetAllArchetypes())
+                {
+                    if (filter.PassFilter(archetype.GetName().data()) && ImGui::Button(archetype.GetName().data()))
+                    {
+                        outArchetype = &archetype;
+                        ImGui::CloseCurrentPopup();
+                        break;
+                    }
+                }
+
+                ImGui::EndListBox();
+            }
+
+            ImGui::EndPopup();
+        }
+
+        return ImGui::GetID("SelectArchetype");
     }
 }

@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <filesystem>
 
-#include "GleamAssets/Runtime/Configuration.h"
 #include "GleamPersistence/Runtime/AssetBundle/AssetBundle.h"
 
 namespace Gleam

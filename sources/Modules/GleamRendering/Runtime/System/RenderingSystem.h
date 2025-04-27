@@ -1,9 +1,14 @@
 ﻿#pragma once
-#include "GleamEngine/Runtime/Component/Transform.h"
+#include "GleamEngine/Runtime/Entity/Transform.h"
 #include "GleamPresentation/Runtime/PresentationSystem.h"
-#include "GleamRendering/Runtime/Component/Camera.h"
-#include "GleamRendering/Runtime/Component/Renderer.h"
+#include "GleamRendering/Runtime/Asset/Material.h"
+#include "GleamRendering/Runtime/Entity/Camera.h"
+#include "GleamRendering/Runtime/Entity/Renderer.h"
 #include "GleamRendering/Runtime/Asset/Mesh.h"
+
+#ifdef GleamEngineEditor
+#include "GleamEngine/Editor/Editor.h"
+#endif
 
 namespace Gleam
 {
@@ -32,17 +37,14 @@ namespace Gleam
         bool operator<(const RendererInfo& other) const;
     };
 
-    class RenderingSystem : public System
+    class RenderingSystem : public System<PresentationSystem>
     {
     public:
-        RenderingSystem(): System(GlobalPresentationSystem)
-        {
-        }
-
         GRenderTarget& GetDefaultRenderTarget() const;
         void SetDefaultRenderTarget(GRenderTarget& renderTarget);
 
         void AddRendererInfo(const RendererInfo& rendererInfo);
+        void AddRendererInfos(const std::vector<RendererInfo>& rendererInfos);
 
     private:
         GRenderTarget* defaultRenderTarget = {};
@@ -52,5 +54,10 @@ namespace Gleam
         void Start() override;
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(RenderingSystem)
+    
+#ifdef GleamEngineEditor
+    Gleam_MakeEditorSystem(RenderingSystem)
+#else
+    Gleam_MakeRuntimeSystem(RenderingSystem)
+#endif
 }

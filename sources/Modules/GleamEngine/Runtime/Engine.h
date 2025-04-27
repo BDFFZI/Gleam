@@ -2,8 +2,8 @@
 #include <functional>
 #include <map>
 
-#include "GleamECS/Runtime/System/SystemGroup.h"
-#include "GleamECS/Runtime/World/World.h"
+#include "GleamECS/Runtime/World.h"
+#include "GleamECS/Runtime/System/SystemInfoAllocator.h"
 #include "GleamUtility/Runtime/Macro.h"
 
 #ifdef GleamEngineEditor
@@ -12,23 +12,50 @@
 
 namespace Gleam
 {
+    class GlobalSystemAllocator
+    {
+    public:
+        template <class TSystem>
+        TSystem* MakeGlobalSystem(TSystem*& globalSystemPtr)
+        {
+            globalSystems.emplace_back(std::make_tuple<const SystemInfo*, ISystemEvent**>(
+                &SystemInfoAllocator::CreateOrGetSystemInfo<TSystem>(), reinterpret_cast<ISystemEvent**>(&globalSystemPtr)
+            ));
+            return nullptr;
+        }
+        void AddGlobalSystemsToWorld()
+        {
+            for (const auto& [system,slot] : globalSystems)
+            {
+                void* address = &World::GetSystemAllocator().AddSystem(*system);
+                *slot = static_cast<ISystemEvent*>(address);
+                // *slot = &World::AddSystem(*system); //注意！不能这样连写，否则取到的地址是错的，神奇的机制
+            }
+        }
+
+    private:
+        std::vector<std::tuple<const SystemInfo*, ISystemEvent**>> globalSystems;
+    };
+
     class Engine
     {
     public:
         static void AddStartEvent(const std::function<void()>& event, int order = 0);
         static void AddStopEvent(const std::function<void()>& event, int order = 0);
         static void AddUpdateEvent(const std::function<void()>& event, int order = 0);
-        static void AddRuntimeSystems(std::initializer_list<std::reference_wrapper<System>> systems);
+        static GlobalSystemAllocator& GetRuntimeSystems()
+        {
+            return runtimeSystems;
+        }
 
         static void Start()
         {
             assert(!isStopping && "引擎尚未启动就已被关闭，请检查运行流程！");
 
-            for (auto system : runtimeSystems)
-                World::AddSystem(system);
-
             for (auto& event : startEvents | std::views::values)
                 event();
+
+            runtimeSystems.AddGlobalSystemsToWorld();
 
             while (!isStopping)
             {
@@ -43,6 +70,7 @@ namespace Gleam
                 for (auto& event : updateEvents | std::views::values)
                     event();
             }
+
             World::Clear();
 
             for (auto& event : stopEvents | std::views::values)
@@ -52,13 +80,13 @@ namespace Gleam
 
     private:
         friend class Editor;
-        friend void Editor_InterceptRuntimeSystem();
-        friend void Editor_PlayOrStopEngine();
+        friend void Editor_ReplaceRuntimeSystem();
+        friend void Editor_PlayPauseStopEngine();
 
-        static inline std::vector<std::reference_wrapper<System>> runtimeSystems;
         static inline std::multimap<int, std::function<void()>> startEvents;
         static inline std::multimap<int, std::function<void()>> updateEvents;
         static inline std::multimap<int, std::function<void()>> stopEvents;
+        static inline GlobalSystemAllocator runtimeSystems;
         inline static bool isStopping = false;
     };
 
@@ -88,6 +116,5 @@ Gleam::Engine::Start();\
 return 0;\
 }
 
-    ///将系统添加到世界，并注册到运行时系统组
-#define Gleam_AddRuntimeSystems(...) Gleam_MakeInitEvent(){::Gleam::Engine::AddRuntimeSystems({__VA_ARGS__});}
+#define Gleam_MakeRuntimeSystem(type) inline type* Global##type = ::Gleam::Engine::GetRuntimeSystems().MakeGlobalSystem<type>(Global##type);
 }

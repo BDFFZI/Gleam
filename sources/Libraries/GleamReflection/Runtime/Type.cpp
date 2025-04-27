@@ -82,9 +82,9 @@ namespace Gleam
         return false;
     }
 
-    std::shared_ptr<void> Type::MakeShared(void* address) const
+    std::shared_ptr<void> Type::MakeShared(void* ptr) const
     {
-        return makeShared(address);
+        return makeShared(ptr);
     }
     void* Type::Create() const
     {

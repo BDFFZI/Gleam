@@ -4,14 +4,9 @@
 
 namespace Gleam
 {
-    class AnimationSystem : public System
+    class AnimationSystem : public System<PostUpdateSystem, SystemMinOrder, SystemMidOrder>
     {
-    public:
-        AnimationSystem(): System(GlobalPostUpdateSystem, MinOrder, DefaultOrder)
-        {
-        }
-    private:
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(AnimationSystem)
+    Gleam_MakeRuntimeSystem(AnimationSystem)
 }

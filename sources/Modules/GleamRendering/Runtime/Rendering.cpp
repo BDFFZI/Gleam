@@ -1,7 +1,6 @@
 #include "Rendering.h"
 
 #include "CommandBufferPool.h"
-#include "GleamGraphics/Runtime/SwapChain.h"
 
 namespace Gleam
 {

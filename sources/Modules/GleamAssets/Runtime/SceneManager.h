@@ -25,15 +25,16 @@ namespace Gleam
         static bool HasScene(uuids::uuid assetBundleID);
         static Scene& LoadScene(uuids::uuid assetBundleID, bool isRunning = true);
         static std::optional<std::reference_wrapper<Scene>> LoadScene(std::string_view sceneName, bool isRunning = true);
-        static void UnloadScene(uuids::uuid assetBundleID);
+        static void UnloadSceneAsync(uuids::uuid assetBundleID);
 
     private:
-        friend void SceneManager_ReleaseScenes();
+        friend void SceneManager_ClearAssetBundle();
+        friend void SceneManager_FlushRemovingScenes();
 
-        inline static std::unordered_map<uuids::uuid, Scene*> allScenes;
+        inline static std::unordered_map<uuids::uuid, Scene*> allScenes = {};
+        inline static std::vector<uuids::uuid> removingScenes = {};
     };
 
-    //引擎停止时，需释放场景（世界负责回收，场景需释放所有权）并回收资源包
-    void SceneManager_ReleaseScenes();
-    Gleam_MakeSystemEvent(SceneManager_ReleaseScenes, Stop, GlobalPostUpdateSystem, System::MaxOrder)
+    void SceneManager_ClearAssetBundle();
+    void SceneManager_FlushRemovingScenes();
 }

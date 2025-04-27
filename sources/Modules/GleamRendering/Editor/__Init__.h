@@ -19,12 +19,6 @@ namespace Gleam
         Gizmos::UnInit();
     }
 
-    Gleam_AddEditorSystems(
-        GlobalGameWindow,
-        GlobalSceneWindow,
-        GlobalGizmosSystem
-    )
-
     Gleam_AddInspectorWindowUI(Point, InspectorWindowUI_Point)
     Gleam_AddInspectorWindowUI(Segment, InspectorWindowUI_Segment)
     Gleam_AddInspectorWindowUI(Cuboid, InspectorWindowUI_Cuboid)

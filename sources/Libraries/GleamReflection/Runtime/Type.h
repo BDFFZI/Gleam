@@ -16,6 +16,14 @@ namespace Gleam
     template <typename T>
     struct Type_Raii
     {
+        /**
+         * shared_ptr内部通过重写虚函数（_Ref_count<T>转_Ref_count_base）来实现多态。
+         * 因此支持std::shared_ptr<T>转std::shared_ptr<void>，从而在擦除类型信息的同时保留回收物体的能力。
+         * 这种特征同样对其创建的std::weak<void>有效，因为它们是共享的_Ref_count_base。
+         * 但直接用std::shared_ptr<void>创建是不行的，因为void没有虚表，无法调用虚析构函数，因此有必要为创建智能指针生成反射函数。
+         * @param obj 
+         * @return 
+         */
         static std::shared_ptr<void> MakeShared(void* obj)
         {
             return std::shared_ptr<T>(static_cast<T*>(obj));
@@ -36,11 +44,11 @@ namespace Gleam
         {
             static_cast<T*>(address)->T::~T();
         }
-        static void MoveConstruct(void* destination, void* source)
+        static void MoveConstruct(void* destination, void* source) requires std::is_move_constructible_v<T>
         {
             new(destination) T(std::move(*static_cast<T*>(source)));
         }
-        static void Move(void* destination, void* source)
+        static void Move(void* destination, void* source) requires std::is_move_assignable_v<T>
         {
             *static_cast<T*>(destination) = std::move(*static_cast<T*>(source));
         }
@@ -91,8 +99,10 @@ namespace Gleam
             type.destroy = Type_Raii<T>::Destroy;
             type.construct = Type_Raii<T>::Construct;
             type.destruct = Type_Raii<T>::Destruct;
-            type.moveConstruct = Type_Raii<T>::MoveConstruct;
-            type.move = Type_Raii<T>::Move;
+            if constexpr (requires() { Type_Raii<T>::MoveConstruct; })
+                type.moveConstruct = Type_Raii<T>::MoveConstruct;
+            if constexpr (requires() { Type_Raii<T>::Move; })
+                type.move = Type_Raii<T>::Move;
             if constexpr (requires() { Type_Raii<T>::CopyConstruct; })
                 type.copyConstruct = Type_Raii<T>::CopyConstruct;
             if constexpr (requires() { Type_Raii<T>::Copy; })
@@ -151,13 +161,15 @@ namespace Gleam
         int GetSize() const;
         std::optional<std::reference_wrapper<const Type>> GetParent() const;
         const std::vector<FieldInfo>& GetFields() const;
+        bool CanMoveConstruct() const { return moveConstruct != nullptr; }
+        bool CanMove() const { return move != nullptr; }
         bool CanCopyConstruct() const { return copyConstruct != nullptr; }
         bool CanCopy() const { return copy != nullptr; }
 
         void SetParent(std::optional<std::reference_wrapper<const Type>> parent);
         bool FindFields(std::string_view path, std::vector<FieldInfo>& result) const;
 
-        std::shared_ptr<void> MakeShared(void* address) const;
+        std::shared_ptr<void> MakeShared(void* ptr) const;
         void* Create() const;
         void Destroy(void* address) const;
         void Construct(void* address) const;
@@ -178,7 +190,7 @@ namespace Gleam
         int size = 0;
         std::optional<std::reference_wrapper<const Type>> parent = std::nullopt;
         std::vector<FieldInfo> fields = {};
-        
+
         std::function<std::shared_ptr<void>(void*)> makeShared = nullptr;
         std::function<void*()> create = nullptr;
         std::function<void(void*)> destroy = nullptr;
@@ -217,4 +229,5 @@ transferrer.TransferField(#field, value.field)
 
 #define Gleam_MakeType(type) Gleam_MakeType_Inner(type,"",std::nullopt)
 #define Gleam_MakeTypeWithID(type,uuidStr) Gleam_MakeType_Inner(type,uuidStr,std::nullopt)
-#define Gleam_MakeTypeWithIDParent(type,uuidStr,parent) Gleam_MakeType_Inner(type,uuidStr,parent)
+#define Gleam_MakeTypeWithParent(type,parentType) Gleam_MakeType_Inner(type,"",::Gleam::Type::CreateOrGet<parentType>())
+#define Gleam_MakeTypeWithIDParent(type,uuidStr,parentType) Gleam_MakeType_Inner(type,uuidStr,::Gleam::Type::CreateOrGet<parentType>())

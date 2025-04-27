@@ -6,5 +6,4 @@
 namespace Gleam
 {
     Gleam_MakeCreateAssetMenu(AnimationClip, ".anim")
-    Gleam_AddEditorMenu("Window/Animation", []{World::AddSystem(GlobalAnimationWindow);});
 }

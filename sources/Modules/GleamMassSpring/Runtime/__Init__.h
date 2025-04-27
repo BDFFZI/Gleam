@@ -7,11 +7,4 @@
 
 namespace Gleam
 {
-
-    Gleam_AddRuntimeSystems(
-        GlobalPhysicsSystem,
-        GlobalPositionSystem,
-        GlobalForceSystem,
-        GlobalCollisionSystem
-    )
 }

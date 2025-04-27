@@ -53,7 +53,7 @@ namespace Gleam
             return AssetBundle::ReadJson(path);
         }
     };
-    Gleam_MakeTypeWithIDParent(JsonObjectImporter, "", AssetImporterType)
+    Gleam_MakeTypeWithParent(JsonObjectImporter, AssetImporter)
     {
     }
 

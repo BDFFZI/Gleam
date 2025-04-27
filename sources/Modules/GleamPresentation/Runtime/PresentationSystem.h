@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GleamECS/Runtime/System/SystemGroup.h"
+#include "GleamEngine/Runtime/System/TransformSystem.h"
 #include "GleamGL/Runtime/GLCommandBuffer.h"
 #include "GleamGraphics/Runtime/GCommandBuffer.h"
 #include "GleamEngine/Runtime/System/UpdateSystem.h"
@@ -10,13 +11,10 @@ namespace Gleam
     /**
      * 将最终数据可视化输出到外部呈现设备中
      */
-    class PresentationSystem : public SystemGroup
+    class PresentationSystem : public RelativeSystem<TransformSystem, SystemRelation::After>, public ISystemGroup
     {
     public:
-        PresentationSystem(): SystemGroup(GlobalPostUpdateSystem, DefaultOrder, MaxOrder)
-        {
-        }
-
+        void WaitPresentationFinish() const;
         /**
          * 用于执行呈现命令的底层命令缓冲区。
          *
@@ -38,8 +36,13 @@ namespace Gleam
         std::unique_ptr<GCommandBuffer> presentGCommandBuffer = nullptr; //预建的辅助命令缓冲区
 
         void Start() override;
-        void Stop() override;
         void Update() override;
+        void Stop() override;
     };
-    Gleam_MakeGlobalSystem(PresentationSystem)
+
+#ifdef GleamEngineEditor
+    Gleam_MakeEditorSystem(PresentationSystem);
+#else
+    Gleam_MakeRuntimeSystem(PresentationSystem)
+#endif
 }

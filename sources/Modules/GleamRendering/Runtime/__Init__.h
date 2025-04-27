@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "Rendering.h"
 #include "RenderingConfig.h"
-#include "System/CameraSystem.h"
-#include "System/LinesRendererSystem.h"
-#include "System/PointsRendererSystem.h"
+#include "System/CameraPreProcessSystem.h"
+#include "System/LinesRendererPreProcessSystem.h"
+#include "System/PointsRendererPreProcessSystem.h"
 #include "System/RenderingSystem.h"
 #include "Entity/Archetype.h"
 
@@ -27,20 +27,4 @@ namespace Gleam
     {
         Rendering::UnInit();
     }
-
-    Gleam_AddRuntimeSystems(
-        GlobalRenderingSystem,
-        GlobalPointsRendererSystem,
-        GlobalLinesRendererSystem,
-        GlobalCameraSystem
-    )
-
-#ifdef GleamEngineEditor
-    Gleam_AddEditorSystems(
-        GlobalRenderingSystem,
-        GlobalPointsRendererSystem,
-        GlobalLinesRendererSystem,
-        GlobalCameraSystem
-    );
-#endif
 }

@@ -3,7 +3,7 @@
 
 namespace Gleam
 {
-    void SceneAssetBundle::GetSceneAssets(AssetBundle& assetBundle, std::string& outName, std::vector<System*>& outSystems, std::vector<PersistentEntity*>& outEntities)
+    void SceneAssetBundle::GetSceneAssets(AssetBundle& assetBundle, std::string& outName, std::vector<const SystemInfo*>& outSystems, std::vector<EntityAsset*>& outEntities)
     {
         BasicSceneInfo& sceneAsset = assetBundle.GetAsset(0).GetObject<BasicSceneInfo>();
 
@@ -11,27 +11,26 @@ namespace Gleam
 
         for (auto id : sceneAsset.systems)
         {
-            auto optionalSystem = System::GetGlobalSystem(id);
-            if (optionalSystem.has_value())
-                outSystems.emplace_back(&optionalSystem.value().get());
+            if (SystemInfoAllocator::HasSystemInfo(id))
+                outSystems.emplace_back(&SystemInfoAllocator::GetSystemInfo(id));
         }
 
         int assetCount = assetBundle.GetAssetCount();
         for (int i = 1; i < assetCount; ++i)
         {
-            PersistentEntity& entityAsset = assetBundle.GetAsset(i).GetObject<PersistentEntity>();
+            EntityAsset& entityAsset = assetBundle.GetAsset(i).GetObject<EntityAsset>();
             outEntities.emplace_back(&entityAsset);
         }
     }
-    void SceneAssetBundle::SaveToAssetBundle(Scene& scene, AssetBundle& assetBundle)
+    void SceneAssetBundle::MapToAssetBundle(Scene& scene, AssetBundle& assetBundle)
     {
         int assetCount = static_cast<int>(assetBundle.GetAssetSlots().size());
 
         //保存场景和系统信息
         BasicSceneInfo sceneAsset;
         sceneAsset.name = scene.GetName();
-        for (System* system : scene.GetSystems())
-            sceneAsset.systems.push_back(system->GetID());
+        for (const SystemInfo* system : scene.GetSystems())
+            sceneAsset.systems.push_back(system->type->GetID());
         if (assetCount == 0)
             assetBundle.AddAsset(std::move(sceneAsset));
         else
@@ -42,8 +41,8 @@ namespace Gleam
         std::unordered_set<Entity> missing = scene.GetEntities();
         for (int i = 1; i < assetCount; i++)
         {
-            PersistentEntity& entityAsset = assetBundle.GetObject<PersistentEntity>(i);
-            Entity entity = entityAsset.GetEntity();
+            EntityAsset& entityAsset = assetBundle.GetObject<EntityAsset>(i);
+            Entity entity = entityAsset.GetLinkedEntity();
             if (scene.GetEntities().contains(entity))
                 missing.erase(entity);
             else
@@ -55,24 +54,24 @@ namespace Gleam
         //添加资源包中缺少的
         for (Entity entity : missing)
         {
-            PersistentEntity entityAsset = {entity, false};
+            EntityAsset entityAsset = {entity, false};
             assetBundle.AddAsset(std::move(entityAsset));
         }
     }
     Scene& SceneAssetBundle::MoveFromAssetBundle(AssetBundle& assetBundle, const bool isRunning)
     {
         std::string name;
-        std::vector<System*> systems;
-        std::vector<PersistentEntity*> entities;
+        std::vector<const SystemInfo*> systems;
+        std::vector<EntityAsset*> entities;
         GetSceneAssets(assetBundle, name, systems, entities);
 
-        Scene& scene = Scene::Create(name, isRunning);
-        for (System* system : systems)
+        Scene& scene = World::AddScene(name, isRunning);
+        for (const SystemInfo* system : systems)
             scene.AddSystem(*system);
-        for (PersistentEntity* entity : entities)
+        for (EntityAsset* entity : entities)
         {
-            entity->SetOwnership(false);
-            scene.AddEntity(entity->GetEntity());
+            entity->SetAllowRemoveEntity(false);
+            scene.AddEntity(entity->GetLinkedEntity());
         }
 
         return scene;
@@ -80,16 +79,16 @@ namespace Gleam
     Scene& SceneAssetBundle::CopyFromAssetBundle(AssetBundle& assetBundle, const bool isRunning)
     {
         std::string name;
-        std::vector<System*> systems;
-        std::vector<PersistentEntity*> entities;
+        std::vector<const SystemInfo*> systems;
+        std::vector<EntityAsset*> entities;
         GetSceneAssets(assetBundle, name, systems, entities);
 
-        Scene& scene = Scene::Create(name + "(Clone)", isRunning);
-        for (System* system : systems)
+        Scene& scene = World::AddScene(name + "(Clone)", isRunning);
+        for (const SystemInfo* system : systems)
             scene.AddSystem(*system);
-        for (PersistentEntity* entity : entities)
+        for (EntityAsset* entity : entities)
         {
-            Entity newEntity = World::CloneEntity(entity->GetEntity());
+            Entity newEntity = World::GetEntityAllocator().CloneEntity(entity->GetLinkedEntity());
             scene.AddEntity(newEntity);
 
             //TODO 处理克隆后的引用关系重链接

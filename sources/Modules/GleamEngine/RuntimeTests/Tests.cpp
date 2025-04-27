@@ -1,19 +1,15 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
-#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamEngine/Runtime/System/TimeSystem.h"
 #include "GleamEngine/Runtime/System/UpdateSystem.h"
 
 using namespace Gleam;
 
-class MySystem : public System
+class MySystem : public System<PostUpdateSystem>
 {
-public:
-    MySystem(): System(GlobalPostUpdateSystem)
-    {
-    }
+    int countDown = 3;
 
     void Start() override
     {
@@ -27,7 +23,7 @@ public:
             Engine::Stop();
 
         std::cout
-            << std::format("Time:{:f}\tDeltaTime:{:f}", GlobalTimeSystem.GetTime(), GlobalTimeSystem.GetDeltaTime())
+            << std::format("Time:{:f}\tDeltaTime:{:f}", GlobalTimeSystem->GetTimeReal(), GlobalTimeSystem->GetDeltaTimeReal())
             << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -36,10 +32,7 @@ public:
     {
         std::cout << "Engine Stop" << std::endl;
     }
-
-    int countDown = 3;
 };
-Gleam_MakeGlobalSystem(MySystem)
-Gleam_AddRuntimeSystems(GlobalMySystem)
+Gleam_MakeRuntimeSystem(MySystem)
 
-inline int main() { Gleam::Engine::Start(); return 0; }
+Gleam_Main

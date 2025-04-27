@@ -1,55 +1,49 @@
 ﻿#include "Editor.h"
 
-#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/Engine.h"
+#include "GleamEngine/Runtime/System/TimeSystem.h"
 
 namespace Gleam
 {
-    void Editor::AddEditorSystems(const std::initializer_list<std::reference_wrapper<System>> systems)
+    void Editor::AddPlayEvent(const std::function<void()>& event, int order)
     {
-        editorSystems.insert(editorSystems.end(), systems.begin(), systems.end());
+        playEvents.emplace(order, event);
     }
-    void Editor::AddEditorOnlySystems(const std::initializer_list<std::reference_wrapper<System>> systems)
+    void Editor::AddStopEvent(const std::function<void()>& event, int order)
     {
-        editorOnlySystems.insert(editorOnlySystems.end(), systems.begin(), systems.end());
+        stopEvents.emplace(order, event);
     }
-    bool& Editor::IsPlaying()
+    void Editor_ReplaceRuntimeSystem()
     {
-        return isPlaying;
+        Editor::runtimeSystems = std::move(Engine::runtimeSystems); //剥夺运行时引擎对全局系统的控制权
+        Editor::editorSystems.AddGlobalSystemsToWorld(); //添加编辑器系统
     }
-
-    void Editor_InterceptRuntimeSystem()
+    void Editor_PlayPauseStopEngine()
     {
-        for (auto system : Engine::runtimeSystems)
-            World::RemoveSystem(system); //撤销运行时系统
-        for (auto system : Editor::editorSystems)
-            World::AddSystem(system);
-        for (auto system : Editor::editorOnlySystems)
-            World::AddSystem(system);
-    }
-    void Editor_PlayOrStopEngine()
-    {
+        //进入或退出运行时
         static bool lastIsPlaying = false;
-        if (lastIsPlaying != Editor::IsPlaying())
+        if (lastIsPlaying != Editor::GetIsPlaying())
         {
-            if (Editor::IsPlaying())
+            if (Editor::GetIsPlaying())
             {
-                for (auto system : Engine::runtimeSystems)
-                    World::AddSystem(system);
-                for (auto system : Editor::editorOnlySystems)
-                    World::RemoveSystem(system);
+                for (auto& event : Editor::playEvents | std::views::values)
+                    event();
+
+                Editor::runtimeSystems.AddGlobalSystemsToWorld(); //添加运行时系统
             }
             else
             {
-                World::Clear();
+                World::Clear(); //重置世界
+                Editor::editorSystems.AddGlobalSystemsToWorld(); //添加编辑器系统
 
-                for (auto system : Editor::editorSystems)
-                    World::AddSystem(system);
-                for (auto system : Editor::editorOnlySystems)
-                    World::AddSystem(system);
+                for (auto& event : Editor::stopEvents | std::views::values)
+                    event();
             }
         }
+        lastIsPlaying = Editor::GetIsPlaying();
 
-        lastIsPlaying = Editor::IsPlaying();
+        //约束运行时时间
+        if (Editor::isPlaying)
+            World::GetSystemAllocator().GetSystem<TimeSystem>().SetAutoStepTime(!Editor::GetIsPaused());
     }
 }

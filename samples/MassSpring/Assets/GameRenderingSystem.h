@@ -1,19 +1,15 @@
 #pragma once
 #include "LogicSystem.h"
-#include "GleamMassSpring/Runtime/Component/Particle.h"
-#include "GleamMassSpring/Runtime/Component/Spring.h"
-#include "GleamRendering/Runtime/Component/LinesMesh.h"
-#include "GleamRendering/Runtime/Component/PointsMesh.h"
+#include "GleamRendering/Runtime/Entity/LinesMesh.h"
+#include "GleamRendering/Runtime/Entity/PointsMesh.h"
 #include "GleamRendering/Runtime/System/RenderingSystem.h"
 
-class GameRenderingSystem : public Gleam::System
-{
-public:
-    GameRenderingSystem(): System(Gleam::GlobalRenderingSystem, Gleam::OrderRelation::Before)
-    {
-    }
+#ifdef GleamEngineEditor
+#include "GleamEngine/Editor/Editor.h"
+#endif
 
-private:
+class GameRenderingSystem : public Gleam::RelativeSystem<Gleam::RenderingSystem, Gleam::SystemRelation::Before>
+{
     std::vector<Gleam::Point> particles;
     std::vector<Gleam::Segment> springs;
 
@@ -23,4 +19,9 @@ private:
     void Start() override;
     void Update() override;
 };
-Gleam_MakeGlobalSystem(GameRenderingSystem)
+
+#ifdef GleamEngineEditor
+Gleam_MakeEditorSystem(GameRenderingSystem)
+#else
+Gleam_MakeRuntimeSystem(GameRenderingSystem)
+#endif

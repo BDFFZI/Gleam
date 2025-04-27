@@ -1,17 +1,11 @@
 ﻿#pragma once
 #include "PhysicsSystem.h"
-#include "GleamECS/Runtime/System/SystemGroup.h"
 
 namespace Gleam
 {
-    class PositionSystem : public System
+    class PositionSystem : public System<PhysicsSystem, SystemMinOrder, SystemMidOrder>
     {
-    public:
-        PositionSystem(): System(GlobalPhysicsSystem, MinOrder, DefaultOrder)
-        {
-        }
-
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(PositionSystem)
+    Gleam_MakeRuntimeSystem(PositionSystem)
 }

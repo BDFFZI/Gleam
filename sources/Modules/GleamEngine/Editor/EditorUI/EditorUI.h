@@ -1,7 +1,8 @@
 #pragma once
 
-#include "GleamECS/Runtime/Archetype.h"
-#include "GleamECS/Runtime/System/SystemGroup.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
+#include "GleamECS/Runtime/System/SystemInfoAllocator.h"
+#include "GleamUI/Runtime/UI.h"
 
 namespace Gleam
 {
@@ -12,5 +13,9 @@ namespace Gleam
         static void DrawEntityField(Entity& entity);
         static void SetDragDropObject(const std::shared_ptr<void>& objectPtr, std::type_index objectTypeIndex);
         static std::shared_ptr<void> GetDragDropObject(std::type_index objectType);
+
+        static ImGuiID DrawSelectSystemPopup(const SystemInfo*& outSystemInfo);
+        static ImGuiID DrawSelectComponentPopup(const Type*& outComponent);
+        static ImGuiID DrawSelectArchetypePopup(const Archetype*& outArchetype);
     };
 }

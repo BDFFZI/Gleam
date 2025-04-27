@@ -2,26 +2,23 @@
 #include "CustomUI.h"
 #include "EditorSceneManager.h"
 #include "GleamAssets/Runtime/__Init__.h"
-#include "System/AssetBundleWindow.h"
-#include "System/HierarchyWindow_Scene.h"
-#include "System/ProjectWindow.h"
 #include "GleamEngine/Editor/Editor.h"
+
+// ReSharper disable CppUnusedIncludeDirective
+#include "System/ProjectWindow.h"
+#include "System/HierarchyWindow_Scene.h"
+#include "System/AssetBundleWindow.h"
+// ReSharper restore CppUnusedIncludeDirective
 
 namespace Gleam
 {
     Gleam_MakeInitEvent()
     {
-        Engine::AddRuntimeSystems({
-            EditorSceneManager_StartScenesSystem
-        });
-        Editor::AddEditorSystems({
-            GlobalProjectWindow,
-            GlobalAssetBundleWindow,
-            GlobalHierarchyWindow_Scene,
-            EditorSceneManager_OpenLastSceneSystem
-        });
+        Engine::AddStartEvent(EditorSceneManager_OpenLastScene);
+        Editor::AddPlayEvent(EditorSceneManager_StartAllScenes);
+        Editor::AddStopEvent(EditorSceneManager_OpenLastScene);
 
-        InspectorWindow::MakeCustomUI<PersistentEntity>(InspectorWindowUI_EntityAsset);
+        InspectorWindow::MakeCustomUI<EntityAsset>(InspectorWindowUI_EntityAsset);
         ProjectWindow::MakeDirectoryMenu("Create/Scene", ProjectWindowMenu_CreateScene);
         ProjectWindow::MakeFileMenu(".scene", "Open", ProjectWindowMenu_OpenScene);
         ProjectWindow::MakeFileRenameEvent(".scene", ProjectWindowEvent_RenameScene);

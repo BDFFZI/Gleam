@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GleamECS/Runtime/Archetype.h"
+#include "GleamECS/Runtime/Entity/Archetype.h"
 #include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamMassSpring/Runtime/System/CollisionSystem.h"
 #include "GleamMassSpring/Runtime/System/ForceSystem.h"
@@ -15,9 +15,10 @@ enum class EditMode
     CreateSpring,
 };
 
-class LogicSystem : public Gleam::System
+class LogicSystem : public Gleam::System<>
 {
     friend class GameUISystem;
+    friend class PhysicsLogicSystem;
 
     EditMode editMode = EditMode::MoveParticle;
     float simulatedSpeed = 1;
@@ -26,7 +27,6 @@ class LogicSystem : public Gleam::System
     Gleam::Entity fixedParticle = Gleam::Entity::Null; //移动点模式下的移动点
     Gleam::Entity springParticleA = Gleam::Entity::Null; //创建弹簧时的弹簧A点
     Gleam::Entity tempLine = Gleam::Entity::Null; //创建弹簧时临时的可视化线
-    Gleam::SystemEvent physicsSystemEvent = {"PhysicsSystemEvent", Gleam::GlobalForceSystem, Gleam::OrderRelation::Before};
 
     float drag = 0.01f;
     float mass = 1;
@@ -40,9 +40,12 @@ class LogicSystem : public Gleam::System
     void OnDeleteParticle();
     void OnCreateSpring();
 
-    void Start() override;
-    void Stop() override;
     void Update() override;
-    void FixedUpdate() const;
 };
-Gleam_MakeGlobalSystem(LogicSystem)
+Gleam_MakeRuntimeSystem(LogicSystem)
+
+class PhysicsLogicSystem : public Gleam::RelativeSystem<Gleam::ForceSystem, Gleam::SystemRelation::Before>
+{
+    void Update() override;
+};
+Gleam_MakeRuntimeSystem(PhysicsLogicSystem)

@@ -1,7 +1,9 @@
 #include "CustomUI.h"
 
+#include "EditorUI/EditorUI.h"
 #include "EditorUI/EditorUISerializer.h"
 #include "GleamUI/Runtime/UI.h"
+#include "System/InspectorWindow.h"
 
 namespace Gleam
 {
@@ -43,66 +45,28 @@ namespace Gleam
                     World::RemoveComponentsAsync(entity, {componentType});
             }
         }
+
         //绘制操作
         ImGui::Separator();
         //添加组件
-        ImGuiID addComponent = ImGui::GetID("AddComponent");
-        if (ImGui::BeginPopup("AddComponent"))
-        {
-            static ImGuiTextFilter filter;
-            filter.Draw("##");
-            if (ImGui::BeginListBox("##"))
-            {
-                for (Type& type : Type::GetAllTypes())
-                {
-                    if (type.GetParent() == SystemType)
-                        continue;
-
-                    if (filter.PassFilter(type.GetName().data()) && ImGui::Button(type.GetName().data()))
-                    {
-                        World::AddComponents(entity, {type});
-                        ImGui::CloseCurrentPopup();
-                        break;
-                    }
-                }
-
-                ImGui::EndListBox();
-            }
-
-            ImGui::EndPopup();
-        }
+        const Type* selectedComponent = nullptr;
+        ImGuiID selectComponentPopup = EditorUI::DrawSelectComponentPopup(selectedComponent);
         if (ImGui::Button("AddComponent", float2{ImGui::GetContentRegionAvail().x, 0}))
-            ImGui::OpenPopup(addComponent);
+            ImGui::OpenPopup(selectComponentPopup);
+        if (selectedComponent != nullptr)
+            World::GetEntityAllocator().AddComponents(entity, {*selectedComponent});
         //移动实体
-        ImGuiID setArchetype = ImGui::GetID("SetArchetype");
-        if (ImGui::BeginPopup("SetArchetype"))
-        {
-            static ImGuiTextFilter filter;
-            filter.Draw("##");
-            if (ImGui::BeginListBox("##"))
-            {
-                for (const Archetype& archetype : Archetype::GetAllArchetypes())
-                {
-                    if (filter.PassFilter(archetype.GetName().data()) && ImGui::Button(archetype.GetName().data()))
-                    {
-                        World::MoveEntityAsync(entity, archetype);
-                        ImGui::CloseCurrentPopup();
-                        break;
-                    }
-                }
-
-                ImGui::EndListBox();
-            }
-
-            ImGui::EndPopup();
-        }
+        const Archetype* selectedArchetype = nullptr;
+        ImGuiID selectArchetypePopup = EditorUI::DrawSelectArchetypePopup(selectedArchetype);
         if (ImGui::Button("SetArchetype", float2{ImGui::GetContentRegionAvail().x, 0}))
-            ImGui::OpenPopup(setArchetype);
+            ImGui::OpenPopup(selectArchetypePopup);
+        if (selectedArchetype != nullptr)
+            World::MoveEntityAsync(entity, *selectedArchetype);
     }
 
     void InspectorWindowUI_Entity(const Entity entity)
     {
-        if (World::HasEntity(entity))
+        if (World::GetEntityInfoAllocator().HasEntity(entity))
         {
             InspectorWindowUI_Entity_Target = entity;
             DrawEntity(

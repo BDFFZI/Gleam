@@ -28,13 +28,6 @@ namespace Gleam
     }
     AssetBundle& AssetBundle::Load(AssetBundle& newAssetBundle, const bool reload)
     {
-        //依赖同资源包资源的指针，可能在依赖对象反持久化前被处理，导致无法获取依赖项的数据。
-        //因此要在所有资源对象反序列化后重新序列化一次指针，利用上一次保存的指针与资源依赖的关系，重新连接资源。
-        PointerSerializer pointerSerializer;
-        AssetBundleType.Serialize(pointerSerializer, &newAssetBundle);
-        if (autoClearPtrBuffer) //清除临时保存的指针资源引用信息
-            pointerToAssetRef.clear();
-
         assert(reload || (!HasInMemory(newAssetBundle.id) && "内存中已有目标资源包！"));
 
         AssetBundle* result;
@@ -72,6 +65,14 @@ namespace Gleam
             newAssetBundle.BuildAssetIndex();
             result = &assetBundles.emplace(newAssetBundle.id, std::move(newAssetBundle)).first->second;
         }
+
+        //依赖同资源包资源的指针，可能在依赖对象反持久化前被处理，导致无法获取依赖项的数据。
+        //因此要在所有资源对象反序列化后重新序列化一次指针，利用上一次保存的指针与资源依赖的关系，重新连接资源。
+        //注意！必须要等资源包信息注册后才可使用该操作，因为GetObject方法是从注册表中查询资源。
+        PointerSerializer pointerSerializer;
+        AssetBundleType.Serialize(pointerSerializer, result);
+        if (autoClearPtrBuffer) //清除临时保存的指针资源引用信息
+            pointerToAssetRef.clear();
 
         return *result;
     }

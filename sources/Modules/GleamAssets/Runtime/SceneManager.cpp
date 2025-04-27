@@ -16,10 +16,10 @@ namespace Gleam
         std::vector<uuids::uuid> oldScenes = {};
         std::ranges::copy(allScenes | std::views::keys, std::back_inserter(oldScenes));
         for (uuids::uuid id : oldScenes)
-            UnloadScene(id);
+            UnloadSceneAsync(id);
 
         AssetBundle& assetBundle = Resources::Load(assetBundleID);
-        
+
         Scene& scene = SceneAssetBundle::MoveFromAssetBundle(assetBundle, isRunning);
         allScenes.emplace(assetBundle.GetID(), &scene);
 
@@ -32,21 +32,26 @@ namespace Gleam
             return LoadScene(it->second, isRunning);
         return std::nullopt;
     }
-    void SceneManager::UnloadScene(const uuids::uuid assetBundleID)
+    void SceneManager::UnloadSceneAsync(const uuids::uuid assetBundleID)
     {
-        Scene::Destroy(*allScenes[assetBundleID]);
-        Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
-        allScenes.erase(assetBundleID);
+        removingScenes.emplace_back(assetBundleID);
     }
 
-    void SceneManager_ReleaseScenes()
+    void SceneManager_ClearAssetBundle()
     {
-        //引擎停止，释放场景（世界负责回收，场景需释放所有权）并回收资源包
-        for (auto [id,scene] : SceneManager::allScenes)
-        {
-            Scene::Destroy(*scene, true);
+        //结束运行时，场景已被世界销毁，但还需清理相关资源包和场景记录
+        for (const auto id : SceneManager::allScenes | std::views::keys)
             Resources::Unload(AssetBundle::GetAssetBundle(id));
-        }
         SceneManager::allScenes.clear();
+    }
+    void SceneManager_FlushRemovingScenes()
+    {
+        for (const auto assetBundleID : SceneManager::removingScenes)
+        {
+            World::RemoveScene(*SceneManager::allScenes[assetBundleID]);
+            Resources::Unload(AssetBundle::GetAssetBundle(assetBundleID));
+            SceneManager::allScenes.erase(assetBundleID);
+        }
+        SceneManager::removingScenes.clear();
     }
 }

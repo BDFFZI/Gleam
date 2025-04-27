@@ -15,7 +15,7 @@ namespace Gleam
 
         static void Create(AssetBundle& assetBundle);
         static void Save(AssetBundle& assetBundle);
-
+        
     private:
         inline static std::filesystem::path resourceDirectory = "Library/Artifacts";
         inline static std::unordered_map<uuids::uuid, int> assetBundleRefCount = {};

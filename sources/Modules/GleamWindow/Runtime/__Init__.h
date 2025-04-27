@@ -1,12 +1,7 @@
 ﻿#pragma once
+#include "Cursor.h"
 #include "Window.h"
-#include "System/CursorSystem.h"
-#include "System/WindowSystem.h"
 #include "System/InputSystem.h"
-
-#ifdef GleamEngineEditor
-#include "GleamEngine/Editor/Editor.h"
-#endif
 
 namespace Gleam
 {
@@ -14,21 +9,15 @@ namespace Gleam
     {
         Window::Init();
     }
-    Gleam_MakeEngineStopEvent(UnInitWindowLibrary, std::numeric_limits<int>::lowest())
+    Gleam_MakeEngineStopEvent(UnInitWindowLibrary, std::numeric_limits<int>::max())
     {
         Window::UnInit();
     }
-
-    Gleam_AddRuntimeSystems(
-        GlobalCursorSystem,
-        GlobalWindowSystem,
-        GlobalInputSystem
-    )
-
-#ifdef GleamEngineEditor
-    Gleam_AddEditorSystems(
-        GlobalCursorSystem,
-        GlobalWindowSystem,
-    );
-#endif
+    Gleam_MakeEngineUpdateEvent(UpdateWindowLibrary, std::numeric_limits<int>::max())
+    {
+        Window::Update();
+        Cursor::Update();
+        if (glfwWindowShouldClose(Window::GetGlfwWindow()))
+            Engine::Stop();
+    }
 }

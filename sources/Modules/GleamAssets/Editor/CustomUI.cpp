@@ -13,12 +13,12 @@ namespace Gleam
     {
         auto path = ProjectWindow::GetDirectoryDrawing() / "NewScene.scene";
 
-        Scene& scene = Scene::Create("NewScene");
+        Scene& scene = World::AddScene("NewScene");
         AssetBundle& assetBundle = AssetBundle::Create();
-        SceneAssetBundle::SaveToAssetBundle(scene, assetBundle);
+        SceneAssetBundle::MapToAssetBundle(scene, assetBundle);
         AssetDatabase::Create(path, assetBundle);
         AssetBundle::Unload(assetBundle);
-        Scene::Destroy(scene);
+        World::RemoveScene(scene);
     }
     void ProjectWindowMenu_OpenScene()
     {
@@ -34,8 +34,8 @@ namespace Gleam
         AssetDatabase::Unload(oldPath);
     }
 
-    void InspectorWindowUI_EntityAsset(PersistentEntity& entityAsset)
+    void InspectorWindowUI_EntityAsset(EntityAsset& entityAsset)
     {
-        InspectorWindowUI_Entity(entityAsset.GetEntity());
+        InspectorWindowUI_Entity(entityAsset.GetLinkedEntity());
     }
 }

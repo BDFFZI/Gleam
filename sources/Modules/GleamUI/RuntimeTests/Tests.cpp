@@ -1,20 +1,14 @@
-#include "GleamECS/Runtime/World/World.h"
 #include "GleamEngine/Runtime/Engine.h"
 #include "GleamUI/Runtime/UI.h"
 #include "GleamUI/Runtime/UISystem.h"
-#include "GleamWindow/Runtime/System/CursorSystem.h"
+#include "GleamWindow/Runtime/Cursor.h"
 #include "GleamWindow/Runtime/System/InputSystem.h"
 
 using namespace Gleam;
 
-class MySystem : public System
+class MySystem : public System<UISystem>
 {
-public:
-    MySystem(): System(GlobalUISystem)
-    {
-    }
-
-private:
+    InputSystem* inputSystem = nullptr;
     ImTextureID textureID = {};
     std::unique_ptr<GTexture2D> texture = {};
     float4x4 matrix = {
@@ -34,12 +28,6 @@ private:
         texture = std::make_unique<GTexture2D>(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, colors, sizeof(colors));
         textureID = UI::CreateTexture(*texture);
     }
-    void Stop() override
-    {
-        UI::DeleteTexture(textureID);
-        texture.reset();
-    }
-
     void Update() override
     {
         ImGui::ShowDemoWindow();
@@ -58,7 +46,7 @@ private:
 
         ImGui::ArrowButton("ArrowButton", ImGuiDir_Right);
 
-        UI::DragFloat4x4("matrix", &matrix);
+        UI::DragScalarMatrix("matrix", ImGuiDataType_Float, &matrix, 4, 4);
 
         std::unordered_map<std::string, float> map = {
             {"Test1/Test1", 2},
@@ -70,22 +58,26 @@ private:
         ImGui::DragScalarN("DragScalarN", ImGuiDataType_Float, floatValues, std::size(floatValues));
 
         //逻辑处理
-        if (GlobalInputSystem.GetKeyDown(KeyCode::Esc))
+        if (GlobalInputSystem->GetKeyDown(KeyCode::Esc))
             Engine::Stop();
 
-        if (GlobalInputSystem.GetMouseButtonDown(MouseButton::Right))
+        if (GlobalInputSystem->GetMouseButtonDown(MouseButton::Right))
         {
-            GlobalCursorSystem.SetLockState(true);
-            GlobalCursorSystem.SetVisible(false);
+            Cursor::SetLockState(true);
+            Cursor::SetVisible(false);
         }
-        else if (GlobalInputSystem.GetMouseButtonUp(MouseButton::Right))
+        else if (GlobalInputSystem->GetMouseButtonUp(MouseButton::Right))
         {
-            GlobalCursorSystem.SetLockState(false);
-            GlobalCursorSystem.SetVisible(true);
+            Cursor::SetLockState(false);
+            Cursor::SetVisible(true);
         }
     }
+    void Stop() override
+    {
+        UI::DeleteTexture(textureID);
+        texture.reset();
+    }
 };
-Gleam_MakeGlobalSystem(MySystem)
-Gleam_AddRuntimeSystems(GlobalMySystem)
+Gleam_MakeRuntimeSystem(MySystem)
 
 Gleam_Main

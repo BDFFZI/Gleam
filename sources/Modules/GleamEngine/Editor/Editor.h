@@ -1,33 +1,49 @@
 ﻿#pragma once
-#include <vector>
 
-#include "GleamECS/Runtime/System/SystemGroup.h"
-#include "GleamUtility/Runtime/Macro.h"
+#include "GleamEngine/Runtime/Engine.h"
 
 namespace Gleam
 {
     class Editor
     {
     public:
-        static void AddEditorSystems(std::initializer_list<std::reference_wrapper<System>> systems);
-        static void AddEditorOnlySystems(std::initializer_list<std::reference_wrapper<System>> systems);
-        static bool& IsPlaying();
+        static void AddPlayEvent(const std::function<void()>& event, int order = 0);
+        static void AddStopEvent(const std::function<void()>& event, int order = 0);
+        static GlobalSystemAllocator& GetEditorSystems()
+        {
+            return editorSystems;
+        }
+
+        static bool GetIsPlaying()
+        {
+            return isPlaying;
+        }
+        static bool GetIsPaused()
+        {
+            return isPaused;
+        }
+        static void SetIsPlaying(const bool isPlaying)
+        {
+            Editor::isPlaying = isPlaying;
+        }
+        static void SetIsPaused(const bool isPaused)
+        {
+            Editor::isPaused = isPaused;
+        }
 
     private:
-        friend void Editor_InterceptRuntimeSystem();
-        friend void Editor_PlayOrStopEngine();
-        static inline std::vector<std::reference_wrapper<System>> editorSystems;
-        static inline std::vector<std::reference_wrapper<System>> editorOnlySystems;
+        friend void Editor_ReplaceRuntimeSystem();
+        friend void Editor_PlayPauseStopEngine();
+        static inline std::multimap<int, std::function<void()>> playEvents;
+        static inline std::multimap<int, std::function<void()>> stopEvents;
+        static inline GlobalSystemAllocator editorSystems;
+        static inline GlobalSystemAllocator runtimeSystems;
         static inline bool isPlaying = false;
+        static inline bool isPaused = false;
     };
 
-    void Editor_InterceptRuntimeSystem();
-    void Editor_PlayOrStopEngine();
+    void Editor_ReplaceRuntimeSystem();
+    void Editor_PlayPauseStopEngine();
 
-#define Gleam_AddEditorSystems(...) Gleam_MakeInitEvent(){\
-::Gleam::Editor::AddEditorSystems({__VA_ARGS__});\
-}
-#define Gleam_AddEditorOnlySystems(...) Gleam_MakeInitEvent(){\
-::Gleam::Editor::AddEditorOnlySystems({__VA_ARGS__});\
-}
+#define Gleam_MakeEditorSystem(type) inline type* Global##type = ::Gleam::Editor::GetEditorSystems().MakeGlobalSystem<type>(Global##type);
 }

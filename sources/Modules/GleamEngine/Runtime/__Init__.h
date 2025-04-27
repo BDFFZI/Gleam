@@ -1,27 +1,4 @@
 ﻿#pragma once
-#include "Engine.h"
-#include "GleamECS/Runtime/World/World.h"
 #include "System/TimeSystem.h"
 #include "System/TransformSystem.h"
-
-#ifdef GleamEngineEditor
-#include "GleamEngine/Editor/Editor.h"
-#endif
-
-namespace Gleam
-{
-    Gleam_AddRuntimeSystems(
-        GlobalPreUpdateSystem,
-        GlobalPostUpdateSystem,
-        GlobalTimeSystem,
-        GlobalTransformSystem
-    );
-
-#ifdef GleamEngineEditor
-    Gleam_AddEditorSystems(
-        GlobalPreUpdateSystem,
-        GlobalPostUpdateSystem,
-        GlobalTransformSystem
-    );
-#endif
-}
+#include "Entity/Archetype.h"

@@ -1,51 +1,11 @@
 ﻿#include "InputSystem.h"
 
-#include "CursorSystem.h"
 #include "GleamMath/Runtime/Geometry/Geometry.h"
+#include "GleamWindow/Runtime/Cursor.h"
+#include "GleamWindow/Runtime/InputEnum.h"
 #include "GleamWindow/Runtime/Window.h"
 
 using namespace Gleam;
-
-bool InputSystem::GetIsFocus() const
-{
-    return isFocus;
-}
-bool InputSystem::GetMouseButtonDown(MouseButton mouseButton) const
-{
-    const uint8_t index = static_cast<uint8_t>(mouseButton);
-    return mouseButtonStates[index][0] == false &&
-        mouseButtonStates[index][1] == true;
-}
-bool InputSystem::GetMouseButton(MouseButton mouseButton) const
-{
-    const uint8_t index = static_cast<uint8_t>(mouseButton);
-    return mouseButtonStates[index][0] == true &&
-        mouseButtonStates[index][1] == true;
-}
-bool InputSystem::GetMouseButtonUp(MouseButton mouseButton) const
-{
-    const uint8_t index = static_cast<uint8_t>(mouseButton);
-    return mouseButtonStates[index][0] == true &&
-        mouseButtonStates[index][1] == false;
-}
-bool InputSystem::GetKeyDown(KeyCode keyCode) const
-{
-    const uint16_t index = static_cast<uint16_t>(keyCode);
-    return keyboardStates[index][0] == false &&
-        keyboardStates[index][1] == true;
-}
-bool InputSystem::GetKey(KeyCode keyCode) const
-{
-    const uint16_t index = static_cast<uint16_t>(keyCode);
-    return keyboardStates[index][0] == true &&
-        keyboardStates[index][1] == true;
-}
-bool InputSystem::GetKeyUp(KeyCode keyCode) const
-{
-    const uint16_t index = static_cast<uint16_t>(keyCode);
-    return keyboardStates[index][0] == true &&
-        keyboardStates[index][1] == false;
-}
 
 void InputSystem::Update()
 {
@@ -66,7 +26,7 @@ void InputSystem::Update()
     }
 
     //鼠标位置
-    mousePosition[0] = GlobalCursorSystem.GetLockState() ? GlobalCursorSystem.GetLockPosition() - focusArea.min : mousePosition[1];
+    mousePosition[0] = Cursor::GetLockState() ? Cursor::GetLockPosition() - focusArea.min : mousePosition[1];
     mousePosition[1] = Window::GetMousePosition() - focusArea.min;
 
     //鼠标滚轮

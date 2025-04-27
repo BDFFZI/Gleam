@@ -1,19 +1,18 @@
 ﻿#pragma once
-#include <chrono>
+
+#include <iostream>
 
 #include "UpdateSystem.h"
+#include "GleamECS/Runtime/View/View.h"
+#include "GleamEngine/Runtime/Entity/Archetype.h"
 #include "GleamReflection/Runtime/Type.h"
 #include "GleamUtility/Runtime/Timer.h"
 
 namespace Gleam
 {
-    class TimeSystem : public System
+    class TimeSystem : public System<PreUpdateSystem>
     {
     public:
-        TimeSystem(): System(GlobalPreUpdateSystem)
-        {
-        }
-
         float GetMaxDeltaTime() const { return maxDeltaTime; }
         float GetFixedDeltaTime() const { return fixedDeltaTime; }
         float GetTimeScale() const { return timeScale; }
@@ -27,32 +26,32 @@ namespace Gleam
         int GetFixedDeltaCount() const { return fixedDeltaCount; }
 
         void SetTimeScale(const float scale) { timeScale = scale; }
-        void SetAutoStepTime(bool state);
-        void SetStepTime(float stepTime);
+        void SetAutoStepTime(const bool state) { autoStepTime = state; }
+        void SetStepTime(const float stepTime) { this->stepTime = stepTime; }
 
     private:
         Gleam_MakeType_Friend
 
-        Timer<> timer;
         float maxDeltaTime = 0.1f;
         float fixedDeltaTime = 0.01f;
+
+        Timer<> timer;
+        float timeReal = 0;
+        float deltaTimeReal = 0;
+
         float timeScale = 1;
         bool autoStepTime = true;
         float stepTime = 0;
 
         int frameCount = -1;
-        float deltaTimeReal = 0;
-        float timeReal = 0;
         float deltaTime = 0;
         float time = 0;
         float fixedTime = 0;
         int fixedDeltaCount = 0;
 
-        void Start() override;
         void Update() override;
     };
-
-    Gleam_MakeTypeWithID(TimeSystem, "")
+    Gleam_MakeType(TimeSystem)
     {
         Gleam_MakeType_AddField(maxDeltaTime);
         Gleam_MakeType_AddField(fixedDeltaTime);
@@ -67,6 +66,5 @@ namespace Gleam
         Gleam_MakeType_AddField(fixedTime);
         Gleam_MakeType_AddField(fixedDeltaCount);
     }
-
-    Gleam_MakeGlobalSystem(TimeSystem)
+    Gleam_MakeRuntimeSystem(TimeSystem)
 }

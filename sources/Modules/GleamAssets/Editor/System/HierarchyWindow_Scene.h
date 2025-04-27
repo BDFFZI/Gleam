@@ -1,25 +1,20 @@
 #pragma once
-#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamEngine/Editor/System/HierarchyWindow.h"
 
 namespace Gleam
 {
-    class HierarchyWindow_Scene : public System
+    class HierarchyWindow_Scene : public RelativeSystem<HierarchyWindow, SystemRelation::After>
     {
     public:
-        HierarchyWindow_Scene(): System(GlobalHierarchyWindow, OrderRelation::After)
-        {
-        }
-
-        static void DrawScene(Scene& scene);
-        static void DrawScenePopup(Scene& scene);
+        static bool DrawSceneSystemInfoPopup(Scene& scene, const SystemInfo& systemInfo);
         static void DrawSceneSystemsPopup(Scene& scene);
         static void DrawSceneEntitiesPopup(Scene& scene);
 
-    private:
-        inline static std::vector<Scene*> removingScenes = {};
+        static void DrawScene(Scene& scene);
+        static void DrawScenePopup(Scene& scene);
 
+    private:
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(HierarchyWindow_Scene)
+    Gleam_MakeEditorSystem(HierarchyWindow_Scene)
 }

@@ -1,13 +1,16 @@
 ﻿#include "ParticleEditingSystem.h"
 
-#include "GleamECS/Runtime/View.h"
-#include "GleamMassSpring/Runtime/Component/Particle.h"
+#include "GleamECS/Runtime/View/View.h"
+#include "GleamMassSpring/Runtime/Entity/Particle.h"
 
 namespace Gleam
 {
     void ParticleEditingSystem::Update()
     {
-        View<Particle>::Each([](Particle& particle)
+        if (Editor::GetIsPlaying())
+            return;
+
+        World::GetView<Particle>().Each([](Particle& particle)
         {
             particle.lastPosition = particle.position;
         });

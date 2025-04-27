@@ -5,6 +5,7 @@
 
 #include "GleamAssets/Editor/AssetDatabase/AssetDatabase.h"
 #include "GleamAssets/Editor/AssetDatabase/AssetImporter.h"
+#include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamEngine/Editor/System/InspectorWindow.h"
 #include "GleamPersistence/Runtime/Resources.h"
 #include "GleamUI/Runtime/UI.h"
@@ -142,12 +143,12 @@ namespace Gleam
             if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
             {
                 AssetImporter& assetImporter = AssetImporter::GetImporter(path);
-                GlobalInspectorWindow.SetTarget(InspectorTarget{assetImporter});
+                GlobalInspectorWindow->SetMajorTarget(InspectorTarget{assetImporter});
             }
         }
         else
         {
-            if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+            if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                 File::OpenInAssociatedApp(path);
         }
 
@@ -213,7 +214,7 @@ namespace Gleam
                 {
                     if (ImGui::Button(std::to_string(assetSlot.GetID()).c_str()))
                     {
-                        GlobalInspectorWindow.SetTarget(InspectorTarget{
+                        GlobalInspectorWindow->SetMajorTarget(InspectorTarget{
                             assetSlot.GetAsset().GetObjectPtr(),
                             assetSlot.GetAsset().GetObjectType().GetIndex()
                         });

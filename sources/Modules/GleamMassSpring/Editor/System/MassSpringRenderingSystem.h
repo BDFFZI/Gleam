@@ -1,15 +1,12 @@
 ﻿#pragma once
+#include "ParticleEditingSystem.h"
 #include "GleamMassSpring/Runtime/System/PhysicsSystem.h"
 
 namespace Gleam
 {
-    class MassSpringRenderingSystem : public System
+    class MassSpringRenderingSystem : public RelativeSystem<PhysicsSystem, SystemRelation::After>
     {
     public:
-        MassSpringRenderingSystem(): System(GlobalPhysicsSystem, OrderRelation::After)
-        {
-        }
-
         void SetIsEnabled(bool state);
 
     private:
@@ -23,6 +20,5 @@ namespace Gleam
     {
         Gleam_MakeType_AddField(isEnabled);
     }
-
-    Gleam_MakeGlobalSystem(MassSpringRenderingSystem)
+    Gleam_MakeEditorSystem(MassSpringRenderingSystem)
 }

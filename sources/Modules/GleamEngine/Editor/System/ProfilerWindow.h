@@ -1,17 +1,13 @@
 ﻿#pragma once
 #include "EditorUISystem.h"
-#include "GleamECS/Runtime/System/SystemGroup.h"
+#include "GleamEngine/Editor/Editor.h"
 #include "GleamEngine/Editor/Profiler.h"
 
 namespace Gleam
 {
-    class ProfilerWindow : public System
+    class ProfilerWindow : public System<EditorUISystem>
     {
     public:
-        ProfilerWindow(): System(GlobalEditorUISystem)
-        {
-        }
-
         void SetProfile(Profile&& profiler);
 
     private:
@@ -23,7 +19,7 @@ namespace Gleam
         void SetShowProfile(Profile& profile);
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(ProfilerWindow)
+    Gleam_MakeEditorSystem(ProfilerWindow)
 
     void ProfilerWindow_FetchProfile();
 }

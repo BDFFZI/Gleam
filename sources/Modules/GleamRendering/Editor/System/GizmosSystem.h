@@ -1,22 +1,19 @@
 #pragma once
-#include "GleamECS/Runtime/System/SystemGroup.h"
 #include "GleamRendering/Runtime/System/RenderingSystem.h"
 
 namespace Gleam
 {
-    class GizmosSystem : public System
+    class GizmosSystem : public RelativeSystem<RenderingSystem, SystemRelation::Before>
     {
-    public:
-        GizmosSystem(): System(GlobalRenderingSystem, OrderRelation::Before)
-        {
-        }
+        friend class GizmosSystem_PostProcess;
 
-    private:
-        SystemEvent postProcessSystem = SystemEvent("GizmosSystem_PostProcess", GlobalPresentationSystem, OrderRelation::After);
-
-        void Start() override;
-        void Stop() override;
         void Update() override;
     };
-    Gleam_MakeGlobalSystem(GizmosSystem)
+    Gleam_MakeEditorSystem(GizmosSystem)
+
+    class GizmosSystem_PostProcess : public RelativeSystem<PresentationSystem, SystemRelation::After>
+    {
+        void Update() override;
+    };
+    Gleam_MakeEditorSystem(GizmosSystem_PostProcess);
 }

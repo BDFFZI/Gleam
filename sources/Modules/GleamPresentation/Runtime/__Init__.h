@@ -2,10 +2,6 @@
 
 #include "PresentationSystem.h"
 
-#ifdef GleamEngineEditor
-#include "GleamEngine/Editor/Editor.h"
-#endif
-
 namespace Gleam
 {
     //通过修改该变量可以调整Presentation初始化Graphics库的方式，UI不需要，但Render需要
@@ -23,14 +19,4 @@ namespace Gleam
         Graphics::UnInitialize();
         GL::UnInitialize();
     }
-
-    Gleam_AddRuntimeSystems(
-        GlobalPresentationSystem
-    )
-
-#ifdef GleamEngineEditor
-    Gleam_AddEditorSystems(
-        GlobalPresentationSystem
-    );
-#endif
 }

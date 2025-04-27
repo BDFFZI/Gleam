@@ -3,10 +3,64 @@
 #include <imgui.h>
 
 #include "GleamAssets/Editor/EditorSceneManager.h"
+#include "GleamEngine/Editor/EditorUI/EditorUI.h"
 #include "GleamUtility/Runtime/Ranges.h"
 
 namespace Gleam
 {
+    bool HierarchyWindow_Scene::DrawSceneSystemInfoPopup(Scene& scene, const SystemInfo& systemInfo)
+    {
+        bool result = true;
+
+        std::string id = std::format("{}SystemPopup", systemInfo.type->GetName());
+        if (ImGui::BeginPopupContextItem(id.data()))
+        {
+            if (ImGui::Button("RemoveSystem"))
+            {
+                scene.RemoveSystem(systemInfo);
+                ImGui::CloseCurrentPopup();
+                result = false;
+            }
+
+            ImGui::EndPopup();
+        }
+
+        return result;
+    }
+    void HierarchyWindow_Scene::DrawSceneSystemsPopup(Scene& scene)
+    {
+        const SystemInfo* selectedSystemInfo = nullptr;
+        ImGuiID selectSystemPopup = EditorUI::DrawSelectSystemPopup(selectedSystemInfo);
+
+        if (ImGui::BeginPopupContextItem("SystemsPopup"))
+        {
+            if (ImGui::Button("AddSystem"))
+            {
+                ImGui::CloseCurrentPopup();
+                ImGui::OpenPopup(selectSystemPopup);
+            }
+
+            ImGui::EndPopup();
+        }
+
+        if (selectedSystemInfo != nullptr)
+            scene.AddSystem(*selectedSystemInfo);
+    }
+
+    void HierarchyWindow_Scene::DrawSceneEntitiesPopup(Scene& scene)
+    {
+        if (ImGui::BeginPopupContextItem("EntitiesPopup"))
+        {
+            if (ImGui::Button("AddEntity"))
+            {
+                scene.AddEntity(World::GetEntityAllocator().AddEntity());
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
     void HierarchyWindow_Scene::DrawScene(Scene& scene)
     {
         const bool sceneCollapsing = ImGui::CollapsingHeader(scene.GetName().data());
@@ -19,10 +73,20 @@ namespace Gleam
             DrawSceneSystemsPopup(scene);
             if (systemsCollapsing)
             {
-                for (auto system : scene.GetSystems())
+                for (auto systemInfo : scene.GetSystems())
                 {
-                    if (HierarchyWindow::DrawSystem(*system) == false)
-                        break;
+                    IOrderedSystemEvent* system = World::GetSystemAllocator().TryGetSystem(*systemInfo);
+                    if (system != nullptr)
+                    {
+                        if (HierarchyWindow::DrawSystem(*system) == false)
+                            break;
+                    }
+                    else
+                    {
+                        ImGui::Button(systemInfo->type->GetName().data());
+                        if (!DrawSceneSystemInfoPopup(scene, *systemInfo))
+                            break;
+                    }
                 }
             }
 
@@ -47,55 +111,7 @@ namespace Gleam
             if (ImGui::MenuItem("Save"))
                 EditorSceneManager::SaveScene(scene);
             if (ImGui::MenuItem("Close"))
-                removingScenes.emplace_back(&scene);
-
-            ImGui::EndPopup();
-        }
-    }
-    void HierarchyWindow_Scene::DrawSceneSystemsPopup(Scene& scene)
-    {
-        ImGuiID addSystemID = ImGui::GetID("AddSystem");
-        if (ImGui::BeginPopup("AddSystem"))
-        {
-            static ImGuiTextFilter filter;
-            filter.Draw("##");
-            if (ImGui::BeginListBox("##"))
-            {
-                for (System& system : System::GetAllGlobalSystems())
-                {
-                    if (filter.PassFilter(system.GetName().data()) && ImGui::Button(system.GetName().data()))
-                    {
-                        scene.AddSystem(system);
-                        ImGui::CloseCurrentPopup();
-                        break;
-                    }
-                }
-
-                ImGui::EndListBox();
-            }
-            ImGui::EndPopup();
-        }
-
-        if (ImGui::BeginPopupContextItem("SystemsPopup"))
-        {
-            if (ImGui::Button("AddSystem"))
-            {
-                ImGui::CloseCurrentPopup();
-                ImGui::OpenPopup(addSystemID);
-            }
-
-            ImGui::EndPopup();
-        }
-    }
-    void HierarchyWindow_Scene::DrawSceneEntitiesPopup(Scene& scene)
-    {
-        if (ImGui::BeginPopupContextItem("EntitiesPopup"))
-        {
-            if (ImGui::Button("AddEntity"))
-            {
-                scene.AddEntity(World::AddEntity());
-                ImGui::CloseCurrentPopup();
-            }
+                EditorSceneManager::CloseScene(scene);
 
             ImGui::EndPopup();
         }
@@ -106,13 +122,9 @@ namespace Gleam
         if (ImGui::Begin("HierarchyWindow"))
         {
             ImGui::SeparatorText("Scene");
-            for (auto& scene : Scene::GetAllScenes() | UnwrapRef)
+            for (auto& scene : World::GetAllScenes() | UnwrapRef)
                 DrawScene(scene);
         }
         ImGui::End();
-
-        for (auto scene : removingScenes)
-            EditorSceneManager::CloseScene(*scene);
-        removingScenes.clear();
     }
 }
