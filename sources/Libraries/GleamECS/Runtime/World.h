@@ -24,7 +24,7 @@ namespace Gleam
         std::vector<std::tuple<Entity, const Archetype*>> movingEntities = {};
 
         WorldContext() = default;
-        explicit WorldContext(const std::shared_ptr<EntityInfoAllocator>& entityInfoAllocator)
+        WorldContext(const std::shared_ptr<EntityInfoAllocator>& entityInfoAllocator)
         {
             entityAllocator = EntityAllocator(entityInfoAllocator);
         }
@@ -58,6 +58,14 @@ namespace Gleam
         static WorldContext& GetCurrentContext()
         {
             return *CurrentContext;
+        }
+        static void PushWorldContext(WorldContext& worldContext)
+        {
+            worldContexts.push_back(&worldContext);
+        }
+        static void PopWorldContext()
+        {
+            worldContexts.pop_back();
         }
 
         static EntityInfoAllocator& GetEntityInfoAllocator()

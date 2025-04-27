@@ -11,7 +11,13 @@ namespace Gleam
     class SceneAssetBundle
     {
     public:
+        static WorldContext& GetPrefabWorldContext();
+
         static void GetSceneAssets(AssetBundle& assetBundle, std::string& outName, std::vector<const SystemInfo*>& outSystems, std::vector<EntityAsset*>& outEntities);
+        static Scene& Load(uuids::uuid id, bool isRunning = false);
+        static void UnLoad(uuids::uuid id);
+        static void Instantiation(uuids::uuid id);
+
         /**
          * 将Scene中数据的数据映射成AssetBundle，以便用其持久化保存Scene。
          * 注意！该资源包不托管场景对象，场景对象仍属于场景。
@@ -19,6 +25,8 @@ namespace Gleam
          * @param assetBundle 
          */
         static void MapToAssetBundle(Scene& scene, AssetBundle& assetBundle);
+
+    private:
         /**
          * 从AssetBundle中复原Scene并夺取相关资源的所有权，但保持与AssetBundle的连接。
          * @param assetBundle

@@ -1,8 +1,17 @@
 ﻿#include "SceneAssetBundle.h"
 #include "Asset/BasicSceneInfo.h"
+#include "GleamPersistence/Runtime/Resources.h"
 
 namespace Gleam
 {
+    WorldContext& SceneAssetBundle::GetPrefabWorldContext()
+    {
+        static WorldContext prefabWorldContext = {
+            World::GetMainContext().entityAllocator.GetEntityInfoAllocator()
+        };
+        return prefabWorldContext;
+    }
+
     void SceneAssetBundle::GetSceneAssets(AssetBundle& assetBundle, std::string& outName, std::vector<const SystemInfo*>& outSystems, std::vector<EntityAsset*>& outEntities)
     {
         BasicSceneInfo& sceneAsset = assetBundle.GetAsset(0).GetObject<BasicSceneInfo>();
@@ -21,6 +30,14 @@ namespace Gleam
             EntityAsset& entityAsset = assetBundle.GetAsset(i).GetObject<EntityAsset>();
             outEntities.emplace_back(&entityAsset);
         }
+    }
+    Scene& SceneAssetBundle::Load(const uuids::uuid id, bool isRunning)
+    {
+        World::PushWorldContext(GetPrefabWorldContext());
+        AssetBundle& assetBundle = Resources::Load(id);
+        World::PopWorldContext();
+
+        return SceneAssetBundle::MoveFromAssetBundle(assetBundle, isRunning);
     }
     void SceneAssetBundle::MapToAssetBundle(Scene& scene, AssetBundle& assetBundle)
     {

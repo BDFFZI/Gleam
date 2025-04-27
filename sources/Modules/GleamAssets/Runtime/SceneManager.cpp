@@ -18,7 +18,9 @@ namespace Gleam
         for (uuids::uuid id : oldScenes)
             UnloadSceneAsync(id);
 
+        World::PushWorldContext(prefabWorld);
         AssetBundle& assetBundle = Resources::Load(assetBundleID);
+        World::PopWorldContext();
 
         Scene& scene = SceneAssetBundle::MoveFromAssetBundle(assetBundle, isRunning);
         allScenes.emplace(assetBundle.GetID(), &scene);

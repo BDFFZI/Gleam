@@ -30,7 +30,7 @@ namespace Gleam
     private:
         friend void SceneManager_ClearAssetBundle();
         friend void SceneManager_FlushRemovingScenes();
-
+        
         inline static std::unordered_map<uuids::uuid, Scene*> allScenes = {};
         inline static std::vector<uuids::uuid> removingScenes = {};
     };
